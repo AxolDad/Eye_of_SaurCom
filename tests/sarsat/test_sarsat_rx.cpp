@@ -87,6 +87,10 @@ int main() {
         countFound(run(cfg, rate, seconds), "+11.5 kHz");
         cfg.cfoHz = -11500;
         countFound(run(cfg, rate, seconds), "-11.5 kHz");
+        cfg.cfoHz = 40000;
+        countFound(run(cfg, rate, seconds), "+40 kHz (wide transponder)");
+        cfg.cfoHz = -40000;
+        countFound(run(cfg, rate, seconds), "-40 kHz (wide transponder)");
         cfg.cfoHz = 300; cfg.snrDb = 14;
         countFound(run(cfg, rate, seconds * 2), "14 dB");
     }
