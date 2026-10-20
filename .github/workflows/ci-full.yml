@@ -4,6 +4,8 @@ name: Full CI
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "17 2 * * *"   # nightly: only the slow tier (ctest -L slow)
 
 # ccache as in ci.yml (see the comment there for the cache keys); one cache per job/matrix entry.
 env:
@@ -52,7 +54,7 @@ jobs:
         if: always()
         run: ccache -s
       - name: Test
-        run: ctest --test-dir build -j 4 --output-on-failure --timeout 1500
+        run: ctest --test-dir build -j 4 ${{ github.event_name == 'schedule' && '-L slow' || '' }} --output-on-failure --timeout 1500
 
   windows:
     name: Windows x64 (MinGW-w64)
@@ -82,7 +84,7 @@ jobs:
         if: always()
         run: ccache -s
       - name: Test
-        run: ctest --test-dir build -j 4 --output-on-failure --timeout 1500
+        run: ctest --test-dir build -j 4 ${{ github.event_name == 'schedule' && '-L slow' || '' }} --output-on-failure --timeout 1500
 
   app:
     name: GUI (${{ matrix.name }})
