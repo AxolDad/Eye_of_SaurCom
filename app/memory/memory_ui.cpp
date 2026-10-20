@@ -350,7 +350,7 @@ void memoryTabItem(App& a) {
 }
 
 void memoryMenu(App& a) {
-    if (ImGui::BeginMenu("M###memmenu")) {
+    if (ImGui::BeginMenu((std::string(tr("Memory")) + "###memmenu").c_str())) {
         if (ImGui::MenuItem(tr("Memory panel..."), "Ctrl+M", a.memoryOpen)) a.memoryOpen = !a.memoryOpen;
         if (ImGui::MenuItem(tr("Store current..."))) { a.memoryOpen = true; storeCurrent(a); }
         if (ImGui::MenuItem(tr("Show Memory as a tab"), nullptr, a.memoryTab)) { a.memoryTab = !a.memoryTab; plat::prefs().setB("memTab", a.memoryTab); }
