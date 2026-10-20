@@ -32,8 +32,8 @@ ModeTuning sarsatTuning() {
     t.defMhz = sarsat::kDefaultMhz;
     t.sampleRate = 256000;
     t.basebandHz = 16000;
-    t.bandwidthMhz = 0.032;
-    t.minSampleRate = 64000;
+    t.bandwidthMhz = 0.1;
+    t.minSampleRate = 128000;
     t.tuneOffsetHz = 20000;
     return t;
 }
@@ -150,7 +150,7 @@ bool demodBurst(const std::vector<cf32>& x, double carrierHz, Beacon& out) {
         if ((i & 1023) == 1023) lo /= std::abs(lo);
     }
     const double spb0 = kFs / kBitRate;
-    const double rates[] = {-0.01, -0.005, 0.0, 0.005, 0.01};
+    const double rates[] = {-0.01, -0.0075, -0.005, -0.0025, 0.0, 0.0025, 0.005, 0.0075, 0.01};
     std::vector<Cand> cands;
     for (double r : rates) {
         const double spb = spb0 * (1 + r);
@@ -198,7 +198,8 @@ struct SarsatReceiver::Impl {
     double binEnd = 0;
 
     // the 32 kHz stream
-    static constexpr size_t kRing = 65536, kBlock = 1024;
+    static constexpr double kDet = 128000.0;   // detection rate: +-46 kHz searched, the 100 kHz transponder passband
+    static constexpr size_t kRing = 262144, kBlock = 4096;
     std::vector<cf32> ring = std::vector<cf32>(kRing);
     uint64_t n32 = 0;
     std::vector<float> win = std::vector<float>(kBlock);
@@ -223,14 +224,14 @@ struct SarsatReceiver::Impl {
         const double w = -2 * kPi * offHz / (fs > 0 ? fs : 1);
         stRe = std::cos(w); stIm = std::sin(w);
         accRe = accIm = 0; accN = 0; nIn = 0; k32 = 0;
-        binEnd = fs > 0 ? fs / kFs : 0;
+        binEnd = fs > 0 ? fs / kDet : 0;
         n32 = 0;
         std::fill(bg.begin(), bg.end(), 0.f);
         warm = 0; active = false; miss = 0; dets = 0; peaks.clear();
         lastDecodeSec = -1e9; lastPublish = 0;
     }
 
-    double timeSec() const { return (double)n32 / kFs; }
+    double timeSec() const { return (double)n32 / kDet; }
 
     void publish() {
         tel.timeSec = timeSec();
@@ -240,18 +241,32 @@ struct SarsatReceiver::Impl {
 
     void finishBurst() {
         active = false;
-        if (dets >= 3) {
+        if (dets >= 4 && peakSnr >= 10.f) {
             tel.bursts++;
-            const uint64_t start = firstBlockStart >= 2048 ? firstBlockStart - 2048 : 0;
-            const uint64_t from = n32 > kRing - 1024 && start < n32 - (kRing - 1024) ? n32 - (kRing - 1024) : start;
+            const uint64_t start = firstBlockStart >= 8192 ? firstBlockStart - 8192 : 0;
+            const uint64_t from = n32 > kRing - 4096 && start < n32 - (kRing - 4096) ? n32 - (kRing - 4096) : start;
             std::vector<cf32> x;
             x.reserve((size_t)(n32 - from));
             for (uint64_t i = from; i < n32; i++) x.push_back(ring[(size_t)(i & (kRing - 1))]);
             std::vector<double> pk(peaks.begin(), peaks.begin() + std::min<size_t>(4, peaks.size()));
             std::sort(pk.begin(), pk.end());
             const double carrier = pk[pk.size() / 2];
+            // mix the carrier to 0 and average 4:1 down to the 32 kHz the demodulator works at
+            std::vector<cf32> y;
+            y.reserve(x.size() / 4 + 1);
+            {
+                const double w = -2 * kPi * carrier / kDet;
+                double ph = 0;
+                cf32 acc(0, 0);
+                for (size_t i = 0; i < x.size(); i++) {
+                    acc += x[i] * cf32((float)std::cos(ph), (float)std::sin(ph));
+                    ph += w;
+                    if ((i & 3) == 3) { y.push_back(acc * 0.25f); acc = cf32(0, 0); }
+                }
+            }
             sarsat::Beacon b;
-            if (sarsat::demodBurst(x, carrier, b)) {
+            const bool got = sarsat::demodBurst(y, 0.0, b);
+            if (got) {
                 SarsatEntry e;
                 e.wallTime = (int64_t)std::time(nullptr);
                 e.timeSec = timeSec();
@@ -288,7 +303,7 @@ struct SarsatReceiver::Impl {
         fft.forward(buf.data());
         std::vector<float> p(kBlock);
         for (size_t k = 0; k < kBlock; k++) p[k] = buf[k].real() * buf[k].real() + buf[k].imag() * buf[k].imag();
-        const size_t kMax = (size_t)(14500.0 / kFs * (double)kBlock);   // keep to +-14.5 kHz: the edges are attenuated by the average
+        const size_t kMax = (size_t)(46000.0 / kDet * (double)kBlock);   // keep to +-46 kHz: the edges are attenuated by the average
         auto allowed = [&](size_t k) { return k <= kMax || k >= kBlock - kMax; };
         std::vector<float> sel;
         sel.reserve(kBlock);
@@ -307,7 +322,7 @@ struct SarsatReceiver::Impl {
             const double den = la - 2 * lb + lc;
             const double delta = std::fabs(den) > 1e-9 ? 0.5 * (la - lc) / den : 0.0;
             const double bin = (double)(pk < kBlock / 2 ? (long)pk : (long)pk - (long)kBlock) + std::max(-1.0, std::min(1.0, delta));
-            f = bin * kFs / (double)kBlock;
+            f = bin * kDet / (double)kBlock;
             const float nm = med / 0.6931f;
             const float s3 = p[a] + p[pk] + p[c];
             snr = 10.f * std::log10(std::max(1e-3f, (s3 - 3 * nm) / (1.5f * nm)));
@@ -321,9 +336,9 @@ struct SarsatReceiver::Impl {
         } else if (active) {
             miss++;
         }
-        if (active && (miss >= 6 || n32 - firstBlockStart > (uint64_t)(0.9 * kFs))) finishBurst();
+        if (active && (miss >= 6 || n32 - firstBlockStart > (uint64_t)(0.9 * kDet))) finishBurst();
         if (!active && !det) {
-            for (size_t k = 0; k < kBlock; k++) bg[k] = warm == 0 ? p[k] : bg[k] * 0.98f + p[k] * 0.02f;
+            for (size_t k = 0; k < kBlock; k++) bg[k] = warm == 0 ? std::min(p[k], 4.f * med) : bg[k] * 0.98f + std::min(p[k], 4.f * med) * 0.02f;   // a carrier present during the warm-up must not be learnt as background
             if (warm < 1000) warm++;
         }
         tel.levelDb = active ? tel.levelDb : 10.f * std::log10((float)(pw / kBlock) + 1e-12f);
@@ -391,7 +406,7 @@ void SarsatReceiver::feed(const cf32* x, size_t n) {
     std::lock_guard<std::mutex> lk(p_->mu);
     Impl& m = *p_;
     if (!m.rateSet) { m.tel.state = 0; return; }
-    const double binW = m.fs / kFs;
+    const double binW = m.fs / Impl::kDet;
     for (size_t i = 0; i < n; i++) {
         float re = x[i].real(), im = x[i].imag();
         if (!std::isfinite(re) || !std::isfinite(im)) re = im = 0;
