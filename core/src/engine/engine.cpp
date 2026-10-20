@@ -294,6 +294,7 @@ void Engine::applyReset() {
     rxVdl4_.reset();
     rxHrpt_.reset();
     autoMark_ = nSamp_ / std::max(1.0, rate_.load()); lastLockSec_ = autoMark_;
+    analyzer_.resize(specFft_.load() > 0 ? (size_t)specFft_.load() : SpectrumAnalyzer::autoSize(rate_.load()));   // finer bins for a wide capture
     analyzer_.reset();
     {
         std::lock_guard<std::mutex> lk(tsMu_);

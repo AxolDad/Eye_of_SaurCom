@@ -630,6 +630,7 @@ void EndPlot() {
                 C.dl->AddLine(ImVec2(std::floor(x) + 0.5f, C.plot.Max.y), ImVec2(std::floor(x) + 0.5f, C.plot.Max.y + tickLen * 0.5f), txt);
                 const ImVec2 s = ImGui::CalcTextSize(t.label.c_str());
                 if (x - s.x * 0.5f < lastEnd + 4 * sc) continue;
+                if (x - s.x * 0.5f < C.frame.Min.x || x + s.x * 0.5f > C.frame.Max.x) continue;   // a label that would leave the panel is dropped, not squeezed against the edge (#230)
                 lastEnd = x + s.x * 0.5f;
                 C.dl->AddText(ImVec2(x - s.x * 0.5f, C.plot.Max.y + tickLen * 0.5f), txt, t.label.c_str());
             } else {

@@ -68,7 +68,7 @@ using namespace dect2;
 // ------------------------------------------------------------------ waterfall texture
 
 struct Waterfall {
-    static constexpr int W = 4096, H = 512;
+    static constexpr int W = 8192, H = 512;
     enum Map { Classic = cmap::Classic, Viridis = cmap::Viridis, Inferno = cmap::Inferno, Grey = cmap::Grey, Turbo = cmap::Turbo, Cividis = cmap::Cividis, NumMaps = cmap::NumMaps };   // Cividis: made to read the same with red-green colour blindness
     static const char* mapName(int m) {
         static const char* const n[NumMaps] = {"Classic", "Viridis", "Inferno", "Grey", "Turbo", "Cividis"};
@@ -485,6 +485,8 @@ struct App {
     float holdDecay = 4.5f;             // dB a second the max-hold line falls (0: it stays until it is reset)
     float specAvgSec = 0.08f;           // time constant of the averaged trace in seconds (0: the raw frames)
     bool specLabels = true; int specLabelMask = 63;   // names drawn on the spectrum and the waterfall (gfx/autolabel.cpp); the mask: which sources (band plan, frequency database, FM, DAB, DVB, memories)
+    int specFft = 0;           // spectrum FFT size: 0 = automatic from the sample rate (8192..65536 bins), else 4096..65536
+    float specLine = 1.2f;     // thickness of the spectrum trace
     bool specFill = true, specGrid = true, specPeaks = false, specReadout = true, specDbm = false;   // fill under the line, grid, peak markers, level at the cursor, dBm instead of dBFS
     double specLastT = 0;               // when the last spectrum frame came in
     ImFont* mono = nullptr;

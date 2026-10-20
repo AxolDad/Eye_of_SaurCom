@@ -27,11 +27,13 @@ public:
     explicit SpectrumAnalyzer(size_t fftSize = 4096);
     ~SpectrumAnalyzer();
     size_t fftSize() const { return n_; }
+    static size_t autoSize(double sampleRate);   // the size that gives bins of about 250 Hz or finer, 8192..65536
 
     // consume samples, averages up to 32 blocks per frame
     void feed(const cf32* x, size_t n);
     bool takeFrame(SpectrumFrame& out); // false if nothing accumulated
     void setTransform(bool on);         // off = stats only
+    void resize(size_t fftSize);        // power of two, 1024..65536: a new transform size (drops the accumulated data)
     void reset();                       // forget accumulated data (after retuning)
 
 private:

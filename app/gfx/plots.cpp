@@ -730,6 +730,21 @@ void specDisplayPopup(App& a) {
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Frequency and level of the strongest peaks in view"));
     if (ImGui::Checkbox(tr("Level at the cursor"), &a.specReadout)) save = true;
     if (ImGui::Checkbox(tr("Fill under the line"), &a.specFill)) save = true;
+    ImGui::SetNextItemWidth(110 * gUi);
+    if (ImGui::SliderFloat(tr("Line thickness"), &a.specLine, 0.6f, 3.f, "%.1f", ImGuiSliderFlags_AlwaysClamp)) save = true;
+    {
+        static const int kFft[] = {0, 4096, 8192, 16384, 32768, 65536};
+        char cur[24]; if (a.specFft == 0) snprintf(cur, sizeof cur, "%s (%zu)", tr("Auto"), a.spec.dbfs.size()); else snprintf(cur, sizeof cur, "%d", a.specFft);
+        ImGui::SetNextItemWidth(110 * gUi);
+        if (ImGui::BeginCombo(tr("FFT size"), cur)) {
+            for (int v : kFft) {
+                char lb[16]; if (v == 0) snprintf(lb, sizeof lb, "%s", tr("Auto")); else snprintf(lb, sizeof lb, "%d", v);
+                if (ImGui::Selectable(lb, a.specFft == v)) { a.specFft = v; a.engine.setSpectrumFft(v); save = true; }
+            }
+            ImGui::EndCombo();
+        }
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Bins in the spectrum: more is finer but costs more CPU. Auto follows the sample rate."));
+    }
     if (ImGui::Checkbox(tr("Grid"), &a.specGrid)) save = true;
     ImGui::Separator();
     ImGui::TextDisabled("%s", tr("Spectrum click"));
@@ -798,7 +813,7 @@ static void spectrumPlot(App& a, ImVec2 size, int extraFlags) {
     static double ctxMhz = 0;
     if (plt::BeginPlot("##spec", size, plt::Flags_NoLegend | plt::Flags_NoTitle | plt::Flags_Overlay | plt::Flags_SmoothZoom | extraFlags | (a.family == 55 && generalDragging(0) ? plt::Flags_NoPan : 0) | (a.identifyTool || ImGui::GetIO().KeyShift ? plt::Flags_NoPan : 0))) {
         drawn = true;
-        plt::SetupAxes(nullptr, kYLabel, plt::AxisFlags_Inside | (a.specGrid ? 0 : plt::AxisFlags_NoGridLines), plt::AxisFlags_Inside | (a.specGrid ? 0 : plt::AxisFlags_NoGridLines));   // the frequencies along the bottom edge, inside, as in SDR++
+        plt::SetupAxes(nullptr, kYLabel, (a.specGrid ? 0 : plt::AxisFlags_NoGridLines), plt::AxisFlags_Inside | (a.specGrid ? 0 : plt::AxisFlags_NoGridLines));   // the frequencies along the bottom edge, inside, as in SDR++
         setupFreqAxis(a);
         // The dB range follows the spectrum dB fields and the keys: a change there sets the axis at once (the plot otherwise keeps the
         // range the mouse dragged or zoomed to, and that range is written back into the fields, so the two never disagree) (#91)
@@ -838,10 +853,10 @@ static void spectrumPlot(App& a, ImVec2 size, int extraFlags) {
             }
             plt::envelope(a.smooth, x0, dx, vis.X.Min, vis.X.Max, wpx, ex, ey);
             if (a.specFill && !ex.empty()) {
-                plt::Spec fs; fs.FillColor = pal::accent(0.24f); fs.FillFade = 0.85f; fs.LineColor = ImVec4(0, 0, 0, 0);
+                plt::Spec fs; fs.FillColor = pal::accent(0.18f); fs.FillFade = 0.85f; fs.LineColor = ImVec4(0, 0, 0, 0);
                 plt::PlotShaded("fill", ex.data(), ey.data(), (int)ex.size(), vis.Y.Min, fs);
             }
-            plt::Spec ss; ss.LineColor = pal::accent(); ss.LineWeight = 1.5f;
+            plt::Spec ss; ss.LineColor = pal::accent(); ss.LineWeight = a.specLine;
             plt::PlotLine("spectrum", ex.data(), ey.data(), (int)ex.size(), ss);
             if (a.specPeaks && ex.size() >= 8) {   // the strongest peaks in view, at least 6% of the view apart, and 12 dB over the mean level
                 double mean = 0;
