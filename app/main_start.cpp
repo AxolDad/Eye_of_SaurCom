@@ -21,7 +21,7 @@
 #include "state/workspace.h"
 
 // the startup guard (a start that keeps crashing), the first-start tour and setup, the radio list and the results of the last run
-void startApp(App& app, int argc) {
+void startApp(App& app, int argc, char** argv) {
     // startup guard: a start that keeps crashing (a saved setting that breaks it, #59) must not repeat forever. After one unfinished
     // start the other interface is tried (the classic and the new one share little drawing code); after two in a row the saved
     // settings are set aside and OnAir starts with the defaults

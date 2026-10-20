@@ -22,7 +22,7 @@ extern bool gWayland;            // main_window.cpp: running on a native Wayland
 
 GLFWwindow* createMainWindow(int argc, char** argv);            // main_window.cpp: null when there is no window
 void loadFonts(App& app, ImGuiIO& io);                           // main_window.cpp
-void startApp(App& app, int argc);                               // main_start.cpp: startup guard, first-run dialogs, radios, last results
+void startApp(App& app, int argc, char** argv);                               // main_start.cpp: startup guard, first-run dialogs, radios, last results
 void parseDevFlags(App& app, int argc, char** argv, DevOpts& o); // main_start.cpp
 bool anyRunning();                                               // ui/main_tabs.cpp
 void lightenDrawData(ImDrawData* dd, bool light = true, bool highContrast = false);   // ui/light_theme.cpp

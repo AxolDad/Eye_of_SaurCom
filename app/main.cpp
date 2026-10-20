@@ -293,7 +293,7 @@ int main(int argc, char** argv) {
     if (gWayland) ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;   // see chooseGlfwPlatform()
 
     app.wf.init(gfxBackend);
-    startApp(app, argc);
+    startApp(app, argc, argv);
     DevOpts o;
     parseDevFlags(app, argc, argv, o);
     double last = glfwGetTime();
