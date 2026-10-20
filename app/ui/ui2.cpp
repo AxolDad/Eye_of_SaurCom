@@ -228,15 +228,22 @@ void drawShell2(App& a, ImVec2 disp) {
     ImGui::Begin("##root", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoSavedSettings);
     if (face) ImGui::PopStyleColor();
     ImGui::PopStyleVar();
-    ImGui::Dummy(ImVec2(6 * gUi + ImGui::GetFrameHeight() * 3.2f, ImGui::GetFrameHeight() + 8 * gUi));
+    ImGui::Dummy(ImVec2(6 * gUi + ImGui::GetFrameHeight() * 4.8f, ImGui::GetFrameHeight() + 8 * gUi));
     ImGui::SetCursorPos(ImVec2(6 * gUi, 4 * gUi));
     txViewSwitch(a);   // RX / TX, top left
     ImGui::SetCursorPosX(0);
     const float sbH = ImGui::GetFrameHeight() + 8 * gUi;
-    if (txViewFlag()) txTopBar(a, disp);   // the transmit view has its own top bar (the same frequency digits) and no side list
+    if (hamViewFlag()) {}   // the Ham view has no top bar of its own: the receiver keeps its
+    else if (txViewFlag()) txTopBar(a, disp);   // the transmit view has its own top bar (the same frequency digits) and no side list
     else if (!face) topBar(a, disp);
     const float bodyH = ImGui::GetContentRegionAvail().y - sbH;
-    if (txViewFlag()) {
+    if (hamViewFlag()) {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10 * gUi, 6 * gUi));
+        ImGui::BeginChild("##hambody", ImVec2(0, bodyH), ImGuiChildFlags_AlwaysUseWindowPadding);
+        ImGui::PopStyleVar();
+        hamPanel(a);
+        ImGui::EndChild();
+    } else if (txViewFlag()) {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10 * gUi, 6 * gUi));
         ImGui::BeginChild("##txbody", ImVec2(0, bodyH), ImGuiChildFlags_AlwaysUseWindowPadding);
         ImGui::PopStyleVar();
