@@ -37,10 +37,35 @@ HellP params(int v) {
     }
 }
 
-// the bits of column `col` of a character (bit k: pixel k in the order sent, bottom row first), -1 when the character has ended
-int fontColumn(int c, int col) {
-    if (col > 15 || c < ' ' || c > '~') return -1;
-    const unsigned short* g = kHellFont[c - ' '];
+} // namespace
+
+// Latin-1 letters 0xC0 .. 0xFF: base letter and accent (g grave, a acute, c circumflex, t tilde, d diaeresis, r ring, '-' none)
+bool hellGlyph(int cp, unsigned short out[14]) {
+    static const char* kBase = "AAAAAAACEEEEIIIIDNOOOOO*OUUUUYTsaaaaaaaceeeeiiiidnooooo/ouuuuyty";
+    static const char* kAcc  = "gactdr--gacdgacd-tgactd--gacda--gactdr--gacdgacd-tgactd--gacda-d";
+    int base = cp;
+    char acc = '-';
+    bool ok = true;
+    if (cp >= 0xC0 && cp <= 0xFF) {
+        base = (uint8_t)kBase[cp - 0xC0]; acc = kAcc[cp - 0xC0];
+        if (base == 's') base = 'B'; else if (base == 'T' || base == 't') base = 'P'; else if (base == '*') base = 'x';
+        if (base == 'P' + 0 && cp == 0xFE) base = 'p';
+    } else if (cp == 0xA0 || cp == '\t') base = ' ';
+    else if (cp >= 0x20 && cp <= 0x7E) base = cp;
+    else { base = '?'; ok = false; }
+    for (int i = 0; i < 14; i++) out[i] = kHellFont[base - ' '][i];
+    unsigned short m = 0;
+    switch (acc) { case 'g': m = 0x4000; break; case 'a': m = 0x2000; break; case 'c': m = 0x5000; break; case 't': m = 0x6800; break;
+                   case 'd': m = 0x5000; break; case 'r': m = 0x6000; break; default: break; }
+    if (m) { out[0] |= m; out[1] |= m; }
+    return ok;
+}
+
+namespace {
+
+// the bits of column `col` of a glyph (bit k: pixel k in the order sent, bottom row first), -1 when the character has ended
+int fontColumn(const unsigned short* g, int col) {
+    if (col > 15) return -1;
     int ord = 0;
     for (int i = 0; i < 14; i++) ord |= g[i];
     const int mask = 1 << (15 - col);
@@ -63,6 +88,12 @@ public:
     void next(std::vector<float>& out, TextSrc& src) override {
         if (pix_.empty()) {
             int c = src.next();
+            if (c >= 0x80) {   // UTF-8: gather the continuation bytes
+                const int n = c >= 0xF0 ? 3 : c >= 0xE0 ? 2 : c >= 0xC0 ? 1 : 0;
+                int cp = n == 3 ? (c & 7) : n == 2 ? (c & 15) : (c & 31);
+                for (int i = 0; i < n; i++) cp = (cp << 6) | (src.next() & 63);
+                c = n ? cp : '?';
+            }
             if (c == '\r' || c == '\n') c = ' ';
             pendChar(c);
         }
@@ -76,7 +107,9 @@ private:
         if (c == ' ') { nullColumn(); nullColumn(); nullColumn(); }
         else {
             int col = 0, bits;
-            while ((bits = fontColumn(c, col)) != -1) {
+            unsigned short g[14];
+            hellGlyph(c, g);
+            while ((bits = fontColumn(g, col)) != -1) {
                 for (int i = 0; i < 14; i++) pix_.push_back((bits >> i) & 1);
                 col++;
             }

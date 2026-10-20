@@ -82,12 +82,16 @@ void bandButtons(App& a, int fam) {
 }
 
 void hellPicture(App& a, const HfdigKbdTelemetry& k) {
+    static bool invert = false, dual = false;
+    ImGui::Checkbox("Invert (black on white)", &invert); ImGui::SameLine(0, 10 * gUi);
+    ImGui::Checkbox("Dual line", &dual);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Every line is drawn twice, the second copy half a line later, so a character cut by the line end or a slanted picture is whole in one of them");
     ImGui::BeginChild("##hellpic", ImVec2(0, 0), ImGuiChildFlags_Borders);
     ImDrawList* dl = ImGui::GetWindowDrawList();
     const ImVec2 p0 = ImGui::GetCursorScreenPos();
     const ImVec2 avail = ImGui::GetContentRegionAvail();
     const float px = std::max(2.f, std::floor(2.5f * gUi)), gap = 6 * gUi;
-    const float lineH = 14 * px + gap;
+    const float lineH = (dual ? 28 : 14) * px + gap + (dual ? px : 0);
     const int perLine = std::max(8, (int)(avail.x / px));
     const int lines = std::max(1, (int)(avail.y / lineH));
     const int total = k.hellCols;
@@ -99,16 +103,23 @@ void hellPicture(App& a, const HfdigKbdTelemetry& k) {
     // the newest columns fill the last line; lines above hold the older ones
     int nLines = std::min(lines, (total + perLine - 1) / perLine);
     int first = std::max(0, total - perLine * nLines);
-    const ImU32 bg = IM_COL32(18, 20, 24, 255);
+    const ImU32 bg = invert ? IM_COL32(245, 245, 240, 255) : IM_COL32(18, 20, 24, 255);
     dl->AddRectFilled(p0, ImVec2(p0.x + avail.x, p0.y + avail.y), bg);
-    for (int c = first; c < total; c++) {
-        const int li = (c - first) / perLine, ci = (c - first) % perLine;
-        const float x = p0.x + ci * px, y = p0.y + li * lineH;
-        const uint8_t* col = &k.hell[(size_t)c * kKbdHellRows];
-        for (int r = 0; r < kKbdHellRows; r++) {
-            if (col[r] < 40) continue;
-            const int v = col[r];
-            dl->AddRectFilled(ImVec2(x, y + r * px), ImVec2(x + px, y + (r + 1) * px), IM_COL32(60 + v * 195 / 255, 70 + v * 185 / 255, 60 + v * 150 / 255, 255));
+    const int copies = dual ? 2 : 1;
+    for (int cp = 0; cp < copies; cp++) {
+        const int shift = cp * (perLine / 2);   // the second copy is half a line further on
+        for (int c = first + shift; c < total; c++) {
+            const int li = (c - first - shift) / perLine, ci = (c - first - shift) % perLine;
+            if (li >= nLines) break;
+            const float x = p0.x + ci * px, y = p0.y + li * lineH + cp * (14 * px + px);
+            const uint8_t* col = &k.hell[(size_t)c * kKbdHellRows];
+            for (int r = 0; r < kKbdHellRows; r++) {
+                if (col[r] < 40) continue;
+                const int v = col[r];
+                const ImU32 ink = invert ? IM_COL32(235 - v * 235 / 255, 235 - v * 235 / 255, 235 - v * 235 / 255, 255)
+                                         : IM_COL32(60 + v * 195 / 255, 70 + v * 185 / 255, 60 + v * 150 / 255, 255);
+                dl->AddRectFilled(ImVec2(x, y + r * px), ImVec2(x + px, y + (r + 1) * px), ink);
+            }
         }
     }
     ImGui::EndChild();

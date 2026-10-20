@@ -240,10 +240,12 @@ int main() {
             }
     }
     {   // Hell: the picture of every variant against the pixels of the font
-        for (int v = 0; v < 7; v++) {
+        for (int vv = 0; vv < 8; vv++) {
+            const int v = vv < 7 ? vv : 0;
+            const bool uni = vv == 7;   // UTF-8 text: accented Latin letters (issue 225)
             KbdTxConfig c;
             c.cfg.family = KbdHell; c.cfg.variant = v;
-            c.text = "LY0AIR 73 ";
+            c.text = uni ? "L\xC3\xA9\xC3\xB1\xC3\x84 73 " : "LY0AIR 73 ";
             const double colRate = v == 1 ? 2.1875 : v == 2 ? 35 : v == 3 ? 87.5 : v == 4 ? 157.5 : 17.5;
             const double sec = std::min(300.0, 130 / colRate + 20);
             auto gen = makeKbdTx(c);
@@ -265,11 +267,14 @@ int main() {
             std::vector<std::vector<int>> ideal;
             auto nullCol = [&] { ideal.push_back(std::vector<int>(14, 0)); };
             for (int rep = 0; rep < 2; rep++)
-                for (char ch : c.text) {
+                for (size_t ti = 0; ti < c.text.size(); ti++) {
+                    int ch = (uint8_t)c.text[ti];
+                    if (ch == 0xC3) ch = 0xC0 + ((uint8_t)c.text[++ti] & 63);
                     nullCol();
                     if (ch == ' ') { nullCol(); nullCol(); nullCol(); }
                     else {
-                        const unsigned short* g = kbd::kHellFont[ch - ' '];
+                        unsigned short g[14];
+                        kbd::hellGlyph(ch, g);
                         int ord = 0; for (int i = 0; i < 14; i++) ord |= g[i];
                         for (int col = 0; col < 16; col++) {
                             std::vector<int> cl(14, 0); int any = 0;
