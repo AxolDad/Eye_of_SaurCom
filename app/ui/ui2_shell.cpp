@@ -13,6 +13,7 @@
 #else
 #include <sys/resource.h>
 #endif
+#include "dect2/engine/overload_hint.h"
 #include "../platform/discord_rpc.h"
 #include "../panels/report_problem.h"
 
@@ -315,6 +316,8 @@ void statusLine(App& a) {
     if (run) { snprintf(b, sizeof b, tr("level %.1f dBFS"), a.spec.stats.rmsDbfs); field(b); }
     if (run) {
         const SampleLoss l = a.engine.sampleLoss();
+        static OverloadHint hint;   // once per start: DSP drops repeating within 5 s
+        if (hint.update(l.cpuEvents, ImGui::GetTime())) a.engine.log(tr("This mode is too slow for this computer: samples are being dropped. Try a lower sample rate or a narrower mode."));
         if (l.live) { snprintf(b, sizeof b, tr("load %.0f%%"), l.loadPct); field(b, false, l.loadPct > 90 ? pal::warnAmber() : ImVec4(-1, 0, 0, 0)); lossTooltip(l); }
         if (l.radioEvents || l.cpuEvents || l.rateLow) { field((std::string(tr("dropped")) + " " + lossText(l)).c_str(), false, lossColour(l)); lossTooltip(l); }
     }
