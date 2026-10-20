@@ -139,6 +139,25 @@ void SpectrumAnalyzer::feed(const cf32* x, size_t n) {
 
 void SpectrumAnalyzer::setTransform(bool on) { p_->transform = on; }
 
+size_t SpectrumAnalyzer::autoSize(double fs) {
+    size_t n = 8192;
+    while (n < 32768 && fs / (double)n > 250.0) n *= 2;
+    return n;
+}
+
+void SpectrumAnalyzer::resize(size_t fftSize) {
+    fftSize = std::min<size_t>(65536, std::max<size_t>(1024, fftSize));
+    size_t pw = 1024; while (pw < fftSize) pw *= 2;
+    Impl& s = *p_;
+    std::lock_guard<std::mutex> lk(s.mu);
+    if (pw == n_) return;
+    n_ = pw;
+    s.log2n = (int)std::lround(std::log2((double)n_));
+    s.window.resize(n_); hannWindowNorm(s.window.data(), (int)n_);
+    s.re.assign(n_, 0.f); s.im.assign(n_, 0.f); s.accum.assign(n_, 0.f);
+    s.pending.clear(); s.blocks = 0;
+}
+
 void SpectrumAnalyzer::reset() {
     Impl& s = *p_;
     std::lock_guard<std::mutex> lk(s.mu);

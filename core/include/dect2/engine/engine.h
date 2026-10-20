@@ -251,6 +251,7 @@ public:
     bool latestSpectrum(SpectrumFrame& out, uint64_t lastSeq);
     // no spectrum fft when headless, autobw needs it
     void setSpectrumEnabled(bool on) { analyzer_.setTransform(on); }
+    void setSpectrumFft(int n) { specFft_ = n; if (n > 0) analyzer_.resize((size_t)n); else analyzer_.resize(SpectrumAnalyzer::autoSize(rate_.load())); }   // 0: automatic from the sample rate
 
     bool latestRx(RxTelemetry& out, uint64_t lastSeq);
 
@@ -613,6 +614,7 @@ private:
     bool recSigmf_ = true;
     std::unique_ptr<IqSource> src_;
     SpectrumAnalyzer analyzer_{8192};
+    std::atomic<int> specFft_{0};
     T2Receiver rx_;
     DvbtReceiver rxT_;
     AtscReceiver rxA_;
