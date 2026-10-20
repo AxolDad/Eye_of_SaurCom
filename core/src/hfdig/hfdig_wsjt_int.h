@@ -111,6 +111,11 @@ void addJt9(const std::vector<int>& tones, double f0, double amp, double rate, d
 void convEncode32(const uint8_t* data, int nbits, uint8_t* coded);             // nbits data bits (MSB first per byte), + 31 zero tail bits
 bool fano32(const float* llr, int nbits, uint8_t* data, long maxCycles);      // llr > 0 means 1, 2 * (nbits + 31) values
 
+// ---------------------------------------------------------------- JT4 (hfdig_jt4.cpp)
+std::vector<int> jt4Tones(const std::string& msg);                             // 206 tones 0 .. 3 (tone = sync bit + 2 data bit); empty when unsendable
+std::vector<FtxDecode> decodeJt4(const Slot& s);                               // s.sub: 0 A .. 6 G
+void addJt4(const std::vector<int>& tones, int sub, double f0, double amp, double rate, double start, std::vector<float>& out);
+
 // ---------------------------------------------------------------- Q65 (hfdig_q65.cpp, hfdig_q65_tables.cpp)
 struct QraCode {   // the Q-ary repeat-accumulate code of Q65 (qracodes.h)
     int K, N, m, M, a, NC, V, C, NMSG, MAXVDEG, MAXCDEG;

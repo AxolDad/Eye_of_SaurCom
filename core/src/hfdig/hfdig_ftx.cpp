@@ -31,7 +31,7 @@
 namespace dect2 {
 
 const char* ftxModeName(int m) {
-    static const char* n[kFtxModes] = {"FT8", "FT4", "FT2", "WSPR", "JT65", "JT9", "Q65", "FST4", "MSK144", "FST4W"};
+    static const char* n[kFtxModes] = {"FT8", "FT4", "FT2", "WSPR", "JT65", "JT9", "Q65", "FST4", "MSK144", "FST4W", "JT4"};
     return m >= 0 && m < kFtxModes ? n[m] : "?";
 }
 double ftxPeriod(int m) { return ftx::spec(m).period; }
@@ -50,6 +50,7 @@ const Spec& spec(int m) {
         {"FST4", 60.0, 1.0, 3888.0 / 12000, 12000.0 / 3888, 160, 4, 0.0},
         {"MSK144", 15.0, 0.0, 0.072, 2000.0, 208, 2, 0.0},
         {"FST4W", 120.0, 1.0, 8200.0 / 12000, 12000.0 / 8200, 160, 4, 0.0},
+        {"JT4", 60.0, 1.0, 2520.0 / 11025, 11025.0 / 2520, 206, 4, 0.0},
     };
     return s[std::max(0, std::min(kModes - 1, m))];
 }
@@ -59,6 +60,7 @@ Spec specCfg(int mode, int sub, double period) {
     Spec s = spec(mode);
     switch (mode) {
     case kJt65: s.spacing *= (double)(1 << std::max(0, std::min(2, sub))); break;
+    case kJt4: s.spacing *= (double)(1 << std::max(0, std::min(6, sub))); break;
     case kQ65: {
         static const double per[5] = {15, 30, 60, 120, 300};
         static const int nsps[5] = {1800, 3600, 7200, 16000, 41472};
@@ -89,7 +91,7 @@ Spec specCfg(int mode, int sub, double period) {
 double dtRange(int mode, double period) {
     switch (mode) {
     case kJt65: return 8.0;           // WSJT-X searches -3 .. +8 s for JT65 (a slow start, EME delays)
-    case kJt9: return 4.0;
+    case kJt9: case kJt4: return 4.0;
     case kQ65: return std::min(3.0, 0.1 * period);
     case kFst4: case kFst4w: return std::min(3.0, 0.1 * period);
     case kMsk144: return 0.0;
@@ -98,7 +100,7 @@ double dtRange(int mode, double period) {
 }
 
 double dtLow(int mode, double period) {   // the earliest start offset searched (as a positive number of seconds early)
-    return mode == kJt65 || mode == kJt9 ? 3.0 : dtRange(mode, period);
+    return mode == kJt65 || mode == kJt9 || mode == kJt4 ? 3.0 : dtRange(mode, period);
 }
 
 std::vector<int> ftxTones(int mode, const uint8_t* b77) {
@@ -186,6 +188,7 @@ bool ftxAddTransmissionEx(int mode, const std::string& msg, double hz, double am
         switch (mode) {
         case kJt65: { const auto tn = wsjt::jt65Tones(msg); if (tn.empty()) return false; wsjt::addJt65(tn, sub, hz, amp, rate, t, out); return true; }
         case kJt9: { const auto tn = wsjt::jt9Tones(msg); if (tn.empty()) return false; wsjt::addJt9(tn, hz, amp, rate, t, out); return true; }
+        case kJt4: { const auto tn = wsjt::jt4Tones(msg); if (tn.empty()) return false; wsjt::addJt4(tn, sub, hz, amp, rate, t, out); return true; }
         case kQ65: { const auto tn = wsjt::q65Tones(msg); if (tn.empty()) return false; wsjt::addQ65(tn, sub, sp.period, hz, amp, rate, t, out); return true; }
         case kFst4: case kFst4w: { const auto tn = wsjt::fst4Tones(msg, mode == kFst4w); if (tn.empty()) return false; wsjt::addFst4(tn, sp.period, hz, amp, rate, t, out); return true; }
         case kMsk144: {
@@ -755,6 +758,7 @@ std::vector<FtxDecode> decodeOther(const Job& j) {
     switch (j.mode) {
     case kJt65: d = wsjt::decodeJt65(s); break;
     case kJt9: d = wsjt::decodeJt9(s); break;
+    case kJt4: d = wsjt::decodeJt4(s); break;
     case kQ65: d = wsjt::decodeQ65(s); break;
     case kFst4: d = wsjt::decodeFst4(s, false); break;
     case kFst4w: d = wsjt::decodeFst4(s, true); break;

@@ -421,6 +421,7 @@ static const SubMode kSubModes[] = {
     {"q65",        "Q65",        27, 8, 6,  14.1,    {23, 0, 0}},
     {"fst4",       "FST4",       27, 8, 7,  1.8366,  {24, 0, 0}},
     {"msk144",     "MSK144",     27, 8, 8,  28.145,  {25, 0, 0}},
+    {"jt4",        "JT4",        27, 8, 10, 144.120, {32, 0, 0}},   // EME / weak signal, sub-mode A .. G
     // the keyboard modes of HF digital (hfdig_kbd.h): decoder bit 32, sel = the family (KbdFamily)
     {"olivia",     "Olivia",     27, 32, 0, 14.1065, {26, 0, 0}},
     {"contestia",  "Contestia",  27, 32, 1, 14.1095, {27, 0, 0}},
