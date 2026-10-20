@@ -4,6 +4,7 @@
 #include "../app.h"
 #include "dect2/engine/updater.h"
 #include "../state/receivers.h"
+#include "supporters_data.h"
 #include <ctime>
 
 namespace {
@@ -78,7 +79,13 @@ bool updateOnExit(App& a) {
 
 void supportButton() {
     if (ImGui::SmallButton(tr("Support"))) dect2::openUrl("https://ko-fi.com/adswill");
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Support OnAir on Ko-fi"));
+    if (ImGui::IsItemHovered() && ImGui::BeginTooltip()) {
+        ImGui::TextUnformatted(tr("Support OnAir on Ko-fi"));
+        ImGui::Separator();
+        ImGui::TextDisabled("%s", tr("Thank you to our supporters:"));
+        for (const char* n : kSupporters) ImGui::TextUnformatted(n);
+        ImGui::EndTooltip();
+    }
 }
 
 void updateButton(App& a) {
