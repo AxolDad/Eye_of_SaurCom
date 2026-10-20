@@ -2,6 +2,7 @@
 #include "dect2/codec/speech_codec.h"
 
 #include <filesystem>
+#include <string>
 #include <system_error>
 
 #ifdef _WIN32
@@ -24,15 +25,31 @@ struct Api {
     int (*decode)(void*, const uint8_t*, size_t, int16_t*, size_t) = nullptr;
 };
 
-void* openLibrary(const std::string& path) {
+// Opens the library; on failure err gets the system's own reason (GetLastError text / dlerror).
+void* openLibrary(const std::string& path, std::string& err) {
 #ifdef _WIN32
     const int n = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, nullptr, 0);
-    if (n <= 0) return nullptr;
+    if (n <= 0) { err = "the file path is not valid text"; return nullptr; }
     std::wstring w(static_cast<size_t>(n), L'\0');
     MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, w.data(), n);
-    return reinterpret_cast<void*>(LoadLibraryW(w.c_str()));
+    // The altered search path makes Windows look for the plug-in's own dependent DLLs (a codec library shipped next to it) in the
+    // plug-in's folder first. The path must be absolute for that.
+    HMODULE m = LoadLibraryExW(w.c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+    if (!m) {
+        const DWORD code = GetLastError();
+        char buf[512] = {0};
+        FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, code, 0, buf, sizeof buf - 1, nullptr);
+        std::string t = buf;
+        while (!t.empty() && (t.back() == '\n' || t.back() == '\r' || t.back() == ' ' || t.back() == '.')) t.pop_back();
+        err = "the file would not load, Windows error " + std::to_string(code) + (t.empty() ? "" : ": " + t) +
+              (code == 126 ? " (a DLL the plug-in needs is missing: put it in the same folder)" : code == 193 ? " (wrong bit width: use a 64-bit plug-in)" : "");
+        return nullptr;
+    }
+    return reinterpret_cast<void*>(m);
 #else
-    return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
+    void* h = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
+    if (!h) { const char* e = dlerror(); err = std::string("the file would not load: ") + (e ? e : "unknown error"); }
+    return h;
 #endif
 }
 
@@ -77,14 +94,23 @@ private:
 };
 
 std::unique_ptr<SpeechCodec> openSharedLibrary(const std::string& path, std::string& err) {
-    void* lib = openLibrary(path);
-    if (!lib) { err = "the file would not load"; return nullptr; }
+    void* lib = openLibrary(path, err);
+    if (!lib) return nullptr;
     Api a;
     a.open = reinterpret_cast<decltype(a.open)>(symbol(lib, "onair_speech_open"));
     a.close = reinterpret_cast<decltype(a.close)>(symbol(lib, "onair_speech_close"));
     a.rate = reinterpret_cast<decltype(a.rate)>(symbol(lib, "onair_speech_sample_rate"));
     a.decode = reinterpret_cast<decltype(a.decode)>(symbol(lib, "onair_speech_decode"));
-    if (!a.open || !a.close || !a.rate || !a.decode) { closeLibrary(lib); err = "it does not have the codec functions"; return nullptr; }
+    if (!a.open || !a.close || !a.rate || !a.decode) {
+        std::string miss;
+        if (!a.open) miss += " onair_speech_open";
+        if (!a.close) miss += " onair_speech_close";
+        if (!a.rate) miss += " onair_speech_sample_rate";
+        if (!a.decode) miss += " onair_speech_decode";
+        closeLibrary(lib);
+        err = "it does not export the codec functions (missing:" + miss + ")";
+        return nullptr;
+    }
     void* state = a.open();
     if (!state) { closeLibrary(lib); err = "its decoder would not start"; return nullptr; }
     return std::make_unique<PluginCodec>(a, state, lib);
@@ -134,7 +160,9 @@ CodecLookup loadSpeechCodec(const std::string& id, const std::string& folder, bo
                     "(see " + std::string(kDocUrl) + ") and put the plug-in file " + file + " in " + folder + ".";
         return r;
     }
-    r.path = path.string();
+    std::error_code ac;
+    const std::filesystem::path abs = std::filesystem::absolute(path, ac);
+    r.path = ac ? path.string() : abs.string();
     if (!noticeAccepted) {
         r.status = CodecStatus::NoticeRequired;
         r.message = "Accept the codec notice to load the " + id + " speech codec.";

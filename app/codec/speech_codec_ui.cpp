@@ -5,6 +5,8 @@
 #include "dect2/codec/speech_codec.h"
 #include "dect2/engine/updater.h"
 #include <filesystem>
+#include <cstdio>
+#include <map>
 #include <set>
 
 namespace appcodec {
@@ -25,6 +27,13 @@ bool speechCodecGate(const char* id, std::unique_ptr<dect2::codec::SpeechCodec>&
     const bool accepted = plat::basePrefs().getB(prefKey(codec).c_str(), false);
     const std::string folder = codecsFolder();
     const dect2::codec::CodecLookup r = dect2::codec::loadSpeechCodec(codec, folder, accepted, out);
+
+    // Log the reason whenever it changes, so a user with no audio can send the line.
+    static std::map<std::string, std::string> lastLogged;
+    if (lastLogged[codec] != r.message) {
+        lastLogged[codec] = r.message;
+        fprintf(stderr, "[codec %s] %s\n", id, r.message.c_str());
+    }
 
     if (r.status == dect2::codec::CodecStatus::Ready) return true;
 

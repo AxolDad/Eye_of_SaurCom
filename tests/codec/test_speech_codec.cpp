@@ -80,6 +80,20 @@ int main() {
     CHECK(r.status == CodecStatus::LoadFailed, "failed open is LoadFailed");
     CHECK(!codec, "no codec after a failed open");
 
+    // 4b. The real loader on a file that is not a library: LoadFailed, with the system's reason and the full path in the message.
+    codec.reset();
+    r = loadSpeechCodec("tetra", folder, true, codec);
+    CHECK(r.status == CodecStatus::LoadFailed, "the real loader refuses a garbage file");
+    CHECK(!codec, "no codec from a garbage file");
+    CHECK(r.message.find("would not load") != std::string::npos && r.message.find(r.path) != std::string::npos &&
+          r.message.size() > r.path.size() + 40, "the message carries the path and the system error: %s", r.message.c_str());
+
+    // 4c. Notice not accepted and not installed give their own states.
+    r = loadSpeechCodec("tetra", folder, false, codec, fakeOpen);
+    CHECK(r.status == CodecStatus::NoticeRequired && !codec, "notice required until accepted");
+    r = loadSpeechCodec("nothere", folder, true, codec, fakeOpen);
+    CHECK(r.status == CodecStatus::NotInstalled && r.message.find("onair-codec-nothere") != std::string::npos, "not installed names the file");
+
     // 5. Bad ids are refused before any file is looked at.
     r = loadSpeechCodec("../tetra", folder, true, codec, fakeOpen);
     CHECK(r.status == CodecStatus::LoadFailed, "an id with path characters is refused");
