@@ -3,6 +3,8 @@
 // whose level follows the gain and clips like an 8-bit ADC (slow: about 40 s, registered as gain_opt_engine).
 #include "dect2/engine/engine.h"
 #include "dect2/source/gain_opt.h"
+#include "dect2/source/gain.h"
+#include "dect2/source/source.h"
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -257,6 +259,22 @@ static void testEngine() {
     e.stop();
 }
 
+// No signal: every step's "SNR" is noise (about 0 dB, within the tolerance of each other). The winner must not be the bottom of the range (0 dB)
+// but come from the ADC level; a real signal still wins by its SNR. The amp is off by default in every settings struct.
+static void testNoSignalAndAmpDefaults() {
+    GainOptimiser::Config cfg;
+    auto P = [](int g, double snr, float rms) {
+        GainOptimiser::Point p; p.gainDb = g; p.snrDb = snr; p.n = 10; p.nAll = 10; p.rms = rms; p.done = true; return p;
+    };
+    GainOptimiser::Result how;
+    std::vector<GainOptimiser::Point> v = {P(0, 0.2, -60), P(20, 0.1, -40), P(40, 0.3, -20), P(60, 0.2, -10)};
+    const int i = GainOptimiser::choose(v, cfg, &how);
+    CHECK(i == 2 && how == GainOptimiser::Result::Level, "no signal must not end at the lowest gain (got index %d)", i);
+    v = {P(0, 0.2, -60), P(20, 12, -40), P(40, 12.2, -20)};
+    CHECK(GainOptimiser::choose(v, cfg, &how) == 1 && how == GainOptimiser::Result::Snr, "a real signal still wins by SNR");
+    CHECK(!TuneSettings().ampOn && !GainSetting().amp, "the amp is off by default");
+}
+
 int main(int argc, char** argv) {
     if (argc > 1 && !strcmp(argv[1], "engine")) {
         testEngine();
@@ -267,6 +285,7 @@ int main(int argc, char** argv) {
         testCancelUndo();
         testSpectrum();
         testTelemetry();
+        testNoSignalAndAmpDefaults();
     }
     printf(fails ? "gain_opt tests FAILED (%d)\n" : "gain_opt tests passed\n", fails);
     return fails ? 1 : 0;

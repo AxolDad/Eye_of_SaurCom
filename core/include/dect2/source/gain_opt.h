@@ -31,6 +31,7 @@ public:
         double settleSec = 1.0, measureSec = 2.0;   // wait after a change, then average this long
         double clipLimit = 0.001;                   // a step whose clip fraction exceeded this is excluded
         double snrTolDb = 0.5;                      // steps this close to the best SNR count as equal: the lowest gain of them wins
+        double minUsableSnrDb = 3;                  // a best quality below this is noise, not a signal: that number is not used, the next one (or the level) is
         int maxPoints = 10;                         // steps of the coarse sweep (the range is divided evenly); a refinement of up to 2 more follows
         double targetDbfs = -16;                    // level fallback target
     };
