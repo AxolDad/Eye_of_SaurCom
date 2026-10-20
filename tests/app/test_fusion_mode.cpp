@@ -48,7 +48,7 @@ int main() {
 
     const std::string ui = readFile("app/fusion/fusion_ui.cpp");
     const char* strings[] = {"Yaesu Fusion (WIP)", "Position / slow data text", "Call mode: %s", "Repeater downlink", "Repeater uplink", "Source", "Destination",
-                             "codec not installed: no audio", "speechCodecGate(\"ysf\"", "a.rx.standard == 129", "Data channel units"};
+                             "no audio until the codec above is ready", "speechCodecGate(\"ysf\"", "a.rx.standard == 129", "Data channel units"};
     for (const char* s : strings) CHECK(has(ui, s), "panel string missing: %s", s);
 
     std::printf("%s: %d failure(s)\n", fails ? "test_fusion_mode FAILED" : "test_fusion_mode OK", fails);
