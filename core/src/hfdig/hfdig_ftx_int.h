@@ -65,7 +65,7 @@ void callAndGrid(const std::string& msg, std::string& call, std::string& grid);
 bool gridToLatLon(const std::string& grid, double& lat, double& lon);
 
 // ---------------------------------------------------------------- the waveforms
-enum Mode { kFt8 = 0, kFt4 = 1, kFt2 = 2, kWspr = 3, kJt65 = 4, kJt9 = 5, kQ65 = 6, kFst4 = 7, kMsk144 = 8, kFst4w = 9, kModes = 10 };
+enum Mode { kFt8 = 0, kFt4 = 1, kFt2 = 2, kWspr = 3, kJt65 = 4, kJt9 = 5, kQ65 = 6, kFst4 = 7, kMsk144 = 8, kFst4w = 9, kJt4 = 10, kModes = 11 };
 struct Spec {
     const char* name;
     double period;      // slot, s

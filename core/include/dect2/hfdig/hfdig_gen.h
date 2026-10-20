@@ -8,7 +8,7 @@
 // SynthConfig:
 //   snrDb       signal to noise ratio in 3 kHz, for test audio with an rms of 0.35 (a sine of amplitude 0.5); louder audio gives more
 //   cfoHz       carrier offset (the audio moves up by it)
-//   modeOpt[0]  which test signal: 0 RTTY, 1 SSTV, 2 FreeDV, 3 FT8, 4 FT4, 5 WSPR, 6 FT2, 7 HamDRM, 21 JT65, 22 JT9, 23 Q65, 24 FST4, 25 MSK144
+//   modeOpt[0]  which test signal: 0 RTTY, 1 SSTV, 2 FreeDV, 3 FT8, 4 FT4, 5 WSPR, 6 FT2, 7 HamDRM, 21 JT65, 22 JT9, 23 Q65, 24 FST4, 25 MSK144, 32 JT4
 //   modeOpt[1..7], modeVal[0..3]: free for the chosen decoder's test audio (only one plays at a time)
 #pragma once
 #include "dect2/engine/mode_synth.h"

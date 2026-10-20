@@ -45,6 +45,7 @@ ImVec4 modeColour(int m) {
     case 2: return ImVec4(0.85f, 0.70f, 0.95f, 1);
     case 4: return ImVec4(0.95f, 0.60f, 0.55f, 1);   // JT65
     case 5: return ImVec4(0.55f, 0.90f, 0.85f, 1);   // JT9
+    case 10: return ImVec4(0.90f, 0.82f, 0.58f, 1);   // JT4
     case 6: return ImVec4(0.98f, 0.85f, 0.50f, 1);   // Q65
     case 7: case 9: return ImVec4(0.70f, 0.75f, 0.98f, 1);   // FST4, FST4W
     case 8: return ImVec4(0.90f, 0.65f, 0.80f, 1);   // MSK144
@@ -202,6 +203,7 @@ const FtxBand kJt9Bands[] = {{"160m", 1.839}, {"80m", 3.572}, {"40m", 7.078}, {"
 const FtxBand kQ65Bands[] = {{"20m", 14.100}, {"10m", 28.100}, {"6m", 50.275}, {"2m", 144.116}, {"70cm", 432.065}};
 const FtxBand kFst4Bands[] = {{"160m", 1.8366}, {"80m", 3.5686}, {"40m", 7.0386}, {"30m", 10.1387}, {"20m", 14.0956}, {"17m", 18.1046}, {"15m", 21.0946},
                               {"10m", 28.1246}};
+const FtxBand kJt4Bands[] = {{"2m", 144.120}, {"70cm", 432.065}, {"23cm", 1296.100}};   // EME / weak-signal calling areas
 const FtxBand kMsk144Bands[] = {{"10m", 28.145}, {"6m", 50.260}, {"4m", 70.230}, {"2m", 144.150}};
 const FtxBand kWsprBands[] = {{"160m", 1.8366}, {"80m", 3.5686}, {"60m", 5.3647}, {"40m", 7.0386}, {"30m", 10.1387}, {"20m", 14.0956},
                               {"17m", 18.1046}, {"15m", 21.0946}, {"12m", 24.9246}, {"10m", 28.1246}, {"6m", 50.293}, {"2m", 144.489}};
@@ -215,6 +217,7 @@ void bandButtons(App& a, int mode) {
     else if (mode == 5) { b = kJt9Bands; n = IM_ARRAYSIZE(kJt9Bands); }
     else if (mode == 6) { b = kQ65Bands; n = IM_ARRAYSIZE(kQ65Bands); }
     else if (mode == 7 || mode == 9) { b = kFst4Bands; n = IM_ARRAYSIZE(kFst4Bands); }
+    else if (mode == 10) { b = kJt4Bands; n = IM_ARRAYSIZE(kJt4Bands); }
     else if (mode == 8) { b = kMsk144Bands; n = IM_ARRAYSIZE(kMsk144Bands); }
     ImGui::AlignTextToFramePadding();
     ImGui::TextDisabled("Band"); flowNext(6 * gUi);
@@ -235,7 +238,7 @@ void bandButtons(App& a, int mode) {
 // remembered in the settings and handed to the decoder every frame.
 struct ModeOpt { int sub; double per; };
 ModeOpt& modeOpt(int m) {
-    static ModeOpt o[dect2::kFtxModes] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 60}, {0, 60}, {0, 60}, {0, 60}, {0, 15}, {0, 120}};
+    static ModeOpt o[dect2::kFtxModes] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 60}, {0, 60}, {0, 60}, {0, 60}, {0, 15}, {0, 120}, {0, 60}};
     static bool loaded = false;
     if (!loaded) {
         loaded = true;
@@ -284,6 +287,7 @@ void modeOptions(App& a, int only) {
     static const double q65p[] = {15, 30, 60, 120, 300}, fstp[] = {15, 30, 60, 120, 300, 900, 1800}, mskp[] = {15, 30};
     auto label = [&](const char* t) { ImGui::AlignTextToFramePadding(); ImGui::TextDisabled("%s", t); ImGui::SameLine(0, 4 * gUi); };
     if (only < 0 || only == 4) { label("JT65"); subCombo(4, abc, 3, "##jt65sub"); if (ImGui::IsItemHovered()) ImGui::SetTooltip("JT65 sub-mode: A, B and C have tone spacings of 2.7, 5.4 and 10.8 Hz"); flowNext(10 * gUi); }
+    if (only < 0 || only == 10) { static const char* const ag[] = {"A", "B", "C", "D", "E", "F", "G"}; label("JT4"); subCombo(10, ag, 7, "##jt4sub"); if (ImGui::IsItemHovered()) ImGui::SetTooltip("JT4 sub-mode: A to G have tone spacings of 4.4 Hz doubling up to 280 Hz"); flowNext(10 * gUi); }
     if (only < 0 || only == 6) { label("Q65"); subCombo(6, ae, 5, "##q65sub"); flowNext(4 * gUi); periodCombo(6, q65p, 5, "##q65per"); flowNext(10 * gUi); }
     if (only < 0 || only == 7) { label("FST4"); periodCombo(7, fstp, 7, "##fst4per"); flowNext(10 * gUi); }
     if (only < 0 || only == 7) { label("FST4W"); periodCombo(9, fstp, 7, "##fst4wper"); flowNext(10 * gUi); }

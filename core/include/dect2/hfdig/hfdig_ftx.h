@@ -27,9 +27,9 @@
 
 namespace dect2 {
 
-constexpr int kFtxModes = 10;                // 0 FT8, 1 FT4, 2 FT2, 3 WSPR, 4 JT65, 5 JT9, 6 Q65, 7 FST4, 8 MSK144, 9 FST4W
+constexpr int kFtxModes = 11;                // 0 FT8, 1 FT4, 2 FT2, 3 WSPR, 4 JT65, 5 JT9, 6 Q65, 7 FST4, 8 MSK144, 9 FST4W, 10 JT4
 constexpr size_t kFtxKeep = 1000;            // decodes kept in the telemetry
-const char* ftxModeName(int mode);           // "FT8", "FT4", "FT2", "WSPR", "JT65", "JT9", "Q65", "FST4", "MSK144", "FST4W"
+const char* ftxModeName(int mode);           // "FT8", "FT4", "FT2", "WSPR", "JT65", "JT9", "Q65", "FST4", "MSK144", "FST4W", "JT4"
 double ftxPeriod(int mode);                  // 15, 7.5, 3.75, 120 s, 60, 60, 60 (Q65 default), 60 (FST4), 15 (MSK144), 120 (FST4W)
 
 struct FtxDecode {
@@ -56,8 +56,8 @@ struct HfdigFtxTelemetry {
     int lastSlotCount[kFtxModes] = {};        // decodes in the last slot
     double lastSlotUtc[kFtxModes] = {};
     float decodeMs[kFtxModes] = {};           // time the last slot took to decode
-    bool enabled[kFtxModes] = {true, true, true, true, true, true, true, true, true, true};
-    int sub[kFtxModes] = {};                  // JT65 0 A 1 B 2 C; Q65 0 A .. 4 E
+    bool enabled[kFtxModes] = {true, true, true, true, true, true, true, true, true, true, true};
+    int sub[kFtxModes] = {};                  // JT65 0 A 1 B 2 C; JT4 0 A .. 6 G; Q65 0 A .. 4 E
     double period[kFtxModes] = {};            // T/R period in use, s
     int timeMode = 0;                         // 0 system clock, 1 the given start time, 2 slot search: looking, 3 slot search: found
     double nowUtc = 0;                        // the time of the newest audio (the slot clock)
