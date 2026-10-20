@@ -165,7 +165,8 @@ void shell(App& a, ImVec2 disp) {
     const float bodyH = ImGui::GetContentRegionAvail().y - dockH - sp;
     ImGui::BeginChild("##tbody", ImVec2(0, bodyH), 0);
     const ImVec2 bodyMin = ImGui::GetWindowPos(), bodyMax = ImVec2(bodyMin.x + ImGui::GetWindowSize().x, bodyMin.y + ImGui::GetWindowSize().y);
-    if (txViewFlag()) txPanel(a);
+    if (hamViewFlag()) hamPanel(a);
+    else if (txViewFlag()) txPanel(a);
     else {
         if (disp.y >= disp.x) { statusBar(a); ImGui::Separator(); }   // portrait: the mode's status line on top; landscape keeps the height for the picture (More > Status)
         mainTabs(a);

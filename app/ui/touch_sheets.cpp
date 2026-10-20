@@ -212,7 +212,8 @@ void menuSheet(App& a, ImVec2 disp) {
     if (ImGui::IsItemDeactivatedAfterEdit()) savePrefs(a);
     ui2::themeChoice(a, false);
     const float hw = (w - sp) / 2;
-    if (bigButton(txViewFlag() ? tr("Receive view") : tr("Transmit view"), ImVec2(hw, 0))) { txViewFlag() = !txViewFlag(); closeSheet(); }
+    if (bigButton(txViewFlag() ? tr("Receive view") : tr("Transmit view"), ImVec2(hw, 0))) { hamViewFlag() = false; txViewFlag() = !txViewFlag(); closeSheet(); }
+    if (bigButton(hamViewFlag() ? tr("Receive view") : tr("Ham view"), ImVec2(w, 0))) { txViewFlag() = false; hamViewFlag() = !hamViewFlag(); closeSheet(); }
     ImGui::SameLine();
     if (bigButton(tr("Tour"), ImVec2(hw, 0))) { tourStart(a); closeSheet(); }
     languageButton(a);

@@ -5,6 +5,14 @@
 #include "../app.h"
 #include "../platform/platform.h"
 #include "dect2/ham/ham.h"
+#include "dect2/audio/audioout.h"
+#include "dect2/source/hamlib_link.h"
+#include "dect2/source/hamlib_rig.h"
+#include <atomic>
+#include <chrono>
+#include <memory>
+#include <mutex>
+#include <thread>
 #include "dect2/hfdig/hfdig_ftx.h"
 #include "dect2/hfdig/hfdig_rx.h"
 #include <algorithm>
@@ -17,6 +25,44 @@
 using namespace dect2;
 
 namespace {
+// The real rig: Hamlib PTT (when a rig is chosen; none = VOX / the radio keys itself from audio) and the chosen sound card output.
+struct RealIo : ham::HamRigIo {
+    HamlibLink link;
+    int rigIdx = -1;            // index into hamlibRigs(), -1: no CAT PTT
+    std::string device;         // audio output ("" = system default)
+    AudioOut out;
+    bool drained = false;
+    bool ptt(bool on, std::string& err) override {
+        if (rigIdx < 0) return true;
+        if (!link.isOpen()) {
+            const auto rigs = hamlibRigs();
+            if (rigIdx >= (int)rigs.size()) { err = "the chosen rig is not in the rig list"; return false; }
+            HamlibConn c; c.model = rigs[rigIdx].model; c.path = rigs[rigIdx].path; c.baud = rigs[rigIdx].baud;
+            if (!link.open(c, err)) return false;
+        }
+        return link.setPtt(on, err);
+    }
+    bool beginAudio(int rate, std::string& err) override {
+        out.setDevice(device);
+        drained = false;
+        if (!out.start(rate)) { err = "cannot open the sound card output"; return false; }
+        out.setStartThreshold(rate / 20);
+        return true;
+    }
+    int write(const float* m, int n) override {
+        std::vector<float> st((size_t)n * 2);
+        for (int i = 0; i < n; i++) st[2 * i] = st[2 * i + 1] = m[i];
+        return out.write(st.data(), n);
+    }
+    int pending() override {
+        const int b = out.bufferedFrames();
+        if (b == 0 && !drained) { drained = true; std::this_thread::sleep_for(std::chrono::milliseconds(200)); }   // the device's own buffer
+        return b;
+    }
+    void flushAudio() override { out.flush(); }
+    void endAudio() override { out.stop(); }
+};
+
 struct HamUi {
     bool loaded = false, view = false, armed = false, licence = false, askLicence = false;
     char call[16] = {}, grid[8] = {};
@@ -28,15 +74,18 @@ struct HamUi {
     double lastFed = 0;
     long lastTxSlot = -1;
     int logged = 0;
+    RealIo io;
+    ham::HamSlotTx tx{io};
+    std::thread worker;
+    std::atomic<int> txState{0};      // 0 none, 1 running, 2 sent, 3 failed
+    std::mutex mu;
+    std::string txErr, txMsg;
+    double txSlot = 0;
+    int rigSel = -1;
+    float level = 0.4f;
+    ~HamUi() { tx.abort(); if (worker.joinable()) worker.join(); }
 };
 HamUi& H() { static HamUi h; return h; }
-
-// The only place a Ham transmission would start. The slot transmitter (one FT8 / FT4 / FT2 burst at an audio frequency in a chosen slot, through the
-// TX session's radio and its safety path) is phase 2; until then this refuses, so the engine does not advance and nothing is sent.
-bool hamTransmit(App&, const std::string&, double, std::string& why) {
-    why = "the slot transmitter is not connected yet (phase 2): nothing was sent";
-    return false;
-}
 
 void load(HamUi& h) {
     if (h.loaded) return;
@@ -45,6 +94,8 @@ void load(HamUi& h) {
     snprintf(h.call, sizeof h.call, "%s", p.getS("ham.call", "").c_str());
     snprintf(h.grid, sizeof h.grid, "%s", p.getS("ham.grid", "").c_str());
     h.licence = p.getB("ham.licence", false);
+    h.rigSel = (int)p.getI("ham.rig", -1);
+    h.io.device = p.getS("ham.audioOut", "");
     h.txHz = (float)p.getD("ham.txHz", 1500);
     h.logPath = plat::dataDir() + "/onair_ham.adi";
     h.worked.load(h.logPath);
@@ -109,7 +160,7 @@ void hamPanel(App& a) {
     if (ImGui::Button(tr("CQ"))) { h.eng.startCq(now); c.txHz = h.txHz; h.status.clear(); }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button(tr("Halt TX"))) { h.eng.halt(); h.status = "Halted"; }
+    if (ImGui::Button(tr("Halt TX"))) { h.eng.halt(); h.armed = false; h.tx.abort(); h.status = "Halted"; }
     ImGui::SameLine();
     ImGui::BeginDisabled(!h.licence);
     ImGui::PushStyleColor(ImGuiCol_Button, h.armed ? ImVec4(0.75f, 0.1f, 0.1f, 1) : ImVec4(0.3f, 0.3f, 0.3f, 1));
@@ -118,6 +169,27 @@ void hamPanel(App& a) {
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s", tr("Nothing is sent unless this is armed, the licence box is ticked and the frequency is inside an amateur band. Disarmed again when you halt or the watchdog fires."));
 
+    // rig and audio output, level
+    {
+        const auto rigs = hamlibRigs();
+        const std::string curS = h.rigSel >= 0 && h.rigSel < (int)rigs.size() ? hamlibRigDeviceName(rigs[h.rigSel]) : "none (VOX / audio only)";
+        ImGui::SetNextItemWidth(220 * gUi);
+        if (ImGui::BeginCombo(tr("PTT rig"), curS.c_str())) {
+            if (ImGui::Selectable("none (VOX / audio only)", h.rigSel < 0)) { h.rigSel = -1; plat::basePrefs().setI("ham.rig", -1); }
+            for (int i = 0; i < (int)rigs.size(); i++) if (ImGui::Selectable(hamlibRigDeviceName(rigs[i]).c_str(), h.rigSel == i)) { h.rigSel = i; plat::basePrefs().setI("ham.rig", i); h.io.link.close(); }
+            ImGui::EndCombo();
+        }
+        ImGui::SameLine(); ImGui::SetNextItemWidth(220 * gUi);
+        const std::string dn = h.io.device.empty() ? "system default" : h.io.device;
+        if (ImGui::BeginCombo(tr("Audio out"), dn.c_str())) {
+            if (ImGui::Selectable("system default", h.io.device.empty())) { h.io.device.clear(); plat::basePrefs().setS("ham.audioOut", ""); }
+            for (const auto& d : AudioOut::devices()) if (!d.empty() && ImGui::Selectable(d.c_str(), d == h.io.device)) { h.io.device = d; plat::basePrefs().setS("ham.audioOut", d); }
+            ImGui::EndCombo();
+        }
+        ImGui::SameLine(); ImGui::SetNextItemWidth(90 * gUi);
+        ImGui::SliderFloat(tr("Level"), &h.level, 0.05f, 0.9f, "%.2f");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Audio level into the rig. Set it so the rig shows no ALC action and the power stays low."));
+    }
     // state line
     static const char* kState[] = {"Idle", "Calling CQ", "Calling: sent grid", "Sent report", "Sent R-report", "Sent RR73", "Sent 73"};
     ImGui::Text("%s: %s %s   %s: %d", tr("State"), kState[h.eng.state()], h.eng.dxCall().c_str(), tr("Logged"), h.logged);
@@ -135,18 +207,37 @@ void hamPanel(App& a) {
         newest = std::max(newest, d.slotUtc);
     }
     h.lastFed = newest;
+    // a finished transmission: only now does the engine advance
+    if (h.txState == 2 || h.txState == 3) {
+        if (h.worker.joinable()) h.worker.join();
+        std::lock_guard<std::mutex> l(h.mu);
+        if (h.txState == 2) { h.eng.txSent(h.txSlot); h.lastTx = "Sent: " + h.txMsg; }
+        else h.lastTx = "Not sent (" + h.txErr + "): " + h.txMsg;
+        h.txState = 0;
+    }
+    if (!h.armed && h.tx.busy()) h.tx.abort();   // disarm, watchdog and Halt stop a running burst and release PTT at once
+    h.io.rigIdx = h.rigSel;
     const long idx = ham::slotIndex(now, per);
     if (h.eng.active() && idx != h.lastTxSlot && now - ham::slotStart(idx, per) >= ham::txStartDelay(h.mode)) {
         h.lastTxSlot = idx;
         const std::string msg = h.eng.messageForSlot(ham::slotStart(idx, per));
-        if (!msg.empty()) {
+        if (!msg.empty() && h.txState == 0) {
             ham::HamTxCheck g;
             g.licenceConfirmed = h.licence; g.armed = h.armed; g.call = h.call; g.grid = h.grid;
             g.dialHz = a.freqMhz * 1e6; g.audioHz = c.txHz; g.bwHz = h.mode == 1 ? 90 : h.mode == 2 ? 170 : 50;
             std::string why;
-            if (!ham::hamTxAllowed(g, why)) { h.lastTx = "Not sent (" + why + "): " + msg; }
-            else if (hamTransmit(a, msg, c.txHz, why)) { h.eng.txSent(ham::slotStart(idx, per)); h.lastTx = "Sent: " + msg; }
-            else h.lastTx = "Not sent (" + why + "): " + msg;
+            if (!ham::hamTxAllowed(g, why)) h.lastTx = "Not sent (" + why + "): " + msg;
+            else {
+                h.txMsg = msg; h.txSlot = ham::slotStart(idx, per); h.txState = 1;
+                const double hz = c.txHz, lv = h.level; const int md = h.mode;
+                h.worker = std::thread([&h, g, md, msg, hz, lv] {
+                    std::string err;
+                    const bool ok = h.tx.send(g, md, msg, hz, lv, err);
+                    std::lock_guard<std::mutex> l(h.mu);
+                    h.txErr = err;
+                    h.txState = ok ? 2 : 3;
+                });
+            }
         }
     }
 

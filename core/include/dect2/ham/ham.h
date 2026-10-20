@@ -2,7 +2,9 @@
 // auto-sequence engine. Pure logic: no audio, no radio, no clock of its own (the caller passes UTC seconds). Nothing here transmits;
 // the app asks the engine for the message of a slot and sends it only through the TX path when the gate allows it.
 #pragma once
+#include <atomic>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -115,6 +117,31 @@ private:
     int dxSnr_ = 0, sentCount_ = 0;
     double lastUser_ = 0, startUtc_ = 0, nowUtc_ = 0;
     bool resumeCq_ = false, wd_ = false, logged_ = false;
+};
+
+// ---- the slot transmitter: one FT8 / FT4 / FT2 burst through a rig (PTT + audio) ----
+struct HamRigIo {   // the app's real one is Hamlib PTT + the sound card; tests use a fake
+    virtual ~HamRigIo() = default;
+    virtual bool ptt(bool on, std::string& err) = 0;
+    virtual bool beginAudio(int rate, std::string& err) = 0;
+    virtual int write(const float* mono, int frames) = 0;   // frames accepted (may be fewer than offered)
+    virtual int pending() = 0;                              // frames queued and not yet played
+    virtual void flushAudio() = 0;                          // drop what is queued
+    virtual void endAudio() = 0;
+};
+class HamSlotTx {
+public:
+    explicit HamSlotTx(HamRigIo& io) : io_(io) {}
+    // Blocking (run it on a worker thread): gate, modulate, PTT on, play, PTT off. True only when the whole burst was played.
+    // PTT is released on every exit path. Nothing is keyed when the gate refuses.
+    bool send(const HamTxCheck& gate, int mode, const std::string& msg, double audioHz, double level, std::string& err);
+    void abort();        // Halt TX, any thread: audio dropped, PTT released at once
+    bool busy() const;
+private:
+    bool pttSet(bool on, std::string& err);
+    HamRigIo& io_;
+    std::mutex mu_;
+    std::atomic<bool> abort_{false}, busy_{false}, pttOn_{false};
 };
 
 }  // namespace dect2::ham

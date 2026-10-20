@@ -15,9 +15,17 @@ Goal: WSJT-X style operation for every amateur mode, for people with a rig. The 
 
 New in phase 1: `core/include/dect2/ham/ham.h` (+ `core/src/ham/ham.cpp`, test `tests/ham/test_ham_core.cpp`): amateur band table and `hamTxAllowed` gate, callsign/grid validation, ADIF writer/parser, `WorkedLog`, slot timing, message builders/parser, `QsoEngine` (CQ, reply, report, R-report, RR73, 73, retries, Hold, watchdog, halt). `app/ham/ham_ui.cpp`: the Ham panel (FT8/FT4/FT2).
 
-## Phase 2 (needed before FT8/FT4/FT2 can key a rig)
+## Phase 2 (done): the slot transmitter
 
-`hamTransmit()` in `app/ham/ham_ui.cpp` is a stub that refuses. It must: generate the message with `ftxAddTransmissionEx` at `txStartDelay` into the slot, send it through the rig (Hamlib PTT + sound card output, or the SDR's own TX via `TxSession`), return true only after the burst ended; the gate `hamTxAllowed` is already evaluated before it. Also: PTT by RTS/VOX, split, audio device choice, level meter, ALC/power warnings, per-mode duty-cycle limit, mode sub-band check (e.g. FT8 only near its dial frequencies), uploads (QRZ/LoTW/Club Log/eQSL/PSK Reporter) opt-in, in-app help and "Operating with a rig" page.
+`HamSlotTx` (core/src/ham/ham_tx.cpp, tested with a fake rig in tests/ham/test_ham_tx.cpp): gate `hamTxAllowed` again, modulate with `ftxAddTransmissionEx` at 48 kHz, PTT on, play, wait for the audio to drain, PTT off on every exit. `abort()` (Halt TX, disarm, watchdog) flushes the audio and releases PTT at once. The Ham panel runs it on a worker thread and calls `QsoEngine::txSent` only after the burst was really played. The real rig is Hamlib PTT (or none: VOX) plus a chosen sound card output and a level slider. Not done: SDR TX path (needs SSB IQ from the audio, via TxSession), RTS/DTR PTT, split, ALC/power meter, per-mode duty-cycle limit, mode sub-band check, in-app help. Touch interface has a Ham view (sheet button).
+
+## Next phases
+
+1. SDR transmit path for FT8/FT4/FT2 (audio to USB IQ through the TX sink, same gate).
+2. Rig control: RTS/DTR PTT, split, frequency/mode set from the band choice, ALC and power warnings, sub-band check per mode, duty-cycle limit.
+3. One mode per agent, in this order: WSPR beacon, JT65/JT9/Q65/FST4/MSK144 (engine variants), JS8Call, PSK31/RTTY/CW keyboard panel (shared), SSTV, APRS/packet, M17, then the rest of the table below.
+4. Uploads, opt-in, user credentials, off by default: PSK Reporter, QRZ, LoTW, Club Log, eQSL.
+5. Docs page "Operating with a rig" and in-app help.
 
 ## Modes (one agent per row)
 
