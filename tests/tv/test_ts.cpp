@@ -1,4 +1,5 @@
 // BB frame <-> transport stream round trips (normal and high-efficiency mode, with lost frames) and PSI/SI parsing.
+#include "dect2/tv/dvb_text.h"
 #include "dect2/tv/bbunpack.h"
 #include "dect2/tv/player.h"
 #include "dect2/tv/ts.h"
@@ -169,6 +170,15 @@ int main() {
     CHECK(dvbText(gb, 11) == cctv, "GB2312 decode");
     CHECK(dvbText(gb + 1, 10, true) == cctv, "unprefixed GB2312 decode (DTMB)");
     CHECK(dvbText(gb + 1, 10) != cctv, "unprefixed high bytes stay ISO 6937 outside DTMB");
+    {   // GBK names with a character outside GB 2312 (U+5586 is 86 B4) convert whole, and the DTMB switch reaches every dvbText() caller
+        const uint8_t gbk[] = {0xD6, 0xD0, 0x86, 0xB4};
+        const char* want = "\xE4\xB8\xAD\xE5\x96\x86";
+        CHECK(dvbText(gbk, 4, true) == want, "unprefixed GBK decode (DTMB)");
+        dvbsi::setGbDefaultGlobal(true);
+        CHECK(dvbText(gbk, 4) == want, "DTMB switch decodes GBK without the argument");
+        dvbsi::setGbDefaultGlobal(false);
+        CHECK(dvbText(gbk, 4) != want, "switch off: ISO 6937 again");
+    }
     const uint8_t ks[] = {0x12, 0xC7, 0xD1, 0xB1, 0xB9}; // KS X 1001: "한국"
     CHECK(dvbText(ks, 5) == "\xED\x95\x9C\xEA\xB5\xAD", "KS X 1001 decode");
     printf("%s\n", fails ? "FAILED" : "all passed");

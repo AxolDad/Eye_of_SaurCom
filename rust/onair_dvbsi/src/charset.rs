@@ -250,7 +250,7 @@ pub fn clean(src: &[u8], out: &mut [u8]) -> usize {
 /// Does unprefixed text look like a run of valid GB 2312 (EUC-CN) pairs, as some Chinese DTMB muxes send?
 fn looks_gb2312(p: &[u8]) -> bool {
     let n = p.len();
-    if n < 2 || p[0] < 0xA1 {
+    if n < 2 || p[0] < 0x81 {
         return false;
     }
     let mut pairs = 0;
@@ -260,7 +260,8 @@ fn looks_gb2312(p: &[u8]) -> bool {
             i += 1;
             continue;
         }
-        if i + 1 >= n || p[i] < 0xA1 || p[i] > 0xF7 || p[i + 1] < 0xA1 || p[i + 1] > 0xFE {
+        // GBK (a superset of GB 2312, what Chinese DTMB names really use): lead 81..FE, trail 40..FE without 7F
+        if i + 1 >= n || p[i] > 0xFE || p[i + 1] < 0x40 || p[i + 1] == 0x7F || p[i + 1] > 0xFE {
             return false;
         }
         i += 2;

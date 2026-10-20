@@ -13,5 +13,7 @@ namespace dect2::dvbsi {
 std::string convertCharset(const char* charset, const uint8_t* p, int n);
 // gbDefault: unprefixed GB 2312 pairs are decoded as GB 2312 (DTMB).
 std::string dvbText(const uint8_t* p, int n, bool gbDefault = false);
+// DTMB: every dvbText() call (service names, EPG, network name) also tries unprefixed GBK pairs, not only the callers that pass gbDefault.
+void setGbDefaultGlobal(bool on);
 
 } // namespace dect2::dvbsi

@@ -1,6 +1,7 @@
 // The Engine core: sample ingest (cleaning, offset tuning), stop, recording, applyReset, and the per-receiver feed,
 // reset and auto-select switches. Other Engine members live in engine_*.cpp next to this file.
 #include "dect2/engine/engine.h"
+#include "dect2/tv/dvb_text.h"
 #include "dect2/automation/engine.h"
 #include "engine_internal.h"
 #include "dect2/source/converter.h"
@@ -322,6 +323,7 @@ void Engine::applyReset() {
 void Engine::onTsPackets(const uint8_t* pk, size_t n, double secs) {
     std::lock_guard<std::mutex> lk(tsMu_);
     demux_.setGbDefault(stdMode_.load() == 8);   // DTMB
+    dvbsi::setGbDefaultGlobal(stdMode_.load() == 8);
     for (size_t i = 0; i < n; i++) {
         const uint8_t* q = pk + i * 188;
         demux_.feed(q);
