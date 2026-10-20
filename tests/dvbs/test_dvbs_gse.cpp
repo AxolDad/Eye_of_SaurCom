@@ -95,10 +95,10 @@ int main() {
         std::vector<std::vector<uint8_t>> sndus;
         for (int k = 0; k < 20; k++) {
             auto ip = dvbsip::buildUdpV4(src, dst, 5000, 6000, std::vector<uint8_t>(200, (uint8_t)k), true);
-            for (auto& p : dvbsip::packetizeSection(0x0FA0, cc, dvbsip::buildMpeSection(mac, ip))) rx.feedTs(p.data(), 188);
+            for (auto& p : dvbsip::packetizeSection(0x0FA0, cc, dvbsip::buildMpeSection(mac, ip))) rx.feedTs(p.data(), 1);
             sndus.push_back(dvbsip::buildUleSndu(0x0800, ip));
         }
-        for (auto& p : dvbsip::packetizeUle(0x0123, cu, sndus)) rx.feedTs(p.data(), 188);
+        for (auto& p : dvbsip::packetizeUle(0x0123, cu, sndus)) rx.feedTs(p.data(), 1);
         std::vector<cf32> z(65536);
         rx.feed(z.data(), z.size());
         rx.flush();
