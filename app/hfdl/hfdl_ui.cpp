@@ -593,8 +593,10 @@ void tuner(App& a, bool&) {
     loadState();
     ImGui::TextDisabled("Band");
     ImGui::SetNextItemWidth(std::min(200 * gUi, ImGui::GetContentRegionAvail().x));
-    if (ImGui::BeginCombo("##hfband", "presets")) {
-        for (const auto& b : kBands) if (ImGui::Selectable(b.name)) tuneFreq(a, b.mhz);
+    static int bandSel = -1;   // the chosen band stays shown in the box
+    if (ImGui::BeginCombo("##hfband", bandSel >= 0 ? kBands[bandSel].name : "presets")) {
+        int i = 0;
+        for (const auto& b : kBands) { if (ImGui::Selectable(b.name, i == bandSel)) { bandSel = i; tuneFreq(a, b.mhz); } i++; }
         ImGui::EndCombo();
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Tune to an HFDL band: every ground station frequency of the built-in table inside the sample band is decoded at once.");
