@@ -36,11 +36,20 @@ int main() {
         Frame g;
         CHECK(parseFrame(fr.data(), fr.size(), false, g) && g.encrypted && g.records.empty(), "ELL AES-CTR must be flagged: encrypted %d", g.encrypted);
     }
-    {   // more DIFE bytes than the storage number has bits for
-        const uint8_t d[] = {0x84, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x0F, 0x13, 0x01, 0, 0, 0};
+    {   // long DIFE chains: every storage bit is kept, up to the 41 of EN 13757-3 (1 in the DIF, 4 in each of 10 DIFE)
+        const uint8_t d9[] = {0x84, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x0F, 0x13, 0x01, 0, 0, 0};
         std::vector<Record> r; bool m = false;
-        parseRecords(d, sizeof d, r, m);
-        CHECK(r.empty() || r[0].storage >= 0, "storage %d", r.empty() ? 0 : r[0].storage);
+        CHECK(parseRecords(d9, sizeof d9, r, m) && r.size() == 1 && r[0].storage == 0x1FFFFFFFFELL && r[0].tariff == 0 && r[0].subunit == 0,
+              "9 DIFE: storage %llX", r.empty() ? 0ULL : (unsigned long long)r[0].storage);
+        CHECK(!r.empty() && r[0].note == "storage 137438953470", "9 DIFE note '%s'", r.empty() ? "" : r[0].note.c_str());
+        const uint8_t d10[] = {0xC4, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x0F, 0x13, 0x01, 0, 0, 0};
+        r.clear();
+        CHECK(parseRecords(d10, sizeof d10, r, m) && r.size() == 1 && r[0].storage == 0x1FFFFFFFFFFLL,
+              "10 DIFE: storage %llX (want 2^41-1)", r.empty() ? 0ULL : (unsigned long long)r[0].storage);
+        const uint8_t d8[] = {0x84, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x01, 0x13, 0x01, 0, 0, 0};   // only bit 29 set: the old code dropped it
+        r.clear();
+        CHECK(parseRecords(d8, sizeof d8, r, m) && r.size() == 1 && r[0].storage == (1LL << 29),
+              "8 DIFE: storage %llX (want 20000000)", r.empty() ? 0ULL : (unsigned long long)r[0].storage);
     }
     CHECK(mfrCodeToString(mfrStringToCode("KAM")) == "KAM" && mfrStringToCode("KAM") == 0x2C2D, "manufacturer code %04X", mfrStringToCode("KAM"));
     for (int m = 0; m < WmbusGenerator::meterCount(); m++) {
@@ -79,7 +88,7 @@ int main() {
         CHECK(r.size() == 6, "record count %zu", r.size());
         if (r.size() == 6) {
             CHECK(r[0].value == "0.127 m3", "int8 %s", r[0].value.c_str());
-            CHECK(r[1].storage == 2 && r[1].value == "0.016 m3", "dife %d %s", r[1].storage, r[1].value.c_str());
+            CHECK(r[1].storage == 2 && r[1].value == "0.016 m3", "dife %lld %s", (long long)r[1].storage, r[1].value.c_str());
             CHECK(r[2].value == "123.4 C", "bcd %s", r[2].value.c_str());
             CHECK(r[3].numeric && r[3].number < 0, "negative bcd %s", r[3].value.c_str());
             CHECK(r[4].value == "2025-10-01", "date %s", r[4].value.c_str());

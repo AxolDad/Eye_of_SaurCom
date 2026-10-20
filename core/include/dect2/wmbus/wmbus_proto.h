@@ -25,7 +25,8 @@ std::vector<uint8_t> buildFrame(const std::vector<uint8_t>& body, bool formatB);
 size_t airLength(uint8_t L, bool formatB);
 
 struct Record {
-    int dif = 0, storage = 0, tariff = 0, subunit = 0, func = 0;   // function: 0 instantaneous, 1 maximum, 2 minimum, 3 error state
+    int64_t storage = 0;      // up to 41 bits: 1 in the DIF, 4 in each of up to 10 DIFE (EN 13757-3)
+    int dif = 0, tariff = 0, subunit = 0, func = 0;   // function: 0 instantaneous, 1 maximum, 2 minimum, 3 error state
     std::string quantity;     // "Volume", "Energy", ...
     std::string value;        // with its unit: "1234.5 m3"
     std::string note;         // "storage 1, max" and the like

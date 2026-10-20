@@ -181,7 +181,7 @@ bool parseRecords(const uint8_t* d, size_t n, std::vector<Record>& out, bool& mf
         for (int k = 0; ext && k < 10; k++) {
             if (i >= n) return false;
             const int e = d[i++];
-            if (sh <= 27) r.storage |= (e & 15) << sh;   // storage fits 41 bits; keep the int shift defined
+            r.storage |= (int64_t)(e & 15) << sh;   // at most 10 DIFE: bits up to 40, fits in 64
             sh += 4;
             r.tariff |= ((e >> 4) & 3) << (2 * k);
             r.subunit |= ((e >> 6) & 1) << k;
@@ -261,7 +261,7 @@ bool parseRecords(const uint8_t* d, size_t n, std::vector<Record>& out, bool& mf
         if (vi.unit && vi.unit[0] && r.value != "-") r.value += std::string(" ") + vi.unit;
         static const char* fn[] = {"", "max", "min", "error"};
         std::string note;
-        if (r.storage) { snprintf(b, sizeof b, "storage %d", r.storage); note = b; }
+        if (r.storage) { snprintf(b, sizeof b, "storage %lld", (long long)r.storage); note = b; }
         if (r.tariff) { snprintf(b, sizeof b, "%stariff %d", note.empty() ? "" : ", ", r.tariff); note += b; }
         if (r.subunit) { snprintf(b, sizeof b, "%ssubunit %d", note.empty() ? "" : ", ", r.subunit); note += b; }
         if (r.func) note += std::string(note.empty() ? "" : ", ") + fn[r.func];
