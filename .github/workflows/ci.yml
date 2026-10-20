@@ -27,7 +27,22 @@ env:
   CCACHE_COMPRESSLEVEL: "6"
 
 jobs:
+  lint:
+    name: Lint (seconds)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell syntax
+        run: for f in tools/*.sh; do bash -n "$f" || exit 1; done
+      - name: Workflow YAML syntax
+        run: python3 -c "import sys,yaml;[yaml.safe_load(open(f)) for f in sys.argv[1:]]" .github/workflows/*.yml
+      - name: Python syntax
+        run: python3 -m py_compile tools/*.py
+      - name: FFI width check
+        run: python3 tools/check_ffi_widths.py
+
   unix:
+    needs: lint
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -62,6 +77,8 @@ jobs:
         run: ccache -s
       - name: Test (fast tests)
         run: ctest --test-dir build -j 4 -LE slow --output-on-failure --timeout 600
+      - name: Retry timing tests once
+        run: ctest --test-dir build -L timing --repeat until-pass:2 --output-on-failure --timeout 600
 
   windows:
     name: Windows x64 (MinGW-w64)
