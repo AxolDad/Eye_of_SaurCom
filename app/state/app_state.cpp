@@ -99,6 +99,7 @@ void setMode(App& a, int f, int sub) {
         if (g.known) { a.tune.lnaDb = g.lna; a.tune.vgaDb = g.vga; a.tune.ampOn = g.amp; }
         else if (f == 5) { a.tune.lnaDb = 24; a.tune.vgaDb = 20; a.tune.ampOn = false; }   // FM stations are strong
         else if (a.family == 5 || f >= 6) { a.tune.lnaDb = 32; a.tune.vgaDb = 34; a.tune.ampOn = false; }   // the amp is off unless the user turns it on (it can be damaged by strong signals): its 14 dB are in the VGA
+        else a.tune.ampOn = false;   // a mode without remembered gains (the TV modes) never inherits another mode's amp
     }
     a.sub = sub;
     setFamilyFlags(a, f);

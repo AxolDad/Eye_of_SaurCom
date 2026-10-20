@@ -158,6 +158,9 @@ int GainOptimiser::choose(const std::vector<Point>& pts, const Config& cfg, Resu
         for (int i : safe)
             if (has(pts[(size_t)i]) && (bestSnr < 0 || val(pts[(size_t)i]) > val(pts[(size_t)bestSnr]))) bestSnr = i;
         if (bestSnr < 0) continue;
+        // all steps equally bad (no signal, or a lock that never held) tie within the tolerance and the "lowest gain" rule would pick the bottom of
+        // the range: 0 dB with nothing received. Such a number says nothing; go on to the next kind, and in the end to the level.
+        if (val(pts[(size_t)bestSnr]) < cfg.minUsableSnrDb) { bestSnr = -1; continue; }
         const double lim = val(pts[(size_t)bestSnr]) - cfg.snrTolDb;
         int win = bestSnr;
         for (int i : safe)

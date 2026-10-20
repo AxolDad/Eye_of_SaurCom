@@ -581,6 +581,11 @@ bool soapySupported() { return false; }
 std::vector<DeviceInfo> listSoapyDevices(std::string&) { return {}; }
 #endif
 
+static std::mutex gHiddenMu;
+static std::vector<std::string> gHidden;
+void setHiddenRadios(const std::vector<std::string>& names) { std::lock_guard<std::mutex> lk(gHiddenMu); gHidden = names; }
+std::vector<std::string> hiddenRadios() { std::lock_guard<std::mutex> lk(gHiddenMu); return gHidden; }
+
 std::vector<DeviceInfo> listRadios(std::string& err) {
     std::vector<DeviceInfo> out = listHackrfDevices(err);
     std::string e2;
@@ -589,10 +594,12 @@ std::vector<DeviceInfo> listRadios(std::string& err) {
     if (err.empty()) err = e2;
     // the SoapySDR driver names of the radios that are also available natively (rtlsdr, airspy, bladerf and sdrplay keep their names;
     // "sdrplay" is the SoapySDRPlay3 module that Linux systems may have next to the SDRplay API)
-    auto soapyName = [](const std::string& b) { return b == "pluto" ? std::string("plutosdr") : b == "usrp" ? std::string("uhd") : b == "lime" ? std::string("lime") : b; };
+    auto lowerS = [](std::string v) { for (auto& c : v) c = (char)tolower((unsigned char)c); return v; };
+    auto soapyName = [&](const std::string& b0) { const std::string b = lowerS(b0); return b == "pluto" ? std::string("plutosdr") : b == "usrp" ? std::string("uhd") : b == "lime" ? std::string("lime") : b; };
     for (auto& d : listSoapyDevices(e2)) {
         bool dup = false;
-        for (auto& n : native) if (soapyName(n.board) == d.board) dup = true;
+        // the same driver, or the same serial on the same vendor (SDRplay lists "SDRplay Dev0 RSP1B" next to the native entry)
+        for (auto& n : native) if (soapyName(n.board) == lowerS(d.board) || (!n.serial.empty() && n.serial == d.serial && lowerS(d.name).rfind(lowerS(n.board), 0) == 0)) dup = true;
         if (!dup) out.push_back(d);
     }
     if (err.empty()) err = e2;
@@ -603,6 +610,8 @@ std::vector<DeviceInfo> listRadios(std::string& err) {
         if (!dup) out.push_back(d);
     }
     for (auto& d : hamlibRigDevices(hamlibRigs())) out.push_back(d);
+    const std::vector<std::string> hid = hiddenRadios();
+    if (!hid.empty()) out.erase(std::remove_if(out.begin(), out.end(), [&](const DeviceInfo& d) { return std::find(hid.begin(), hid.end(), d.name) != hid.end(); }), out.end());
     return out;
 }
 

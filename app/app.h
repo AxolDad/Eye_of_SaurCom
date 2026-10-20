@@ -315,6 +315,8 @@ struct App {
     std::vector<DeviceInfo> devices; // [0]=synthetic, [1]=file, then sound cards, then radios
     // radios on the network the user added (prefs "netRadios"; listed by refreshDevices) and the "Add network radio" window
     std::vector<NetRadio> netRadios;
+    std::vector<std::string> hiddenRadios;   // prefs "hiddenRadios": radios the user hid from the list (by name)
+    bool devicesDirty = false;               // the radio list must be rescanned (a radio was hidden or shown)
     std::vector<HamlibRig> hamlibRigs;   // prefs "hamlibRigs"; serial-CAT rigs listed with the other radios
     bool hamlibAddOpen = false;
     int hamlibAddModel = 3073;            // the model picked last (prefs "hamlibAddModel"); 3073 = IC-7300 until the user picks another
