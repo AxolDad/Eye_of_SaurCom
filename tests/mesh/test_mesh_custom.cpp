@@ -89,7 +89,12 @@ int main() {
 
     // every region and preset: a slot inside the region, the 2.4 GHz bandwidths in LORA_24
     const auto regions = meshtasticRegions(), presets = meshtasticPresetNames();
-    CHECK(regions.size() >= 26 && presets.size() == 9, "lists %zu %zu", regions.size(), presets.size());
+    CHECK(regions.size() >= 26 && presets.size() == 10, "lists %zu %zu", regions.size(), presets.size());
+    {   // Finnish EU2 setup: SF8, 62.5 kHz, 4/8, centre frequency is the override 869.4312744 MHz
+        MeshLoraSettings e;
+        CHECK(meshtasticRegionPreset("EU_868", "EdgeFastLow", e) && e.sf == 8 && e.bwHz == 62500.0 && e.cr == 8 && e.freqHz == 869431274.0,
+              "EdgeFastLow sf %d bw %.0f cr %d f %.1f", e.sf, e.bwHz, e.cr, e.freqHz);
+    }
     for (const char* want : {"EU_433", "EU_868", "US", "ANZ", "IN", "KR", "TW", "RU", "CN", "JP", "NZ_865", "TH", "UA_433", "UA_868", "MY_433", "MY_919",
                              "SG_923", "PH_433", "PH_868", "PH_915", "LORA_24"}) {
         bool found = false;

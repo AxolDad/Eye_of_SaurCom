@@ -56,7 +56,7 @@ MeshProto::MeshProto() : s_(std::make_unique<State>()) {
     // The default channel uses the key of PSK index 1 and, with an empty name, the name of the modem preset
     // (Channels::getName); so each preset name carries the default key.
     static const char* const names[] = {"LongFast", "LongSlow", "LongTurbo", "LongMod", "LongModerate", "MediumFast", "MediumSlow",
-                                        "ShortFast", "ShortSlow", "ShortTurbo"};
+                                        "ShortFast", "ShortSlow", "ShortTurbo", "EdgeFastLow"};
     for (const char* n : names) {
         MeshtasticChannel c;
         c.name = n;
@@ -133,12 +133,14 @@ static std::string lower(std::string s) {
 }
 
 namespace {
-struct PresetRow { const char* name; int sf; double bwKHz; int cr; const char* channel = nullptr; };   // channel: the default channel name, when not name
+struct PresetRow { const char* name; int sf; double bwKHz; int cr; const char* channel = nullptr; double fixedHz = 0; };   // channel: the default channel name, when not name
 // MeshRadio.h modemPresetToParams (non-wide regions), names from DisplayFormatters.cpp
 const PresetRow kPresets[] = {
     {"ShortTurbo", 7, 500, 5},  {"ShortFast", 7, 250, 5},   {"ShortSlow", 8, 250, 5},
     {"MediumFast", 9, 250, 5},  {"MediumSlow", 10, 250, 5}, {"LongTurbo", 11, 500, 8},
     {"LongFast", 11, 250, 5},   {"LongModerate", 11, 125, 8, "LongMod"}, {"LongSlow", 12, 125, 8},
+    // Finnish EU2 setup (areas with 868 MHz interference): not a firmware enum value, a user preset with an override frequency in EU_868
+    {"EdgeFastLow", 8, 62.5, 8, nullptr, 869431274.4140625},
 };
 struct Region { const char* name; double startMHz, endMHz; bool wide = false; };
 // RadioInterface.cpp regions[] (freqStart, freqEnd; the spacing is 0 in all of them)
@@ -193,6 +195,7 @@ double meshtasticSlotHz(const std::string& region, const std::string& preset) {
     const PresetRow* p = findPreset(preset);
     const Region* g = findRegion(region);
     if (!p || !g) return 0;
+    if (p->fixedHz > 0 && lower(region) == "eu868") return std::round(p->fixedHz);   // the override frequency, not a slot
     const double bw = presetBwKHz(p->bwKHz, g->wide) / 1000.0;
     if (g->endMHz - g->startMHz < bw) return 0;            // the firmware would fall back to LongFast here
     const uint32_t n = (uint32_t)std::floor((g->endMHz - g->startMHz) / bw + 1e-9);
@@ -218,7 +221,7 @@ std::vector<std::string> meshtasticRegions() {
 
 std::vector<std::string> meshtasticPresetNames() {
     // the firmware's enum order after LongFast (the default)
-    return {"LongFast", "LongSlow", "MediumSlow", "MediumFast", "ShortSlow", "ShortFast", "LongModerate", "ShortTurbo", "LongTurbo"};
+    return {"LongFast", "LongSlow", "MediumSlow", "MediumFast", "ShortSlow", "ShortFast", "LongModerate", "ShortTurbo", "LongTurbo", "EdgeFastLow"};
 }
 
 bool meshtasticRegionRange(const std::string& region, double& startHz, double& endHz) {
