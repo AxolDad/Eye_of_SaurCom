@@ -14,6 +14,8 @@
 #include <atomic>
 #include <cctype>
 #include <chrono>
+#include <condition_variable>
+#include <stdexcept>
 #include <cmath>
 #include <cstdio>
 #include <map>
@@ -230,6 +232,28 @@ std::string rangesKey(const std::string& serial, const std::string& args) { retu
 // An entry for one antenna input carries its name after the device arguments (listSoapyDevices): "<args>#antenna=<name>"
 const char kAntennaTag[] = "#antenna=";
 std::string deviceArgs(const std::string& a) { const size_t p = a.rfind(kAntennaTag); return p == std::string::npos ? a : a.substr(0, p); }
+
+// Device::make on a network radio (SoapyRemote) can block for good (no server, no route, a local driver service that is not running): the open
+// runs on a helper thread and is given up after 20 s, so Start never hangs the app. A late result is unmade by the helper itself.
+SoapySDR::Device* makeDevice(const std::string& args, std::string& err) {
+    struct Box { std::mutex m; std::condition_variable cv; bool done = false, abandoned = false; SoapySDR::Device* dev = nullptr; std::string what; };
+    auto box = std::make_shared<Box>();
+    std::thread([box, args] {
+        SoapySDR::Device* d = nullptr; std::string w;
+        try { d = SoapySDR::Device::make(args); } catch (const std::exception& e) { w = e.what(); } catch (...) { w = "unknown error"; }
+        std::lock_guard<std::mutex> lk(box->m);
+        if (box->abandoned) { try { if (d) SoapySDR::Device::unmake(d); } catch (...) {} return; }
+        box->dev = d; box->what = w; box->done = true; box->cv.notify_all();
+    }).detach();
+    std::unique_lock<std::mutex> lk(box->m);
+    if (!box->cv.wait_for(lk, std::chrono::seconds(20), [&] { return box->done; })) {
+        box->abandoned = true;
+        err = "the radio did not answer within 20 s (" + args + "). Check the address, that the server is running, and the radio's driver on it";
+        return nullptr;
+    }
+    if (!box->what.empty()) throw std::runtime_error(box->what);
+    return box->dev;
+}
 std::string antennaOf(const std::string& a) { const size_t p = a.rfind(kAntennaTag); return p == std::string::npos ? std::string() : a.substr(p + sizeof kAntennaTag - 1); }
 
 // The name of the driver's antenna-power setting, if it lists one (the drivers do not agree on a name)
@@ -279,7 +303,8 @@ public:
     bool start(const TuneSettings& s, IqRing& ring, std::string& err) override {
         ring_ = &ring;
         try {
-            dev_ = SoapySDR::Device::make(args_);
+            dev_ = makeDevice(args_, err);
+            if (!dev_ && !err.empty()) return false;
             if (!dev_) { err = "cannot open " + args_; const std::string h = soapyRemoteFailureHelp(args_); if (!h.empty()) err = h; return false; }
             rememberRanges(key_, dev_);   // for the next listing
             biasKey_ = biasSetting(dev_);
@@ -497,7 +522,8 @@ public:
     bool open(const TxTune& t, std::string& err) override {
         close();
         try {
-            dev_ = SoapySDR::Device::make(args_);
+            dev_ = makeDevice(args_, err);
+            if (!dev_ && !err.empty()) return false;
             if (!dev_) { err = "cannot open " + args_; const std::string h = soapyRemoteFailureHelp(args_); if (!h.empty()) err = h; return false; }
             rememberRanges(key_, dev_);
             const int nTx = (int)dev_->getNumChannels(SOAPY_SDR_TX);
