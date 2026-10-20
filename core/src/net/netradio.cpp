@@ -8,6 +8,7 @@
 #include <chrono>
 #include <map>
 #include <mutex>
+#include <thread>
 #ifdef DECT2_HAVE_SOAPY
 #include <SoapySDR/Device.hpp>
 #include <SoapySDR/Registry.hpp>
@@ -235,6 +236,29 @@ std::string netRadioDeviceName(const NetRadio& r) {
     }
 }
 
+// The device list is built on the UI thread: the slow network look-up (up to the 5 s remote timeout) runs on a worker, and the
+// list shows the cached answer, or the plain entry until the worker has one (Rescan then shows the radios).
+static std::vector<RemoteSoapyDevice> soapyRemoteListNoBlock(const NetRadio& r) {
+    const std::string key = hostPort(cleanHost(r.host), netRadioPort(r));
+    bool injected, cached = false;
+    std::vector<RemoteSoapyDevice> v;
+    {
+        std::lock_guard<std::mutex> lk(gEnumMu);
+        injected = gEnum != nullptr;   // tests inject an instant enumerate: stay synchronous
+        const auto it = gOffered.find(key);
+        if (it != gOffered.end() && std::chrono::steady_clock::now() - it->second.at < std::chrono::seconds(60)) {
+            cached = true;
+            for (const auto& d : it->second.all) if (lower(d.driver) != "audio") v.push_back(d);
+        }
+    }
+    if (injected) return soapyRemoteList(r);
+    if (cached) return v;
+    static std::mutex fm; static std::map<std::string, bool> flying;
+    { std::lock_guard<std::mutex> fl(fm); if (flying[key]) return {}; flying[key] = true; }
+    std::thread([r, key] { try { soapyRemoteList(r); } catch (...) {} std::lock_guard<std::mutex> fl(fm); flying[key] = false; }).detach();
+    return {};
+}
+
 std::vector<DeviceInfo> netRadioDevices(const std::vector<NetRadio>& v) {
     std::vector<DeviceInfo> out;
     for (const auto& r : v) {
@@ -257,7 +281,7 @@ std::vector<DeviceInfo> netRadioDevices(const std::vector<NetRadio>& v) {
 #ifdef DECT2_HAVE_SOAPY
         {
             const std::string hp = hostPort(cleanHost(r.host), netRadioPort(r));
-            const auto offers = r.remote.empty() ? soapyRemoteList(r) : std::vector<RemoteSoapyDevice>();
+            const auto offers = r.remote.empty() ? soapyRemoteListNoBlock(r) : std::vector<RemoteSoapyDevice>();
             if (offers.empty()) out.push_back(soapyDeviceFor(soapyArgs(r), "remote", netRadioDeviceName(r)));
             for (const auto& o : offers) {
                 NetRadio one = r;

@@ -56,7 +56,10 @@ void startApp(App& app, int argc) {
     app.engine.log("OnAir started");
     if (!gCrashNote.empty()) app.engine.log(gCrashNote);
     refreshDevices(app);
-    for (int i = 0; i < (int)app.devices.size(); i++)
+    bool safeStart = false;   // --safe-start: do not pick or open a radio by itself (a saved network radio that hangs the start-up)
+    for (int i = 1; i < argc; i++) if (std::string(argv[i]) == "--safe-start") safeStart = true;
+    if (safeStart) app.engine.log("safe start: no radio opened by itself; saved network radios are in the settings file, see docs/NETWORK_RADIOS.md");
+    for (int i = 0; i < (int)app.devices.size() && !safeStart; i++)
         if (app.devices[i].isRadio()) { app.devIdx = i; break; }
     {   // "Get me listening": a start with no source configured (no radio, none remembered), unless the user said not to show it
         bool sourceSet = !plat::prefs().getS("devName", "").empty();
