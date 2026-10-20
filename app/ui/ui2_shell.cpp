@@ -369,8 +369,6 @@ static void viewMenu(App& a) {
         }
         if (ImGui::MenuItem(tr("Touch interface"), nullptr, &a.touchUi)) savePrefs(a);   // the same flag as the side panel: big targets, bottom dock (ui/touch.h)
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("For tablets and touch screens: big buttons, an on-screen keypad for the frequency, a full-screen mode picker."));
-        if (ImGui::MenuItem(tr("Transcripts ..."), nullptr, tx::windowOpen())) tx::windowOpen() = !tx::windowOpen();
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on."));
         if (ImGui::MenuItem(tr("Reset layout"))) { a.splitSide = a.splitRight = a.splitBottom = a.splitDock = a.splitBot2 = 0; savePrefs(a); }
         if (ImGui::MenuItem(tr("Reset spectrum"))) resetSpectrum(a);
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Put the panels back to their automatic sizes (drag the bars between panels to resize them)"));
@@ -399,6 +397,12 @@ static void viewMenu(App& a) {
                 ImGui::SetTooltip("%s", tr(have ? "Shows on your Discord profile that you are using OnAir, the mode and the frequency. Needs the Discord desktop app running." : "Discord application ID not set in this build"));
         }
         ImGui::Separator();
+        if (ImGui::MenuItem(tr("Classic interface"))) { a.newUi = false; savePrefs(a); }
+        ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu(tr("Tools"))) {
+        if (ImGui::MenuItem(tr("Transcripts ..."), nullptr, tx::windowOpen())) tx::windowOpen() = !tx::windowOpen();
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on."));
         if (ImGui::MenuItem(tr("Passes"), nullptr, &a.passesOpen)) {}
         ImGui::MenuItem(tr("SatNOGS transmitters"), nullptr, &a.satnogsOpen);
         ImGui::MenuItem(tr("Direction finder"), nullptr, &a.dfOpen);
@@ -423,8 +427,6 @@ static void viewMenu(App& a) {
         if (ImGui::MenuItem(tr("Scanner (highly experimental)"), nullptr, &a.scannerOpen)) {}
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, and stop on activity"));
         ImGui::MenuItem(tr("Antenna rotator..."), nullptr, &a.rotatorOpen);
-        ImGui::Separator();
-        if (ImGui::MenuItem(tr("Classic interface"))) { a.newUi = false; savePrefs(a); }
         ImGui::EndMenu();
     }
 }
