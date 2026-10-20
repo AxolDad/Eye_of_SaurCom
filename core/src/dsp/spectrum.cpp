@@ -141,7 +141,7 @@ void SpectrumAnalyzer::setTransform(bool on) { p_->transform = on; }
 
 size_t SpectrumAnalyzer::autoSize(double fs) {
     size_t n = 8192;
-    while (n < 65536 && fs / (double)n > 250.0) n *= 2;
+    while (n < 32768 && fs / (double)n > 250.0) n *= 2;
     return n;
 }
 

@@ -27,7 +27,7 @@ public:
     explicit SpectrumAnalyzer(size_t fftSize = 4096);
     ~SpectrumAnalyzer();
     size_t fftSize() const { return n_; }
-    static size_t autoSize(double sampleRate);   // the size that gives bins of about 250 Hz or finer, 8192..65536
+    static size_t autoSize(double sampleRate);   // the size that gives bins of about 250 Hz or finer, 8192..32768 (65536 stays a manual choice: about 6 ms a frame on a Pi 4 at 10 Msps)
 
     // consume samples, averages up to 32 blocks per frame
     void feed(const cf32* x, size_t n);
