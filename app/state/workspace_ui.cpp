@@ -96,8 +96,12 @@ void workspaceDialogs(App& a) {
         ImGui::EndPopup();
     }
 
-    if (workspaceRestorePending()) {
-        if (!gRestoreAsked) { ImGui::OpenPopup("Restore last session?"); gRestoreAsked = true; }
+    // Another popup (the data-sharing consent, a crash note) opened at the same level closes this one without answering it: keep asking
+    // while the answer is pending, but only when no other popup is up, so the two dialogs wait for each other instead of one erasing the other.
+    if (workspaceRestorePending() && !ImGui::IsPopupOpen("Restore last session?") &&
+        !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel)) {
+        ImGui::OpenPopup("Restore last session?");
+        gRestoreAsked = true;
     }
     if (ImGui::BeginPopupModal("Restore last session?", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         if (!workspaceRestorePending()) { ImGui::CloseCurrentPopup(); ImGui::EndPopup(); return; }

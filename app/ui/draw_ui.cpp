@@ -222,8 +222,11 @@ static void floatingWindows(App& a, ImVec2 disp) {
 // a modal note once per start when the last run crashed or the startup guard acted
 static void crashNotePopup(ImVec2 disp) {
     if (!gCrashNote.empty()) {   // once per start; the same text is in the log panel
-        static bool opened = false;
-        if (!opened) { ImGui::OpenPopup(trw("OnAir crashed")); opened = true; }
+        // asked again until OK is pressed: another popup opened at the same level (the data-sharing consent) closes this one unanswered,
+        // so it only opens while nothing else is up and the two dialogs take turns
+        if (!ImGui::IsPopupOpen(trw("OnAir crashed")) &&
+            !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel))
+            ImGui::OpenPopup(trw("OnAir crashed"));
         ImGui::SetNextWindowPos(ImVec2(disp.x * 0.5f, disp.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
         ImGui::SetNextWindowSizeConstraints(ImVec2(420 * gUi, 0), ImVec2(560 * gUi, 400 * gUi));
         if (ImGui::BeginPopupModal(trw("OnAir crashed"), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
