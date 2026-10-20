@@ -21,6 +21,7 @@ The user guides and notes that live in the repository. The same text is on the [
 | [gnss-map.md](gnss-map.md) | GNSS satellites on the map | Where the satellites are comes from the navigation message the receiver decodes (parity/CRC checked, complete and consistent sets only), computed at the |
 | [gps-jamming-map.md](gps-jamming-map.md) | GPS interference map | ADS-B aircraft broadcast how good their own GNSS position is. |
 | [headless-server.md](headless-server.md) | Headless server (onair-server) | `onair-server` is OnAir without a window. |
+| [RASPBERRY_PI.md](RASPBERRY_PI.md) | OnAir on a Raspberry Pi | Pi 4/Pi 5 install, udev, headless use, which modes fit (untested on real hardware). |
 | [hydrogen-line.md](hydrogen-line.md) | Hydrogen line toolkit (Radio astronomy mode) | Everything here works on the integrated spectrum of the Radio astronomy mode (21 cm, 1420.405751 MHz). |
 | [kiwisdr.md](kiwisdr.md) | KiwiSDR (network HF receiver) | A KiwiSDR is a software defined receiver that covers 0 to 30 MHz and is reached over the internet or a local network. |
 | [lbj.md](lbj.md) | LBJ (Chinese railway train approach warning) | Receive only. |
