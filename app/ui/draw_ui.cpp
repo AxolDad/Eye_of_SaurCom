@@ -173,7 +173,8 @@ static void classicShell(App& a, ImVec2 disp) {
     ImGui::SetNextWindowSize(disp);
     ImGui::Begin("##root", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoSavedSettings);
     txViewSwitch(a);   // RX / TX, top left
-    if (txViewFlag()) classicTx(a, disp);
+    if (hamViewFlag()) { ImGui::BeginChild("##hambody", ImVec2(0, 0)); hamPanel(a); ImGui::EndChild(); }
+    else if (txViewFlag()) classicTx(a, disp);
     else classicRx(a, disp);
 }
 

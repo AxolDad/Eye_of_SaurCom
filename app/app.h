@@ -880,6 +880,8 @@ void rotatorPointBearing(double bearingDeg, double elDeg);
 struct ModeDef;
 bool& txViewFlag();                // the RX / TX switch: true = TX view (never saved: the program opens in RX view)
 void txViewSwitch(App& a);         // the slider at the top left of both interfaces
+bool& hamViewFlag();               // the Ham view (third choice of the switch, exclusive with TX)
+void hamPanel(App& a);             // app/ham/ham_ui.cpp
 void txDevOpen(App& a, const char* modeId, bool dryRun);   // dev flags --tx / --txdry <mode id>: open the TX view on a signal, optionally with the test (no RF) running
 void txTopBar(App& a, ImVec2 disp);   // tx_panel.cpp: the top bar of the TX view (run button, frequency digits, link to RX, presets, output meter, level)
 void txPanel(App& a);              // the guided transmit panel (tx_panel.cpp): status header, 1 Signal, 2 Settings, 3 Preview and send; fills the main area in TX view

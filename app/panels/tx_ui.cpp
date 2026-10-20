@@ -403,26 +403,31 @@ void txTick(App&) {
     dl->AddText(ImVec2(x + pad, 4 * gUi + pad), IM_COL32(255, 255, 255, 255), b);
 }
 
-// The RX / TX slider at the top left. Switching the view starts and stops nothing.
+// The RX / TX / Ham selector at the top left. Switching the view starts and stops nothing.
 void txViewSwitch(App&) {
     TxUi& s = ui();
-    const float h = ImGui::GetFrameHeight(), w = h * 3.2f;
+    bool& ham = hamViewFlag();
+    if (ham && s.view) ham = false;   // set by another route (menu): TX and Ham exclude each other
+    const float h = ImGui::GetFrameHeight(), seg = h * 1.6f, w = seg * 3;
     const ImVec2 p = ImGui::GetCursorScreenPos();
     ImGui::InvisibleButton("##rxtx", ImVec2(w, h));
-    if (ImGui::IsItemClicked()) s.view = !s.view;
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Switch between the receiver (RX) and the transmitter (TX). The transmitter has its own radio, so a receiver can keep receiving while you transmit."));
+    const bool tx = s.session.running();
+    if (ImGui::IsItemClicked()) {
+        const int k = std::min(2, std::max(0, (int)((ImGui::GetIO().MousePos.x - p.x) / seg)));
+        s.view = k == 1; ham = k == 2;
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Receive (RX), transmit (TX) or Ham (amateur operation with a rig: FT8 / FT4 / FT2 contacts, log). The transmitter has its own radio, so a receiver can keep receiving while you transmit."));
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    const bool on = s.view, tx = s.session.running();
-    const ImU32 bg = tx ? IM_COL32(190, 25, 25, 255) : on ? IM_COL32(150, 60, 40, 255) : IM_COL32(60, 70, 85, 255);
+    const int cur = ham ? 2 : s.view ? 1 : 0;
+    const ImU32 bg = tx ? IM_COL32(190, 25, 25, 255) : cur == 1 ? IM_COL32(150, 60, 40, 255) : cur == 2 ? IM_COL32(40, 110, 80, 255) : IM_COL32(60, 70, 85, 255);
     dl->AddRectFilled(p, ImVec2(p.x + w, p.y + h), bg, h * 0.5f);
-    const float kr = h * 0.5f - 2 * gUi;
-    const ImVec2 kc(on ? p.x + w - h * 0.5f : p.x + h * 0.5f, p.y + h * 0.5f);
-    dl->AddCircleFilled(kc, kr, IM_COL32(245, 245, 245, 255));
-    const char* lab = on ? tr("TX") : tr("RX");
-    const ImVec2 ts = ImGui::CalcTextSize(lab);
-    const float cx = on ? p.x + (w - h) * 0.5f : p.x + h + (w - h) * 0.5f;   // the label sits in the free half of the track
-    dl->AddText(ImVec2(cx - ts.x * 0.5f, p.y + (h - ts.y) * 0.5f), IM_COL32(255, 255, 255, 255), lab);
-    if (tx && !on) { ImGui::SameLine(); ImGui::TextColored(kRed, "%s", tr("TRANSMITTING")); }
+    dl->AddRectFilled(ImVec2(p.x + seg * cur + 2 * gUi, p.y + 2 * gUi), ImVec2(p.x + seg * (cur + 1) - 2 * gUi, p.y + h - 2 * gUi), IM_COL32(245, 245, 245, 255), h * 0.5f);
+    const char* labs[3] = {tr("RX"), tr("TX"), tr("Ham")};
+    for (int i = 0; i < 3; i++) {
+        const ImVec2 ts = ImGui::CalcTextSize(labs[i]);
+        dl->AddText(ImVec2(p.x + seg * i + (seg - ts.x) * 0.5f, p.y + (h - ts.y) * 0.5f), i == cur ? IM_COL32(30, 30, 30, 255) : IM_COL32(255, 255, 255, 255), labs[i]);
+    }
+    if (tx && cur != 1) { ImGui::SameLine(); ImGui::TextColored(kRed, "%s", tr("TRANSMITTING")); }
     ImGui::Dummy(ImVec2(w, 1.f));   // grow ##root so SetCursorPos of the slider does not extend past the window
 }
 
