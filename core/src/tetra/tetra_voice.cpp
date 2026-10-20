@@ -5,7 +5,10 @@ namespace dect2::tetra {
 
 VoiceVerdict voiceVerdict(const CallEncryption& e) {
     if (!e.known) return VoiceVerdict::StateUnknownNotDecoded;
-    if (e.encMode != 0 || e.cellOffersEncryption) return VoiceVerdict::EncryptedNotDecoded;
+    // A cell that only advertises the air interface encryption service (SYSINFO) is not an encrypted call: many networks offer it and still run
+    // clear calls. What counts is the evidence of this call: clear MAC-RESOURCE signalling was read and the call set-up did not say encrypted
+    // (`known`), and no PDU of the capture was encrypted (encMode). Anything unclear stays "not decoded"; nothing is ever decrypted.
+    if (e.encMode != 0) return VoiceVerdict::EncryptedNotDecoded;
     return VoiceVerdict::Passed;
 }
 

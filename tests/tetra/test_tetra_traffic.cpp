@@ -161,7 +161,7 @@ int main() {
         }
         {   std::vector<std::vector<uint8_t>> fr; CallEncryption e; e.known = true; e.cellOffersEncryption = true;
             auto r = run(e, fr);
-            CHECK(r.first == VoiceVerdict::EncryptedNotDecoded && fr.empty(), "cell offering air interface encryption: no speech frames");
+            CHECK(r.first == VoiceVerdict::Passed, "cell only advertising air interface encryption, call known clear: decoded");
         }
         {   // a wrong colour code descrambles to noise: the CRC drops the burst, nothing reaches the codec
             std::vector<std::vector<uint8_t>> fr; CallEncryption e; e.known = true;

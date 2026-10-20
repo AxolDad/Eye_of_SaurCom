@@ -45,9 +45,11 @@ int main() {
         CHECK(s.calls == 0, "encrypted burst: sink never called");
         CHECK(std::strcmp(voiceVerdictText(v), "encrypted, not decoded") == 0, "encrypted text");
     }
-    {   // cell offering air interface encryption is handled as encrypted
+    {   // a cell that only advertises air interface encryption, with a call known clear: decoded; encrypted evidence still refuses
         Sink s; CallEncryption e; e.known = true; e.cellOffersEncryption = true;
-        CHECK(processTrafficBurst(l.data(), l.data() + 216, scr, e, &s) == VoiceVerdict::EncryptedNotDecoded && s.calls == 0, "air encryption cell refused");
+        CHECK(processTrafficBurst(l.data(), l.data() + 216, scr, e, &s) == VoiceVerdict::Passed, "advertising cell, clear call: decoded");
+        Sink s2; CallEncryption e2; e2.known = true; e2.cellOffersEncryption = true; e2.encMode = 1;
+        CHECK(processTrafficBurst(l.data(), l.data() + 216, scr, e2, &s2) == VoiceVerdict::EncryptedNotDecoded && s2.calls == 0, "encrypted evidence refused");
     }
     {   // state unknown: not decoded
         Sink s; CallEncryption e;

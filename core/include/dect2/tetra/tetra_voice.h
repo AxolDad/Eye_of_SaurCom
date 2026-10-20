@@ -31,7 +31,7 @@ enum class VoiceVerdict { Passed, EncryptedNotDecoded, StateUnknownNotDecoded };
 struct CallEncryption {
     bool known = false;
     int encMode = 0;
-    bool cellOffersEncryption = false;   // the cell advertises the air interface encryption service: handled as encrypted
+    bool cellOffersEncryption = false;   // the cell advertises the air interface encryption service (information only: a clear call on such a cell is decoded)
 };
 VoiceVerdict voiceVerdict(const CallEncryption& e);
 const char* voiceVerdictText(VoiceVerdict v);   // "voice (clear)", "encrypted, not decoded", "encryption state unknown, not decoded"
