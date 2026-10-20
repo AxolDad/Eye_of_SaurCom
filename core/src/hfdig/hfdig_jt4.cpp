@@ -6,8 +6,9 @@
 // (WSJT-X user guide, the K1JT WSJT paper); the structure follows hfdig_jt9.cpp, itself after WSJT-X lib/gen9.f90, interleave9.f90, jt9fano.f90
 // (K1JT et al., GPL-3).
 //
-// NOT VERIFIED against WSJT-X: the 206-bit sync vector. kSync below is a documented stand-in (a 16-bit LFSR sequence), because the published table was not
-// available when this was written; with the real vector in kSync (and the same tone mapping) the mode interoperates, nothing else needs to change.
+// Taken from WSJT-X (read via the public source, GPL-3): the sync vector npr (lib/jt4.f90), tone = 2 * data bit + sync bit (lib/gen4.f90), the
+// bit-reversal interleave (lib/interleave4.f90). NOT checked against a real recording: the 72+31 bit / K=32 code, polynomials and message packing
+// are those of JT9 (assumed identical, encode4.f90 calls encode232 + interleave4).
 // Not decoded: Doppler spread / drift, the 2-bit message averaging of JT4's "average" mode, the JT4 "0 .. 9" shorthand messages.
 #include "hfdig_wsjt_int.h"
 #include <algorithm>
@@ -25,17 +26,14 @@ constexpr int kNsym = 206, kN = 4096, kHop = 1024;
 constexpr double kSym = 2520.0 / 11025.0, kBaud = 11025.0 / 2520.0;
 constexpr double kRate = kN * kBaud;   // 17920 Hz: a symbol is 4096 samples
 
-const std::array<uint8_t, kNsym>& syncVec() {   // STAND-IN for the JT4 sync vector (see the top of the file)
-    static const std::array<uint8_t, kNsym> v = [] {
-        std::array<uint8_t, kNsym> a{};
-        uint16_t r = 0xACE1;
-        for (int i = 0; i < kNsym; i++) {
-            const uint16_t bit = (uint16_t)(((r >> 0) ^ (r >> 2) ^ (r >> 3) ^ (r >> 5)) & 1);
-            r = (uint16_t)((r >> 1) | (bit << 15));
-            a[(size_t)i] = (uint8_t)(r & 1);
-        }
-        return a;
-    }();
+const std::array<uint8_t, kNsym>& syncVec() {   // WSJT-X lib/jt4.f90 npr(2:207) (npr(1) is not sent)
+    static const std::array<uint8_t, kNsym> v = {
+    0,0,0,1,1,0,0,0,1,1,0,1,1,0,0,1,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,
+    0,1,1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,0,0,1,0,0,1,0,0,1,1,1,1,1,0,0,0,1,0,1,0,0,0,1,
+    1,1,1,0,1,1,0,0,1,0,0,0,1,1,0,1,0,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,1,0,1,0,1,0,
+    1,1,1,0,0,1,0,1,1,0,1,1,1,1,0,0,0,0,1,1,0,1,1,0,0,0,1,1,1,0,1,1,1,0,1,1,1,0,0,1,
+    0,0,0,1,1,0,1,1,0,0,1,0,0,0,1,1,1,1,1,1,0,0,1,1,0,0,0,0,1,1,0,0,0,1,0,1,1,0,1,1,
+    1,1,0,1,0,1};
     return v;
 }
 

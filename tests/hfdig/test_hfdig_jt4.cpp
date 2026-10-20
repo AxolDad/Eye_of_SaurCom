@@ -1,5 +1,5 @@
 // HF digital, JT4: the code (206 tones of 4, the timing), then the whole receiver on synthetic audio (clean, sub-modes A .. G, frequency and
-// time offsets, a weak signal, two stations, noise alone). Loopback only: the sync vector is a stand-in (see hfdig_jt4.cpp), so interoperation with
+// time offsets, a weak signal, two stations, noise alone). Loopback only: the sync vector is the one of WSJT-X but nothing was checked against a real recording, so interoperation with
 // WSJT-X is not tested.
 #include "hfdig_wsjt_testutil.h"
 #include "../../core/src/hfdig/hfdig_wsjt_int.h"
