@@ -195,6 +195,20 @@ bool gainIsReduction(SoapySDR::Device* dev, int ch) {
     } catch (...) { return false; }
 }
 
+// The overall gain range for the slider: SoapySDRPlay can report a degenerate overall range (a span of a dB or so, the slider stuck at 1 dB)
+// although its elements (IFGR, RFGR) span tens of dB: then the range is the sum of the elements' spans, from the first element's minimum.
+SoapySDR::Range effectiveGainRange(SoapySDR::Device* dev, int ch) {
+    SoapySDR::Range g = dev->getGainRange(SOAPY_SDR_RX, ch);
+    try {
+        if (g.maximum() - g.minimum() < 10 && gainIsReduction(dev, ch)) {
+            double span = 0;
+            for (const auto& n : dev->listGains(SOAPY_SDR_RX, ch)) { const auto r = dev->getGainRange(SOAPY_SDR_RX, ch, n); span += r.maximum() - r.minimum(); }
+            if (span > g.maximum() - g.minimum()) return SoapySDR::Range(g.minimum(), g.minimum() + span);
+        }
+    } catch (...) {}
+    return g;
+}
+
 // The RF gain stage of a gain-reduction driver (SoapySDRPlay3: the gain element "RFGR", the LNA state 0-9, 0 = most gain): offered as a
 // setting of its own ("rfgr": auto = the overall gain slider drives it as before, or a state), so the ADC can be kept from saturating
 // with the IF gain (IFGR) left to the slider. Not offered when the driver has no such element.
@@ -272,7 +286,7 @@ void rememberRanges(const std::string& key, SoapySDR::Device* dev) {
     SoapyRanges r;
     try {
         for (const auto& x : dev->getSampleRateRange(SOAPY_SDR_RX, 0)) { if (x.step() <= 0 || x.maximum() <= x.minimum()) r.rates.emplace_back(x.minimum(), x.maximum()); r.maxRate = std::max(r.maxRate, x.maximum()); r.minRate = r.minRate == 0 ? x.minimum() : std::min(r.minRate, x.minimum()); }
-        const auto g = dev->getGainRange(SOAPY_SDR_RX, 0);
+        const auto g = effectiveGainRange(dev, 0);
         r.gainMin = g.minimum(); r.gainMax = g.maximum();
         for (const auto& x : dev->getFrequencyRange(SOAPY_SDR_RX, 0)) { r.maxFreq = std::max(r.maxFreq, x.maximum()); r.minFreq = r.minFreq == 0 ? x.minimum() : std::min(r.minFreq, x.minimum()); }
     } catch (...) {}
@@ -447,7 +461,7 @@ private:
         } catch (...) {}
         dev_->setFrequency(SOAPY_SDR_RX, ch, std::max(tuneHz, 0.0));
         try { if (dev_->hasGainMode(SOAPY_SDR_RX, ch)) dev_->setGainMode(SOAPY_SDR_RX, ch, false); } catch (...) {}   // we run our own AGC
-        const auto gr = dev_->getGainRange(SOAPY_SDR_RX, ch);
+        const auto gr = effectiveGainRange(dev_, ch);
         const double g = std::min(std::max(s.gainDb, gr.minimum()), gr.maximum());
         const std::string rfv = radioOption(s, kRfKey, "auto");
         if (reduction_ && rfv != "auto" && !rfv.empty() && rfStage(dev_)) {

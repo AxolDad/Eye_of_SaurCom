@@ -35,12 +35,28 @@ static void toolbarSource(App& a, bool vertical, bool running) {
                 a.tune.biasTee = false;   // antenna power set for another radio (and its antenna) is never carried over
             }
             ImGui::EndDisabled();
+            if (a.devices[i].isRadio() && ImGui::BeginPopupContextItem(("##hide" + std::to_string(i)).c_str())) {
+                if (ImGui::MenuItem(tr("Hide this radio"))) {
+                    auto h = hiddenRadios(); h.push_back(a.devices[i].name); setHiddenRadios(h);
+                    a.hiddenRadios = h; a.devIdx = 0; a.devicesDirty = true;
+                }
+                ImGui::EndPopup();
+            }
         }
         ImGui::Separator();
+        if (!a.hiddenRadios.empty() && ImGui::BeginMenu(tr("Hidden radios (click to show)"))) {
+            for (size_t k = 0; k < a.hiddenRadios.size(); k++)
+                if (ImGui::MenuItem(a.hiddenRadios[k].c_str())) {
+                    a.hiddenRadios.erase(a.hiddenRadios.begin() + k); setHiddenRadios(a.hiddenRadios); a.devicesDirty = true;
+                    break;
+                }
+            ImGui::EndMenu();
+        }
         if (ImGui::Selectable(tr("Add network radio…"))) a.netAddOpen = true;
         if (hamlibSupported() && ImGui::Selectable(tr("Add Hamlib rig…"))) a.hamlibAddOpen = true;
         ImGui::EndCombo();
     }
+    if (a.devicesDirty) { a.devicesDirty = false; refreshDevices(a); a.devIdx = std::min(a.devIdx, (int)a.devices.size() - 1); }
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         if (a.devices[a.devIdx].isAudio())
             ImGui::SetTooltip("%s", tr("For WebSDR, a virtual audio cable (VAC), or a radio's speaker or line into the computer. Not a replacement for an SDR when you need megahertz of bandwidth."));

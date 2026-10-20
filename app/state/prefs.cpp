@@ -315,6 +315,12 @@ void loadPrefs(App& a) {
     plat::Prefs& d = plat::prefs();
     a.netRadios = netRadiosFromString(d.getS("netRadios", ""));
     a.hamlibRigs = hamlibRigsFromString(d.getS("hamlibRigs", ""));
+    {   // radios hidden from the list, one name per line
+        a.hiddenRadios.clear();
+        std::string cur;
+        for (char c : d.getS("hiddenRadios", "") + "\n") { if (c == '\n') { if (!cur.empty()) a.hiddenRadios.push_back(cur); cur.clear(); } else cur += c; }
+        setHiddenRadios(a.hiddenRadios);
+    }
     loadKeys(d, a, true);   // the Hamlib picker, the frequency and the gains
     a.recFormat = fixRecFormat((int)d.getI("recFormat", 0));
     a.recSigmf = d.getB("recSigmf", true);
@@ -352,6 +358,7 @@ void savePrefs(const App& a) {
     if (a.rxId == 1) {
         d.setS("netRadios", netRadiosToString(a.netRadios));
         d.setS("hamlibRigs", hamlibRigsToString(a.hamlibRigs));
+        { std::string j; for (const auto& n : a.hiddenRadios) j += n + "\n"; d.setS("hiddenRadios", j); }
     }
     d.setS("devName", a.devIdx >= 2 && a.devIdx < (int)a.devices.size() ? a.devices[a.devIdx].name : std::string());   // the radio of this receiver, found again at the next start
     saveModeAndGains(d, a);

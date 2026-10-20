@@ -203,6 +203,9 @@ std::unique_ptr<TxSink> makeUsbHackrfTxSink(const std::string& serial);   // hac
 void hackrfTxPack(const cf32* x, size_t n, int8_t* out);                  // the HackRF's DAC format: float (1.0 = full scale) to signed 8-bit I/Q pairs
 std::unique_ptr<TxSink> makeNativeTxSink(const DeviceInfo& d);           // source_native.cpp (PlutoSDR)
 
+// Radios the user hid from the list (by display name; saved in the settings). Synthetic/file entries are never hidden.
+void setHiddenRadios(const std::vector<std::string>& names);
+std::vector<std::string> hiddenRadios();
 std::vector<DeviceInfo> listHackrfDevices(std::string& err);
 // Every other radio that SoapySDR knows (Airspy, SDRplay, RTL-SDR, PlutoSDR, LimeSDR, BladeRF, USRP, ...). Empty when built without SoapySDR.
 std::vector<DeviceInfo> listSoapyDevices(std::string& err);
