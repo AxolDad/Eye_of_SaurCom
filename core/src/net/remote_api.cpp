@@ -31,16 +31,6 @@ std::string base64(const std::string& d) { return netp::base64(d); }
 std::string wsAcceptKey(const std::string& key) { return netp::wsAcceptKey(key); }
 std::string wsFrame(int opcode, const std::string& p) { return netp::wsFrame(opcode, p); }
 
-// ------------------------------------------------------------------ JSON
-std::string jsonEscape(const std::string& s) { return dect2::str::jsonEscape(s); }
-
-std::string jsonNum(double v) {
-    if (!std::isfinite(v)) return "null";
-    char b[40];
-    snprintf(b, sizeof b, "%.10g", v);
-    return b;
-}
-
 bool parseFlatJson(const std::string& t, std::map<std::string, JsonVal>& out) { return netp::parseFlatJson(t, out); }
 
 std::string remoteApiNewToken() {
