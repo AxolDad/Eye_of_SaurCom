@@ -51,8 +51,8 @@ int main() {
       e.onDecode(1, "LY1ABC K1ABC FN42", -5, 0, 1000);
       CHECK(e.state() == QsoEngine::Tx2Report);
       g.armed = true;
-      const std::string m2 = e.messageForSlot(30);
-      if (t.send(g, 0, m2, 1500, 0.5, err)) e.txSent(30);
+      const std::string m2 = e.messageForSlot(15);
+      if (t.send(g, 0, m2, 1500, 0.5, err)) e.txSent(15);
       CHECK(f.frames > 0); }
     printf(fails ? "ham_tx: %d FAILED\n" : "ham_tx: all passed\n", fails);
     return fails ? 1 : 0;

@@ -113,7 +113,7 @@ void save(HamUi& h) {
 }
 }  // namespace
 
-bool& hamViewFlag() { return H().view; }
+bool& hamViewFlag() { static bool init = (H().view = getenv("DECT2_HAMVIEW") != nullptr, true); (void)init; return H().view; }
 
 void hamPanel(App& a) {
     HamUi& h = H();
