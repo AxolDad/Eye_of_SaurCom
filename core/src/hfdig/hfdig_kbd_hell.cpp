@@ -37,10 +37,69 @@ HellP params(int v) {
     }
 }
 
-// the bits of column `col` of a character (bit k: pixel k in the order sent, bottom row first), -1 when the character has ended
-int fontColumn(int c, int col) {
-    if (col > 15 || c < ' ' || c > '~') return -1;
-    const unsigned short* g = kHellFont[c - ' '];
+} // namespace
+
+// Cyrillic and Greek capitals (lower case folds to the capital): drawn as the Latin letter they look like, or as five rows of five pixels
+struct Lk { int cp; char a; };
+const Lk kLook[] = {{0x410,'A'},{0x412,'B'},{0x415,'E'},{0x41A,'K'},{0x41C,'M'},{0x41D,'H'},{0x41E,'O'},{0x420,'P'},{0x421,'C'},{0x422,'T'},{0x425,'X'},{0x423,'Y'},
+    {0x391,'A'},{0x392,'B'},{0x395,'E'},{0x396,'Z'},{0x397,'H'},{0x399,'I'},{0x39A,'K'},{0x39C,'M'},{0x39D,'N'},{0x39F,'O'},{0x3A1,'P'},{0x3A4,'T'},{0x3A5,'Y'},{0x3A7,'X'},{0x406,'I'}};
+struct Dr { int cp; unsigned char r[5]; };
+const Dr kDraw[] = {
+    {0x411,{31,16,30,17,30}},{0x413,{31,16,16,16,16}},{0x414,{14,10,10,31,17}},{0x416,{21,14,4,14,21}},{0x417,{30,1,14,1,30}},{0x418,{17,19,21,25,17}},
+    {0x41B,{15,9,9,9,25}},{0x41F,{31,17,17,17,17}},{0x424,{4,14,21,14,4}},{0x426,{18,18,18,31,1}},{0x427,{17,17,15,1,1}},{0x428,{21,21,21,21,31}},
+    {0x429,{21,21,21,31,1}},{0x42A,{24,8,14,9,14}},{0x42B,{17,17,25,21,25}},{0x42C,{16,16,30,17,30}},{0x42D,{30,1,15,1,30}},{0x42E,{18,21,29,21,18}},{0x42F,{15,17,15,5,9}},
+    {0x393,{31,16,16,16,16}},{0x394,{4,10,10,17,31}},{0x398,{14,17,31,17,14}},{0x39B,{4,10,10,17,17}},{0x39E,{31,0,14,0,31}},{0x3A0,{31,17,17,17,17}},
+    {0x3A3,{31,16,8,16,31}},{0x3A6,{4,14,21,14,4}},{0x3A8,{21,21,14,4,4}},{0x3A9,{14,17,17,10,27}}};
+// Latin-1 letters 0xC0 .. 0xFF: base letter and accent (g grave, a acute, c circumflex, t tilde, d diaeresis, r ring, '-' none)
+bool hellGlyph(int cp, unsigned short out[14]) {
+    static const char* kBase = "AAAAAAACEEEEIIIIDNOOOOO*OUUUUYTsaaaaaaaceeeeiiiidnooooo/ouuuuyty";
+    static const char* kAcc  = "gactdr--gacdgacd-tgactd--gacda--gactdr--gacdgacd-tgactd--gacda-d";
+    int base = cp;
+    char acc = '-';
+    bool ok = true;
+    if (cp >= 0xC0 && cp <= 0xFF) {
+        base = (uint8_t)kBase[cp - 0xC0]; acc = kAcc[cp - 0xC0];
+        if (base == 's') base = 'B'; else if (base == 'T' || base == 't') base = 'P'; else if (base == '*') base = 'x';
+        if (base == 'P' + 0 && cp == 0xFE) base = 'p';
+    } else if (cp == 0xA0 || cp == '\t') base = ' ';
+    else if (cp >= 0x20 && cp <= 0x7E) base = cp;
+    else {
+        int u = cp;
+        if (u >= 0x430 && u <= 0x44F) u -= 0x20;                        // Cyrillic small -> capital
+        else if (u == 0x451) u = 0x415, acc = 'd';                      // io
+        else if (u == 0x401) u = 0x415, acc = 'd';
+        else if (u == 0x419 || u == 0x439) u = 0x418, acc = 'r';        // short i
+        else if (u >= 0x3B1 && u <= 0x3C9 && u != 0x3C2) u -= 0x20;     // Greek small -> capital
+        else if (u == 0x3C2) u = 0x3A3;
+        else if (u >= 0x3AC && u <= 0x3CE) u = 0;                       // Greek with tonos: not drawn
+        base = '?'; ok = false;
+        for (const Lk& l : kLook) if (l.cp == u) { base = l.a; ok = true; }
+        if (ok == false)
+            for (const Dr& d : kDraw) if (d.cp == u) {
+                for (int i = 0; i < 14; i++) out[i] = 0;
+                for (int i = 0; i < 5; i++) out[2 + 2 * i] = out[3 + 2 * i] = (unsigned short)(d.r[i] << 11);
+                ok = true;
+                break;
+            }
+        if (ok && base == '?') {   // drawn glyph: add the accent and return
+            unsigned short m = acc == 'd' ? 0x5000 : acc == 'r' ? 0x6000 : 0;
+            if (m) { out[0] |= m; out[1] |= m; }
+            return true;
+        }
+    }
+    for (int i = 0; i < 14; i++) out[i] = kHellFont[base - ' '][i];
+    unsigned short m = 0;
+    switch (acc) { case 'g': m = 0x4000; break; case 'a': m = 0x2000; break; case 'c': m = 0x5000; break; case 't': m = 0x6800; break;
+                   case 'd': m = 0x5000; break; case 'r': m = 0x6000; break; default: break; }
+    if (m) { out[0] |= m; out[1] |= m; }
+    return ok;
+}
+
+namespace {
+
+// the bits of column `col` of a glyph (bit k: pixel k in the order sent, bottom row first), -1 when the character has ended
+int fontColumn(const unsigned short* g, int col) {
+    if (col > 15) return -1;
     int ord = 0;
     for (int i = 0; i < 14; i++) ord |= g[i];
     const int mask = 1 << (15 - col);
@@ -63,6 +122,12 @@ public:
     void next(std::vector<float>& out, TextSrc& src) override {
         if (pix_.empty()) {
             int c = src.next();
+            if (c >= 0x80) {   // UTF-8: gather the continuation bytes
+                const int n = c >= 0xF0 ? 3 : c >= 0xE0 ? 2 : c >= 0xC0 ? 1 : 0;
+                int cp = n == 3 ? (c & 7) : n == 2 ? (c & 15) : (c & 31);
+                for (int i = 0; i < n; i++) cp = (cp << 6) | (src.next() & 63);
+                c = n ? cp : '?';
+            }
             if (c == '\r' || c == '\n') c = ' ';
             pendChar(c);
         }
@@ -76,7 +141,9 @@ private:
         if (c == ' ') { nullColumn(); nullColumn(); nullColumn(); }
         else {
             int col = 0, bits;
-            while ((bits = fontColumn(c, col)) != -1) {
+            unsigned short g[14];
+            hellGlyph(c, g);
+            while ((bits = fontColumn(g, col)) != -1) {
                 for (int i = 0; i < 14; i++) pix_.push_back((bits >> i) & 1);
                 col++;
             }
