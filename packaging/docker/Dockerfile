@@ -14,7 +14,7 @@ ARG TARGETARCH
 # fonts-wqy-microhei: Chinese for the UI (one of the fonts OnAir looks for) in 5 MB, instead of the 90 MB of Noto CJK.
 RUN set -eux; \
     apt-get update; \
-    curl -fsSL -o /tmp/onair.deb \
+    curl -fsSL --retry 8 --retry-all-errors --retry-delay 30 -o /tmp/onair.deb \
       "https://github.com/adswill/OnAir/releases/download/v${ONAIR_VERSION}/onair_${ONAIR_VERSION}_${TARGETARCH:-$(dpkg --print-architecture)}.deb"; \
     apt-get install -y --no-install-recommends /tmp/onair.deb zenity soapysdr-module-all libfaad2 fonts-dejavu-core fonts-wqy-microhei; \
     # Docker Engine (the base image can run Docker inside), the compiler tool chain, every locale at once (the one LANG names is
