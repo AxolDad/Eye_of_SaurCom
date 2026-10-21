@@ -698,9 +698,10 @@ void wfDisplayPopup(App& a) {
     wfAutoButton(a);
     ImGui::Separator();
     ImGui::TextDisabled("%s", tr("Speed (rows a second)"));
-    static const float rates[] = {0, 1, 2, 5, 10, 15};
-    for (int i = 0; i < 6; i++) {
-        if (i) ImGui::SameLine(0, 4 * gUi);
+    static const float rates[] = {0, 0.1f, 0.2f, 0.5f, 1, 2, 5, 10, 15};
+    for (int i = 0; i < 9; i++) {
+        if (i == 5) ImGui::NewLine();
+        if (i && i != 5) ImGui::SameLine(0, 4 * gUi);
         char lb[24]; if (rates[i] == 0) snprintf(lb, sizeof lb, "%s", tr("max")); else snprintf(lb, sizeof lb, "%g", rates[i]);
         if (ImGui::RadioButton(lb, a.wf.rowsPerSec == rates[i])) { a.wf.setRate(rates[i]); savePrefs(a); }
     }

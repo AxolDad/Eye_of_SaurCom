@@ -110,7 +110,7 @@ struct Waterfall {
         nStamps++;
         pushT = t;
     }
-    bool slow() const { return rowsPerSec > 0.5f && rowsPerSec < 28.f; }   // rows come at a set, slower pace
+    bool slow() const { return rowsPerSec > 0.05f && rowsPerSec < 28.f; }   // rows come at a set, slower pace
     bool timeKnown() const { return nStamps >= 128 || slow(); }
     void setRate(float r) { rowsPerSec = r; nStamps = 0; nextRowT = 0; accEmpty = true; rowDt = slow() ? 1.0 / r : 1.0 / 30; }
 
