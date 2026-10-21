@@ -85,6 +85,18 @@ int main() {
             CHECK(find(d, "K1ABC W9XYZ -15"), "JT65%c not decoded", 'A' + sub);
         }
     }
+    {   // strong, medium and weak signals in A, B and C (regression: strong B / C used to be missed, the sync search was fooled by the leakage)
+        int bad = 0;
+        for (int sub = 0; sub < 3; sub++)
+            for (double snr : {25.0, 10.0, 5.0, 0.0, -10.0, -18.0}) {
+                Imp f; f.sub = sub;
+                const auto d = decode(audio(M, {{"K1ABC W9XYZ -15", 1200, snr, 0.3}}, 1, f, 40 + sub), M, f);
+                const bool ok = find(d, "K1ABC W9XYZ -15") != nullptr;
+                if (!ok) bad++;
+                CHECK(ok, "JT65%c at %+.0f dB not decoded", 'A' + sub, snr);
+            }
+        printf("strong/medium/weak: %d missed of 18\n", bad);
+    }
     {   // threshold sweep: how many of 6 slots decode at each level (SNR in 2500 Hz, noise only changes with the seed)
         for (double snr : {-18.0, -21.0, -23.0, -24.0, -25.0}) {
             Imp f;

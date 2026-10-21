@@ -39,7 +39,7 @@ struct Spectrogram {
     float at(int f, int b) const { return p[(size_t)f * (size_t)nBins + (size_t)(b - binLo)]; }
     const float* row(int f) const { return &p[(size_t)f * (size_t)nBins]; }
 };
-Spectrogram spectrogram(const std::vector<float>& y, int N, int hop, int binLo, int binHi);
+Spectrogram spectrogram(const std::vector<float>& y, int N, int hop, int binLo, int binHi, bool hann = false);
 // The energy of the complex correlation of y[start .. start + n) with a tone at freq (Hz, rate Hz): |sum y e^{-j 2 pi f t}|^2
 double toneEnergy(const std::vector<float>& y, double rate, long start, int n, double freq);
 // FFT of a symbol (N samples from start, zero outside y), the tone shifted down by shiftHz first; power of bins binLo .. binLo + nb - 1
