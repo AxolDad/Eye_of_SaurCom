@@ -18,10 +18,27 @@
 namespace dect2::tetra {
 
 // Where coded speech frames go: the codec loader (tetra_voice_codec.h). bits: one bit per byte, the 432 descrambled type-4 bits of a burst.
+// The followed timeslot comes frame by frame, in the order of the air: onCodedFrame() for a TDMA frame with a clear traffic burst,
+// onMissingBurst() for one without (a pause, a stolen half slot, a burst too weak or not decoded, a slot lost where two captures meet), so that
+// the sink can play the air as it was, pauses and all. The frames of a capture come in one run, once per capture; onCaptureEnd() then says that
+// nothing more comes from that capture.
 class SpeechFrameSink {
 public:
     virtual ~SpeechFrameSink() = default;
     virtual void onCodedFrame(const uint8_t* bits, size_t n) = 0;
+    virtual void onMissingBurst() {}
+    virtual void onCaptureEnd() {}
+};
+
+// The followed timeslot as one sequence of TDMA frames across captures: next is the speech frame index, (mn - 1) * 17 + fn - 1 in the hyperframe
+// (frame 18 of a multiframe carries no speech), of the frame expected after the last one given to the sink; -1: nothing followed yet. Kept by the
+// caller of decodeCarrier for the carrier it follows (key is the caller's name for it), so that the frames of the slot lost where two captures
+// meet are given to the sink as silence and the pauses keep their length.
+struct VoiceTimeline {
+    static constexpr long kSpeechFrames = 60 * 17;   // per hyperframe
+    long key = -1;
+    int tn = 0;
+    long next = -1;
 };
 
 enum class VoiceVerdict { Passed, EncryptedNotDecoded, StateUnknownNotDecoded };

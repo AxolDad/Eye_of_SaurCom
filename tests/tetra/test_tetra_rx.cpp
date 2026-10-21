@@ -117,6 +117,8 @@ int main() {
         TetraReceiver rx;
         rx.configure(rate);
         rx.setCenterHz(kTetraTestCentreHz);
+        struct Ends final : dect2::tetra::SpeechFrameSink { int n = 0; void onCodedFrame(const uint8_t*, size_t) override {} void onCaptureEnd() override { n++; } } ends;
+        rx.setVoiceSink(&ends);
         rx.feed(x.data(), x.size());   // two captures in one call, the second one arriving while the first is decoded
         while (rx.busy()) std::this_thread::sleep_for(std::chrono::milliseconds(2));
         rx.feed(x.data(), 1);          // the decoder is free: the waiting capture goes
@@ -126,6 +128,7 @@ int main() {
         rx.telemetry(t, 0);
         const TetraCell* c = find(t, 5);
         CHECK(t.blocks == 2 && c && c->seen == 2, "back-to-back captures: %llu decoded, cell seen %llu times", (unsigned long long)t.blocks, c ? (unsigned long long)c->seen : 0ull);
+        CHECK(ends.n == 2, "the voice sink is told the end of each capture (%d)", ends.n);
     }
     printf(fails ? "tetra rx: %d FAILED\n" : "tetra rx: all passed\n", fails);
     return fails ? 1 : 0;

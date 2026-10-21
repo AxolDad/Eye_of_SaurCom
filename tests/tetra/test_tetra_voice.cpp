@@ -13,8 +13,9 @@ using namespace dect2::tetra;
 #include "../common/test_util.h"
 
 struct Sink : SpeechFrameSink {
-    int calls = 0; Bits last;
+    int calls = 0, gaps = 0; Bits last;
     void onCodedFrame(const uint8_t* b, size_t n) override { calls++; last.assign(b, b + n); }
+    void onMissingBurst() override { gaps++; }
 };
 
 // A generated burst: the 432 type-4 bits are scrambled the way the transmitter does, then made soft. (The speech channel interleaver is
@@ -76,6 +77,12 @@ int main() {
             e.encMode = 1;
             processTrafficBurst(l.data(), l.data() + 216, scr, e, &vs);
             CHECK(pcmN == 54 * 4 && vs.framesDecoded() == 1, "encrypted burst gives no further PCM");
+            vs.onMissingBurst();
+            CHECK(pcmN == 54 * 4 + 480 && vs.framesDecoded() == 1, "a missing burst gives 60 ms of silence at the codec's rate (%zu)", pcmN);
+            vs.setFrameDecoder([](const uint8_t*, size_t) { return std::vector<uint8_t>(); });   // the channel decoding fails (CRC)
+            e.encMode = 0;
+            processTrafficBurst(l.data(), l.data() + 216, scr, e, &vs);
+            CHECK(pcmN == 54 * 4 + 960 && vs.framesDecoded() == 1, "a burst that does not decode gives 60 ms of silence too (%zu)", pcmN);
         }
         {   TetraVoiceSink vs; size_t pcmN = 0; setup(vs, pcmN, false);
             CallEncryption e; e.known = true;
@@ -88,6 +95,28 @@ int main() {
             processTrafficBurst(l.data(), l.data() + 216, scr, e, &vs);
             CHECK(pcmN == 0, "no traffic channel decoder: nothing reaches the codec");
         }
+    }
+    {   // the first capture of a call gives only the tail of the speech: its audio is held until the capture is decoded, then played after as
+        // much silence as the capture lacked plus the cushion, so the sound does not run dry before the next capture; while playing, straight through
+        const int rate = 48000, fr = rate * 3 / 100;   // a 30 ms frame
+        CaptureLeadIn li(rate, 2, 2.3);
+        std::vector<float> out, frame((size_t)fr * 2, 0.5f);
+        li.push(frame.data(), (size_t)fr, true, out);
+        CHECK(out.empty() && li.holding(), "idle output: the first frame is held");
+        for (int i = 1; i < 40; i++) li.push(frame.data(), (size_t)fr, true, out);   // 1.2 s in all
+        CHECK(out.empty() && std::fabs(li.heldSec() - 1.2) < 1e-6, "held %.2f s", li.heldSec());
+        li.captureEnd(out);
+        const size_t lead = (size_t)((2.3 - 1.2 + CaptureLeadIn::kCushionSec) * rate);
+        CHECK(!li.holding() && out.size() == 2 * (lead + 40 * (size_t)fr), "capture end: %.2f s of silence then the audio (%zu samples)", (double)lead / rate, out.size());
+        CHECK(out.size() > 2 * lead && out[0] == 0.f && out[2 * lead - 1] == 0.f && out[2 * lead] == 0.5f, "silence first, the audio after it");
+        out.clear(); li.push(frame.data(), (size_t)fr, false, out);
+        CHECK(out.size() == frame.size() && !li.holding(), "playing: straight through");
+        out.clear(); li.captureEnd(out);
+        CHECK(out.empty(), "nothing held: nothing to write");
+        CaptureLeadIn full(rate, 2, 2.3);
+        for (int i = 0; i < 80; i++) full.push(frame.data(), (size_t)fr, true, out);   // 2.4 s: more than a capture
+        out.clear(); full.captureEnd(out);
+        CHECK(out.size() == 2 * ((size_t)(CaptureLeadIn::kCushionSec * rate) + 80 * (size_t)fr), "a whole capture from idle: the cushion only (%zu)", out.size());
     }
     {   // one voice stream: a group call heard on three sites in one capture reaches the codec once
         VoiceStreamPicker p; int tn = 0;
@@ -127,15 +156,35 @@ int main() {
             return decodeCarrier(s.data(), s.size(), -1, -1, -1, &sink, &calls, now, voiceTn);
         };
         {   Sink k; const CarrierDecode d = decode(0, -1, k);
-            CHECK(d.trafficSlots > 0 && k.calls == d.voicePassed && k.calls > 0 && d.voiceTn == ts, "first clear timeslot: %d of %d traffic bursts to the sink, slot %d", k.calls, d.trafficSlots, d.voiceTn); }
+            CHECK(d.trafficSlots > 0 && k.calls == d.voicePassed && k.calls > 0 && d.voiceTn == ts, "first clear timeslot: %d of %d traffic bursts to the sink, slot %d", k.calls, d.trafficSlots, d.voiceTn);
+            CHECK(k.gaps <= 1 && d.voiceGaps == k.gaps, "a slot of speech in every frame: no silence (%d)", k.gaps); }
         {   Sink k; const CarrierDecode d = decode(0, ts, k);
             CHECK(k.calls > 0 && d.voiceTn == ts, "the followed timeslot reaches the sink (%d)", k.calls); }
         {   Sink k; const CarrierDecode d = decode(0, other, k);
-            CHECK(k.calls == 0 && d.voiceTn == 0 && d.voicePassed > 0, "another timeslot: clear but kept from the sink (%d passed)", d.voicePassed); }
+            CHECK(k.calls == 0 && d.voiceTn == 0 && d.voicePassed > 0, "another timeslot: clear but kept from the sink (%d passed)", d.voicePassed);
+            CHECK(k.gaps >= 30 && k.gaps == d.voiceGaps, "the followed timeslot carries no speech: silence for each of its frames (%d)", k.gaps); }
         {   Sink k; const CarrierDecode d = decode(1, -1, k);
-            CHECK(k.calls == 0 && d.voiceTn == 0 && d.voicePassed == 0 && d.voiceNotDecoded > 0, "encrypted call: nothing reaches the sink"); }
+            CHECK(k.calls == 0 && k.gaps == 0 && d.voiceTn == 0 && d.voicePassed == 0 && d.voiceNotDecoded > 0, "encrypted call: nothing reaches the sink"); }
         {   Sink k; const CarrierDecode d = decode(-2, ts, k);
-            CHECK(k.calls == 0 && d.voiceTn == 0 && d.voicePassed == 0, "no call set-up heard: nothing reaches the sink"); }
+            CHECK(k.calls == 0 && d.voiceTn == 0 && d.voicePassed == 0 && k.gaps >= 30, "no call set-up heard: no speech, silence for the followed slot (%d)", k.gaps); }
+        {   // the timeline across captures: the frames of the followed slot between the last capture and this one come first, as silence
+            Sink k0; VoiceTimeline t0;
+            CallTracker calls; calls.setMainCarrier(cell.si.mainCarrier);
+            CallEvent e; e.kind = 1; e.callId = 7; e.enc = 0; e.slots = 1 << (4 - ts); e.carrier = cell.si.mainCarrier; calls.onEvent(e, now);
+            const CarrierDecode d0 = decodeCarrier(s.data(), s.size(), -1, -1, -1, &k0, &calls, now, ts, &t0);
+            const int n0 = k0.calls + k0.gaps;
+            CHECK(t0.tn == ts && t0.next >= 0 && n0 > 30, "the timeline follows the slot: next frame %ld after %d frames", t0.next, n0);
+            const long first = (t0.next - n0 + VoiceTimeline::kSpeechFrames) % VoiceTimeline::kSpeechFrames;   // the capture's first frame of the slot
+            Sink k1; VoiceTimeline t1; t1.tn = ts; t1.next = (first - 7 + VoiceTimeline::kSpeechFrames) % VoiceTimeline::kSpeechFrames;
+            decodeCarrier(s.data(), s.size(), -1, -1, -1, &k1, &calls, now, ts, &t1);
+            CHECK(k1.calls == k0.calls && k1.gaps == k0.gaps + 7, "7 frames lost before the capture: 7 silences first (%d, %d)", k1.calls, k1.gaps);
+            Sink k2; VoiceTimeline t2; t2.tn = ts; t2.next = (first - 500 + VoiceTimeline::kSpeechFrames) % VoiceTimeline::kSpeechFrames;
+            decodeCarrier(s.data(), s.size(), -1, -1, -1, &k2, &calls, now, ts, &t2);
+            CHECK(k2.gaps == k0.gaps, "a stream left long ago: no filling (%d)", k2.gaps);
+            Sink k3; VoiceTimeline t3; t3.tn = other; t3.next = t1.next;
+            decodeCarrier(s.data(), s.size(), -1, -1, -1, &k3, &calls, now, ts, &t3);
+            CHECK(k3.gaps == k0.gaps && t3.tn == ts, "another timeslot followed before: a new stream (%d)", k3.gaps);
+        }
     }
     {   // decodeCarrier: a capture with no MAC-RESOURCE at all (frames 2 to 18 of the clear cell: null PDUs, SYSINFO and the traffic slot, as a
         // capture taken during a talk spurt looks on the air) still gives the voice of a call whose clear set-up was read from an earlier capture;
