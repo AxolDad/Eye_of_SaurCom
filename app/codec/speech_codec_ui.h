@@ -18,4 +18,14 @@ dect2::codec::CodecLookup speechCodecPoll(const char* id, std::unique_ptr<dect2:
 // legal notice dialog until the user accepts it once. Call every frame. Returns true when `out` holds a ready codec.
 bool speechCodecGate(const char* id, std::unique_ptr<dect2::codec::SpeechCodec>& out);
 
+// Forgets the last verdict for `id` so the next poll looks in the folder again (the Rescan button).
+void speechCodecRescan(const char* id);
+
+// Call every frame from a voice mode: loads the plug-in `id` once it is installed and the notice accepted, and registers it in
+// dect2::codec (codec_registry.h) so every receiver of that family decodes through it. True when registered.
+bool voiceCodecTick(const char* id);
+
+// The install helper: loaded / not found with the exact file name, the codecs folder path, Open codecs folder, Build steps and Rescan buttons.
+void codecInstallHelper(const char* id);
+
 } // namespace appcodec

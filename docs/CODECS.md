@@ -101,7 +101,7 @@ cmake .. && make && sudo make install && sudo ldconfig
 (or copy `libmbe.so*` into `~/.local/share/onair/codecs/`). If the build gives a static library only, add `-DBUILD_SHARED_LIBS=ON`.
 
 Then open the mode and look at its **?** button: it says `mbelib found: <path>`. Encrypted P25/NXDN/DMR calls are only reported as
-encrypted; OnAir never decrypts. DMR voice is not decoded in this version of OnAir, even with mbelib installed.
+encrypted; OnAir never decrypts. DMR voice is played through mbelib or through the `ambe2` plug-in (see below).
 
 ## codec2 (FreeDV, M17)
 
@@ -352,6 +352,22 @@ Yaesu's public specification, so the plug-in has to do that part itself.
 Recommended source for a TETRA plug-in: mbelib-neo (https://github.com/arancormonk/mbelib-neo), GPL-2.0-or-later. It has a TETRA full-rate speech decoder (`mbe_tetraDecodeFrame`) that takes the same 137 bytes, one bit per byte, B(1)..B(137), so a small wrapper exporting the four `onair_speech_*` functions is enough. Its authors have not cleared the patent status of the TETRA codec, so check that you may use it where you live. You build it yourself; OnAir does not include it.
 
 Yaesu Fusion voice (id `ysf`): OnAir decodes the C4FM frames, removes the channel coding and gives the plug-in the AMBE+2 voice bits of each frame through the same four `onair_speech_*` functions. The decoder behind it is yours to supply, for example from mbelib-neo (it handles IMBE, AMBE and AMBE+2). The same rules apply: you build it, OnAir does not include it, and a legal notice is shown once. Without the plug-in the mode shows the callsigns and data and says "Codec not installed".
+
+### AMBE+2, AMBE and IMBE plug-ins (DMR, NXDN, dPMR, D-STAR, P25)
+
+Three more plug-in ids, one registry (`core/include/dect2/codec/codec_registry.h`), the same four `onair_speech_*` functions and 160 samples of 8 kHz PCM per call:
+
+| Id (file `onair-codec-<id>.dylib` / `.so` / `.dll`) | Modes | Bytes handed to `onair_speech_decode` |
+|---|---|---|
+| `ambe2` | DMR, NXDN, dPMR (AMBE+2 3600x2450) | 12: the four de-interleaved code words C0..C3 of mbelib, 24 bits each, row by row, most significant bit first |
+| `ambe` | D-STAR (AMBE 3600x2400) | 12, the same layout |
+| `imbe` | P25 phase 1 (IMBE 7200x4400) | 23: the eight code words c0..c7, 23 bits each, row by row, MSB first (184 bits) |
+
+OnAir does the de-interleaving; the plug-in only has to expand the bits back into mbelib's `char fr[4][24]` (or `fr[8][23]`) and call `mbe_processAmbe3600x2450Frame` / `mbe_processAmbe3600x2400Frame` / `mbe_processImbe7200x4400Frame`, then return the 160 samples. A small reference wrapper is in `tools/codec-plugin-example/mbelib_wrapper.c` (compile it yourself against your own mbelib; no codec code is in this repository).
+If no plug-in is installed OnAir still loads a plain `libmbe` from the codecs folder as before; a plug-in wins when both exist. Encrypted calls are never decoded: DMR calls flagged private in their service options show `ENC` and play nothing.
+DMR plays one time slot at a time: the **Listen to** box in the DMR panel chooses slot 1, slot 2 or the first slot heard.
+
+**Install helper.** The DMR panel (and the **?** button of NXDN, dPMR, D-STAR and P25) shows whether the plug-in is loaded (with its path) or not found (with the exact file name for your OS), the codecs folder, and three buttons: **Open codecs folder** (made if missing), **Build steps** (this page) and **Rescan for plug-in** (looks again without a restart). OnAir downloads nothing for you. Upstream mbelib: <https://github.com/lwvmobile/mbelib>.
 
 ## Nothing patented is bundled
 

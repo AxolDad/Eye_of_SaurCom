@@ -25,6 +25,8 @@ public:
     double nowSec() const { return (double)n_ / 48000.0; }
     // a voice callback for a later vocoder: slot, burst position 0..5 (A..F), 216 bits VS(215)..VS(0)
     std::function<void(int, int, const Bits&)> onVoiceBurst;
+    // the call on this slot (1 or 2) is marked private/encrypted by its service options: its voice must not be decoded
+    bool slotEncrypted(int slot) const { for (const auto& t : tr_) if (t.inCall && slotOf(t) == slot && t.call.privacy) return true; return false; }
     uint64_t samples() const { return n_; }
     double cfoResidualHz() const;                   // offset the slicer still corrects for
     bool locked() const;                            // at least one slot is being followed (a track has decoded bursts)

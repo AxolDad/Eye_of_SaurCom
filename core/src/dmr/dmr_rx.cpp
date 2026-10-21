@@ -143,6 +143,8 @@ struct DmrReceiver::Impl {
     uint64_t telSeq = 0;
     // Controls and callbacks are set from the interface thread while feed() runs: atomics, and a mutex for the callbacks.
     std::atomic<float> volume{1.f};
+    std::atomic<int> listenSlot{0};
+    std::atomic<uint64_t> encryptedSkipped{0};
     std::atomic<bool> muted{false}, silent{false};
     std::mutex cbMu;
     std::function<void(const float*, const float*, size_t)> tap;
@@ -162,6 +164,10 @@ struct DmrReceiver::Impl {
 
     void voiceBurstAudio(int slot, const Bits& vs) {
         const int s = slot == 2 ? 1 : 0;
+        const int want = listenSlot.load();               // 0 the first slot heard, 1 or 2 only that slot
+        if (want != 0 && want != slot) return;
+        // an encrypted call is never decoded: no vocoder, no sound (the call log shows ENC)
+        if (link.slotEncrypted(slot)) { encryptedSkipped++; return; }
         voiceTick++;
         // a slot is dead after 8 voice bursts of either slot (about 240 ms: each slot sends one burst per 60 ms) without one of its own
         if (audioSlot >= 0 && audioSlot != s && voiceTick - lastTick[audioSlot] > 8) audioSlot = -1;
@@ -169,7 +175,7 @@ struct DmrReceiver::Impl {
         if (audioSlot < 0) audioSlot = s;
         if (audioSlot != s) return;
         if (!ambeOk) { ambeOk = dmrAmbeAvailable(&ambePath); if (!ambeOk) return; }
-        if (!ambe[s]) ambe[s] = std::make_unique<DmrAmbe>();
+        if (!ambe[s] || !ambe[s]->ok()) ambe[s] = std::make_unique<DmrAmbe>();   // again after a codec plug-in was installed while running
         if (!ambe[s]->ok()) return;
         int16_t pcm[480];
         ambe[s]->decodeBurst(vs, pcm);
@@ -545,6 +551,8 @@ void DmrReceiver::setLogCallback(std::function<void(const std::string&)> cb) { s
 void DmrReceiver::setVolume(float v) { p_->volume = std::max(0.f, std::min(1.f, v)); }
 void DmrReceiver::setMuted(bool m) { p_->muted = m; }
 void DmrReceiver::setSilent(bool s) { p_->silent = s; }
+void DmrReceiver::setListenSlot(int s) { p_->listenSlot = s == 1 || s == 2 ? s : 0; }
+uint64_t DmrReceiver::encryptedBurstsSkipped() const { return p_->encryptedSkipped; }
 void DmrReceiver::setAudioTap(std::function<void(const float*, const float*, size_t)> cb) { std::lock_guard<std::mutex> lk(p_->cbMu); p_->tap = std::move(cb); }
 void DmrReceiver::setVoiceCallback(std::function<void(int, int, const uint8_t*)> cb) { std::lock_guard<std::mutex> lk(p_->cbMu); p_->voiceCb = std::move(cb); }
 

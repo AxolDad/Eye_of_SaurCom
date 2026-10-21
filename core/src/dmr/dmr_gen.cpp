@@ -162,7 +162,7 @@ private:
         else dst = kGroups[(size_t)rng_.range(nTg)];
         FullLc lc;
         lc.flco = kind == 1 ? kFlcoUnitVoice : kFlcoGroupVoice;
-        lc.svc = kind == 2 ? 0x08 : 0x00;
+        lc.svc = (kind == 2 ? 0x08 : 0x00) | (c_.encrypted ? 0x40 : 0x00);
         lc.src = src; lc.dst = dst;
         uint8_t raw[9];
         packFullLc(lc, raw);

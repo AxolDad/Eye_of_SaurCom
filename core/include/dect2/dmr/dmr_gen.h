@@ -35,6 +35,7 @@ struct DmrGenConfig {
     int talkgroups = 3;
     bool direct = false;         // a handset: single calls in one time slot, silence in between
     bool mobile = false;         // with direct: the sync patterns of a handset transmitting to a repeater (MS sourced) instead of direct mode
+    bool encrypted = false;      // the voice calls carry the privacy flag of the service options (the receiver must not decode them)
     int traffic = 0;             // 0 normal, 1 quiet, 2 busy
     uint32_t seed = 1;
     bool textMessages = true, talkerAlias = true;
