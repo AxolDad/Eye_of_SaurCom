@@ -6,6 +6,7 @@
 #include "dect2/acars/acars_tel.h"
 #include "dect2/adsb/adsb_msg.h"
 #include "dect2/gnss/gnss_tel.h"
+#include "dect2/net/feed_targets.h"
 #include "dect2/vdl2/vdl2_tel.h"
 #include <atomic>
 #include <condition_variable>
@@ -33,6 +34,7 @@ struct FeedConfig {
     std::string loraHost = "127.0.0.1"; int loraPort = 5621;  // UDP JSON lines: LoRa / LoRaWAN / Meshtastic
     std::string aprsCall, aprsPass;                            // APRS-IS login; the feed stays idle without a callsign
     std::string aprsServer = "rotate.aprs2.net"; int aprsServerPort = 14580;
+    std::vector<FeedTarget> targets;                           // outbound aggregator targets (feed_targets.h), each off until enabled
     std::string stationId = "OnAir";                           // station_id in the ACARS / VDL2 JSON
 };
 
@@ -93,8 +95,8 @@ public:
     void stop();                             // closes everything (configure() starts again)
 
     // what the decoders call; cheap when the feed is off
-    bool wantAdsb() const { return want_[kFeedSbs].load(std::memory_order_relaxed) || want_[kFeedBeast].load(std::memory_order_relaxed); }
-    bool wantAis() const { return want_[kFeedAis].load(std::memory_order_relaxed); }
+    bool wantAdsb() const { return FeedTargets::get().wantAdsb() || want_[kFeedSbs].load(std::memory_order_relaxed) || want_[kFeedBeast].load(std::memory_order_relaxed); }
+    bool wantAis() const { return want_[kFeedAis].load(std::memory_order_relaxed) || FeedTargets::get().wantAis(); }
     bool wantAprs() const { return want_[kFeedAprsIs].load(std::memory_order_relaxed) || want_[kFeedKiss].load(std::memory_order_relaxed); }
     bool wantKiss() const { return want_[kFeedKiss].load(std::memory_order_relaxed); }
     bool wantAcars() const { return want_[kFeedAcars].load(std::memory_order_relaxed); }

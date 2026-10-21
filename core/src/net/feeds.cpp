@@ -5,6 +5,7 @@
 #include "dect2/net/feeds.h"
 #include "dect2/common/timecompat.h"
 #include "dect2/ais/ais_proto.h"
+#include "dect2/net/feed_targets.h"
 #include "tcp_client.h"
 #include <algorithm>
 #include <chrono>
@@ -343,6 +344,7 @@ Feeds::~Feeds() { stop(); }
 
 void Feeds::configure(const FeedConfig& c) {
     netInit();
+    FeedTargets::get().configure(c.targets);
     Impl& I = *impl_;
     bool any = false;
     for (int id = 0; id < kNumFeeds; id++) {
@@ -375,6 +377,7 @@ FeedStatus Feeds::status(int id) const {
 }
 
 void Feeds::stop() {
+    FeedTargets::get().stop();
     Impl& I = *impl_;
     for (auto& w : want_) w.store(false);
     {
@@ -400,6 +403,14 @@ void Feeds::push(int id, std::string&& payload) {
 }
 
 void Feeds::adsb(const FeedAdsbFrame& f) {
+    FeedTargets& T = FeedTargets::get();
+    if (T.wantAdsb()) {
+        const uint64_t ts = (uint64_t)std::llround(std::max(0.0, f.timeSec) * 12e6) & 0xFFFFFFFFFFFFull;
+        T.adsbBeast(feedfmt::beastFrame(f.bytes, f.bits, ts, feedfmt::beastSignal(f.levelDbfs)));
+        const int64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        std::string l = feedfmt::sbsLine(f, ms);
+        if (!l.empty()) T.adsbSbs(l);
+    }
     if (want_[kFeedBeast].load(std::memory_order_relaxed)) {
         const uint64_t ts = (uint64_t)std::llround(std::max(0.0, f.timeSec) * 12e6) & 0xFFFFFFFFFFFFull;
         push(kFeedBeast, feedfmt::beastFrame(f.bytes, f.bits, ts, feedfmt::beastSignal(f.levelDbfs)));
@@ -413,6 +424,8 @@ void Feeds::adsb(const FeedAdsbFrame& f) {
 
 void Feeds::ais(const std::vector<std::string>& sentences) {
     if (!wantAis()) return;
+    FeedTargets::get().ais(sentences);
+    if (!want_[kFeedAis].load(std::memory_order_relaxed)) return;
     for (const std::string& s : sentences) push(kFeedAis, s + "\r\n");
 }
 

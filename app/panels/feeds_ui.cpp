@@ -42,6 +42,48 @@ void statusLine(int id, bool server) {
     }
     ImGui::Unindent();
 }
+
+// Aggregator targets for one kind of data (ADS-B or AIS): a list, each off until its own box is ticked
+void targetsSection(dect2::FeedConfig& c, bool ais, bool& changed) {
+    using dect2::FeedKind;
+    ImGui::PushID(ais ? "tgtAis" : "tgtAdsb");
+    ImGui::TextDisabled("%s", tr("Send to aggregators (each target is off until you tick it, with your own account details)"));
+    for (size_t i = 0; i < c.targets.size(); i++) {
+        dect2::FeedTarget& t = c.targets[i];
+        if ((t.kind == FeedKind::AisNmea) != ais) continue;
+        ImGui::PushID((int)i);
+        changed |= ImGui::Checkbox(t.name.c_str(), &t.enabled);
+        ImGui::SameLine(); changed |= textField("##host", t.host, 0, 140);
+        ImGui::SameLine(); changed |= portField(N_("Port"), t.port);
+        ImGui::SameLine(); if (ImGui::SmallButton(tr("Remove"))) { c.targets.erase(c.targets.begin() + (long)i); changed = true; ImGui::PopID(); break; }
+        if (t.proto == dect2::FeedProto::Tcp) { ImGui::Indent(); changed |= textField(N_("Key / id line (optional)"), t.key, ImGuiInputTextFlags_Password, 160); ImGui::Unindent(); }
+        const dect2::FeedTargetStatus s = dect2::FeedTargets::get().status(i);
+        ImGui::Indent();
+        if (!t.enabled) ImGui::TextDisabled("%s", tr("off"));
+        else {
+            ImGui::TextColored(s.connected ? pal::okGreen() : ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled), tr("%s, %llu sent, %llu dropped, %llu reconnects"), s.state.c_str(), (unsigned long long)s.sent, (unsigned long long)s.dropped, (unsigned long long)s.reconnects);
+            if (!s.lastError.empty()) { ImGui::PushTextWrapPos(460 * gUi); ImGui::TextColored(pal::badRed(), "%s", s.lastError.c_str()); ImGui::PopTextWrapPos(); }
+        }
+        ImGui::Unindent();
+        ImGui::PopID();
+    }
+    if (ImGui::BeginCombo("##add", tr("Add a target..."))) {
+        for (const dect2::FeedPreset& p : dect2::feedPresets()) {
+            if ((p.kind == FeedKind::AisNmea) != ais) continue;
+            if (ImGui::Selectable(p.name)) {
+                dect2::FeedTarget t; t.name = p.name; t.kind = p.kind; t.proto = p.proto; t.host = p.host; t.port = p.port;
+                c.targets.push_back(t); changed = true;
+            }
+            if (ImGui::IsItemHovered() && p.note[0]) ImGui::SetTooltip("%s", p.note);
+        }
+        ImGui::EndCombo();
+    }
+    ImGui::PushTextWrapPos(460 * gUi);
+    ImGui::TextDisabled("%s", tr("Privacy: aggregators publish what you send, and they know your station's position from your account there. Beast and NMEA data carry no key of yours; "
+                                 "enter only the address and key your own account gave you. Nothing is sent until you tick a target."));
+    ImGui::PopTextWrapPos();
+    ImGui::PopID();
+}
 } // namespace
 
 void loadFeedPrefs(App& a) {
@@ -67,8 +109,18 @@ void loadFeedPrefs(App& a) {
     dect2::WsprNetConfig& w = a.wsprNet;
     w.on = d.getB("wsprNetOn", false); w.call = d.getS("wsprNetCall", ""); w.locator = d.getS("wsprNetLocator", "");
     if (w.on) dect2::WsprNet::get().configure(w);
+    const int nt = (int)d.getI("feedTgtCount", 0);
+    c.targets.clear();
+    for (int i = 0; i < nt && i < 16; i++) {
+        const std::string k = "feedTgt" + std::to_string(i);
+        dect2::FeedTarget t;
+        t.name = d.getS((k + "Name").c_str(), ""); t.kind = (dect2::FeedKind)(int)d.getI((k + "Kind").c_str(), 0); t.proto = (dect2::FeedProto)(int)d.getI((k + "Proto").c_str(), 0);
+        t.host = d.getS((k + "Host").c_str(), ""); t.port = (int)d.getI((k + "Port").c_str(), 0); t.key = d.getS((k + "Key").c_str(), ""); t.enabled = d.getB((k + "On").c_str(), false);
+        c.targets.push_back(t);
+    }
     bool any = false;
     for (bool o : c.on) any = any || o;
+    for (const dect2::FeedTarget& t : c.targets) any = any || t.enabled;
     if (any) dect2::Feeds::get().configure(c);
     dect2::ShareConfig& sc = a.share;
     sc.on = d.getB("shareOn", false); sc.port = (int)d.getI("sharePort", sc.port); sc.lan = d.getI("shareLan", 0) != 0; sc.allowControl = d.getI("shareControl", 0) != 0;
@@ -103,6 +155,13 @@ void saveFeedPrefs(const App& a) {
     d.setS("feedAprsCall", c.aprsCall); d.setS("feedAprsPass", c.aprsPass);
     d.setS("feedAprsServer", c.aprsServer); d.setI("feedAprsServerPort", c.aprsServerPort);
     d.setS("feedStationId", c.stationId);
+    d.setI("feedTgtCount", (long)c.targets.size());
+    for (size_t i = 0; i < c.targets.size(); i++) {
+        const std::string k = "feedTgt" + std::to_string(i);
+        const dect2::FeedTarget& t = c.targets[i];
+        d.setS((k + "Name").c_str(), t.name); d.setI((k + "Kind").c_str(), (int)t.kind); d.setI((k + "Proto").c_str(), (int)t.proto);
+        d.setS((k + "Host").c_str(), t.host); d.setI((k + "Port").c_str(), t.port); d.setS((k + "Key").c_str(), t.key); d.setB((k + "On").c_str(), t.enabled);
+    }
     d.setB("shareOn", a.share.on); d.setI("sharePort", a.share.port); d.setI("shareLan", a.share.lan ? 1 : 0); d.setI("shareControl", a.share.allowControl ? 1 : 0);
     remoteApiSavePrefs(a);
     rotatorSavePrefs();
@@ -136,6 +195,7 @@ void feedsWindow(App& a) {
     ImGui::SameLine(); changed |= portField(N_("Port"), c.beastPort);
     statusLine(dect2::kFeedBeast, true);
     ImGui::PopID();
+    targetsSection(c, false, changed);
 
     typo::separatorText(tr("AIS"));
     ImGui::PushID("ais");
@@ -144,6 +204,7 @@ void feedsWindow(App& a) {
     ImGui::SameLine(); changed |= portField(N_("Port"), c.aisPort);
     statusLine(dect2::kFeedAis, false);
     ImGui::PopID();
+    targetsSection(c, true, changed);
 
     typo::separatorText(tr("APRS"));
     ImGui::PushID("aprsis");
