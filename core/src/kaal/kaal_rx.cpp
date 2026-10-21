@@ -22,8 +22,14 @@ namespace {
 
 using cd = std::complex<double>;
 const double kPi = 3.14159265358979323846;
-constexpr size_t kAcqLen = 3 * (size_t)kFs;             // samples gathered before the static parameters are estimated
-constexpr int kAlignFrames = 27;                        // 6 blocks at the largest offset
+constexpr size_t kAcqLen = 3 * (size_t)kFs;             // longest acquisition buffer (the old fixed length)
+// Acquisition is tried as soon as the buffer can hold two cleaned sweep periods (1.01 s; the estimates need that much cleaned signal: with
+// one period, 0.5 s, the lock was persistently worse), then on a growing buffer; a weak signal that fails the short tries is still found on the 3 s one, as before.
+constexpr size_t kAcqTry[] = {60000, 66000, 72000, 84000, kAcqLen};
+constexpr size_t kAcqN = sizeof(kAcqTry) / sizeof(kAcqTry[0]);
+constexpr size_t kLongTry = 3;                          // kAcqTry entries below this are the short (under one second) buffers
+constexpr int kAlignFrames = 27;                        // frames gathered to find the block offset (4 offsets, a wrong one decodes nothing: 12 rows are plenty)
+constexpr int kAlignRows = 24;
 constexpr int kMaxPendingWeak = 3;
 
 double pymod(double x, double m) { return x - m * std::floor(x / m); }
@@ -117,6 +123,7 @@ struct SweepSeed {
     double dshift = 0;    // d = -cfo * kSwShiftPerHz
     int refClass = 0;     // the variant the seed was measured on (its peak position t0 + u * dshift is the measured one)
     int classes = 0;      // number of variants seen in the acquisition buffer
+    bool dExact = false;  // dshift was fitted from the peaks of variants with different shifts (not just the coarse search grid)
     bool ok = false;
 };
 
@@ -133,7 +140,7 @@ SweepSeed reseed(const SweepSeed& s, double dNew) {
 // over the carrier-offset shift d, then a line fit of the winning peak positions for the period length.
 bool sweepSearch(const std::vector<cd>& x, SweepSeed& seed) {
     const int64_t N = (int64_t)x.size(), L = kSwL;
-    if (N < 2 * L) return false;
+    if (N < L + 1000) return false;
     int nfft = 1;
     while (nfft < N + L) nfft <<= 1;
     Fft fft(nfft);
@@ -177,6 +184,7 @@ bool sweepSearch(const std::vector<cd>& x, SweepSeed& seed) {
     // per-period winners and refined peak positions
     std::vector<double> ks, ps;
     int votes[4] = {0, 0, 0, 0};
+    std::vector<double> rawPeak, rawU;   // measured peak position and shift factor of every period's winner
     const int64_t sh[4] = {(int64_t)std::llround(kSwU[0] * bestD), (int64_t)std::llround(kSwU[1] * bestD), (int64_t)std::llround(kSwU[2] * bestD), (int64_t)std::llround(kSwU[3] * bestD)};
     for (int64_t k = -1;; k++) {
         double bestE = -1;
@@ -197,9 +205,11 @@ bool sweepSearch(const std::vector<cd>& x, SweepSeed& seed) {
         const double d = parabola(std::sqrt((double)m[(size_t)bl - 1]), std::sqrt((double)m[(size_t)bl]), std::sqrt((double)m[(size_t)bl + 1]));
         ks.push_back((double)k);
         ps.push_back((double)bl + d - kSwU[bv] * (double)bestD);
+        rawPeak.push_back((double)bl + d);
+        rawU.push_back(kSwU[bv]);
         votes[bv]++;
     }
-    if (ks.size() < 2) return false;
+    if (ks.empty()) return false;
     double sl = 0, ic = 0;
     polyfit1(ks, ps, sl, ic);
     double per = (double)L, t0;
@@ -208,6 +218,25 @@ bool sweepSearch(const std::vector<cd>& x, SweepSeed& seed) {
     int ref = 0;
     for (int v = 1; v < 4; v++) if (votes[v] > votes[ref]) ref = v;
     seed.t0 = t0; seed.per = per; seed.dshift = (double)bestD; seed.refClass = ref; seed.ok = true;
+    seed.dExact = false;
+    {   // peak = t0 + k * per + u * d: with two different shift factors among the periods the carrier-offset shift d is fitted exactly (least squares)
+        bool two = false;
+        for (size_t i = 1; i < rawU.size(); i++) if (std::fabs(rawU[i] - rawU[0]) > 0.25) two = true;
+        if (two) {
+            double sk = 0, su = 0, sy = 0, skk = 0, suu = 0, sku = 0, sky = 0, suy = 0;   // unknowns t0, d; y = peak - k * per
+            const double n = (double)ks.size();
+            for (size_t i = 0; i < ks.size(); i++) {
+                const double y = rawPeak[i] - per * ks[i], u = rawU[i];
+                su += u; sy += y; suu += u * u; suy += u * y;
+            }
+            (void)sk; (void)skk; (void)sku; (void)sky;
+            const double det = n * suu - su * su;
+            if (std::fabs(det) > 1e-9) {
+                const double dd = (n * suy - su * sy) / det, tt = (sy - dd * su) / n;
+                if (std::fabs(dd) < 1500.0) { seed.t0 = tt; seed.dshift = dd; seed.dExact = true; }
+            }
+        }
+    }
     seed.classes = (votes[0] > 0) + (votes[1] > 0) + (votes[2] > 0) + (votes[3] > 0);
     return true;
 }
@@ -244,6 +273,12 @@ public:
             if (rawEnd < (int64_t)std::ceil(need) + 6) break;
             period();
         }
+    }
+    // The carrier offset of the input changed by dHz (a mixer retune): the sweep peaks move by u * d, keep tracking them
+    void shiftCarrier(double dHz) {
+        const double dd = -dHz * kSwShiftPerHz;
+        d_ += dd;
+        for (int v = 0; v < 4; v++) pos_[v] += kSwU[v] * dd;
     }
     double ratioDb() const { return (dp > 0 && sp > 0) ? 10 * std::log10(sp / dp) : 0.0; }
     double periodLen() const { return per_; }
@@ -520,6 +555,10 @@ struct VoiceRx::Impl {
 
     // acquisition
     std::vector<cd> acq;           // raw 48 kHz samples (DC not removed)
+    size_t acqTry = 0;             // index into kAcqTry of the next acquisition attempt
+    size_t minTry = 0;             // after a bad short lock the short tries (index < kLongTry) are skipped
+    bool probation = false;        // locked on a short buffer: the first words must decode, else the lock is dropped
+    uint64_t probBase = 0, probGood = 0, probKeepGood = 0, probKeepBad = 0;
     bool tracking = false;
     Static P;
 
@@ -560,10 +599,15 @@ struct VoiceRx::Impl {
     int lastK = 240;               // information bits of the last good word, tried first
     std::deque<int16_t> out;
 
+    bool fast = false;             // setFastAcquire: try the short acquisition buffers (off: the 3 s buffer only)
+    double wAvg = 0;               // mean residual rotation per symbol (rad) left after the acquisition's rate
+
     void say(const std::string& s) { if (log) log(s); }
 
     void restart() {
         acq.clear();
+        acqTry = minTry;
+        probation = false;
         tracking = false;
         locked = false;
         xr.clear(); xrBase = 0; mf.clear(); mfBase = 0;
@@ -576,6 +620,7 @@ struct VoiceRx::Impl {
         st.locked = false;
     }
     void fullReset() {
+        minTry = 0;
         restart();
         st = RxStats();
         out.clear();
@@ -585,25 +630,69 @@ struct VoiceRx::Impl {
         if (resampling) rs.reset();
     }
 
+    // After the replay of a short buffer: false when it is already clear that the seed is bad (>= 2 bad words among the decoded ones, or the
+    // lock was lost). With fewer than 6 words decoded the live probation decides.
+    bool shortLockOk() const {
+        if (!tracking) return false;
+        const uint64_t tot = st.framesGood + st.framesBad - probBase, good = st.framesGood - probGood;
+        return !(tot >= 6 && tot - good >= 2);
+    }
+
     // ------------------------------------------------------------ input
     void feed48(const cf32* x, size_t n) {
         if (!n) return;
         if (!tracking) {
             for (size_t i = 0; i < n; i++) acq.emplace_back(x[i].real(), x[i].imag());
-            if (acq.size() >= kAcqLen) {
+            if (acq.size() >= (fast ? std::min(kAcqLen, kAcqTry[acqTry]) : kAcqLen)) {
                 if (acquire()) {
+                    probation = fast && acqTry < kLongTry;
+                    probBase = st.framesGood + st.framesBad; probGood = st.framesGood;
+                    probKeepGood = st.framesGood; probKeepBad = st.framesBad;
+                    const bool shortTry = probation;
+                    acqTry = 0;
                     std::vector<cd> buf;
                     buf.swap(acq);
                     ingest(buf.data(), buf.size());
+                    if (shortTry && !shortLockOk()) {
+                        // the replay of the buffer itself shows a bad seed: undo, and go on with the longer buffers (nothing was heard)
+                        say("KAAL: short-buffer lock rejected on the replay");
+                        const uint64_t keepGood = probKeepGood, keepBad = probKeepBad, keepIn = st.samplesIn;
+                        out.clear(); dec.reset(); primed = false;
+                        minTry = kAcqN - 1;
+                        restart();
+                        st.framesGood = keepGood; st.framesBad = keepBad; st.samplesIn = keepIn;
+                        acq.swap(buf);
+                        acqTry = minTry;
+                    }
+                } else if (acq.size() < kAcqLen) {
+                    acqTry++;   // not yet: try again on a longer buffer
                 } else {
                     const size_t drop = 2 * (size_t)kFs;   // nothing found: slide the window
                     acq.erase(acq.begin(), acq.begin() + (std::ptrdiff_t)std::min(drop, acq.size()));
+                    acqTry = minTry;
                 }
             }
         } else {
             std::vector<cd> buf(n);
             for (size_t i = 0; i < n; i++) buf[i] = cd(x[i].real(), x[i].imag());
             ingest(buf.data(), n);
+            if (probation) {
+                // a seed from one sweep period is coarser than one from three seconds: judge it on the first 16 words, then fall back to
+                // the longer buffers (a good lock clears the penalty)
+                const uint64_t tot = st.framesGood + st.framesBad - probBase, good = st.framesGood - probGood;
+                if (!tracking) { probation = false; minTry = kAcqN - 1; }
+                else if (tot >= 16) {
+                    probation = false;
+                    if (tot - good >= 2) {
+                        say("KAAL: short-buffer lock rejected, re-acquiring on a longer buffer");
+                        const uint64_t keepGood = st.framesGood, keepBad = st.framesBad, keepIn = st.samplesIn;
+                        minTry = kAcqN - 1;
+                        out.clear();
+                        restart();
+                        st.framesGood = keepGood; st.framesBad = keepBad; st.samplesIn = keepIn;
+                    } else minTry = 0;
+                }
+            }
         }
     }
 
@@ -626,8 +715,9 @@ struct VoiceRx::Impl {
             p1.sink = [&](const cd* seg, int64_t first, size_t n) { if ((size_t)first == xc.size()) xc.insert(xc.end(), seg, seg + n); };
             p1.seed(sd);
             p1.feed(x.data(), x.size());
-            if (xc.size() < (size_t)(2 * kSwL)) return false;
+            if (xc.size() < (size_t)(kSwL + kSwL / 2)) return false;   // timing, carrier and sync are estimated on 1.5 cleaned periods at least (0.75 s)
             ratio = p1.ratioDb();
+            if (fast && acqTry < kLongTry && ratio < -16.0) return false;   // a short buffer must show the sweep clearly (a clean one reads about -11 dB)
             x.swap(xc);
         }
         const size_t N = x.size();
@@ -737,7 +827,7 @@ struct VoiceRx::Impl {
         tNext = P.tau0; step = kSps * (1.0 + P.eps);
         // the final sweep remover: with one variant in the buffer the offset shift is known better from the data CFO than from the search
         seed = sd;
-        if (sd.classes <= 1) seed = reseed(sd, -s.cfoHz * kSwShiftPerHz);
+        if (sd.classes <= 1 || (sd.classes < 4 && fast && acqTry < kLongTry)) seed = reseed(sd, -s.cfoHz * kSwShiftPerHz);
         ids.reset();
         sw = SweepProc();
         sw.ids = &ids;
@@ -746,7 +836,7 @@ struct VoiceRx::Impl {
         pairKbit = 0; phase = 0; havePending = false; pending.clear();
         locked = true; fstart = P.firstStart; weak = 0; pend.clear();
         aligned = false; alignQ.clear(); blockQ.clear();
-        nvGlob = 0; nvCount = 0;
+        nvGlob = 0; nvCount = 0; wAvg = 0;
         tracking = true;
         st.locked = true;
         st.sweepDb = (float)ratio;
@@ -838,6 +928,7 @@ struct VoiceRx::Impl {
                 fstart = fstart + kRtFrameSymbols;
                 if (weak >= kMaxPendingWeak) {
                     say("KAAL: sync lost");
+                    minTry = kAcqN - 1;   // a lock that was lost is not trusted to a short buffer again: the full 3 s acquisition, as before
                     const uint64_t keepGood = st.framesGood, keepBad = st.framesBad, keepIn = st.samplesIn;
                     const float snr = st.snrDb;
                     restart();
@@ -892,6 +983,13 @@ struct VoiceRx::Impl {
         for (size_t i = 0; i < kt.size(); i++) {
             const double t = kt[i] - tc;
             res += std::norm(fr[kt[i]] - (a + b * t) * kr[i]);
+        }
+        if (strong) {   // the carrier offset read-out follows the slope of the gain inside the frames (the acquisition estimate came from a short buffer); the rotation itself is not touched
+            const double w = std::imag(b / a);
+            if (std::fabs(w) < 0.05) {
+                wAvg += (wAvg == 0.0 ? 1.0 : 0.05) * (w - wAvg);
+                st.cfoHz = (float)(P.cfoHz + wAvg * kSym / (2 * kPi));
+            }
         }
         const double nvi = (res / std::max<double>((double)kt.size() - 2, 1.0)) / std::max(std::norm(a), 1e-12);
         nvCount++;
@@ -952,12 +1050,12 @@ struct VoiceRx::Impl {
     static bool decodeWord(const float* row, int k, uint8_t* info) { return ldpcDecodeRm(row, k, info); }
 
     void align() {
-        // first frame sits at block position `off`; count the rows that decode (as either word size) on the first 24 rows from there
+        // first frame sits at block position `off`; count the rows that decode (as either word size) on the first kAlignRows rows from there
         int best = 0;
         double bestScore = -1;
         for (int off = 0; off < kRtBlockFrames; off++) {
             int okRows = 0, rows = 0;
-            const int nBlocks = (off + 24 + 3) / 4;
+            const int nBlocks = (off + kAlignRows + 3) / 4;
             for (int b = 0; b < nBlocks; b++) {
                 std::vector<const std::vector<float>*> r(kRtBlockFrames, nullptr);
                 for (int k = 0; k < kRtBlockFrames; k++) {
@@ -967,7 +1065,7 @@ struct VoiceRx::Impl {
                 const std::vector<float> d = deintBlock(r);
                 for (int k = 0; k < kRtBlockFrames; k++) {
                     const int row = b * 4 + k;
-                    if (row < off || row >= off + 24) continue;
+                    if (row < off || row >= off + kAlignRows) continue;
                     rows++;
                     uint8_t info[kLdpcK];
                     if (decodeWord(&d[(size_t)k * kRtCodedBits], lastK, info) || decodeWord(&d[(size_t)k * kRtCodedBits], lastK == 240 ? 320 : 240, info)) okRows++;
@@ -1062,6 +1160,15 @@ void VoiceRx::configure(double sampleRate) {
 }
 
 void VoiceRx::reset() { p_->fullReset(); }
+void VoiceRx::setFastAcquire(bool on) { p_->fast = on; }
+void VoiceRx::shiftCarrier(double dHz) {
+    Impl& s = *p_;
+    if (!s.tracking) return;
+    s.P.cfoHz += dHz;
+    s.P.rate += 2 * kPi * dHz / kSym;
+    s.st.cfoHz = (float)s.P.cfoHz;
+    s.sw.shiftCarrier(dHz);
+}
 
 void VoiceRx::feed(const std::complex<float>* x, size_t n) {
     Impl& s = *p_;
