@@ -2,6 +2,7 @@
 #include "dect2/drm/drm_audio.h"
 #include "dect2/drm/drm_aac.h"
 #include "dect2/drm/drm_fec.h"
+#include "dect2/drm/drm_usac_lib.h"
 #include "dect2/dsp/exact_resampler.h"
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -234,6 +235,7 @@ struct AudioDecoder::Impl {
     AVCodecContext* ctx = nullptr;
     AVFrame* frame = nullptr;
     AVPacket* pkt = nullptr;
+    std::unique_ptr<UsacSession> fdk;      // the optional libfdk-aac decoder (loaded at run time), used before FFmpeg when it is there
     bool started = false;                  // the decoder has seen an independent frame since it was (re)opened
     int decFails = 0;                      // frames in a row that the decoder refused
     std::string lastErr, baseInfo;
@@ -251,13 +253,23 @@ struct AudioDecoder::Impl {
         if (ctx) avcodec_free_context(&ctx);
         if (frame) av_frame_free(&frame);
         if (pkt) av_packet_free(&pkt);
+        fdk.reset();
         open = false; started = false; rsReady = false;
     }
+    static const UsacLib& usacLib() { static const UsacLib l = UsacLib::load(); return l; }
 
     bool openXhe() {
         closeCodec();
         const std::vector<uint8_t> asc = xheAscFromSdc(cfg);
         if (asc.empty()) { info = "xHE-AAC: the configuration in the SDC cannot be read"; return false; }
+        char nb[160];
+        snprintf(nb, sizeof nb, "xHE-AAC, %.1f kHz %s", cfg.rateHz() / 1000.0, cfg.mode == 2 ? "stereo" : "mono");
+        if (usacLib().ok()) {
+            fdk.reset(new UsacSession(usacLib()));
+            if (fdk->open(asc)) { open = true; info = std::string(nb) + " (libfdk-aac)"; baseInfo = info; return true; }
+            fdk.reset();
+        }
+        const std::string hint = std::string("; to play it install ") + UsacLib::libraryHint() + " (see docs/CODECS.md, section AAC, xHE-AAC)";
         const AVCodec* codec = avcodec_find_decoder(AV_CODEC_ID_AAC);
         if (!codec) { info = "xHE-AAC: no AAC decoder in this build"; return false; }
         ctx = avcodec_alloc_context3(codec);
@@ -268,9 +280,9 @@ struct AudioDecoder::Impl {
         const int r = avcodec_open2(ctx, codec, nullptr);
         if (r < 0) {
             closeCodec();
-            char b[160];
-            snprintf(b, sizeof b, "xHE-AAC, %.1f kHz %s: this FFmpeg cannot decode the stream (it has no harmonic SBR, PVC, inter-TES or MPS212)", cfg.rateHz() / 1000.0, cfg.mode == 2 ? "stereo" : "mono");
-            info = b;
+            char b[200];
+            snprintf(b, sizeof b, "xHE-AAC, %.1f kHz %s: this FFmpeg cannot decode the stream (no harmonic SBR, PVC, inter-TES or MPS212)", cfg.rateHz() / 1000.0, cfg.mode == 2 ? "stereo" : "mono");
+            info = std::string(b) + hint;
             return false;
         }
         frame = av_frame_alloc();
@@ -280,6 +292,16 @@ struct AudioDecoder::Impl {
         snprintf(b, sizeof b, "xHE-AAC, %.1f kHz %s", cfg.rateHz() / 1000.0, cfg.mode == 2 ? "stereo" : "mono");
         info = b; baseInfo = b;
         return true;
+    }
+
+    void pushResampled(int rate, std::vector<float>& out) {
+        if (!rsReady || rate != outRate) { outRate = rate; rsReady = rs.configure((double)rate, 48000.0); rs.reset(); }
+        rout.clear();
+        if (rsReady) rs.process(rin.data(), rin.size(), rout);
+        const size_t o = out.size();
+        out.resize(o + rout.size() * 2);
+        for (size_t i = 0; i < rout.size(); i++) { out[o + 2 * i] = rout[i].real(); out[o + 2 * i + 1] = rout[i].imag(); }
+        samples += rout.size();
     }
 
     // decoded samples -> 48 kHz stereo
@@ -315,6 +337,16 @@ struct AudioDecoder::Impl {
             if (au.empty() || !(au[0] & 0x80)) return false;       // usacIndependencyFlag: the first frame the decoder can start with
             started = true;
         }
+        if (fdk) {
+            std::vector<int16_t> pcm; int rate = 0, ch = 0;
+            if (!fdk->decode(au, pcm, rate, ch)) { decFails++; lastErr = "libfdk-aac returned no audio"; return false; }
+            const size_t n = pcm.size() / (size_t)ch;
+            rin.resize(n);
+            for (size_t i = 0; i < n; i++) rin[i] = cf32(pcm[i * (size_t)ch] / 32768.f, pcm[i * (size_t)ch + (size_t)(ch > 1 ? 1 : 0)] / 32768.f);
+            pushResampled(rate, out);
+            decFails = 0;
+            return true;
+        }
         av_new_packet(pkt, (int)au.size());
         std::memcpy(pkt->data, au.data(), au.size());
         const int r = avcodec_send_packet(ctx, pkt);
@@ -327,16 +359,16 @@ struct AudioDecoder::Impl {
 
     void superFrameXhe(const uint8_t* d, int len, std::vector<float>& out) {
         std::vector<XheFrame> frames;
-        if (!xhe.parse(d, len, frames)) { bad++; if (open && started) { avcodec_flush_buffers(ctx); started = false; } return; }
+        if (!xhe.parse(d, len, frames)) { bad++; if (open && started) { if (ctx) avcodec_flush_buffers(ctx); if (fdk) fdk->open(xheAscFromSdc(cfg)); started = false; } return; }
         const uint64_t before = samples;
         for (const XheFrame& f : frames) {
-            if (!f.crcOk) { bad++; if (open && started) { avcodec_flush_buffers(ctx); started = false; } continue; }
+            if (!f.crcOk) { bad++; if (open && started) { if (ctx) avcodec_flush_buffers(ctx); if (fdk) fdk->open(xheAscFromSdc(cfg)); started = false; } continue; }
             ok++;
             decodeAu(f.au, out);
         }
         // the frames are good (CRC); whether sound comes out depends on the decoder
         if (samples > before) { state = 2; info = baseInfo; }
-        else if (decFails >= 3) { state = 1; info = baseInfo + ": the frames are fine but FFmpeg's xHE-AAC decoder refuses this stream (" + lastErr + "; it has no MPS212 and no eSBR tools)"; }
+        else if (decFails >= 3) { state = 1; info = baseInfo + ": the frames are fine but the xHE-AAC decoder refuses this stream (" + lastErr + ")" + (fdk ? "" : std::string("; FFmpeg has no MPS212 and no eSBR tools, install ") + UsacLib::libraryHint() + ", see docs/CODECS.md"); }
         else if (state != 2) state = 1;
     }
 
@@ -409,7 +441,7 @@ bool AudioDecoder::decodable() const { return p_->open; }
 void AudioDecoder::reset() {
     Impl& d = *p_;
     d.xhe.reset();
-    if (d.open && d.started) avcodec_flush_buffers(d.ctx);
+    if (d.open && d.started) { if (d.ctx) avcodec_flush_buffers(d.ctx); if (d.fdk) d.fdk->open(xheAscFromSdc(d.cfg)); }
     d.started = false;
     if (d.aacOk) d.aac.reset();
 }

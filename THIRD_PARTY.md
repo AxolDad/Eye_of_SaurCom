@@ -74,6 +74,7 @@ How to read the "How" column: **vendored** means the source is in this repositor
 | SDRplay API | SDRplay Limited | Proprietary | RSP radios | loaded at run time, user installs it | Not shipped; its licence forbids redistribution. |
 | LAME | The LAME project | LGPL-2.0-or-later | MP3 recording | loaded at run time, user installs it | Not shipped. |
 | faad2 | Ahead Software, Nero and contributors | GPL-2.0-or-later | DAB+ HE-AAC (SBR, PS) | loaded at run time, user installs it | Not shipped. |
+| libfdk-aac | Fraunhofer IIS | FDK AAC Codec licence (patent licences not granted) | DRM xHE-AAC (USAC) decoding | loaded at run time, user installs it | Not shipped, not linked, not distributed. |
 | mbelib | szechyjs and contributors | Not verified (patented vocoders) | DMR, P25, NXDN, D-STAR voice | loaded at run time, user installs it | Not shipped, by design (docs/CODECS.md). |
 | RADE (librade) | David Rowe and contributors | BSD-2-Clause | FreeDV RADE | loaded at run time, optional | Not shipped. |
 | OnAir name and logo | Kristijonas Adomaitis (designed by Cipta Karsa Studio as work for hire, all rights assigned to the owner) | © 2026 Kristijonas Adomaitis, all rights reserved; not covered by the GPL licence of the source code | packaging/icons, packaging/windows/OnAir.ico, assets/branding (application icon, installer and package icons) | shipped with OnAir as artwork only | The name and logo are excluded from the GPL grant: do not use them for other products or imply endorsement. No attribution to the designer is required. |
