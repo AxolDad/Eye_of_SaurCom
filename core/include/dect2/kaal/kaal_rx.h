@@ -37,6 +37,9 @@ public:
 
     void configure(double sampleRate);          // input sample rate; the receiver resamples to 48 kHz internally if it differs
     void reset();
+    // Fast acquisition: lock on a 1.2 s buffer, then longer ones (default off = the 3 s buffer only). Standalone lock in about 1.2 s; in the engine chain
+    // (coarse carrier search, refine restart, beacon slice) the short seeds were not stable enough yet, so the engine does not turn it on.
+    void setFastAcquire(bool on);
     void feed(const std::complex<float>* x, size_t n);   // IQ in, any chunk size
     size_t popAudio(int16_t* out, size_t maxSamples);    // decoded 16 kHz mono speech, delay already removed
     RxStats stats() const;
