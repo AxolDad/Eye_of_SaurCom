@@ -854,10 +854,10 @@ static void spectrumPlot(App& a, ImVec2 size, int extraFlags) {
             const double fsMhz = (a.engine.sampleRate() > 0 ? a.engine.sampleRate() : a.tune.sampleRate) / 1e6, rc = radioCenterMhz(a);
             const double x0 = rc - fsMhz / 2, dx = fsMhz / (double)nb;   // bin i sits at x0 + i * dx (the same positions xs() lists)
             const bool lightBg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg).x > 0.6f;
-            const ImVec4 trc = lightBg ? ImVec4(0.0f, 0.45f, 0.58f, 1.f) : ImVec4(0.0f, 0.85f, 0.95f, 1.f);   // cyan trace; deeper teal on a light background
+            const ImVec4 trc = lightBg ? ImVec4(0.18f, 0.19f, 0.21f, 1.f) : ImVec4(0.93f, 0.94f, 0.95f, 1.f);   // soft white trace; dark grey on a light background
             static std::vector<double> ex, ey;   // kept between frames: no allocation per frame
             if (a.peakHold && a.peak.size() == nb) {
-                plt::Spec ps; ps.LineColor = ImVec4(0.93f, 0.62f, 0.25f, 0.75f); ps.LineWeight = 1.0f;
+                plt::Spec ps; ps.LineColor = lightBg ? ImVec4(0.45f, 0.46f, 0.48f, 0.8f) : ImVec4(0.55f, 0.56f, 0.58f, 0.8f); ps.LineWeight = 1.0f;   // grey peak hold
                 plt::envelope(a.peak, x0, dx, vis.X.Min, vis.X.Max, wpx, ex, ey);
                 plt::PlotLine("peak", ex.data(), ey.data(), (int)ex.size(), ps);
             }
