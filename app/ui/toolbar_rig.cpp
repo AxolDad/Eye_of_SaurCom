@@ -142,7 +142,7 @@ void netRadioWindow(App& a) {
     if (!ImGui::Begin(trw("Network radios"), &a.netAddOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::End(); return; }
     const bool busy = a.netAddProbe != nullptr;
     ImGui::BeginDisabled(busy);
-    static const char* kTypes[] = {"PlutoSDR (by IP)", "rtl_tcp", "SoapyRemote", "SpyServer", "Hermes Lite 2", "Red Pitaya", "SDR++ server", "SDRplay nRSP-ST (SDRconnect)", "KiwiSDR"};
+    static const char* kTypes[] = {"PlutoSDR (by IP)", "rtl_tcp", "SoapyRemote", "SpyServer", "Hermes Lite 2", "Red Pitaya", "SDR++ server", "SDRplay nRSP-ST (SDRconnect)", "KiwiSDR", "SoapySDR (device string)"};
     ImGui::SetNextItemWidth(200 * gUi);
     if (ImGui::Combo("Type", &a.netAddType, kTypes, IM_ARRAYSIZE(kTypes))) {
         const auto t = (NetRadio::Type)a.netAddType;
@@ -153,12 +153,21 @@ void netRadioWindow(App& a) {
         a.netAddErr.clear();
         if (netTypeSearches(t)) { a.netAddHost[0] = 0; startNetDiscovery(a); }   // its address comes from the answers
     }
+    const bool argsType = a.netAddType == NetRadio::SoapyArgs;
+    if (argsType) {
+        snprintf(a.netAddHost, sizeof a.netAddHost, "%s", "custom");
+        ImGui::SetNextItemWidth(360 * gUi);
+        ImGui::InputTextWithHint(tr("Device string"), "type=uhd,addr=10.0.0.55", a.netAddRemote, sizeof a.netAddRemote);
+        ImGui::TextDisabled("%s", tr("The SoapySDR device arguments exactly as the driver wants them (key=value, comma separated), for radios that are not found by themselves: "
+                                     "driver=uhd,addr=10.0.0.55 or driver=remote,remote=tcp://host:55132. Connect adds it to the Radio list."));
+    } else {
     ImGui::SetNextItemWidth(200 * gUi);
     ImGui::InputTextWithHint(tr("Address"), a.netAddType == NetRadio::Pluto ? "192.168.2.1" : netTypeSearches(a.netAddType) ? "192.168.1.20" : "192.168.1.20 or raspberrypi.local", a.netAddHost, sizeof a.netAddHost);
     if (netTypeSearches(a.netAddType)) netRadioSearchUi(a);
     ImGui::SetNextItemWidth(120 * gUi);
     ImGui::InputInt(tr("Port"), &a.netAddPort, 0, 0);
     a.netAddPort = std::max(0, std::min(65535, a.netAddPort));
+    }
     if (a.netAddType == NetRadio::Pluto) {
         ImGui::SameLine(); ImGui::TextDisabled("%s", tr("0 = libiio's default"));
         ImGui::TextDisabled("%s", tr("Type the PlutoSDR's IP (USB gadget 192.168.2.1, or its Ethernet address) and Connect. It is then in the Radio list."));
@@ -188,7 +197,7 @@ void netRadioWindow(App& a) {
     }
     if (ImGui::Button(tr("Connect"))) {
         NetRadio r;
-        if (a.netAddType == NetRadio::SoapyRemote) r.remote = a.netAddRemote;
+        if (a.netAddType == NetRadio::SoapyRemote || a.netAddType == NetRadio::SoapyArgs) r.remote = a.netAddRemote;
         if (a.netAddType == NetRadio::KiwiSdr) r.remote = a.netAddPass;
         r.type = (NetRadio::Type)a.netAddType;
         r.host = a.netAddHost;

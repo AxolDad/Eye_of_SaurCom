@@ -241,6 +241,35 @@ RadioSetting rfSetting(SoapySDR::Device* dev) {
     return r;
 }
 
+// The driver's own gain elements (LNA, VGA, TIA, PGA, ...) as one setting each ("gain.<element>"), offered when the radio has several. Left alone
+// (not in TuneSettings::radio) the overall gain slider drives them as before; once one is set by hand it is applied after the slider's gain,
+// so the slider and the AGC still move the others. Not for the RFGR / IFGR pair, which has its own setting above.
+const char kGainPrefix[] = "gain.";
+std::vector<RadioSetting> gainStageSettings(SoapySDR::Device* dev) {
+    std::vector<RadioSetting> out;
+    try {
+        const auto names = dev->listGains(SOAPY_SDR_RX, 0);
+        if (names.size() < 2) return out;
+        const bool skip = rfStage(dev);
+        for (const auto& n : names) {
+            if (skip && (n == "RFGR" || n == "IFGR")) continue;
+            const auto r = dev->getGainRange(SOAPY_SDR_RX, 0, n);
+            if (!(r.maximum() > r.minimum())) continue;
+            RadioSetting x;
+            x.type = RadioSetting::Number; x.key = kGainPrefix + n;
+            x.label = "Gain stage " + n;
+            x.help = "One gain element of the radio's driver (" + n + "), in dB. Set by hand it overrides what the gain slider gives this stage; the other stages still follow the slider. Takes effect on the next gain change or retune.";
+            x.minV = r.minimum(); x.maxV = r.maximum(); x.step = r.step() > 0 ? r.step() : 0; x.unit = "dB";
+            double now = r.minimum();
+            try { now = dev->getGain(SOAPY_SDR_RX, 0, n); } catch (...) {}
+            char b[32]; snprintf(b, sizeof b, "%g", now);
+            x.def = b;
+            out.push_back(x);
+        }
+    } catch (...) {}
+    return out;
+}
+
 std::string rangesKey(const std::string& serial, const std::string& args) { return serial.empty() ? args : "serial=" + serial; }
 
 // An entry for one antenna input carries its name after the device arguments (listSoapyDevices): "<args>#antenna=<name>"
@@ -305,6 +334,7 @@ void rememberRanges(const std::string& key, SoapySDR::Device* dev) {
     r.settings = soapySettings(dev, r.biasKey);
     if (rfStage(dev)) r.settings.insert(r.settings.begin(), rfSetting(dev));
     sourceSettings(dev, r.settings);
+    for (auto& x : gainStageSettings(dev)) r.settings.push_back(std::move(x));
     std::lock_guard<std::mutex> lk(gRangesMu);
     gRanges[key] = r;
 }
@@ -479,6 +509,14 @@ private:
             dev_->setGain(SOAPY_SDR_RX, ch, "IFGR", ifg);
         } else
             dev_->setGain(SOAPY_SDR_RX, ch, reduction_ ? gr.maximum() - (g - gr.minimum()) : g);   // a gain-reduction driver: turned around
+        for (const auto& kv : s.radio) {   // gain stages set by hand (gainStageSettings), after the overall gain
+            if (kv.first.compare(0, sizeof kGainPrefix - 1, kGainPrefix) != 0 || kv.second.empty()) continue;
+            const std::string el = kv.first.substr(sizeof kGainPrefix - 1);
+            try {
+                const auto r = dev_->getGainRange(SOAPY_SDR_RX, ch, el);
+                dev_->setGain(SOAPY_SDR_RX, ch, el, std::min(std::max(atof(kv.second.c_str()), r.minimum()), r.maximum()));
+            } catch (...) {}   // not an element of this radio (the setting of another one)
+        }
         if (!biasKey_.empty() && s.biasTee != bias_) {
             try { dev_->writeSetting(biasKey_, s.biasTee ? "true" : "false"); bias_ = s.biasTee; } catch (...) {}
         }

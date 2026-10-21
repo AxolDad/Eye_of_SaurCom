@@ -336,7 +336,7 @@ struct App {
     int netAddType = NetRadio::RtlTcp;
     char netAddHost[128] = "";
     int netAddPort = 1234;
-    char netAddRemote[128] = "";   // SoapyRemote: the server radio to ask for ("mirisdr", "driver=sdrplay,serial=1")
+    char netAddRemote[256] = "";   // SoapyRemote: the server radio to ask for ("mirisdr", "driver=sdrplay,serial=1")
     char netAddPass[128] = "";     // KiwiSDR: the receiver's password (blank: none); wiped after the radio is added, never logged
     // "Find KiwiSDR": the public list, downloaded only when the user clicks (kiwiFindWindow, toolbar_rig.cpp)
     struct KiwiFetch { std::atomic<bool> done{false}; bool ok = false; std::string err; std::vector<KiwiServer> list; };

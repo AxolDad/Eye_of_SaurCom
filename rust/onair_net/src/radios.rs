@@ -20,6 +20,8 @@ pub const SDRPP_SERVER: u32 = 6;
 pub const NRSP_ST: u32 = 7;
 /// KiwiSDR (HF receiver on the network, WebSocket on port 8073); its `remote` text is the password, if it has one.
 pub const KIWI_SDR: u32 = 8;
+/// A SoapySDR device given by its own argument string ("type=uhd,addr=10.0.0.55"); the host is only a label, the `remote` text is the arguments.
+pub const SOAPY_ARGS: u32 = 9;
 
 /// The key of a type in the settings text (an unknown type is written as rtl_tcp).
 pub fn type_key(t: u32) -> &'static str {
@@ -32,6 +34,7 @@ pub fn type_key(t: u32) -> &'static str {
         SDRPP_SERVER => "sdrpp",
         NRSP_ST => "nrspst",
         KIWI_SDR => "kiwisdr",
+        SOAPY_ARGS => "soapyargs",
         _ => "rtltcp",
     }
 }
@@ -47,6 +50,7 @@ pub fn type_name(t: u32) -> &'static str {
         SDRPP_SERVER => "SDR++ server",
         NRSP_ST => "SDRplay nRSP-ST (SDRconnect)",
         KIWI_SDR => "KiwiSDR",
+        SOAPY_ARGS => "SoapySDR (device string)",
         _ => "rtl_tcp",
     }
 }
@@ -61,6 +65,7 @@ pub fn default_port(t: u32) -> i32 {
         SDRPP_SERVER => 5259,
         NRSP_ST => 5454,
         KIWI_SDR => 8073,
+        SOAPY_ARGS => 0,
         _ => 1234,
     }
 }
@@ -140,6 +145,7 @@ fn type_from_key(t: &[u8]) -> Option<u32> {
         b"sdrpp" => SDRPP_SERVER,
         b"nrspst" => NRSP_ST,
         b"kiwisdr" => KIWI_SDR,
+        b"soapyargs" => SOAPY_ARGS,
         _ => return None,
     })
 }
@@ -166,7 +172,7 @@ pub fn parse(s: &[u8], radios: &mut [Radio], arena: &mut [u8]) -> usize {
         let hl = clean_host(raw_host, &mut arena[used..used + raw_host.len()]);
         let mut port = atoi(&item[c2 + 1..]);
         let mut remote = Span::default();
-        if let (Some(c3), SOAPY_REMOTE | KIWI_SDR) = (c3, kind) {
+        if let (Some(c3), SOAPY_REMOTE | KIWI_SDR | SOAPY_ARGS) = (c3, kind) {
             remote = Span { off: (base + c3 + 1) as u32, len: (item.len() - c3 - 1) as u32 };
         }
         if !(0..=65535).contains(&port) {
@@ -238,7 +244,7 @@ pub fn format(radios: &[Radio], pool: &[u8], out: &mut [u8]) -> usize {
             }
         }
         put(&digits[d..], &mut n);
-        if r.kind == SOAPY_REMOTE || r.kind == KIWI_SDR {
+        if r.kind == SOAPY_REMOTE || r.kind == KIWI_SDR || r.kind == SOAPY_ARGS {
             let rem = sl(r.remote);
             if rem.iter().any(|&c| c != b';') {
                 put(b",", &mut n);
@@ -270,5 +276,21 @@ mod kiwi_tests {
         assert_eq!(radios[1].remote.len, 0);
         assert_eq!(radios[2].remote.len, 0);
         assert_eq!((type_key(KIWI_SDR), type_name(KIWI_SDR), default_port(KIWI_SDR)), ("kiwisdr", "KiwiSDR", 8073));
+    }
+}
+
+#[cfg(test)]
+mod soapy_args_tests {
+    use super::*;
+
+    #[test]
+    fn device_string_round_trips() {
+        let s = b"soapyargs,custom,0,type=uhd,addr=10.0.0.55";
+        let mut radios = [Radio::default(); 2];
+        let mut arena = [0u8; 64];
+        assert_eq!(parse(s, &mut radios, &mut arena), 1);
+        assert_eq!(radios[0].kind, SOAPY_ARGS);
+        let r = radios[0].remote;
+        assert_eq!(&s[r.off as usize..(r.off + r.len) as usize], b"type=uhd,addr=10.0.0.55");
     }
 }
