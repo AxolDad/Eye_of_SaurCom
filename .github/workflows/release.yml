@@ -239,7 +239,7 @@ jobs:
           (cd dist && sha256sum *) >> sums/SHA256SUMS
           gh release upload "$TAG" dist/* sums/SHA256SUMS --repo "$GITHUB_REPOSITORY" --clobber
   # The Docker image (packaging/docker) of a finished release, for amd64 and arm64: ghcr.io/<owner>/onair:<version> and :latest.
-  # Not for betas: they would rebuild it at every push to a release branch. It installs the .deb just attached above.
+  # Not for betas: they would rebuild it at every push to a release branch. It installs this run's own .deb (packaging/docker/debs).
   docker:
     name: Docker image
     needs: [version, publish]
@@ -250,6 +250,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4   # this run's own .debs: the release is still a draft here, so its assets cannot be downloaded anonymously
+        with: { pattern: "linux-*", path: packaging/docker/debs, merge-multiple: true }
       - id: img
         run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/onair" >> "$GITHUB_OUTPUT"   # registry names are lower case
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130   # v3.7.0

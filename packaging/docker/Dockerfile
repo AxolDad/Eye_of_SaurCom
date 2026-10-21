@@ -12,10 +12,13 @@ ARG TARGETARCH
 # The release .deb: it carries its own FFmpeg and the libraries of the radios OnAir drives itself; the SoapySDR modules add the rest.
 # libfaad2: the SBR and parametric stereo of DAB+ HE-AAC stations (found at run time). codec2 comes with OnAir; mbelib does not (docs/CODECS.md).
 # fonts-wqy-microhei: Chinese for the UI (one of the fonts OnAir looks for) in 5 MB, instead of the 90 MB of Noto CJK.
-RUN set -eux; \
+# debs/ in the build context (the release workflow puts its own build there: the release is still a draft then, which has no anonymous download) wins over the download.
+RUN --mount=type=bind,source=.,target=/ctx set -eux; \
     apt-get update; \
+    arch="${TARGETARCH:-$(dpkg --print-architecture)}"; \
+    if ls /ctx/debs/onair_*_"$arch".deb >/dev/null 2>&1; then cp /ctx/debs/onair_*_"$arch".deb /tmp/onair.deb; else \
     curl -fsSL --retry 8 --retry-all-errors --retry-delay 30 -o /tmp/onair.deb \
-      "https://github.com/adswill/OnAir/releases/download/v${ONAIR_VERSION}/onair_${ONAIR_VERSION}_${TARGETARCH:-$(dpkg --print-architecture)}.deb"; \
+      "https://github.com/adswill/OnAir/releases/download/v${ONAIR_VERSION}/onair_${ONAIR_VERSION}_${arch}.deb"; fi; \
     apt-get install -y --no-install-recommends /tmp/onair.deb zenity soapysdr-module-all libfaad2 fonts-dejavu-core fonts-wqy-microhei; \
     # Docker Engine (the base image can run Docker inside), the compiler tool chain, every locale at once (the one LANG names is
     # made at the start instead, init-onair) and Noto CJK. Matched by name so that the same list works on x86-64 and arm64.
