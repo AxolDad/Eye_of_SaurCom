@@ -44,7 +44,7 @@ void AtvVideo::Impl::process(const float* v, const float* i, const float* q, siz
         float thrF = (float)thr;
         const uint64_t warm = (uint64_t)(L1 + L2 + 4);
         for (size_t j = 0; j < m;) {
-            if (levelsValid && loopRunning && pState == 0 && smoothCount >= warm) {
+            if (levelsValid && loopRunning && !weakMode && pState == 0 && smoothCount >= warm) {
                 // checkMiss does nothing until (nAbs - 1 - dVs) passes tNext + gate + 0.3 spu
                 const double lim = tNext + gate() + 0.3 * spu + dVs + 1.0;
                 const uint64_t limN = lim < 0 ? 0 : lim >= 1.8e19 ? ~0ull : (uint64_t)std::floor(lim);       // nAbs > lim  <=>  nAbs > limN
@@ -75,6 +75,7 @@ void AtvVideo::Impl::process(const float* v, const float* i, const float* q, siz
                 thrF = (float)thr;
                 continue;
             }
+            if (weakMode && loopRunning) { prevVs = vs; weakService(); continue; }
             if (pState != 0 || vs >= thrF) detect(vs);          // between pulses the signal is below the threshold: nothing to do
             prevVs = vs;
             if (loopRunning) checkMiss();
@@ -106,11 +107,144 @@ void AtvVideo::Impl::detect(float vs) {
     }
 }
 
+// ---- weak signals: the loop's slots (a line start, and half a line later) are looked at with matched filters once the samples are in. A line
+// slot finds the position of the sync pulse inside the gate (a pulse-shaped window against the porches around it); either slot looks for the
+// broad pulses of the field sync by their mean over most of their width, which noise hardly moves. The results go where the threshold slicer's
+// would: normalPulse / broadPulse / lineMiss.
+void AtvVideo::Impl::weakService() {
+    const double look = 31.0 * spu;
+    for (int guard = 0; guard < 8 && loopRunning && weakMode; guard++) {
+        const bool midFirst = weakMidPending && weakMid < tNext;
+        const double s = midFirst ? weakMid : tNext;
+        if ((double)nAbs - 1 < s + look) return;
+        if (midFirst) { weakMidPending = false; if (weakBroad(s)) broadPulse(s); continue; }
+        weakLine();
+    }
+}
+
+bool AtvVideo::Impl::weakBroad(double s) const {
+    const uint64_t a = (uint64_t)std::floor(s + 2.0 * spu), b = (uint64_t)std::floor(s + 24.0 * spu);
+    if (b <= a) return false;
+    double sum = 0;
+    for (uint64_t k = a; k < b; k++) sum += rv[(size_t)(k & kMask)];
+    const double h = Tr - Br;
+    return h > 0 && (sum / (double)(b - a) - Br) / h > 0.55;
+}
+
+// A line slot. The line is added, aligned to the loop's own time (to a fraction of a sample), into a block template; every 32 lines the template
+// (noise down by 15 dB) is searched for the sync pulse and the loop is corrected by what is found. Between corrections it runs on its period.
+void AtvVideo::Impl::weakLine() {
+    const Raster& R = raster(rast);
+    const double tn = tNext;
+    const bool broad = weakBroad(tn);
+    weakMid = tn + 0.5 * P; weakMidPending = true;
+    const int g = (int)std::ceil(3.0 * spu), pre = (int)std::ceil(1.6 * spu), post = (int)std::ceil((R.syncUs + 4.2) * spu) + 2;
+    const int len = g + pre + g + post + 2;
+    if (broad) {
+        broadPulse(tn);
+        lineQ.push_back({tn, false, ++lineNo});
+        tNext += P;
+        goodRun = 0;
+        return;
+    }
+    if ((int)wtp.size() != len || weakN == 0) { wtp.assign((size_t)len, 0.0); weakN = 0; }
+    {
+        const int64_t b0 = (int64_t)std::floor(tn) - (g + pre);
+        const double f = tn - std::floor(tn);
+        for (int k = 0; k < len; k++) {
+            const uint64_t i0 = (uint64_t)(b0 + k);
+            wtp[(size_t)k] += (1.0 - f) * rv[(size_t)(i0 & kMask)] + f * rv[(size_t)((i0 + 1) & kMask)];
+        }
+        weakN++;
+    }
+    lineQ.push_back({tn, weakLock, ++lineNo});
+    tNext += P;
+    goodRun++; missRun = 0;
+    if (weakN >= 32) weakBlock(g, pre, post, len);
+}
+
+void AtvVideo::Impl::weakBlock(int g, int pre, int post, int len) {
+    const Raster& R = raster(rast);
+    const int N = weakN;
+    weakN = 0;
+    std::vector<double>& cs = wcs;
+    cs.assign((size_t)len + 1, 0.0);
+    for (int k = 0; k < len; k++) cs[(size_t)k + 1] = cs[(size_t)k] + wtp[(size_t)k] / N;
+    const int org = g + pre;                                 // index of the loop's line start in the template
+    auto mean = [&](int a, int b) { return (cs[(size_t)b] - cs[(size_t)a]) / (double)(b - a); };
+    const int s0 = (int)std::ceil(0.25 * spu), s1 = (int)std::floor((R.syncUs - 0.25) * spu);
+    const int b0 = (int)std::ceil((R.syncUs + 0.8) * spu), b1 = (int)std::ceil((R.syncUs + 3.8) * spu);
+    const int f0 = (int)std::ceil(1.3 * spu), f1 = std::max(1, (int)std::ceil(0.2 * spu));
+    std::vector<double>& sc = wsc;
+    sc.assign((size_t)(2 * g + 1), 0.0);
+    double best = -1e30;
+    int bi = 0;
+    for (int d = -g; d <= g; d++) {
+        const int e = org + d;
+        const double v = mean(e + s0, e + s1) - 0.5 * (mean(e + b0, e + b1) + (f0 > f1 ? mean(e - f0, e - f1) : mean(e + b0, e + b1)));
+        sc[(size_t)(d + g)] = v;
+        if (v > best) { best = v; bi = d + g; }
+    }
+    int ia = bi, ib = bi;
+    const double lim = 0.92 * best;
+    while (ia > 0 && sc[(size_t)(ia - 1)] >= lim) ia--;
+    while (ib < 2 * g && sc[(size_t)(ib + 1)] >= lim) ib++;
+    double wsum = 0, psum = 0;
+    for (int i = ia; i <= ib; i++) { const double w = sc[(size_t)i] - lim + 1e-12; wsum += w; psum += w * (double)i; }
+    double pos = psum / wsum - g;
+    // refine on both edges (a step detector peaks at the edge, to a fraction of a sample)
+    {
+        const int w = std::max(2, (int)std::lround(0.7 * spu)), sp = (int)std::lround(R.syncUs * spu);
+        const int c = (int)std::lround(pos), rr = (int)std::ceil(0.8 * spu);
+        double es[64];
+        int n = 0, bestK = -1;
+        double bestE = -1e30;
+        for (int d = c - rr; d <= c + rr && n < 64; d++, n++) {
+            const int e = org + d;
+            if (e - w < 0 || e + sp + w > len) { es[n] = -1e30; continue; }
+            es[n] = (mean(e, e + w) - mean(e - w, e)) + (mean(e + sp - w, e + sp) - mean(e + sp, e + sp + w));
+            if (es[n] > bestE) { bestE = es[n]; bestK = n; }
+        }
+        if (bestK > 0 && bestK < n - 1 && es[bestK - 1] > -1e29 && es[bestK + 1] > -1e29) {
+            const double a = es[bestK - 1], b = es[bestK], cc = es[bestK + 1];
+            const double den = a - 2 * b + cc;
+            const double fr = den < -1e-12 ? 0.5 * (a - cc) / den : 0.0;
+            pos = (double)(c - rr + bestK) + std::max(-1.0, std::min(1.0, fr));
+        }
+    }
+    const double h = Tr - Br;
+    const float c = h > 0 ? (float)(best / h) : 0.f;
+    weakQ += (std::min(1.2f, std::max(0.f, c)) - weakQ) * 0.4f;
+    if (noiseVar > 0 && h > 1.8 * std::sqrt(noiseVar) && weakStrong < 1000) weakStrong++;
+    else if (weakStrong > 0) weakStrong--;
+    // A clean signal is tracked by the threshold slicer (steady to nanoseconds, which the colour burst needs); the matched filters are for the rest.
+    if (weakStrong >= 6 && c >= 0.6f) {
+        weakMode = false; weakMidPending = false; weakStrong = 0; weakN = 0;
+        pState = 0; goodRun = 0; missRun = 0;
+        thr = 0.5 * (Tr + Br); hyst = std::max(0.1 * (Tr - Br), 1e-9);
+        doLog("analog TV: clean signal, line sync by threshold");
+        return;
+    }
+    if (c >= 0.3f) {
+        weakLock = true; weakLow = 0;
+        tNext += 0.6 * pos;
+        P += 0.3 * pos / N;
+        P = std::min(std::max(P, R.pMin * 1e-6 * fv), R.pMax * 1e-6 * fv);
+        Pslow += (P - Pslow) * (1.0 / 16);
+        syncQ += (1.f - syncQ) * 0.5f;
+    } else {
+        weakLock = false;
+        syncQ *= 0.6f;
+        if (++weakLow >= 8) { weakLow = 0; loseLock(); }
+    }
+}
+
 void AtvVideo::Impl::normalPulse(double t0, double t1) {
     if (!loopRunning) return;
     const double e = t0 - tNext;
     if (std::fabs(e) <= gate()) {
-        const double alpha = goodRun < 8 ? 0.4 : 0.12, beta = goodRun < 8 ? 0.02 : 0.004;
+        // matched-filter positions in noise jitter by a microsecond or more: the loop is slow then (the line period of a transmitter is steady)
+        const double alpha = weakMode ? (goodRun < 8 ? 0.2 : 0.05) : (goodRun < 8 ? 0.4 : 0.12), beta = weakMode ? (goodRun < 8 ? 0.002 : 0.0003) : (goodRun < 8 ? 0.02 : 0.004);
         const double tg = tNext + alpha * e;
         P += beta * e;
         P = std::min(std::max(P, raster(rast).pMin * 1e-6 * fv), raster(rast).pMax * 1e-6 * fv);
@@ -148,6 +282,153 @@ void AtvVideo::Impl::vsync(double t_v) {
 }
 
 bool AtvVideo::Impl::analyse(const std::vector<float>& a, Acq& r) const {
+    if (analyseThr(a, r)) return true;
+    // The crossings of a threshold need a clean signal. In noise the sync is still there for a matched filter: fold the stretch at every
+    // possible line period (a few hundred lines add up coherently). Every fourth failed look only: it costs more than the first.
+    if (!foldNow || fmVideo) return false;      // (FM video, analog FPV, is a strong-signal affair: the slicer does that)
+    return analyseFold(a, r);
+}
+
+// Weak signals. The stretch is folded modulo each candidate line period (coarse: bins of half a sync width, then fine around the best period);
+// the folded line shows the sync pulse as the part above the back porch. A real sync stands out of the spread of the matched filter over all
+// phases by a wide margin; noise (and picture content, which does not look like a pulse followed by a flat porch) does not.
+bool AtvVideo::Impl::analyseFold(const std::vector<float>& a, Acq& r) const {
+    const size_t n = a.size();
+    int g0 = 0, g1 = 2;
+    if (prm.forceSys >= 0) g0 = g1 = rasterOf(atvSysLines(prm.forceSys));
+    double bestDepth = 0, anyDepth = 0;
+    bool found = false;
+    std::vector<double> cs(n + 1, 0.0);                       // running sum of the stretch: means of bins of any width
+    for (size_t k = 0; k < n; k++) cs[k + 1] = cs[k] + a[k];
+    for (int g = g0; g <= g1; g++) {
+        if (g > 0 && prm.forceSys < 0 && ((foldTick >> 2) & 3) != 0) break;       // the 405 and 819 line rasters: every fourth look only
+        const Raster& R = raster(g);
+        auto binned = [&](double binUs, std::vector<float>& d) {
+            const double bs = binUs * spu;
+            const size_t nb = (size_t)((double)n / bs);
+            d.assign(nb, 0.f);
+            for (size_t b = 0; b < nb; b++) { const size_t s0 = (size_t)((double)b * bs), s1 = (size_t)((double)(b + 1) * bs); d[b] = (float)((cs[s1] - cs[s0]) / (double)(s1 - s0)); }
+        };
+        // fold d (bins of binUs) at period pUs; m gets the mean per phase bin
+        auto fold = [](const std::vector<float>& d, double binUs, double pUs, std::vector<double>& m, std::vector<int>& cnt) {
+            const int nb = (int)std::ceil(pUs / binUs);
+            m.assign((size_t)nb, 0.0); cnt.assign((size_t)nb, 0);
+            double x = 0;
+            for (size_t b = 0; b < d.size(); b++) {
+                const int ph = (int)(x / binUs);
+                m[(size_t)ph] += d[b]; cnt[(size_t)ph]++;
+                x += binUs; if (x >= pUs) x -= pUs;
+            }
+            for (int i = 0; i < nb; i++) if (cnt[(size_t)i]) m[(size_t)i] /= cnt[(size_t)i];
+        };
+        // matched filter: sync window against the back porch behind it; i is the first bin of the window
+        auto metric = [](const std::vector<double>& m, int sw, int gap, int pw, int i) {
+            const int nb = (int)m.size();
+            double s = 0, p = 0;
+            for (int k = 0; k < sw; k++) s += m[(size_t)((i + k) % nb)];
+            for (int k = 0; k < pw; k++) p += m[(size_t)((i + sw + gap + k) % nb)];
+            return s / sw - p / pw;
+        };
+        // ---- coarse
+        const double cb = std::max(1.0, R.syncUs * 0.43);
+        std::vector<float> d;
+        binned(cb, d);
+        if (d.size() < 2000) continue;
+        const double dP = cb / 400.0;
+        double bestM = -1e30, bestP = 0;
+        std::vector<double> m, pmaxv; std::vector<int> cnt;
+        for (double p = R.pMin; p <= R.pMax; p += dP) {
+            fold(d, cb, p, m, cnt);
+            const int nb = (int)m.size();
+            double pm = -1e30;
+            for (int i = 0; i < nb; i++) { const double v = metric(m, 2, 1, 2, i); if (v > pm) pm = v; }
+            pmaxv.push_back(pm);
+            if (pm > bestM) { bestM = pm; bestP = p; }
+        }
+        // is there a period that stands out among all of them? (a real line period gives one peak, a few periods wide)
+        {
+            double mu = 0, m2 = 0;
+            for (double v : pmaxv) { mu += v; m2 += v * v; }
+            mu /= (double)pmaxv.size();
+            const double sd = std::sqrt(std::max(1e-18, m2 / (double)pmaxv.size() - mu * mu));
+            const bool peak = (bestM - mu) / sd > 3.3;
+            pmaxv.clear();
+            if (!peak) continue;
+        }
+        // ---- fine around the best period
+        const double fb = 0.5 * std::max(0.5, R.syncUs / 4.7);
+        std::vector<float> df;
+        binned(fb, df);
+        const int sw = std::max(2, (int)std::lround(R.syncUs / fb)), gap = std::max(1, (int)std::lround(0.8 * R.syncUs / 4.7 / fb)), pw = std::max(2, (int)std::lround(0.85 * R.syncUs / fb));
+        const double dPf = fb / 800.0 * 0.5;
+        double fM = -1e30, fP = bestP, fT = 0;
+        std::vector<double> fm; std::vector<int> fc;
+        for (double p = bestP - 3 * dP; p <= bestP + 3 * dP; p += dPf) {
+            fold(df, fb, p, m, cnt);
+            const int nb = (int)m.size();
+            for (int i = 0; i < nb; i++) { const double v = metric(m, sw, gap, pw, i); if (v > fM) { fM = v; fP = p; fT = (double)i * fb; fm = m; } }
+        }
+        if (fm.empty()) continue;
+        // How far the best (period, phase) stands out: the same best-phase search at periods a little off (the pulses smear out there; noise and
+        // picture structure give about the same as at the right period)
+        const int nb = (int)fm.size();
+        double mu = 0, m2 = 0;
+        int cn = 0;
+        for (double off : {-0.08, -0.06, -0.05, -0.04, -0.03, -0.02, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08}) {
+            fold(df, fb, fP + off, m, cnt);
+            const int nb2 = (int)m.size();
+            double bm = -1e30;
+            for (int i = 0; i < nb2; i++) bm = std::max(bm, metric(m, sw, gap, pw, i));
+            mu += bm; m2 += bm * bm; cn++;
+        }
+        mu /= cn;
+        const double sig = std::sqrt(std::max(1e-18, m2 / cn - mu * mu));
+        const double z = (fM - mu) / sig;
+        const double ratio = fM / std::max(1e-12, mu);
+        // a clear peak against the best of the periods around it: far above their spread (weak signals), or several times their level (strong ones,
+        // where the picture's own structure makes that spread wide). A faster raster only replaces a slower one that was found if it is clearly deeper.
+        if (!((z >= 8.0 && ratio >= 1.5) || (ratio >= 3.0 && z >= 3.0))) continue;
+        if (found && (fM < 1.15 * bestDepth || ratio < 3.0)) continue;
+        if (!found && g > g0 && ratio < 3.0 && anyDepth > 0) continue;
+        anyDepth = std::max(anyDepth, fM);      // the slower rasters first: a faster raster has to be clearly deeper
+        // levels: the tip and the back porch of the folded line
+        double T = 0, B = 0;
+        int ti = (int)std::lround(fT / fb);
+        for (int k = 0; k < sw; k++) T += fm[(size_t)((ti + k) % nb)];
+        for (int k = 0; k < pw; k++) B += fm[(size_t)((ti + sw + gap + k) % nb)];
+        T /= sw; B /= pw;
+        if (!(T > B)) continue;
+        // the sync tip is the highest part of the line (the signal is oriented that way), and it is a fair part of the line's range:
+        // the wrong polarity, and picture structure, find steps too but not this
+        {
+            double hiW = -1e30, loW = 1e30;
+            for (int i = 0; i < nb; i++) {
+                double w = 0;
+                for (int k = 0; k < sw; k++) w += fm[(size_t)((i + k) % nb)];
+                w /= sw;
+                hiW = std::max(hiW, w); loW = std::min(loW, w);
+            }
+            if (T < hiW - 0.1 * (T - B) || (T - B) < 0.12 * (hiW - loW)) continue;
+        }
+        bestDepth = fM; found = true;
+        const double Pm = fP * spu;
+        r.group = g;
+        r.lines = g == 1 ? 405 : g == 2 ? 819 : (std::fabs(fP - 64.0) < std::fabs(fP - 63.5556)) ? 625 : 525;
+        r.T = T; r.B = B; r.th = 0.5 * (T + B); r.hy = 0.18 * (T - B);
+        r.Pm = Pm;
+        // the leading edge is where the window starts; the last line start inside the stretch
+        double t = fT * spu;
+        while (t + Pm < (double)n - 2 * Pm) t += Pm;
+        r.lastT = t;
+        r.expect = (double)n / Pm; r.nin = r.expect;
+        r.weak = true;
+    }
+    // a deeper raster that failed the structure test means the one found is a side product of it
+    if (found && bestDepth < 0.87 * anyDepth) return false;
+    return found;
+}
+
+bool AtvVideo::Impl::analyseThr(const std::vector<float>& a, Acq& r) const {
     const size_t n = a.size();
     std::vector<float> sub;
     for (size_t k = 0; k < n; k += 5) sub.push_back(a[k]);
@@ -253,6 +534,7 @@ void AtvVideo::Impl::commit(const Acq& r) {
     while (tn0 - P > (double)nAbs - 3 * P) tn0 -= P;
     tNext = tn0;
     loopRunning = true; levelsValid = true; goodRun = 0; missRun = 0; syncQ = 0.6f;
+    weakMode = r.weak; weakMidPending = false; weakQ = 0.6f; weakLow = 0; weakN = 0; weakLock = true; weakStrong = 0;
     lineQ.clear();
     acq.clear();
     pState = 0;
@@ -268,6 +550,7 @@ void AtvVideo::Impl::commit(const Acq& r) {
 // The line sync in the stretch held: with the polarity in use, and when that finds no clear line structure (and the system is not forced),
 // with the other one. The polarity that finds more lines wins: a negatively modulated signal turned over has no sync pulses, and the other way.
 bool AtvVideo::Impl::acquire() {
+    foldNow = (++foldTick & 3) == 0;
     const int fp = forcedPol();
     if (fp != 0 && fp != pol) flipPolarity();
     Acq r1;

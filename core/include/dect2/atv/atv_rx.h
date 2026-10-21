@@ -39,6 +39,7 @@ public:
 
     // Picture and standard (all safe to call while it runs)
     void setDeinterlace(int mode);                       // 0 weave (default), 1 bob
+    void setNoiseReduction(int mode);                    // temporal noise reduction of the picture: -1 automatic (default; by the video S/N), 0 off, 1 light, 2 medium, 3 strong
     void setStandard(int system, int colour);            // -1 automatic; system: AtvSys (atv_std.h), colour: AtvColourKind
     void setBlackSetup(int mode);                        // -1 by system (7.5 IRE in M), 0 none, 1 7.5 IRE
     void setChromaDelayNs(double ns);                    // < 0: what the standard says (170 ns)

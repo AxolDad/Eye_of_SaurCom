@@ -563,6 +563,7 @@ void AtvReceiver::setMuted(bool m) { p_->muted = m; }
 void AtvReceiver::setSilent(bool s) { p_->silent = s; }
 void AtvReceiver::setAudioTap(std::function<void(const float*, const float*, size_t)> cb) { std::lock_guard<std::mutex> lk(p_->tapMu); p_->tap = std::move(cb); }
 void AtvReceiver::setDeinterlace(int mode) { auto p = p_->curPrm(); p.deinterlace = mode; p_->setPrm(p); }
+void AtvReceiver::setNoiseReduction(int mode) { auto p = p_->curPrm(); p.denoise = mode; p_->setPrm(p); }
 void AtvReceiver::setStandard(int system, int colour) { auto p = p_->curPrm(); p.forceSys = system; p.forceColour = colour; p_->setPrm(p); }
 void AtvReceiver::setBlackSetup(int mode) { auto p = p_->curPrm(); p.setupMode = mode; p_->setPrm(p); }
 void AtvReceiver::setChromaDelayNs(double ns) { auto p = p_->curPrm(); p.chromaDelayNs = ns; p_->setPrm(p); }

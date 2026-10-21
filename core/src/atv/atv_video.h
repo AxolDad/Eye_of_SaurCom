@@ -16,6 +16,7 @@ struct AtvVideoParams {
     int forceSys = -1;               // -1 automatic, otherwise an AtvSys
     int forceColour = -1;            // -1 automatic, otherwise an AtvColourKind
     int deinterlace = 0;             // 0 weave, 1 bob
+    int denoise = -1;                // temporal noise reduction: -1 automatic (by the measured video S/N), 0 off, 1 light, 2 medium, 3 strong
     int setupMode = -1;              // -1 by system (7.5 IRE for M), 0 none, 1 7.5 IRE
     double chromaDelayNs = -1;       // < 0: what the standard says (170 ns), otherwise this
     bool colourOn = true;

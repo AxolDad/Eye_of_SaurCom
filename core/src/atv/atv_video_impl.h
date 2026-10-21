@@ -40,6 +40,7 @@ struct AtvVideo::Impl {
 
     // ---- rings
     std::vector<float> rv, ri, rq, vsr, m1r;
+    std::vector<double> wcs, wsc, wtp;               // weak-signal sync matching: prefix sums of the video, matched-filter scores
     uint64_t nAbs = 0;
 
     // ---- slicer signal: two running means in cascade; the delay is (L1 + L2 - 2) / 2 samples
@@ -129,6 +130,7 @@ struct AtvVideo::Impl {
     // ---- pictures
     int W = 768, Hh = 576;
     std::vector<uint8_t> fbuf;
+    std::vector<uint8_t> tfPrev;                // the previous published picture (temporal noise reduction)
     std::vector<float> yRow, uRow, vRow, prevU, prevV;
     bool prevValid = false;
     uint64_t prevLineNo = 0;
@@ -218,7 +220,7 @@ struct AtvVideo::Impl {
     // forget levels and the loop, keep counters and the picture
     void resetSync() {
         acq.clear(); acqStart = 0;
-        levelsValid = false; loopRunning = false;
+        levelsValid = false; loopRunning = false; weakMode = false; weakMidPending = false;
         pState = 0; prevVs = 0;
         P = Pslow = raster(rast).lineUs * 1e-6 * fv; tNext = 0; goodRun = missRun = oogRun = 0; syncQ = 0;
         lineQ.clear();
@@ -317,7 +319,7 @@ struct AtvVideo::Impl {
     }
 
     void loseLock() {
-        loopRunning = false; levelsValid = false;
+        loopRunning = false; levelsValid = false; weakMode = false; weakMidPending = false;
         acq.clear(); pState = 0;
         syncQ = 0; haveVsync = false;
         doLog("analog TV: line sync lost");
@@ -362,9 +364,24 @@ struct AtvVideo::Impl {
         int group = 0, lines = 625;
         double th = 0, hy = 0, T = 0, B = 0, Pm = 0, lastT = 0;   // lastT: the start of the last line on the fit, in samples of the stretch
         double nin = 0, expect = 0;                                // pulses on the fit, and lines in the stretch
+        bool weak = false;                                         // found by the matched filter (weak signal): the line loop then runs on matched filters too
     };
 
     bool analyse(const std::vector<float>& a, Acq& r) const;
+    bool analyseThr(const std::vector<float>& a, Acq& r) const;    // threshold crossings: pulses of the width of a line sync, fitted to a line grid
+    bool analyseFold(const std::vector<float>& a, Acq& r) const;   // weak signals: the stretch folded at every possible line period, sync matched filter
+    int foldTick = 0;
+    bool foldNow = false;
+    // Weak-signal tracking: the line (and field) sync found by matched filters at the slots the loop expects them, instead of threshold crossings
+    bool weakMode = false, weakMidPending = false;
+    double weakMid = 0;
+    float weakQ = 0.6f;                         // smoothed height of the matched sync pulses against the levels (about 1 on a good signal)
+    int weakLow = 0, weakN = 0, weakStrong = 0;
+    bool weakLock = true;
+    void weakService();
+    void weakLine();
+    void weakBlock(int g, int pre, int post, int len);
+    bool weakBroad(double s) const;
 
     void commit(const Acq& r);
 
@@ -541,6 +558,7 @@ struct AtvVideo::Impl {
     float whitePeakReport = 0;
 
     void publish(int field);
+    void temporalFilter(AtvFrame& f);
 
     // ------------------------------------------------------------------------------ scope
     void captureLine(double tL);
