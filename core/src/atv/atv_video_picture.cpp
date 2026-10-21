@@ -218,7 +218,33 @@ void AtvVideo::Impl::publish(int field) {
             for (int x = 0; x < W * 4; x++) f->rgba[(size_t)r * W * 4 + (size_t)x] = (uint8_t)(((int)fbuf[(size_t)a * W * 4 + (size_t)x] + (int)fbuf[(size_t)b * W * 4 + (size_t)x]) / 2);
         }
     }
+    temporalFilter(*f);
     doFrame(f);
+}
+
+// Temporal noise reduction: a recursive average over the pictures, per pixel and per colour, that lets go where the picture changed by more
+// than noise does (motion, a cut). Automatic: the weight of a new picture follows the measured video S/N (none above 30 dB, 0.12 at 8 dB and below).
+void AtvVideo::Impl::temporalFilter(AtvFrame& f) {
+    double k = 1.0;
+    double sig = 0.02;
+    if (gainValid) sig = std::sqrt(std::max(noiseVar, 1e-30)) / std::max(1e-9, lineGain());
+    const double snr = 20 * std::log10(1.0 / std::max(sig, 1e-6));
+    if (prm.denoise < 0) k = snr >= 30 ? 1.0 : std::max(0.12, 0.12 + 0.88 * (snr - 8.0) / 22.0 * (snr - 8.0) / 22.0);
+    else if (prm.denoise == 1) k = 0.5; else if (prm.denoise == 2) k = 0.3; else if (prm.denoise >= 3) k = 0.15;
+    if (k >= 0.999 || f.rgba.size() != tfPrev.size()) {      // off, or the picture size changed: start again from this picture
+        tfPrev = f.rgba;
+        return;
+    }
+    const double T = 5.0 * sig * 255.0 + 8.0;
+    for (size_t i = 0; i < f.rgba.size(); i++) {
+        if ((i & 3) == 3) continue;
+        const int c = f.rgba[i], p = tfPrev[i];
+        const double d = std::abs(c - p);
+        const double w = d <= T ? k : std::min(1.0, k + (d - T) / T);
+        const int o = (int)std::lround(p + (c - p) * w);
+        f.rgba[i] = (uint8_t)o;
+    }
+    tfPrev = f.rgba;
 }
 
 // ------------------------------------------------------------------------------ scope
