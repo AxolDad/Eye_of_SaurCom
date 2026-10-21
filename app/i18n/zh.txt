@@ -257,7 +257,6 @@ MODE / TUNER	模式 / 调谐
 STATUS	状态
 CONSTELLATIONS	星座图
 ADC level	ADC 电平
-DMR voice audio is not decoded: AMBE+2 is proprietary, so there is no sound.	不解码 DMR 语音：AMBE+2 是专有编码，因此没有声音。
 no stations yet: run the scan	还没有电台：请先扫描
 no saved channels yet: run the scan	还没有保存的频道：请先扫描
 Hz	Hz
@@ -1068,7 +1067,6 @@ Support	Support
 Support OnAir on Ko-fi	Support OnAir on Ko-fi
 Documentation	文档
 Troubleshooting	故障排除
-Voice codecs (mbelib)	语音编解码器 (mbelib)
 Website	网站
 Passive: only the beacons, probe responses and FILS discovery frames that access points broadcast are read. Nothing is transmitted, joined or decrypted.	被动：只读取接入点广播的信标、探测响应和 FILS 发现帧。不发射、不连接、不解密。
 all	全部

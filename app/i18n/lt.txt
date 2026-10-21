@@ -257,7 +257,6 @@ MODE / TUNER	REŽIMAS / DERINIMAS
 STATUS	BŪSENA
 CONSTELLATIONS	KONSTELIACIJOS
 ADC level	ADC lygis
-DMR voice audio is not decoded: AMBE+2 is proprietary, so there is no sound.	DMR balsas nedekoduojamas: AMBE+2 yra uždaras kodekas, todėl garso nėra.
 no stations yet: run the scan	stočių dar nėra: paleiskite paiešką
 no saved channels yet: run the scan	išsaugotų kanalų dar nėra: paleiskite paiešką
 Hz	Hz
@@ -1068,7 +1067,6 @@ Support	Support
 Support OnAir on Ko-fi	Support OnAir on Ko-fi
 Documentation	Dokumentacija
 Troubleshooting	Trikčių šalinimas
-Voice codecs (mbelib)	Balso kodekai (mbelib)
 Website	Svetainė
 Passive: only the beacons, probe responses and FILS discovery frames that access points broadcast are read. Nothing is transmitted, joined or decrypted.	Pasyvu: skaitomi tik prieigos taškų transliuojami švyturiai, zondavimo atsakai ir FILS discovery kadrai. Niekas nesiunčiama, neprisijungiama ir neiššifruojama.
 all	visi

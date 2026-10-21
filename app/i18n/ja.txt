@@ -250,7 +250,6 @@ MODE / TUNER	モード / チューナー
 STATUS	状態
 CONSTELLATIONS	コンスタレーション
 ADC level	ADC レベル
-DMR voice audio is not decoded: AMBE+2 is proprietary, so there is no sound.	DMR の音声はデコードされません。AMBE+2 は独自仕様のため、音は出ません。
 no stations yet: run the scan	放送局がまだありません: スキャンを実行してください
 no saved channels yet: run the scan	保存されたチャンネルがまだありません: スキャンを実行してください
 Hz	Hz
@@ -1068,7 +1067,6 @@ Support	Support
 Support OnAir on Ko-fi	Support OnAir on Ko-fi
 Documentation	ドキュメント
 Troubleshooting	トラブルシューティング
-Voice codecs (mbelib)	音声コーデック (mbelib)
 Website	ウェブサイト
 Passive: only the beacons, probe responses and FILS discovery frames that access points broadcast are read. Nothing is transmitted, joined or decrypted.	パッシブ：アクセスポイントが送出するビーコン、プローブ応答、FILS ディスカバリフレームだけを読み取ります。送信・接続・復号は一切行いません。
 all	すべて

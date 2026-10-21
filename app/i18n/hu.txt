@@ -256,7 +256,6 @@ MODE / TUNER	ÜZEMMÓD / HANGOLÓ
 STATUS	ÁLLAPOT
 CONSTELLATIONS	KONSTELLÁCIÓK
 ADC level	ADC-szint
-DMR voice audio is not decoded: AMBE+2 is proprietary, so there is no sound.	A DMR beszéd nincs dekódolva: az AMBE+2 védett, ezért nincs hang.
 no stations yet: run the scan	még nincs állomás: indítsd el a keresést
 no saved channels yet: run the scan	még nincsenek mentett csatornák: indítsd el a keresést
 Hz	Hz
@@ -1054,7 +1053,6 @@ Support	Support
 Support OnAir on Ko-fi	Support OnAir on Ko-fi
 Documentation	Dokumentáció
 Troubleshooting	Hibaelhárítás
-Voice codecs (mbelib)	Hangkodekek (mbelib)
 Website	Weboldal
 Passive: only the beacons, probe responses and FILS discovery frames that access points broadcast are read. Nothing is transmitted, joined or decrypted.	Passzív: csak a hozzáférési pontok beacon, szondaválasz és FILS discovery kereteit olvassa. Semmit nem ad, nem csatlakozik és nem fejt vissza.
 all	mind

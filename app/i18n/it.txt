@@ -247,7 +247,6 @@ MODE / TUNER	MODO / SINTONIZZATORE
 STATUS	STATO
 CONSTELLATIONS	COSTELLAZIONI
 ADC level	Livello ADC
-DMR voice audio is not decoded: AMBE+2 is proprietary, so there is no sound.	L'audio vocale DMR non viene decodificato: l'AMBE+2 è proprietario, quindi non c'è suono.
 no stations yet: run the scan	ancora nessuna stazione: esegui la scansione
 no saved channels yet: run the scan	ancora nessun canale salvato: esegui la scansione
 Hz	Hz
@@ -1051,7 +1050,6 @@ Support	Support
 Support OnAir on Ko-fi	Support OnAir on Ko-fi
 Documentation	Documentazione
 Troubleshooting	Risoluzione dei problemi
-Voice codecs (mbelib)	Codec vocali (mbelib)
 Website	Sito web
 Passive: only the beacons, probe responses and FILS discovery frames that access points broadcast are read. Nothing is transmitted, joined or decrypted.	Passivo: vengono letti solo beacon, risposte di sondaggio e frame FILS discovery trasmessi dagli access point. Non si trasmette, collega o decifra nulla.
 all	tutti
