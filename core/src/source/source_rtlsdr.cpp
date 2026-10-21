@@ -456,4 +456,49 @@ std::unique_ptr<IqSource> makeRtl(const DeviceInfo& d) {
 }
 
 } // namespace native
+
+// ---- Kraken / Kerberos hub plumbing (dect2/df/rtl_group.h): the dongles as plain synchronous links
+} // namespace dect2
+#include "dect2/df/rtl_group.h"
+namespace dect2 {
+namespace df {
+namespace {
+struct NativeLink : RtlLink {
+    native::RtlApi::rtlsdr_dev_t* d = nullptr;
+    ~NativeLink() override { if (d) native::rtl().close(d); }
+    bool configure(double f, double r, int g) override {
+        auto& a = native::rtl();
+        if (a.set_sample_rate(d, (uint32_t)r) < 0 || a.set_center_freq(d, (uint32_t)f) < 0) return false;
+        if (g < 0) a.set_tuner_gain_mode(d, 0);
+        else { a.set_tuner_gain_mode(d, 1); a.set_tuner_gain(d, g); }
+        return a.reset_buffer(d) >= 0;
+    }
+    int readSync(uint8_t* b, int n) override {
+        auto& a = native::rtl(); int got = 0;
+        if (!a.read_sync || a.read_sync(d, b, n, &got) < 0) return -1;
+        return got;
+    }
+    bool setGpio0(bool on) override { auto& a = native::rtl(); return a.set_bias_tee && a.set_bias_tee(d, on ? 1 : 0) >= 0; }
+};
+}
+std::vector<RtlInfo> listNativeRtl() {
+    std::vector<RtlInfo> v;
+    auto& a = native::rtl();
+    if (!a.ok) return v;
+    uint32_t n = a.get_device_count();
+    for (uint32_t i = 0; i < n && i < 16; i++) {
+        char vendor[256] = {0}, product[256] = {0}, serial[256] = {0};
+        if (a.get_device_usb_strings(i, vendor, product, serial) != 0) continue;
+        v.push_back({(int)i, serial, product});
+    }
+    return v;
+}
+std::unique_ptr<RtlLink> makeNativeRtlLink(int index) {
+    auto& a = native::rtl();
+    if (!a.ok) return nullptr;
+    auto l = std::make_unique<NativeLink>();
+    if (a.open(&l->d, (uint32_t)index) != 0) return nullptr;
+    return l;
+}
+}   // namespace df
 } // namespace dect2
