@@ -42,12 +42,28 @@ bool gVoiceWired = false;
 void wireVoice(App& a) {
     if (gVoiceWired) return;
     gVoiceWired = true;
+    // Played at 48 kHz like the other voice modes: AudioOut's start and underrun thresholds are counted in frames for 48 kHz, and at the
+    // codec's 8 kHz they meant 1.8 s and 4.8 s of waiting. The speech comes a capture (2.3 s) at a time, so after an underrun a little
+    // silence goes first: it absorbs the capture-to-capture variation of the decoding time.
     gVoice.setPcmOut([&a](const int16_t* pcm, size_t n, int rate) {
-        if (!gVoiceOut.running() || gVoiceOut.sampleRate() != rate) { gVoiceOut.stop(); gVoiceOut.start(rate); }
+        constexpr int kOut = 48000;
+        static float prev = 0;
+        if (!gVoiceOut.running()) gVoiceOut.start(kOut);
         gVoiceOut.setVolume(a.volume); gVoiceOut.setMuted(a.muted);
-        std::vector<float> st(n * 2);
-        for (size_t i = 0; i < n; i++) st[2 * i] = st[2 * i + 1] = pcm[i] / 32768.f;
-        gVoiceOut.write(st.data(), (int)n);
+        if (!gVoiceOut.playing() && gVoiceOut.bufferedFrames() == 0) {
+            const std::vector<float> lead((size_t)kOut * 2 * 2 / 5, 0.f);   // 0.4 s
+            gVoiceOut.write(lead.data(), (int)lead.size() / 2);
+            prev = 0;
+        }
+        const int up = rate > 0 && kOut % rate == 0 ? kOut / rate : 1;
+        std::vector<float> st;
+        st.reserve(n * (size_t)up * 2);
+        for (size_t i = 0; i < n; i++) {   // linear interpolation, as DMR does
+            const float v = pcm[i] / 32768.f;
+            for (int k = 1; k <= up; k++) { const float o = prev + (v - prev) * k / up; st.push_back(o); st.push_back(o); }
+            prev = v;
+        }
+        gVoiceOut.write(st.data(), (int)st.size() / 2);
     });
     gVoice.setFrameDecoder(dect2::tetra::makeTrafficFrameDecoder());   // channel decoding from EN 300 395-2 clause 5.5; the codec itself is the user's plug-in
     a.engine.tetra().setVoiceSink(&gVoice);
