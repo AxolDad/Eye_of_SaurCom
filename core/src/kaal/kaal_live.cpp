@@ -260,9 +260,9 @@ struct KaalLiveReceiver::Impl {
             // out of the mixer and search once more: with no carrier error left the frames and the beacon decode cleanly.
             refined = true;
             carrier += (double)st.cfoHz * (wide ? 2.0 : 1.0);   // the receiver reads a wide signal at half its frequencies
-            vrx.configure(48000.0);
+            vrx.shiftCarrier(-(double)st.cfoHz);   // the lock is kept: only the carrier and the sweep trackers move
             brx.configure(48000.0);
-            fine = 0; locked = false;
+            fine = 0;
             std::function<void(const std::string&)> lg;
             { std::lock_guard<std::mutex> pk(pubMu); lg = log; }
             if (lg) lg("KAAL carrier refined to " + std::to_string((long)std::lround(carrier)) + " Hz");

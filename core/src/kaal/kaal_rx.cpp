@@ -274,6 +274,12 @@ public:
             period();
         }
     }
+    // The carrier offset of the input changed by dHz (a mixer retune): the sweep peaks move by u * d, keep tracking them
+    void shiftCarrier(double dHz) {
+        const double dd = -dHz * kSwShiftPerHz;
+        d_ += dd;
+        for (int v = 0; v < 4; v++) pos_[v] += kSwU[v] * dd;
+    }
     double ratioDb() const { return (dp > 0 && sp > 0) ? 10 * std::log10(sp / dp) : 0.0; }
     double periodLen() const { return per_; }
 
@@ -1155,6 +1161,14 @@ void VoiceRx::configure(double sampleRate) {
 
 void VoiceRx::reset() { p_->fullReset(); }
 void VoiceRx::setFastAcquire(bool on) { p_->fast = on; }
+void VoiceRx::shiftCarrier(double dHz) {
+    Impl& s = *p_;
+    if (!s.tracking) return;
+    s.P.cfoHz += dHz;
+    s.P.rate += 2 * kPi * dHz / kSym;
+    s.st.cfoHz = (float)s.P.cfoHz;
+    s.sw.shiftCarrier(dHz);
+}
 
 void VoiceRx::feed(const std::complex<float>* x, size_t n) {
     Impl& s = *p_;
