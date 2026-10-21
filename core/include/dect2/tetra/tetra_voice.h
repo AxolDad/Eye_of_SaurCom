@@ -57,6 +57,27 @@ private:
     int mainCarrier_ = -1;
 };
 
+// Which voice stream reaches the one speech codec: one carrier and one timeslot at a time. A group call is sent by every site of the network
+// that has members of the group, and a capture is decoded carrier by carrier, so without this every copy of the call (and every other busy
+// timeslot) went through the codec in turn and each piece of speech was heard once per copy. The first carrier of a capture (the strongest:
+// carriers are decoded in level order) with a clear burst wins; that carrier and timeslot are then followed until a capture decodes the
+// carrier without clear voice in the slot, or the carrier has not been heard for kHoldSec.
+class VoiceStreamPicker {
+public:
+    static constexpr double kHoldSec = 6.0;
+    void newCapture() { fed_ = false; }
+    // Before decoding carrier `key` of the capture taken at `sec`: false when it must not reach the sink; else tn is the timeslot to pass
+    // (-1: the first one with clear voice)
+    bool offer(long key, double sec, int& tn) const;
+    // After decoding a carrier that was offered: tn is the timeslot whose clear voice reached the sink (0: none)
+    void heard(long key, int tn, double sec);
+private:
+    long key_ = -1;
+    int tn_ = 0;
+    double sec_ = 0;
+    bool fed_ = false;
+};
+
 // One full slot traffic burst: bkn1 and bkn2 are the two 216 soft bit blocks (llr > 0 means a 1). The verdict is taken first;
 // only a Passed burst is descrambled (type-5 to type-4 bits) and given to the sink (which may be null: the frame is then dropped).
 VoiceVerdict processTrafficBurst(const float* bkn1, const float* bkn2, uint32_t scramblerInit, const CallEncryption& e, SpeechFrameSink* sink);

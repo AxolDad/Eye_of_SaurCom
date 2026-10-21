@@ -86,6 +86,26 @@ int main() {
             CHECK(pcmN == 0, "no traffic channel decoder: nothing reaches the codec");
         }
     }
+    {   // one voice stream: a group call heard on three sites in one capture reaches the codec once
+        VoiceStreamPicker p; int tn = 0;
+        p.newCapture();
+        CHECK(p.offer(100, 10, tn) && tn == -1, "nothing followed: the first carrier may give voice");
+        p.heard(100, 2, 10);
+        CHECK(!p.offer(101, 10, tn) && !p.offer(102, 10, tn), "the other copies of the call in the same capture stay out");
+        p.newCapture();
+        CHECK(!p.offer(101, 13, tn), "next capture: another carrier stays out while the call is followed");
+        CHECK(p.offer(100, 13, tn) && tn == 2, "next capture: the followed carrier, only its timeslot");
+        p.heard(100, 2, 13);
+        p.newCapture();
+        CHECK(p.offer(100, 16, tn) && tn == 2, "still followed");
+        p.heard(100, 0, 16);   // the call is over
+        CHECK(p.offer(101, 16, tn) && tn == -1, "a quiet followed carrier frees the codec in the same capture");
+        p.heard(101, 3, 16);
+        p.newCapture();
+        CHECK(!p.offer(100, 20, tn) && p.offer(101, 20, tn) && tn == 3, "the new call is followed");
+        p.newCapture();
+        CHECK(p.offer(100, 20 + VoiceStreamPicker::kHoldSec + 1, tn) && tn == -1, "a followed carrier not heard for kHoldSec is let go");
+    }
     printf(fails ? "tetra voice: %d FAILED\n" : "tetra voice: all passed\n", fails);
     return fails ? 1 : 0;
 }
