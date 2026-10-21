@@ -41,6 +41,13 @@ int main() {
     CHECK(s.sounders.size() == 1 && s.sounders[0].rateHz == 100e3, "%zu sounders", s.sounders.size());
     CHECK(s.sel == 0 && s.ionoDb.size() == (size_t)iono::kRows * iono::kCols, "ionogram %zu", s.ionoDb.size());
     CHECK(e.droppedSamples() == 0, "dropped %llu", (unsigned long long)e.droppedSamples());
+    // Clear (#244): the very next telemetry must not name a sounder that is gone (the display indexed sounders[sel] and crashed)
+    e.iono().clearResults();
+    RxTelemetry after;
+    bool got = false;
+    for (int i = 0; i < 50 && !got; i++) { got = e.latestRx(after, seq); if (!got) std::this_thread::sleep_for(std::chrono::milliseconds(20)); }
+    CHECK(got, "no telemetry after Clear");
+    CHECK(after.iono.sounders.empty() && after.iono.sel == -1, "after Clear: %zu sounders, sel %d", after.iono.sounders.size(), after.iono.sel);
     e.stop();
     printf(fails ? "iono engine: %d FAILED\n" : "iono engine: all passed\n", fails);
     return fails ? 1 : 0;
