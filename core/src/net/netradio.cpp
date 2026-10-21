@@ -34,8 +34,8 @@ std::string hostPort(const std::string& host, int port) {
 
 // the type tables and the settings text of the list are in net_proto.h (C++ or the Rust crate onair_net)
 const char* netRadioTypeName(NetRadio::Type t) {
-    static const std::string names[9] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8)};
-    return names[(unsigned)t < 9 ? (unsigned)t : 1].c_str();
+    static const std::string names[10] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8), netp::radioTypeName(9)};
+    return names[(unsigned)t < 10 ? (unsigned)t : 1].c_str();
 }
 int netRadioDefaultPort(NetRadio::Type t) { return netp::radioDefaultPort((uint32_t)t); }
 const char* netRadioDefaultHost(NetRadio::Type t) {
@@ -232,6 +232,7 @@ std::string netRadioDeviceName(const NetRadio& r) {
     case NetRadio::SdrppServer: return native::sdrppDevice(cleanHost(r.host), netRadioPort(r)).name;
     case NetRadio::NrspSt: return native::nrspStDevice(cleanHost(r.host), netRadioPort(r)).name;
     case NetRadio::KiwiSdr: return native::kiwiSdrDevice(cleanHost(r.host), netRadioPort(r)).name;
+    case NetRadio::SoapyArgs: return "SoapySDR " + r.remote;
     default: return native::rtlTcpDevice(cleanHost(r.host), netRadioPort(r)).name;
     }
 }
@@ -277,6 +278,11 @@ std::vector<DeviceInfo> netRadioDevices(const std::vector<NetRadio>& v) {
             out.push_back(d);
             break;
         }
+        case NetRadio::SoapyArgs:
+#ifdef DECT2_HAVE_SOAPY
+            if (!r.remote.empty()) out.push_back(soapyDeviceFor(r.remote, "soapy", netRadioDeviceName(r)));
+#endif
+            break;
         case NetRadio::SoapyRemote:
 #ifdef DECT2_HAVE_SOAPY
         {
@@ -298,6 +304,14 @@ std::vector<DeviceInfo> netRadioDevices(const std::vector<NetRadio>& v) {
 }
 
 bool probeNetRadio(const NetRadio& r, int timeoutMs, std::string& err) {
+    if (r.type == NetRadio::SoapyArgs) {   // nothing to reach by TCP: the driver opens it when started
+        if (r.remote.empty()) { err = "type the device string, e.g. type=uhd,addr=10.0.0.55"; return false; }
+#ifndef DECT2_HAVE_SOAPY
+        err = "this build of OnAir has no SoapySDR"; return false;
+#else
+        return true;
+#endif
+    }
     const std::string host = cleanHost(r.host);
     if (host.empty()) { err = "type the radio's address"; return false; }
 #ifndef DECT2_HAVE_SOAPY
