@@ -99,7 +99,7 @@ void drawLayers(ImDrawList* dl, const ImVec2& p0, const ImVec2& size) {
             }
             dl->AddRectFilled(ImVec2(q.x - 4 * gUi, q.y - 4 * gUi), ImVec2(q.x + 4 * gUi, q.y + 4 * gUi), col);
             dl->AddRect(ImVec2(q.x - 4 * gUi, q.y - 4 * gUi), ImVec2(q.x + 4 * gUi, q.y + 4 * gUi), IM_COL32(0, 0, 0, 200));
-            dl->AddText(ImVec2(q.x + 7 * gUi, q.y - 7 * gUi), IM_COL32(230, 230, 230, 230), c.label.c_str());
+            { const unsigned t = adsbmap::overlayText(); dl->AddText(ImVec2(q.x + 7 * gUi, q.y - 7 * gUi), IM_COL32((t >> 16) & 255, (t >> 8) & 255, t & 255, 230), c.label.c_str()); }
         }
     if (on[dect2::LayerSat])
         for (const dect2::SatMapPoint& sp : S.sats) {
@@ -132,7 +132,7 @@ void drawLayers(ImDrawList* dl, const ImVec2& p0, const ImVec2& size) {
                                   ImVec2(q.x - sx * r * 0.7f + sy * r * 0.6f, q.y - sy * r * 0.7f - sx * r * 0.6f), col);
         } else dl->AddCircleFilled(q, 4 * gUi, col);
         if (sel) dl->AddCircle(q, 10 * gUi, IM_COL32(255, 255, 255, 230), 24, 1.5f * gUi);
-        if (size.x > 300 * gUi) dl->AddText(ImVec2(q.x + 8 * gUi, q.y - 7 * gUi), IM_COL32(235, 235, 235, 220), m.label.c_str());
+        if (size.x > 300 * gUi) dl->AddText(ImVec2(q.x + 8 * gUi, q.y - 7 * gUi), IM_COL32((adsbmap::overlayText() >> 16) & 255, (adsbmap::overlayText() >> 8) & 255, adsbmap::overlayText() & 255, 220), m.label.c_str());
     }
 }
 
@@ -187,7 +187,7 @@ void layerPanel(const ImVec2& p0, const ImVec2& size) {
     const float h = (dect2::LayerCount + 1) * ImGui::GetFrameHeightWithSpacing() + 8 * gUi;
     const ImVec2 a(p0.x + size.x - w - 8 * gUi, p0.y + 8 * gUi);
     if (a.x < p0.x + 120 * gUi) return;   // no room in a narrow map
-    ImGui::GetWindowDrawList()->AddRectFilled(a, ImVec2(a.x + w, a.y + h), IM_COL32(15, 17, 20, 205), 4 * gUi);
+    ImGui::GetWindowDrawList()->AddRectFilled(a, ImVec2(a.x + w, a.y + h), IM_COL32((adsbmap::panelColour() >> 16) & 255, (adsbmap::panelColour() >> 8) & 255, adsbmap::panelColour() & 255, 205), 4 * gUi);
     ImGui::SetCursorScreenPos(ImVec2(a.x + 6 * gUi, a.y + 4 * gUi));
     ImGui::BeginGroup();
     for (int i = 0; i <= dect2::LayerCount; i++) {

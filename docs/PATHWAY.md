@@ -122,3 +122,5 @@ Opt-in, off by default: QRZ Logbook, Club Log realtime, eQSL (core/src/ham/ham_u
 
 ## 2026-10-21 Ham modes beyond FT8 (ham-modes-029)
 Branch ham-modes-029 (on integ-029). Ham view: JT65 A/B/C, JT9, JT4 QSOs (60 s slots, RRR), WSPR beacon (1 slot in N, at most every second, maxTx 30), keyboard modes PSK31/63, RTTY, CW, Olivia, Contestia, MFSK16/32, THOR 16/22, DominoEX 11, Feld Hell (text pane, type-ahead, macros, call pick, ADIF log). All through the one gate (licence, Arm, amateur band) with HamSlotTx::sendAudio; tests/ham/test_ham_modes.cpp and test_ham_kbd.cpp (loopback through the real decoders). Found: JT65 B/C decoder misses signals above about +5 dB (sync search); MFSK decoder garbles the first characters in noise. Not on air.
+## 2026-10-21 Map colours
+The "tiles" menu of every map has Map colours: presets (Default = today, Dark, Light, Classic, Muted grey, Satellite-ish dark), custom sea/grid/outline/label/tile tint, Reset to default; overlay text and panels adapt to the sea colour (app/map/map_colours.h, tested). Not yet adapted: per-screen marker colours, propagation heat map (branch prop-029).
