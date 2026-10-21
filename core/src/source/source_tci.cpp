@@ -253,7 +253,7 @@ protected:
             lostAt_ = std::chrono::steady_clock::now();
         }
     }
-    void interrupt() override { if (ws_.sock() != kBadSock) sockShutdown(ws_.sock()); }
+    void interrupt() override {   /* read side only: closeDevice still has to send iq_stop */ if (ws_.sock() != kBadSock) sockShutdownRead(ws_.sock()); }
 
 private:
     std::string addr_;
