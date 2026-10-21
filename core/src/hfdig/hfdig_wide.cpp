@@ -18,6 +18,8 @@ const FtxSlot kSlots[] = {
     // FT8 (WSJT-X default dial frequencies)
     {1840000, 0}, {3573000, 0}, {5357000, 0}, {7074000, 0}, {10136000, 0}, {14074000, 0}, {18100000, 0}, {21074000, 0}, {24915000, 0},
     {28074000, 0}, {50313000, 0},
+    // FT2 (WSJT-X Improved, data/frequencies/hf.tsv)
+    {14084000, 2},
     // FT4
     {3575000, 1}, {7047500, 1}, {10140000, 1}, {14080000, 1}, {18104000, 1}, {21140000, 1}, {24919000, 1}, {28180000, 1}, {50318000, 1},
     // WSPR (dial = centre of the 200 Hz sub-band minus 1500 Hz)
@@ -319,6 +321,36 @@ void HfdigWide::configure(double rate, double spanHz, double dialHz, double offs
             c->bank = std::make_unique<RttyBank>();
             m.rttyChains.push_back(std::move(c));
         }
+    }
+}
+
+void HfdigWide::configureSlots(double rate, double spanHz, double dialHz, double offsetHz, const std::vector<FtxSlot>& slots, double reportDialHz) {
+    Impl& m = *p_;
+    for (auto& c : m.ftxChains) if (c->ftx) c->ftx->setForwardTo(nullptr);
+    m.ftxChains.clear(); m.rttyChains.clear();
+    m.dec.configure(rate, spanHz);
+    m.dec.setOffsetHz(offsetHz);
+    m.span = m.dec.spanHz();
+    const double r2 = m.dec.outRate();
+    const double half = m.span / 2 - 3300;
+    std::vector<std::pair<double, int>> dials;
+    for (const FtxSlot& sl : slots) {
+        const double d = sl.dialHz - dialHz;
+        if (std::fabs(d) > half) continue;
+        bool merged = false;
+        for (auto& x : dials) if (std::fabs(x.first - d) < 100) { x.second |= 1 << sl.mode; merged = true; }
+        if (!merged) dials.push_back({d, 1 << sl.mode});
+    }
+    for (const auto& x : dials) {
+        auto c = std::make_unique<Chain>();
+        c->init(r2, x.first);
+        c->ftx = makeFtxDecoder();
+        for (int mo = 0; mo < kFtxModes; mo++) c->ftx->setEnabled(mo, (x.second >> mo) & 1);
+        c->ftx->setDialHz(dialHz + x.first);
+        c->ftx->setSpotShiftHz(dialHz + x.first - reportDialHz);
+        c->ftx->setForwardTo(&m.mainFtx);
+        c->ftx->copyClockFrom(m.mainFtx);
+        m.ftxChains.push_back(std::move(c));
     }
 }
 
