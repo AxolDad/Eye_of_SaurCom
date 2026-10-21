@@ -110,3 +110,5 @@ SGB (C/S T.018) in the sarsat mode: sgb_proto (PRN segments, BCH(250,202) with 6
 
 ## 2026-10-21 Window layouts per mode (#242)
 Vendored ImGui 1.92.2b is not the docking branch, so no docking or OS-window pop-out. Floating windows now keep position/size per mode (dataDir()/layouts/<family>-<sub>.ini, app/state/layout.cpp); View > Reset layout clears them. Off on touch and in --shot runs.
+## 2026-10-21 Propagation tool
+Tools > Propagation: coverage heat map, range ring and probe point on the shared map; core/include/dect2/prop (P.525/P.372/P.526 simplified, HF ground wave + F2 skywave estimate), tested in tests/prop; docs/propagation.md. No terrain.

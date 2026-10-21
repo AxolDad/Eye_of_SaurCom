@@ -216,6 +216,7 @@ static void floatingWindows(App& a, ImVec2 disp) {
     shareTick(a);
     remoteApiTick(a);
     mapWindow(a);
+    propagationWindow(a);
     rotatorTick(a);
     rotatorWindow(a);
 }
