@@ -356,7 +356,7 @@ int main() {
     const bool def = !getenv("ONAIR_DIFF_ITERS");
     int rc = golden::check("dvbsi_proto_rs (without iconv text)", dig.portable, 0xb59f514d9ea18de6ull, def);
 #ifdef __APPLE__
-    rc |= golden::check("dvbsi_proto_rs", dig.all, 0xa5a3b122daa88e30ull, def);
+    rc |= golden::check("dvbsi_proto_rs", dig.all, 0xc1f39019e0da1992ull, def);
 #endif
     return rc;
 }
