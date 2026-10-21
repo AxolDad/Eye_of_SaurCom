@@ -7,8 +7,9 @@
 // (K1JT et al., GPL-3).
 //
 // Taken from WSJT-X (read via the public source, GPL-3): the sync vector npr (lib/jt4.f90), tone = 2 * data bit + sync bit (lib/gen4.f90), the
-// bit-reversal interleave (lib/interleave4.f90). NOT checked against a real recording: the 72+31 bit / K=32 code, polynomials and message packing
-// are those of JT9 (assumed identical, encode4.f90 calls encode232 + interleave4).
+// bit-reversal interleave (lib/interleave4.f90). Checked: jt9 -4 decodes our encoder's audio, and this receiver decodes the real WSJT-X sample
+// DF2ZC_070926_040700.WAV (JT4A, "K1JT DF2ZC JO30", about -22 dB). That recording sends the sync bit inverted and starts 5.1 s into the minute, so
+// both polarities are searched and the start window is -3 .. +5.5 s. Sub-modes B .. G are checked on synthetic audio only.
 // Not decoded: Doppler spread / drift, the 2-bit message averaging of JT4's "average" mode, the JT4 "0 .. 9" shorthand messages.
 #include "hfdig_wsjt_int.h"
 #include <algorithm>
@@ -97,11 +98,11 @@ public:
         for (int f = 0; f < sg.frames; f += 3) for (int b = 0; b < sg.nBins; b += 2) sample.push_back(sg.row(f)[b]);
         const double nz = std::max(1e-30, (double)lowMean(sample, 0.5) / 0.6137);
         const int bMax = std::min(fMaxBin, binHi - 3 * m_ - 1);
-        struct C { int bin, lag; double z; };
+        struct C { int bin, lag; double z; int inv; };   // inv: the sync bit sent inverted (WSJT 7 sent some messages so; JT4 receivers try both)
         std::vector<C> cands;
         const auto& sv = syncVec();
         for (int b = binLo; b <= bMax; b++) {
-            double best = -1e30; int bl = 0;
+            double best = -1e30, worst = 1e30; int bl = 0, wl = 0;
             for (int lag = lagLo; lag <= lagHi; lag++) {
                 double sum = 0;
                 for (int i = 0; i < kNsym; i++) {
@@ -110,21 +111,23 @@ public:
                     sum += (double)r[pr * m_] + r[(pr + 2) * m_] - r[(1 - pr) * m_] - r[(3 - pr) * m_];
                 }
                 if (sum > best) { best = sum; bl = lag; }
+                if (sum < worst) { worst = sum; wl = lag; }
             }
-            cands.push_back({b, bl, best / (nz * std::sqrt(4.0 * kNsym))});
+            cands.push_back({b, bl, best / (nz * std::sqrt(4.0 * kNsym)), 0});
+            cands.push_back({b, wl, -worst / (nz * std::sqrt(4.0 * kNsym)), 1});
         }
         std::sort(cands.begin(), cands.end(), [](const C& a, const C& b) { return a.z > b.z; });
         std::vector<C> pick;
         for (const C& c : cands) {
             if (c.z < 3.5 || pick.size() >= 12) break;
             bool near = false;
-            for (const C& p : pick) if (std::abs(p.bin - c.bin) <= 2) near = true;
+            for (const C& p : pick) if (std::abs(p.bin - c.bin) <= 1 && p.inv == c.inv) near = true;   // 2 bins is a tone pair away: another candidate
             if (!near) pick.push_back(c);
         }
         std::set<std::string> seen;
         for (const C& c : pick) {
             FtxDecode d;
-            if (!tryCandidate(c.bin, c.lag, t0, df, d)) continue;
+            if (!tryCandidate(c.bin, c.lag, c.inv, t0, df, d)) continue;
             if (!seen.insert(d.msg).second) continue;
             res.push_back(d);
         }
@@ -144,18 +147,18 @@ private:
             for (int t = 0; t < 4; t++) pw[(size_t)i][(size_t)t] = tmp[(size_t)(t * m_ + 1)];
         }
     }
-    double syncScore(const std::vector<std::array<float, 4>>& pw) const {
+    double syncScore(const std::vector<std::array<float, 4>>& pw, int inv) const {
         const auto& sv = syncVec();
         double s = 0;
         for (int i = 0; i < kNsym; i++) {
-            const int pr = sv[(size_t)i];
+            const int pr = sv[(size_t)i] ^ inv;
             const auto& p = pw[(size_t)i];
             s += (double)p[(size_t)pr] + p[(size_t)pr + 2] - p[(size_t)(1 - pr)] - p[(size_t)(3 - pr)];
         }
         return s;
     }
 
-    bool tryCandidate(int bin, int lag, double t0, double df, FtxDecode& out) {
+    bool tryCandidate(int bin, int lag, int inv, double t0, double df, FtxDecode& out) {
         long bs = (long)lag * kHop;
         double bf = bin * df;
         std::vector<std::array<float, 4>> pw;
@@ -166,7 +169,7 @@ private:
                     const long s = bs + (long)dt * (kN / 8);
                     const double f = bin * df + 0.2 * k * df;
                     powers(s, f, df, pw);
-                    const double sc = syncScore(pw);
+                    const double sc = syncScore(pw, inv);
                     if (sc > best) { best = sc; b1 = s; f1 = f; }
                 }
             bs = b1; bf = f1;
@@ -175,7 +178,7 @@ private:
         const auto& sv = syncVec();
         double right = 0, wrong = 0;
         for (int i = 0; i < kNsym; i++) {
-            const int pr = sv[(size_t)i];
+            const int pr = sv[(size_t)i] ^ inv;
             const auto& p = pw[(size_t)i];
             right += (double)p[(size_t)pr] + p[(size_t)pr + 2];
             wrong += (double)p[(size_t)(1 - pr)] + p[(size_t)(3 - pr)];
@@ -186,7 +189,7 @@ private:
         // the soft bits: the two tones of the sync bit, the data bit 1 against 0
         float soft[kNsym];
         for (int i = 0; i < kNsym; i++) {
-            const int pr = sv[(size_t)i];
+            const int pr = sv[(size_t)i] ^ inv;
             const double l0 = logI0(2 * std::sqrt(sig * pw[(size_t)i][(size_t)pr]) / nn);
             const double l1 = logI0(2 * std::sqrt(sig * pw[(size_t)i][(size_t)pr + 2]) / nn);
             soft[i] = (float)(l1 - l0);

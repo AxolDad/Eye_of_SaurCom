@@ -91,7 +91,8 @@ Spec specCfg(int mode, int sub, double period) {
 double dtRange(int mode, double period) {
     switch (mode) {
     case kJt65: return 8.0;           // WSJT-X searches -3 .. +8 s for JT65 (a slow start, EME delays)
-    case kJt9: case kJt4: return 4.0;
+    case kJt9: return 4.0;
+    case kJt4: return 5.5;            // WSJT-X sync4 searches -0.6 .. +6.7 s from the start of the buffer; the WSJT-X sample DF2ZC starts at 5.1 s
     case kQ65: return std::min(3.0, 0.1 * period);
     case kFst4: case kFst4w: return std::min(3.0, 0.1 * period);
     case kMsk144: return 0.0;
