@@ -8,6 +8,8 @@
 // polarity are found by sliding the 24 sync bits over the burst; the best candidates are decoded and the one the BCH check repairs with the fewest changes wins.
 #include "dect2/sarsat/sarsat_rx.h"
 #include "dect2/sarsat/sarsat_tel.h"
+#include "dect2/sarsat/sgb_rx.h"
+#include "dect2/sarsat/sarsat_gen.h"
 #include "dect2/common/mathconst.h"
 #include "dect2/dsp/fftutil.h"
 #include <algorithm>
@@ -197,6 +199,14 @@ struct SarsatReceiver::Impl {
     uint64_t nIn = 0, k32 = 0;
     double binEnd = 0;
 
+    // second-generation beacons (C/S T.018): a second mixer (406.050 MHz to zero) and an average down to 153.6 kHz, needs an input rate of 160 kHz or more
+    sarsat::SgbDetector sgb;
+    double sRe = 1, sIm = 0, sStRe = 1, sStIm = 0, sAccRe = 0, sAccIm = 0, sBinEnd = 0;
+    int sCount = 0, sAccN = 0;
+    uint64_t sIn = 0, sK = 0, sOut = 0;
+    bool sgbOn = false;
+    std::vector<cf32> sBuf;
+
     // the 32 kHz stream
     static constexpr double kDet = 128000.0;   // detection rate: +-46 kHz searched, the 100 kHz transponder passband
     static constexpr size_t kRing = 262144, kBlock = 4096;
@@ -225,6 +235,11 @@ struct SarsatReceiver::Impl {
         stRe = std::cos(w); stIm = std::sin(w);
         accRe = accIm = 0; accN = 0; nIn = 0; k32 = 0;
         binEnd = fs > 0 ? fs / kDet : 0;
+        sgbOn = fs >= 160000.0;
+        sRe = 1; sIm = 0; sAccRe = sAccIm = 0; sAccN = 0; sIn = 0; sK = 0; sOut = 0; sCount = 0;
+        sBinEnd = fs > 0 ? fs / sarsat::kSgbFs : 0;
+        { const double w2 = -2 * kPi * (offHz + sarsat::kSgbOffsetHz) / (fs > 0 ? fs : 1); sStRe = std::cos(w2); sStIm = std::sin(w2); }
+        sgb.reset(); sBuf.clear();
         n32 = 0;
         std::fill(bg.begin(), bg.end(), 0.f);
         warm = 0; active = false; miss = 0; dets = 0; peaks.clear();
@@ -369,6 +384,8 @@ void SarsatReceiver::setSignalOffset(double hz) {
     p_->offHz = hz;
     const double w = -2 * kPi * hz / (p_->fs > 0 ? p_->fs : 1);
     p_->stRe = std::cos(w); p_->stIm = std::sin(w);
+    const double w2 = -2 * kPi * (hz + sarsat::kSgbOffsetHz) / (p_->fs > 0 ? p_->fs : 1);
+    p_->sStRe = std::cos(w2); p_->sStIm = std::sin(w2);
 }
 bool SarsatReceiver::ready() const {
     std::lock_guard<std::mutex> lk(p_->mu);
@@ -423,6 +440,47 @@ void SarsatReceiver::feed(const cf32* x, size_t n) {
             m.accRe = m.accIm = 0; m.accN = 0;
             m.k32++;
             m.binEnd = (double)(m.k32 + 1) * binW;
+        }
+        if (m.sgbOn) {
+            m.sAccRe += re * m.sRe - im * m.sIm;
+            m.sAccIm += re * m.sIm + im * m.sRe;
+            m.sAccN++;
+            const double qr = m.sRe * m.sStRe - m.sIm * m.sStIm, qi = m.sRe * m.sStIm + m.sIm * m.sStRe;
+            m.sRe = qr; m.sIm = qi;
+            if (++m.sCount >= 4096) { m.sCount = 0; const double a = 1.0 / std::sqrt(m.sRe * m.sRe + m.sIm * m.sIm); m.sRe *= a; m.sIm *= a; }
+            m.sIn++;
+            if ((double)m.sIn >= m.sBinEnd) {
+                const double inv = 1.0 / (double)m.sAccN;
+                m.sBuf.push_back(cf32((float)(m.sAccRe * inv), (float)(m.sAccIm * inv)));
+                m.sAccRe = m.sAccIm = 0; m.sAccN = 0;
+                m.sK++;
+                m.sBinEnd = (double)(m.sK + 1) * (m.fs / sarsat::kSgbFs);
+            }
+        }
+    }
+    if (m.sgbOn && !m.sBuf.empty()) {
+        m.sOut += m.sBuf.size();
+        m.sgb.push(m.sBuf.data(), m.sBuf.size());
+        m.sBuf.clear();
+        for (const sarsat::SgbHit& h : m.sgb.take()) {
+            SarsatEntry e;
+            e.wallTime = (int64_t)std::time(nullptr);
+            e.timeSec = m.timeSec();
+            e.b = h.b;
+            e.snrDb = h.snrDb; e.levelDb = m.tel.levelDb; e.cfoHz = (float)h.cfoHz;
+            m.tel.log.insert(m.tel.log.begin(), e);
+            if (m.tel.log.size() > kSarsatLogMax) m.tel.log.pop_back();
+            m.tel.blocksOk++;
+            m.tel.bursts++;
+            m.tel.dataValid = true;
+            m.tel.cfoHz = h.cfoHz;
+            m.lastDecodeSec = m.timeSec();
+            if (m.log) {
+                char line[256];
+                snprintf(line, sizeof line, "COSPAS-SARSAT second generation %s %s %s%s", h.b.hexId.c_str(), h.b.beaconType.c_str(), h.b.country.c_str(), h.b.hasPos ? " (position)" : "");
+                m.log(line);
+            }
+            m.publish();
         }
     }
     if (m.timeSec() - m.lastPublish >= 0.25) { m.lastPublish = m.timeSec(); m.publish(); }

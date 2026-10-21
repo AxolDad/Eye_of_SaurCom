@@ -27,6 +27,16 @@ The input is mixed to the dial offset and averaged to 32 kHz. Every 32 ms a wind
 
 `makeSarsatSynth`: five made-up beacons (EPIRB, PLB, ELT, a maritime user beacon, an EPIRB in the southern hemisphere), one burst every 3 seconds. Options: `modeOpt[0]` one beacon only, `modeOpt[1]` reversed polarity, `modeVal[0]` bit rate error in percent, `modeVal[1]` seconds between bursts. Nothing is transmitted and there is no transmit entry for this mode: sending on 406 MHz is forbidden.
 
+## Second-generation beacons (SGB, C/S T.018)
+
+Decoded in the same mode (needs an input rate of 160 kHz or more). Nominal channel 406.050 MHz, searched +-38 kHz around it. Code: `core/src/sarsat/sgb_*.cpp`. The burst is 1 s of DSSS O-QPSK, 38.4 kchip/s, 300 bit/s: a 166.7 ms preamble (50 zero bits) and a 250 bit message, 202 information bits plus 48 bit BCH(250,202) (up to 6 bits repaired). Odd bits go through the I channel, even bits through the Q channel, 256 chips of a PRN segment (x^23 + x^18 + 1) per channel bit, Q half a chip late.
+
+Receiver: the preamble is known, so a differential matched filter done with FFTs over 1.7 s finds the burst whatever the carrier offset; the carrier is refined on the preamble in three steps, then a decision-directed carrier loop and a chip timing loop run over the 150 channel bits; BCH repair; fixed fields checked (spare bits 141-154 all ones, or all zeros for a cancellation, beacon type not a spare code). Shown: 23 hex ID (section 3.6), beacon type, country, TAC and serial, position (15 bit fractions of a degree), homing, RLS, test protocol flag and the rotating field number. The rotating field's content is not decoded.
+
+Test signal: `SynthConfig::modeOpt[2] = 1` plays four made-up SGB beacons (`modeVal[0]` is then a chip rate error in ppm). The PRN segments, the BCH generator and check, and the worked example of annex B of the specification are tests (`tests/sarsat/test_sarsat_sgb.cpp`).
+
+Not verified: no real SGB recording was available, only the generated signal. The pulse shape of a real beacon is not given by the specification (the generator and the receiver use rectangular chips). Sensitivity on the generated signal is about 5 dB carrier to noise in 2.4 kHz (about 39 dBHz); the specification's weakest beacon is 34.8 dBHz, so weak real beacons may be missed. Annex B.2 of the specification lists the test protocol flag of its example as 1 although bit 43 of the example message is 0; the 23 hex ID here takes the flag from bit 43. Self-test PRN segments are searched but untested against a real self-test burst.
+
 ## Not verified against real beacons
 
 No real recording was available. The message layout, the protocol code table, the position and offset fields, the Baudot table and the homing bit were written from public descriptions of T.001 and need checking against a real beacon or the current T.001 before the details are relied on. The protocol code tables (A2-A, A2-B) and the serial user beacon types were checked against T.001 (rev. March 2021). The two BCH generator polynomials (`0x26D9E3`, `0x1539`) were checked to divide x^127+1 and x^63+1, as a BCH generator must. User protocols other than the aviation, maritime and serial ones show the raw identification field.
