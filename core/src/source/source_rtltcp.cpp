@@ -24,7 +24,7 @@ enum : uint8_t {
 };
 enum { kTunerUnknown = 0, kE4000 = 1, kFC0012 = 2, kFC0013 = 3, kFC2580 = 4, kR820T = 5, kR828D = 6 };
 constexpr int kLocalConnectMs = 10000;   // a driver app on this device (Android) accepts late while it starts its radio: wait longer than for the network
-constexpr int kConnectMs = 3000;   // an unreachable server is reported after this
+constexpr int kConnectMs = 8000;   // an unreachable server is reported after this (slow Wi-Fi links on phones need more than 3 s, #201)
 constexpr int kGreetingMs = 10000; // a server still closing the previous client can take seconds to greet
 constexpr int kStallMs = 3000;     // no samples for this long: the connection is taken as lost
 
