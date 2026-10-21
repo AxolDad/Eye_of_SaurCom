@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 
+struct App;
+
 namespace appcodec {
 
 // The user folder the plug-ins are looked for in: the app data folder + "/codecs".
@@ -27,5 +29,9 @@ bool voiceCodecTick(const char* id);
 
 // The install helper: loaded / not found with the exact file name, the codecs folder path, Open codecs folder, Build steps and Rescan buttons.
 void codecInstallHelper(const char* id);
+
+// The "Voice codecs" window (Help menu): every voice codec OnAir knows, the modes that use it, whether it is open, patented (plug-in only,
+// never shipped) or unsupported, and whether it is loaded or missing, with the install helper for each plug-in.
+void voiceCodecsWindow(App& a);
 
 } // namespace appcodec

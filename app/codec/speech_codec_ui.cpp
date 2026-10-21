@@ -1,10 +1,15 @@
 // The app side of user-installed speech codecs (see speech_codec_ui.h and docs/CODECS.md).
 #include "speech_codec_ui.h"
 #include "../app.h"
+#include "../ui/scale.h"
 #include "../platform/platform.h"
 #include "dect2/codec/speech_codec.h"
 #include "dect2/codec/codec_registry.h"
 #include "dect2/engine/updater.h"
+#include "dect2/dstar/dstar_ambe.h"
+#include "dect2/nxdn/nxdn_ambe.h"
+#include "dect2/p25/p25_imbe.h"
+#include "dect2/hfdig/hfdig_freedv.h"
 #include <filesystem>
 #include <cstdio>
 #include <chrono>
@@ -147,6 +152,71 @@ void codecInstallHelper(const char* id) {
     ImGui::SameLine();
     if (ImGui::Button("Rescan for plug-in")) speechCodecRescan(id);
     ImGui::TextDisabled("Upstream mbelib project page: https://github.com/lwvmobile/mbelib. OnAir downloads nothing for you.");
+}
+
+void voiceCodecsWindow(App& a) {
+    if (!a.voiceCodecsOpen) return;
+    ImGui::SetNextWindowSize(ImVec2(760 * gUi, 460 * gUi), ImGuiCond_FirstUseEver);
+    if (!ImGui::Begin("Voice codecs", &a.voiceCodecsOpen)) { ImGui::End(); return; }
+    for (const char* id : {"ambe2", "ambe", "imbe"}) voiceCodecTick(id);
+    ImGui::PushTextWrapPos(0);
+    ImGui::TextUnformatted("OnAir never ships a patented voice codec. Patented codecs are loaded at run time from a plug-in (or library) that you install yourself in the codecs folder; open codecs need nothing. Encrypted calls are never decoded. Check the patent and radio rules where you live.");
+    ImGui::PopTextWrapPos();
+    ImGui::Spacing();
+    const std::string folder = codecsFolder();
+    namespace cd = dect2::codec;
+    if (ImGui::BeginTable("##vcodecs", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
+        ImGui::TableSetupColumn("Codec"); ImGui::TableSetupColumn("Modes"); ImGui::TableSetupColumn("Kind"); ImGui::TableSetupColumn("Status");
+        ImGui::TableHeadersRow();
+        int row = 0;
+        for (const auto& ci : cd::codecTable()) {
+            ImGui::PushID(row++);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn(); ImGui::TextWrapped("%s", ci.name);
+            ImGui::TableNextColumn(); ImGui::TextWrapped("%s", ci.modes);
+            ImGui::TableNextColumn(); ImGui::TextUnformatted(ci.kind == cd::CodecKind::Open ? "open" : ci.kind == cd::CodecKind::Patented ? "patented, plug-in only" : "not supported");
+            ImGui::TableNextColumn();
+            const std::string id = ci.id;
+            if (ci.kind == cd::CodecKind::Open) {
+                std::string p, v;
+                if (std::string(ci.name) == "Codec 2") {
+                    if (dect2::hfdigFreedvLibrary(&p, &v)) ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.6f, 1), "loaded: %s", p.c_str());
+                    else ImGui::TextColored(ImVec4(0.95f, 0.75f, 0.3f, 1), "libcodec2 missing: reinstall OnAir");
+                } else ImGui::TextUnformatted(ci.note);
+            } else if (ci.kind == cd::CodecKind::Unsupported) {
+                ImGui::TextWrapped("%s", ci.note);
+            } else {
+                std::string p;
+                const bool plug = cd::pluginLoaded(id, &p);
+                const bool mbe = !plug && (id == "ambe2" ? dect2::nxdnAmbeAvailable(&p) : id == "ambe" ? dect2::dstarAmbeAvailable(&p) : id == "imbe" ? dect2::p25ImbeAvailable(&p) : false);
+                std::error_code ec;
+                const bool onDisk = std::filesystem::is_regular_file(std::filesystem::path(folder) / cd::speechCodecFileName(id), ec);
+                if (plug) ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.6f, 1), "plug-in loaded: %s", p.c_str());
+                else if (mbe) ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.6f, 1), "libmbe loaded: %s", p.c_str());
+                else if (onDisk) ImGui::TextColored(ImVec4(0.95f, 0.75f, 0.3f, 1), "plug-in file found: accept the notice or start the mode to load it");
+                else ImGui::TextColored(ImVec4(0.95f, 0.75f, 0.3f, 1), "missing: %s", cd::speechCodecFileName(id).c_str());
+                if (ImGui::SmallButton("Install helper")) ImGui::OpenPopup("##vch");
+                if (ImGui::BeginPopup("##vch")) {
+                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30);
+                    codecInstallHelper(ci.id);
+                    ImGui::PopTextWrapPos();
+                    ImGui::EndPopup();
+                }
+            }
+            ImGui::PopID();
+        }
+        ImGui::EndTable();
+    }
+    ImGui::Spacing();
+    ImGui::TextDisabled("Codecs folder: %s", folder.c_str());
+    if (ImGui::Button("Open codecs folder")) {
+        std::error_code ec;
+        std::filesystem::create_directories(std::filesystem::path(folder), ec);
+        dect2::openUrl(folder);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Instructions")) dect2::openUrl("https://github.com/adswill/OnAir/blob/main/docs/CODECS.md");
+    ImGui::End();
 }
 
 } // namespace appcodec

@@ -43,6 +43,7 @@ std::vector<Cmd> collect(App& a) {
     }});
     for (const Panel& p : kPanels) c.push_back({p.name, "Panel", [p](App& x) { x.*p.on = !(x.*p.on); }});
     for (int i = 0; i < kNumModes; i++) c.push_back({kModes[i].name, "Mode", [f = kModes[i].family, s = kModes[i].subId](App& x) { selectMode(x, f, s); }});
+    c.push_back({"Voice codecs", "Action", [](App& x) { x.voiceCodecsOpen = true; }});
     c.push_back({"Credits", "Action", [](App& x) { x.creditsOpen = true; x.creditsTab = 0; }});
     c.push_back({"Credits and licences", "Action", [](App& x) { x.creditsOpen = true; x.creditsTab = 1; }});
     c.push_back({"Documentation", "Action", [](App&) { dect2::openUrl("https://on-air.dev/docs/"); }});
