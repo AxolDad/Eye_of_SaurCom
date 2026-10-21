@@ -374,5 +374,14 @@ bool adsbFullMap(App& a, ImVec2 disp) {
     else mapView(a, ImGui::GetContentRegionAvail());
     ImGui::Dummy(ImVec2(0, 0));   // the view leaves the cursor at the bottom edge: an item there so ImGui does not take it as growing the window
     ImGui::End();
+    if (S.sel != 0xFFFFFFFFu) {   // the selected aircraft's readout (same as the side pane), as a panel on the right (#235)
+        const float w = std::min(disp.x * 0.45f, 330.f * gUi);
+        ImGui::SetNextWindowPos(ImVec2(disp.x - w - 8 * gUi, 8 * gUi));
+        ImGui::SetNextWindowSize(ImVec2(w, disp.y - 16 * gUi));
+        ImGui::SetNextWindowBgAlpha(0.88f);
+        ImGui::Begin("##adsbfulldet", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
+        detail(a);
+        ImGui::End();
+    }
     return true;
 }
