@@ -853,6 +853,7 @@ void dabScanTab(App& a) {
 // The scan state machine, called every frame
 void dabScanStep(App& a) {
     App::DabScan& s = a.dabScan;
+    dabTiiCollect(a);
     if (!s.running) return;
     if (!a.engine.running()) { s.running = false; return; }
     const double now = ImGui::GetTime();
@@ -872,8 +873,9 @@ void dabScanStep(App& a) {
     // finished when the ensemble is known with all labels, or a few seconds after sync, or no sync after the search time
     bool labelled = ens.valid && !ens.label.empty();
     for (const auto& kv : ens.services) if (kv.second.label.empty()) labelled = false;
-    if (locked && labelled && now - s.lockT > 0.6) done = true;
-    else if (locked && now - s.lockT > 5.0) done = true;
+    // the transmitter identification (TII) needs a few seconds of null symbols after the sync: wait for it, at most 7 s
+    if (locked && labelled && now - s.lockT > 0.6 && (d.tiiFrames >= 40 || now - s.lockT > 5.0)) done = true;
+    else if (locked && now - s.lockT > 7.0) done = true;
     else if (!locked && now - s.t0 > 2.2) done = true;
     if (!done) return;
     App::DabScan::Res r;
