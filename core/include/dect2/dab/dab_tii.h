@@ -38,6 +38,7 @@ public:
     int framesSeen() const { return n_[0] + n_[1]; }
 
 private:
+    std::vector<Found> pick(const double (*a)[kPairs], const double (*ref)[kPairs], int n) const;
     // pair powers averaged per frame parity: [parity][comb][pair position], summed over the four quarters and the two carriers of a pair
     double p_[2][kSubIds][kPairs] = {};
     int n_[2] = {};

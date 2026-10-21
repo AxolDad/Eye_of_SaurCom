@@ -94,6 +94,7 @@ struct TxConfig {
     // against the main signal (0 = as strong as a data carrier). Empty: no TII.
     struct Tii { int mainId = 0, subId = 0; double levelDb = 0; };
     std::vector<Tii> tii;
+    bool tiiEveryFrame = false;         // TII in the null symbol of every frame (most networks), not only the even ones
     // Announcements: every service supports the types `annSupport` (ASu flags) on the cluster `annCluster` (FIG 0/18); while `annActive` is not
     // 0 the cluster announces those types (ASw flags) on sub-channel `annSubId` (FIG 0/19). annCluster 0: none.
     int annCluster = 0;
