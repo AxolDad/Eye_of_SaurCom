@@ -7,6 +7,7 @@
 #include "ui_common.h"
 #include "tour_logic.h"
 #include "../state/workspace.h"
+#include "../state/layout.h"
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
@@ -370,6 +371,7 @@ static void viewMenu(App& a) {
             ImGui::TextDisabled("%s", tr("Ctrl + / Ctrl - / Ctrl 0"));
             ImGui::EndMenu();
         }
+        if (!a.touchUi && ImGui::MenuItem(tr("Reset layout"))) layoutReset();   // forgets the saved window positions of every mode
         if (ImGui::MenuItem(tr("Touch interface"), nullptr, &a.touchUi)) savePrefs(a);   // the same flag as the side panel: big targets, bottom dock (ui/touch.h)
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("For tablets and touch screens: big buttons, an on-screen keypad for the frequency, a full-screen mode picker."));
         if (ImGui::MenuItem(tr("Reset layout"))) { a.splitSide = a.splitRight = a.splitBottom = a.splitDock = a.splitBot2 = 0; savePrefs(a); }
