@@ -73,7 +73,8 @@ struct CarrierDecode {
     double cfoHz = 0;          // the frequency error found, relative to the carrier's assumed centre
     float snrDb = -99;
     int slots = 0, trafficSlots = 0, blocksOk = 0, blocksBad = 0;
-    int voicePassed = 0, voiceNotDecoded = 0;   // traffic bursts handed to the speech frame sink / refused (encrypted or state unknown)
+    int voicePassed = 0, voiceNotDecoded = 0;   // traffic bursts that passed the encryption gate / refused (encrypted or state unknown);
+                                                // a passed burst of a timeslot other than voiceTn asked for is not handed to the sink
     const char* voiceStatus = "";                // text of the last traffic burst verdict (tetra_voice.h)
     int voiceTn = 0;                             // the timeslot whose clear traffic reached the sink (0: none)
     std::vector<MacBlock> macs;
