@@ -171,6 +171,7 @@ struct KaalLiveReceiver::Impl {
 
     void configureReceivers() {
         vrx.configure(48000.0);
+        vrx.setFastAcquire(true);
         brx.configure(48000.0);
         scan.configure(48000.0);
         scanWasFed = false;
