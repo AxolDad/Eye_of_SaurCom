@@ -112,3 +112,5 @@ SGB (C/S T.018) in the sarsat mode: sgb_proto (PRN segments, BCH(250,202) with 6
 Vendored ImGui 1.92.2b is not the docking branch, so no docking or OS-window pop-out. Floating windows now keep position/size per mode (dataDir()/layouts/<family>-<sub>.ini, app/state/layout.cpp); View > Reset layout clears them. Off on touch and in --shot runs.
 ## 2026-10-21 Propagation tool
 Tools > Propagation: coverage heat map, range ring and probe point on the shared map; core/include/dect2/prop (P.525/P.372/P.526 simplified, HF ground wave + F2 skywave estimate), tested in tests/prop; docs/propagation.md. No terrain.
+## 2026-10-21 JT4 checked on a real recording
+WSJT-X sample DF2ZC_070926_040700.WAV (JT4A, 1.1 MB, kept outside the repo) decodes as "K1JT DF2ZC JO30", same as jt9. It sends the sync bit inverted and starts 5.1 s into the minute: the receiver now searches both sync polarities and starts up to 5.5 s late; candidate de-duplication no longer drops the tone-pair alias 2 bins away. Regression test with the same shape on synthetic audio.
