@@ -324,7 +324,7 @@ void HfdigWide::configure(double rate, double spanHz, double dialHz, double offs
     }
 }
 
-void HfdigWide::configureSlots(double rate, double spanHz, double dialHz, double offsetHz, const std::vector<FtxSlot>& slots) {
+void HfdigWide::configureSlots(double rate, double spanHz, double dialHz, double offsetHz, const std::vector<FtxSlot>& slots, double reportDialHz) {
     Impl& m = *p_;
     for (auto& c : m.ftxChains) if (c->ftx) c->ftx->setForwardTo(nullptr);
     m.ftxChains.clear(); m.rttyChains.clear();
@@ -347,7 +347,7 @@ void HfdigWide::configureSlots(double rate, double spanHz, double dialHz, double
         c->ftx = makeFtxDecoder();
         for (int mo = 0; mo < kFtxModes; mo++) c->ftx->setEnabled(mo, (x.second >> mo) & 1);
         c->ftx->setDialHz(dialHz + x.first);
-        c->ftx->setSpotShiftHz(x.first);
+        c->ftx->setSpotShiftHz(dialHz + x.first - reportDialHz);
         c->ftx->setForwardTo(&m.mainFtx);
         c->ftx->copyClockFrom(m.mainFtx);
         m.ftxChains.push_back(std::move(c));

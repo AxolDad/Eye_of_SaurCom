@@ -29,6 +29,10 @@ double mbDialHz(int band, int mode) {
     if (band < 0 || band >= kMbBands || mode < 0 || mode >= kMbModes) return 0;
     return kDial[band][mode];
 }
+int mbBandOf(double hz) {
+    for (int b = 0; b < kMbBands; b++) if (hz >= kBands[b].loHz - 3000 && hz <= kBands[b].hiHz) return b;
+    return -1;
+}
 uint64_t mbMask(const std::vector<MbSel>& s) {
     uint64_t m = 0;
     for (const MbSel& x : s) if (x.band >= 0 && x.band < kMbBands && x.mode >= 0 && x.mode < kMbModes) m |= 1ull << (x.band * kMbModes + x.mode);
@@ -93,7 +97,7 @@ bool MbCpuGuard::update(double busy, double block) {
 
 struct HfdigMultiBand::Impl {
     HfdigFtx& main;
-    double rate = 0, centre = 0;
+    double rate = 0, centre = 0, reportDial = 0;
     std::vector<MbSel> wanted, active, notCovered, droppedSel;
     std::vector<std::unique_ptr<HfdigWide>> bands;
     std::vector<int> bandIds;
@@ -117,7 +121,7 @@ struct HfdigMultiBand::Impl {
             for (const MbSel& s : kv.second) { const double f = mbDialHz(s.band, s.mode); slots.push_back({f, s.mode}); lo = std::min(lo, f); hi = std::max(hi, f); }
             const double ref = 0.5 * (lo + hi);
             auto w = std::make_unique<HfdigWide>(main);
-            w->configureSlots(rate, (hi - lo) + 2 * kMbAudioHz + 2000, ref, ref - centre, slots);
+            w->configureSlots(rate, (hi - lo) + 2 * kMbAudioHz + 2000, ref, ref - centre, slots, reportDial > 0 ? reportDial : centre);
             bands.push_back(std::move(w));
             bandIds.push_back(kv.first);
         }
@@ -145,8 +149,9 @@ struct HfdigMultiBand::Impl {
 HfdigMultiBand::HfdigMultiBand(HfdigFtx& m) : p_(std::make_unique<Impl>(m)) {}
 HfdigMultiBand::~HfdigMultiBand() = default;
 
-void HfdigMultiBand::configure(double rate, double centre, const std::vector<MbSel>& sels) {
+void HfdigMultiBand::configure(double rate, double centre, const std::vector<MbSel>& sels, double reportDial) {
     Impl& m = *p_;
+    m.reportDial = reportDial;
     m.rate = rate; m.centre = centre; m.wanted = sels; m.droppedSel.clear();
     m.guard.reset();
     m.build();
@@ -167,6 +172,7 @@ void HfdigMultiBand::testForceLoad(double busy, double block) { p_->step(busy, b
 MbStatus HfdigMultiBand::status() const {
     const Impl& m = *p_;
     MbStatus s;
+    s.centreHz = m.centre; s.rateHz = m.rate;
     s.bands = (int)m.bands.size();
     for (const auto& b : m.bands) s.channels += b->ftxChannels();
     s.dropped = (int)m.droppedSel.size();

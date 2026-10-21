@@ -12,6 +12,7 @@
 #include "dect2/audio/hf_demod.h"
 #include "dect2/engine/mode_tuning.h"
 #include "dect2/common/ring.h"
+#include "dect2/hfdig/hfdig_mbsel.h"
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -78,6 +79,11 @@ public:
     void setWide(bool on, double spanHz = 250000);
     bool wide() const;
     void setDialHz(double hz);
+    // Multi-band monitor (hfdig_multiband.h): FT8 / FT4 / FT2 / WSPR on the selected (band, mode) pairs that lie inside the capture, all at
+    // once (the radio's centre is dialHz - the signal offset). While it is on the main FT8 decoder on the dial frequency is silent: the
+    // monitor covers that dial too when selected. Any thread; taken up by the next feed(). Receive only.
+    void setMultiBand(bool on, const std::vector<MbSel>& sels = {});
+    bool multiBand() const;
     int demod() const;                                   // the RTTY decoder's settings (thread safe, see hfdig_rtty.h)
 
 private:

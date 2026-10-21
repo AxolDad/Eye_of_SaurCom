@@ -6,6 +6,7 @@
 #include "hfdig_sstv.h"
 #include "hfdig_freedv.h"
 #include "hfdig_ftx.h"
+#include "hfdig_multiband.h"
 #include "hfdig_hamdrm.h"
 #include "hfdig_kbd.h"
 #include <cstdint>
@@ -36,6 +37,8 @@ struct HfdigTelemetry {
     HfdigFtxTelemetry ftx;
     HfdigHamdrmTelemetry hamdrm;
     HfdigKbdTelemetry kbd;
+    MbStatus multiBand;                     // multi-band monitor (hfdig_multiband.h): what is covered, dropped, the load
+    bool multiBandOn = false;
 };
 
 // One short line about the three decoders, e.g. "RTTY 45.45/170 locked · SSTV Robot 36 112/240 · FreeDV no sync"; "listening" when none is active.

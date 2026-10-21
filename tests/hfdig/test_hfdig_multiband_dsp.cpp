@@ -7,6 +7,8 @@
 // interpolated up to the capture rate.
 #include "dect2/dsp/fftutil.h"
 #include "dect2/hfdig/hfdig_multiband.h"
+#include "dect2/hfdig/hfdig_rx.h"
+#include "dect2/hfdig/hfdig_tel.h"
 #include <chrono>
 #include <cmath>
 #include <complex>
@@ -153,6 +155,56 @@ int main() {
         CHECK(a >= 2, "20 m decodes: %d", a);
         CHECK(b >= 2, "17 m decodes: %d", b);
         CHECK(count(d, 0, 7074000) == 0, "nothing for 40 m");
+    }
+    // ---------------------------------------------------------------- 3. through the receiver: dial 14.077 MHz with the dial 20 kHz below the
+    // centre of the capture (setSignalOffset), FT8 on 14.074 and FT4 on 14.080 selected: the receiver finds the centre from dial - offset
+    {
+        const double rate = 960000, dial = 14077000, off = -20000, centre = dial - off, secs = 34;
+        std::vector<Layer> L;
+        L.push_back(makeLayer(0, {{"CQ LY2ABC KO24", 600}, {"LY2ABC OH3XYZ -10", 1400}}, 14074000 - centre, rate, 48000, secs));
+        L.push_back(makeLayer(1, {{"CQ SM4DDD JO89", 900}, {"SM4DDD LY2ABC R-05", 1800}}, 14080000 - centre, rate, 48000, secs));
+        HfdigReceiver r;
+        r.setSilent(true);
+        r.setDecoders(8);
+        r.ftx().setStartTime(kT0);
+        r.setDialHz(dial);
+        r.configure(rate);
+        r.setSignalOffset(off);
+        r.setMultiBand(true, {{5, 0}, {5, 1}});
+        Rng rng;
+        std::vector<cf32> x(240000);
+        size_t n = 0;
+        HfdigTelemetry tel; uint64_t seq = 0;
+        while (n < (size_t)(secs * rate)) {
+            for (size_t i = 0; i < x.size(); i++, n++) {
+                std::complex<double> v(0.7 * rng.g(), 0.7 * rng.g());
+                for (Layer& l : L) {
+                    const size_t i0 = n / (size_t)l.factor;
+                    const float fr = (float)(n % (size_t)l.factor) / (float)l.factor;
+                    const cf32 a = i0 + 1 < l.a.size() ? l.a[i0] * (1 - fr) + l.a[i0 + 1] * fr : cf32(0, 0);
+                    v += std::complex<double>(a.real(), a.imag()) * l.rot;
+                    l.rot *= l.step;
+                    if ((n & 1023) == 0) l.rot /= std::abs(l.rot);
+                }
+                x[i] = cf32((float)v.real(), (float)v.imag());
+            }
+            r.feed(x.data(), x.size());
+            HfdigTelemetry tt;
+            if (r.telemetry(tt, seq)) { seq = tt.seq; tel = std::move(tt); }
+        }
+        for (int w = 0; w < 80; w++) {
+            HfdigFtxTelemetry ft;
+            r.ftx().telemetry(ft);
+            if (count(ft.decodes, 0, 14074000) >= 4 && count(ft.decodes, 1, 14080000) >= 4 && ft.pending == 0) break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        }
+        HfdigFtxTelemetry ft;
+        r.ftx().telemetry(ft);
+        const int a = count(ft.decodes, 0, 14074000), b = count(ft.decodes, 1, 14080000);
+        printf("receiver, offset %.0f Hz: FT8 %d on 14.074, FT4 %d on 14.080; monitor on %d, centre %.4f MHz, %d dial frequencies\n", off, a, b, (int)tel.multiBandOn, tel.multiBand.centreHz / 1e6, tel.multiBand.channels);
+        CHECK(tel.multiBandOn && std::fabs(tel.multiBand.centreHz - centre) < 1, "the receiver builds the monitor around dial - offset (%.1f)", tel.multiBand.centreHz);
+        CHECK(a >= 2 && b >= 2, "decodes through the receiver: FT8 %d, FT4 %d", a, b);
+        CHECK(count(ft.decodes, 0, dial) == 0 && count(ft.decodes, 1, dial) == 0, "none stamped with the tuned dial (the main decoder is silent while the monitor runs)");
     }
     return testSummary("hfdig_multiband_dsp");
 }

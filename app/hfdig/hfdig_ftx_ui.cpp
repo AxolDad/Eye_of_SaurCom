@@ -15,6 +15,12 @@
 #include <string>
 #include <vector>
 
+// hfdig_multiband_ui.cpp: the "Monitor bands" panel and the band filter of the combined list
+void hfdigMultiBandPanel(App& a, const dect2::HfdigTelemetry& t);
+bool hfdigMultiBandActive();
+bool hfdigMbShown(const dect2::FtxDecode& d);
+int hfdigMbBandOf(const dect2::FtxDecode& d);
+
 namespace {
 
 struct State {
@@ -56,18 +62,21 @@ ImVec4 modeColour(int m) {
 bool shown(const dect2::FtxDecode& d) {
     if (S.filter > 0 && d.mode != S.filter - 1 && !(S.filter == 8 && d.mode == 9)) return false;   // FST4 also shows its FST4W decodes
     if (S.cqOnly && !d.cq) return false;
+    if (!hfdigMbShown(d)) return false;
     return true;
 }
 
 void decodeTable(App& a, const dect2::HfdigFtxTelemetry& f, bool wsprOnly) {
     const ImGuiTableFlags fl = ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV;
-    const int cols = wsprOnly ? 8 : 6;
+    const bool mb = hfdigMultiBandActive();   // the monitor is on: the dial frequency of every decode is shown
+    const int cols = (wsprOnly ? 8 : 6) + (mb ? 2 : 0);
     if (!ImGui::BeginTable(wsprOnly ? "##ftx_w" : "##ftx_d", cols, fl, ImVec2(0, ImGui::GetContentRegionAvail().y))) return;
     ImGui::TableSetupScrollFreeze(0, 1);
     ImGui::TableSetupColumn("UTC");
     ImGui::TableSetupColumn("dB");
     ImGui::TableSetupColumn("DT");
     ImGui::TableSetupColumn("Hz");
+    if (mb) { ImGui::TableSetupColumn("Band"); ImGui::TableSetupColumn("Dial MHz"); }
     if (wsprOnly) {
         ImGui::TableSetupColumn("Call");
         ImGui::TableSetupColumn("Grid");
@@ -95,6 +104,11 @@ void decodeTable(App& a, const dect2::HfdigFtxTelemetry& f, bool wsprOnly) {
         ImGui::TableNextColumn(); ImGui::Text("%+3.0f", d.snrDb);
         ImGui::TableNextColumn(); ImGui::Text("%+4.1f", d.dt);
         ImGui::TableNextColumn(); ImGui::Text(d.mode == 3 ? "%7.1f" : "%5.0f", d.hz);
+        if (mb) {
+            const int bd = hfdigMbBandOf(d);
+            ImGui::TableNextColumn(); if (bd >= 0) ImGui::TextUnformatted(dect2::mbBand(bd).name);
+            ImGui::TableNextColumn(); if (d.dialHz > 0) ImGui::Text("%.4f", d.dialHz / 1e6);
+        }
         if (wsprOnly) {
             ImGui::TableNextColumn(); ImGui::TextUnformatted(d.call.c_str());
             ImGui::TableNextColumn(); ImGui::TextUnformatted(d.grid.c_str());
@@ -302,7 +316,7 @@ void hfdigFtxTab(App& a, const dect2::HfdigTelemetry& t) {
     HfdigFtx& dec = a.engine.hfdig().ftx();
     // the modes and the filter; an entry of one mode (FT8, FT4, FT2, WSPR) decodes and shows only that one
     const SubMode* sm = curSub(a);
-    const int only = sm ? sm->sel : -1;
+    const int only = hfdigMultiBandActive() ? -1 : (sm ? sm->sel : -1);   // the monitor lists every mode of every band in one list
     if (only >= 0) S.filter = only + 1;
     for (int m = 0; m < kFtxModes && only < 0; m++) {
         bool on = dec.enabled(m);
@@ -333,6 +347,7 @@ void hfdigFtxTab(App& a, const dect2::HfdigTelemetry& t) {
     flowEnd();
     modeOptions(a, only);
     flowEnd();
+    hfdigMultiBandPanel(a, t);
     bandButtons(a, only >= 0 ? only : 0);
     // the clock
     {
