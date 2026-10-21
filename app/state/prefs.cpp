@@ -100,6 +100,7 @@ const std::vector<PrefKey>& keyTable() {
         flagB("specFill", AT(a.specFill), true, false, true), flagB("specGrid", AT(a.specGrid), false, false, true), flagB("specPeaks", AT(a.specPeaks), false, false, true), flagB("specLabels", AT(a.specLabels), true, false, true), num("specLabelMask", AT(a.specLabelMask), 63, 0, 63, true),
         flagB("specReadout", AT(a.specReadout), false, false, true), flagB("specDbm", AT(a.specDbm), false, false, true),
         num("tuningMode", AT(a.tuningMode), 0, 0, 1, true),
+        flagB("centreTuning", AT(a.centreTuning), false, false, true),
         flagI("fmMono", AT(a.fmMono), false),
         numFix("fmDeemph", AT(a.fmDeemph), 50, fixDeemph),
         numFix("fmBass", AT(a.fmBass), 0, fixTone), numFix("fmTreble", AT(a.fmTreble), 0, fixTone),

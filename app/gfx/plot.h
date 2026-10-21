@@ -97,6 +97,8 @@ void PopColormap();
 
 Point GetPlotMousePos();
 bool IsPlotHovered();
+bool IsPlotHeld();         // the left button is down on the plot
+double PanOverflowX();     // this frame's drag past the x constraint, in axis units (0 when the drag stayed inside)
 Rect GetPlotLimits();
 ImVec2 GetPlotPos();    // the plot area (inside the axes) on the screen
 ImVec2 GetPlotSize();
