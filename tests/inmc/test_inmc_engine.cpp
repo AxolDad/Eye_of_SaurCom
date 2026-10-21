@@ -71,7 +71,7 @@ int main() {
     t2.centerHz = 1537.6e6;
     const uint64_t before = rx.seq;
     e.retuneReset(t2);
-    waitFor(5.0, [&] { e.latestRx(rx, 0); return rx.seq > before; });
+    waitFor(5.0, [&] { e.latestRx(rx, 0); return rx.seq > before && rx.inmc.blocksOk == 0; });   // the reset is applied by the analysis thread: a report made just before it still has the old frames
     CHECK(rx.seq > before && rx.inmc.blocksOk == 0, "after the retune: report %llu after %llu, %llu frames", (unsigned long long)rx.seq, (unsigned long long)before, (unsigned long long)rx.inmc.blocksOk);
     e.stop();
     printf(fails ? "inmc engine: %d FAILED\n" : "inmc engine: all passed\n", fails);
