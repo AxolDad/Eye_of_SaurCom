@@ -300,6 +300,16 @@ HE-AAC v2 in mono. OnAir uses faad2 for them when it is installed (Linux: the `l
 and PS are applied. Some xHE-AAC tools (harmonic SBR, PVC, inter-TES, MPEG Surround 212) are not in FFmpeg yet; DRM stations that use
 them stay silent and the DRM view says so.
 
+### xHE-AAC for DRM (optional libfdk-aac)
+
+Some DRM stations (for example the CNR-1 xHE-AAC broadcast on 13.825 MHz) use tools that FFmpeg's USAC decoder lacks. OnAir can use
+**libfdk-aac** for them. It is never shipped or linked: you install it yourself, OnAir finds it at run time and the DRM view says
+"(libfdk-aac)" next to the audio format when it is used. Without it the DRM view says which library to install.
+Install: Linux `libfdk-aac2` (Debian/Ubuntu, may need non-free/multiverse) or `fdk-aac`; macOS `brew install fdk-aac`; Windows a
+`libfdk-aac-2.dll` beside the program. A different file can be named in the environment variable `DECT2_FDKAAC_LIB`.
+Check the licence and your local patent situation before installing it. Status: the frames and the stream configuration follow ETSI ES 201 980;
+the decoding with a real libfdk-aac against a real DRM xHE-AAC recording has not been verified yet.
+
 ## AC-4 (ATSC 3.0 sound)
 
 ATSC 3.0 broadcasts in the US and South Korea (and a few DVB services) carry their sound as Dolby AC-4. FFmpeg, including the one inside
