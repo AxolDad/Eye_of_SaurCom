@@ -3533,21 +3533,3 @@ Basic and detail paired	基础报文与扩展报文已配对
 Unpaired detail	未配对的扩展报文
 Locomotive code: %s, serial: %s	机车型号码：%s，机车号：%s
 Cab end (raw): %s	端位原码：%s
-Vent	排风
-Vent response	排风应答
-Pressure query	查询风压
-Pressure response	查询风压应答
-Disconnect	销号
-Disconnect response	销号应答
-Connect response	输号应答
-Tail pressure alarm	列尾主机风压报警
-Pressure alarm response	风压报警应答
-Tail low battery alarm	列尾主机电池欠压报警
-Low battery response	欠压报警应答
-Tail connection request	列尾主机输号请求
-Automatic pressure query	自动查询风压命令
-Automatic pressure response	自动查询风压应答
-Clock calibration	时钟校准信息
-Clock calibration response	时钟校准应答
-Pressure calibration	风压校准信息
-Pressure calibration response	风压校准应答
