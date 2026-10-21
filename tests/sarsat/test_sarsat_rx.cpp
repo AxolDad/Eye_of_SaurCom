@@ -5,7 +5,9 @@
 #include "dect2/sarsat/sarsat_tel.h"
 #include <cmath>
 #include <cstdio>
+#include <algorithm>
 #include <set>
+#include <string>
 #include <vector>
 using namespace dect2;
 #include "../common/test_util.h"
@@ -93,6 +95,47 @@ int main() {
         countFound(run(cfg, rate, seconds), "-40 kHz (wide transponder)");
         cfg.cfoHz = 300; cfg.snrDb = 14;
         countFound(run(cfg, rate, seconds * 2), "14 dB");
+    }
+    {   // a real recording (issue #223): I/Q wav at 37.5 kHz, carrier near +1.44 kHz, moved to the tuning offset at 256 kHz
+        std::string path = __FILE__;
+        path = path.substr(0, path.rfind("tests/")) + "tests/data/sarsat/epirbsignal_223.wav";
+        FILE* f = fopen(path.c_str(), "rb");
+        CHECK(f != nullptr, "cannot open %s", path.c_str());
+        if (f) {
+            std::vector<uint8_t> raw;
+            uint8_t tmp[4096];
+            size_t n;
+            while ((n = fread(tmp, 1, sizeof tmp, f)) > 0) raw.insert(raw.end(), tmp, tmp + n);
+            fclose(f);
+            const size_t frames = (raw.size() - 44) / 4;
+            std::vector<cf32> in(frames);
+            for (size_t i = 0; i < frames; i++) {
+                const int16_t* s = (const int16_t*)&raw[44 + i * 4];
+                in[i] = cf32(s[0] / 32768.f, s[1] / 32768.f);
+            }
+            const double inRate = 37500, outRate = 256000, shift = 20000 - 1440;
+            const size_t pad = (size_t)outRate, outN = (size_t)(frames * outRate / inRate) + 2 * pad;
+            SarsatReceiver rx;
+            rx.configure(outRate);
+            rx.setSignalOffset(-sarsatTuning().tuneOffsetHz);
+            std::vector<cf32> out(outN);
+            for (size_t i = 0; i < outN; i++) {
+                cf32 v(0, 0);
+                if (i >= pad && i < outN - pad) {
+                    const double p = (i - pad) * inRate / outRate;
+                    const size_t k = (size_t)p;
+                    const float fr = (float)(p - k);
+                    v = in[k] * (1 - fr) + in[std::min(k + 1, frames - 1)] * fr;
+                }
+                const double ph = 2 * M_PI * shift * (double)i / outRate;
+                out[i] = v * cf32((float)std::cos(ph), (float)std::sin(ph));
+            }
+            for (size_t i = 0; i < outN; i += 4096) rx.feed(out.data() + i, std::min<size_t>(4096, outN - i));
+            SarsatTelemetry t;
+            rx.telemetry(t, 0);
+            CHECK(t.log.size() == 1, "real recording: %zu messages, expected 1", t.log.size());
+            if (!t.log.empty()) CHECK(t.log[0].b.hexId == "4016196C3F81FE0" && t.log[0].b.valid, "real recording: wrong ID %s", t.log[0].b.hexId.c_str());
+        }
     }
     {
         SynthConfig cfg;
