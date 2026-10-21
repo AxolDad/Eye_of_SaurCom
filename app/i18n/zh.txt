@@ -1054,7 +1054,6 @@ the AD9361's TX attenuation shown as a gain: -89.75 dB (least power) to 0 dB (mo
 the driver's own TX gain scale (known after the radio has been opened once)	驱动程序自身的发射增益范围（无线电打开过一次后可知）
 RX	RX
 TX	TX
-Switch between the receiver (RX) and the transmitter (TX). The transmitter has its own radio, so a receiver can keep receiving while you transmit.	在接收机 (RX) 与发射机 (TX) 之间切换。发射机有自己的无线电，所以您发射时接收机可以继续接收。
 Transmit radio	发射用无线电
 Choose a radio to transmit with.	请选择用于发射的无线电。
 %s (in use by RX %d)	%s（被 RX %d 使用）

@@ -1054,7 +1054,6 @@ the AD9361's TX attenuation shown as a gain: -89.75 dB (least power) to 0 dB (mo
 the driver's own TX gain scale (known after the radio has been opened once)	ドライバー自身の送信ゲイン範囲(無線機を一度開くと分かります)
 RX	RX
 TX	TX
-Switch between the receiver (RX) and the transmitter (TX). The transmitter has its own radio, so a receiver can keep receiving while you transmit.	受信機 (RX) と送信機 (TX) を切り替えます。送信機は専用の無線機を持つので、送信中も受信機は受信を続けられます。
 Transmit radio	送信用無線機
 Choose a radio to transmit with.	送信に使う無線機を選んでください。
 %s (in use by RX %d)	%s(RX %d が使用中)

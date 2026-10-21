@@ -1054,7 +1054,6 @@ the AD9361's TX attenuation shown as a gain: -89.75 dB (least power) to 0 dB (mo
 the driver's own TX gain scale (known after the radio has been opened once)	die eigene TX-Verstärkungsskala des Treibers (bekannt, sobald das Funkgerät einmal geöffnet wurde)
 RX	RX
 TX	TX
-Switch between the receiver (RX) and the transmitter (TX). The transmitter has its own radio, so a receiver can keep receiving while you transmit.	Zwischen Empfänger (RX) und Sender (TX) umschalten. Der Sender hat ein eigenes Funkgerät, ein Empfänger kann also weiter empfangen, während Sie senden.
 Transmit radio	Sende-Funkgerät
 Choose a radio to transmit with.	Wählen Sie ein Funkgerät zum Senden.
 %s (in use by RX %d)	%s (belegt durch RX %d)

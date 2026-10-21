@@ -1040,7 +1040,6 @@ the AD9361's TX attenuation shown as a gain: -89.75 dB (least power) to 0 dB (mo
 the driver's own TX gain scale (known after the radio has been opened once)	az illesztőprogram saját TX erősítési skálája (a rádió egyszeri megnyitása után ismert)
 RX	RX
 TX	TX
-Switch between the receiver (RX) and the transmitter (TX). The transmitter has its own radio, so a receiver can keep receiving while you transmit.	Váltás a vevő (RX) és az adó (TX) között. Az adónak saját rádiója van, így a vevő tovább vehet, miközben Ön ad.
 Transmit radio	Adó rádió
 Choose a radio to transmit with.	Válasszon rádiót az adáshoz.
 %s (in use by RX %d)	%s (használja: RX %d)

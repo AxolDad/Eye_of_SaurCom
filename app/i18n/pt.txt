@@ -1037,7 +1037,6 @@ the AD9361's TX attenuation shown as a gain: -89.75 dB (least power) to 0 dB (mo
 the driver's own TX gain scale (known after the radio has been opened once)	a escala de ganho de TX do próprio controlador (conhecida depois de o rádio ser aberto uma vez)
 RX	RX
 TX	TX
-Switch between the receiver (RX) and the transmitter (TX). The transmitter has its own radio, so a receiver can keep receiving while you transmit.	Alternar entre o recetor (RX) e o emissor (TX). O emissor tem o seu próprio rádio, por isso um recetor pode continuar a receber enquanto transmite.
 Transmit radio	Rádio de transmissão
 Choose a radio to transmit with.	Escolha um rádio para transmitir.
 %s (in use by RX %d)	%s (em uso por RX %d)

@@ -119,7 +119,7 @@ int main() {
 
     // no clash: each case label of the new numbers appears once per switch
     const std::string cm = readSource("CMakeLists.txt");
-    need("CMakeLists.txt", cm, " kaal)");
+    need("CMakeLists.txt", cm, " kaal ");
 
     if (fails == 0) std::printf("kaal mode: registered, panel strings, wiring and transmit present\n");
     return fails == 0 ? 0 : 1;

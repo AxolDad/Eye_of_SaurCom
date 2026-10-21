@@ -1054,7 +1054,6 @@ the AD9361's TX attenuation shown as a gain: -89.75 dB (least power) to 0 dB (mo
 the driver's own TX gain scale (known after the radio has been opened once)	paties tvarkyklės TX stiprinimo skalė (žinoma, kai radijas kartą atidarytas)
 RX	RX
 TX	TX
-Switch between the receiver (RX) and the transmitter (TX). The transmitter has its own radio, so a receiver can keep receiving while you transmit.	Perjungti tarp imtuvo (RX) ir siųstuvo (TX). Siųstuvas turi savo radiją, todėl imtuvas gali toliau priimti, kol siunčiate.
 Transmit radio	Siuntimo radijas
 Choose a radio to transmit with.	Pasirinkite radiją siuntimui.
 %s (in use by RX %d)	%s (naudoja RX %d)
