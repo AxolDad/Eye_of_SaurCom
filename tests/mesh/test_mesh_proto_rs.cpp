@@ -193,5 +193,5 @@ int main() {
     if (rc2) return 1;
     // recorded again after the decoder kept battery level 101 ("powered") and cut the text detail on a whole UTF-8 character
 
-    return golden::checkDual("mesh_proto_rs", dig, 0xad859aebe34a7637ull, 0xf7b897ff9f2bd52full, !getenv("ONAIR_DIFF_ITERS"));
+    return golden::checkDual("mesh_proto_rs", dig, 0xf7b897ff9f2bd52full, 0xad859aebe34a7637ull, !getenv("ONAIR_DIFF_ITERS"));
 }
