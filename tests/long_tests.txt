@@ -55,3 +55,4 @@ hfdig_jt4
 hfdl_speed
 kaal_chain
 specx_idmatrix_quick
+hfdig_multiband_dsp
