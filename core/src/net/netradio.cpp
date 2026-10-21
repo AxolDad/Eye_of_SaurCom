@@ -34,8 +34,8 @@ std::string hostPort(const std::string& host, int port) {
 
 // the type tables and the settings text of the list are in net_proto.h (C++ or the Rust crate onair_net)
 const char* netRadioTypeName(NetRadio::Type t) {
-    static const std::string names[10] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8), netp::radioTypeName(9)};
-    return names[(unsigned)t < 10 ? (unsigned)t : 1].c_str();
+    static const std::string names[11] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8), netp::radioTypeName(9), netp::radioTypeName(10)};
+    return names[(unsigned)t < 11 ? (unsigned)t : 1].c_str();
 }
 int netRadioDefaultPort(NetRadio::Type t) { return netp::radioDefaultPort((uint32_t)t); }
 const char* netRadioDefaultHost(NetRadio::Type t) {
