@@ -212,7 +212,7 @@ public:
         for (int i = 0; i < 126; i++) if (kNprc[i]) st[(size_t)i] = 0;
         std::set<std::string> seen;
         for (int pass = 0; pass < 3; pass++) {
-            sg_ = spectrogram(y_, kN, kHop, binLo, binHi);
+            sg_ = spectrogram(y_, kN, kHop, binLo, binHi, true);
             if (sg_.frames < 4 * 125 + 1) return res;
             const int lagLo = std::max(0, (int)std::floor((t0 + s_.dtMin - s_.x0) * kRate / kHop));
             const int lagHi = std::min(sg_.frames - 1 - 4 * 125, (int)std::ceil((t0 + s_.dtMax - s_.x0) * kRate / kHop));

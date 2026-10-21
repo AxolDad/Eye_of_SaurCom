@@ -55,16 +55,18 @@ std::vector<float> resample8k(const float* x, size_t n, double rateOut) {
     return y;
 }
 
-Spectrogram spectrogram(const std::vector<float>& y, int N, int hop, int binLo, int binHi) {
+Spectrogram spectrogram(const std::vector<float>& y, int N, int hop, int binLo, int binHi, bool hann) {
     Spectrogram s;
     s.N = N; s.hop = hop; s.binLo = binLo; s.nBins = std::max(0, binHi - binLo);
     s.frames = y.size() >= (size_t)N ? (int)((y.size() - (size_t)N) / (size_t)hop) + 1 : 0;
     s.p.assign((size_t)s.frames * (size_t)s.nBins, 0.f);
     Fft fft(N);
     std::vector<cf32> buf((size_t)N);
+    std::vector<float> win;   // Hann: a strong signal splashes over the whole band with a rectangular window (the sync search of JT65 B and C was fooled by that)
+    if (hann) { win.resize((size_t)N); for (int i = 0; i < N; i++) win[(size_t)i] = (float)(0.5 - 0.5 * std::cos(2 * M_PI * (i + 0.5) / N)); }
     for (int f = 0; f < s.frames; f++) {
         const float* in = &y[(size_t)f * (size_t)hop];
-        for (int i = 0; i < N; i++) buf[(size_t)i] = cf32(in[i], 0.f);
+        for (int i = 0; i < N; i++) buf[(size_t)i] = cf32(hann ? in[i] * win[(size_t)i] : in[i], 0.f);
         fft.forward(buf.data());
         float* o = &s.p[(size_t)f * (size_t)s.nBins];
         for (int b = 0; b < s.nBins; b++) o[b] = std::norm(buf[(size_t)(binLo + b)]);

@@ -146,9 +146,8 @@ int main() {
             break;
         }
         }
-        // the repo's MFSK decoder takes a few seconds to settle in noise and prints the first characters wrong (seen with and without a space preamble),
-        // so for MFSK only the part after the start is required
-        CHECK(has(got, "LY1ABC") && (p.family == KbdMfsk || has(got, "CQ")), "%s: decoded \"%s\"", p.name, got.c_str());
+        // the whole text is required (MFSK32 used to garble the first characters: the receiver moved to a wrong tone shift during the preamble)
+        CHECK(has(got, p.family == KbdMfsk ? "CQ DE LY1ABC LY1ABC K" : "CQ DE LY1ABC LY1ABC"), "%s: decoded \"%s\"", p.name, got.c_str());
         printf("%-18s %5.1f s  -> \"%s\"\n", p.name, kbdSeconds(a), got.c_str());
     }
 

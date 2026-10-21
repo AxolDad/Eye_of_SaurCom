@@ -110,13 +110,13 @@ int main() {
     qso(4, 0);    // JT65A
     qso(5, 0);    // JT9
     qso(10, 0);   // JT4A
-    // JT65 B and C, one message each. Known decoder limit (found here, not fixed): the receiver misses B / C signals stronger than about +5 dB
-    // in 2500 Hz (the sync search is fooled by the leakage of the wide strong signal), so these two go out at a low level (about -1 dB SNR).
-    for (int sub : {1, 2}) {
-        float snr = 0;
-        const std::string got = overAir(4, sub, "CQ LY1ABC KO24", 1200, &snr, 0.05);
-        CHECK(got == "CQ LY1ABC KO24", "JT65 sub %d heard \"%s\"", sub, got.c_str());
-    }
+    // JT65 B and C at strong, medium and weak levels (the strong ones used to be missed: the sync search was fooled by leakage)
+    for (int sub : {1, 2})
+        for (double level : {0.4, 0.05, 0.01}) {
+            float snr = 0;
+            const std::string got = overAir(4, sub, "CQ LY1ABC KO24", 1200, &snr, level);
+            CHECK(got == "CQ LY1ABC KO24", "JT65 sub %d level %.2f heard \"%s\"", sub, level, got.c_str());
+        }
 
     // the gate uses the width of the mode: JT65C near the top of 20 m is refused, JT9 there is allowed
     {
