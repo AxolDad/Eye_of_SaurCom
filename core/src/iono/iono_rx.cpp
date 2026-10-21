@@ -109,7 +109,8 @@ void IonoReceiver::clearResults() {
     std::lock_guard<std::mutex> lk(p_->mu);
     p_->clearReq = true; p_->loadReq = false; p_->loadBlob.clear();
     p_->snap.clear();
-    p_->pub.sounders.clear(); p_->pub.timeline.clear(); p_->pub.history.clear(); p_->pub.traces.clear(); p_->pub.ionoDb.clear();
+    p_->pub.sounders.clear(); p_->pub.timeline.clear(); p_->pub.history.clear(); p_->pub.traces.clear(); p_->pub.ionoDb.clear(); p_->pub.swept.clear();
+    p_->pub.sel = -1;
     p_->pub.seq++;
 }
 std::string IonoReceiver::saveResults() const {

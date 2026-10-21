@@ -332,8 +332,9 @@ void ionogram(App& a, float h) {
         dl->AddText(ImVec2(l + 10, top + 10), txt, a.engine.running() ? "listening for sweeps ..." : "start the receiver to look for chirp sounders (\"?\" for how)");
         return;
     }
-    if (S.traces && t.sel >= 0) drawTraces(t, dl, l, r, top, bot, maxKm);
-    if (t.sel < 0) { dl->AddText(ImVec2(l + 10, top + 10), txt, "no sounder heard yet: the ionogram builds up as sweeps cross the captured span"); }
+    const bool haveSel = t.sel >= 0 && t.sel < (int)t.sounders.size();   // the telemetry can still name a sounder a Clear just removed
+    if (S.traces && haveSel) drawTraces(t, dl, l, r, top, bot, maxKm);
+    if (!haveSel) { dl->AddText(ImVec2(l + 10, top + 10), txt, "no sounder heard yet: the ionogram builds up as sweeps cross the captured span"); }
     else {
         const auto& s = t.sounders[(size_t)t.sel];
         snprintf(b, sizeof b, "#%d  %.0f kHz/s  %s", s.id, s.rateHz / 1e3, t.locked ? "group range (c x delay)" : "relative group range (timing not locked)");
