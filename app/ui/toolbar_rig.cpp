@@ -142,7 +142,7 @@ void netRadioWindow(App& a) {
     if (!ImGui::Begin(trw("Network radios"), &a.netAddOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::End(); return; }
     const bool busy = a.netAddProbe != nullptr;
     ImGui::BeginDisabled(busy);
-    static const char* kTypes[] = {"PlutoSDR (by IP)", "rtl_tcp", "SoapyRemote", "SpyServer", "Hermes Lite 2", "Red Pitaya", "SDR++ server", "SDRplay nRSP-ST (SDRconnect)", "KiwiSDR", "SoapySDR (device string)"};
+    static const char* kTypes[] = {"PlutoSDR (by IP)", "rtl_tcp", "SoapyRemote", "SpyServer", "Hermes Lite 2", "Red Pitaya", "SDR++ server", "SDRplay nRSP-ST (SDRconnect)", "KiwiSDR", "SoapySDR (device string)", "TCI (network)"};
     ImGui::SetNextItemWidth(200 * gUi);
     if (ImGui::Combo("Type", &a.netAddType, kTypes, IM_ARRAYSIZE(kTypes))) {
         const auto t = (NetRadio::Type)a.netAddType;
@@ -178,6 +178,9 @@ void netRadioWindow(App& a) {
     if (a.netAddType == NetRadio::NrspSt)
         ImGui::TextDisabled("%s", tr("The nRSP-ST is reached through SDRconnect: run SDRconnect (or its headless build) on a computer with the WebSocket server on (port 5454) and its nRSP-ST selected, "
                                      "and type that computer's address. No password is needed or stored."));
+    if (a.netAddType == NetRadio::Tci)
+        ImGui::TextDisabled("%s", tr("TCI: the Transceiver Control Interface of ExpertSDR3 (and SunSDR or other programs with a TCI server), port 50001. Turn its TCI server on and type "
+                                     "that computer's address. OnAir only receives (the IQ stream, 48 to 384 kHz); it never transmits. No password is needed."));
     if (a.netAddType == NetRadio::KiwiSdr) {
         ImGui::SetNextItemWidth(200 * gUi);
         ImGui::InputTextWithHint(tr("Password"), tr("blank if the owner set none"), a.netAddPass, sizeof a.netAddPass, ImGuiInputTextFlags_Password);

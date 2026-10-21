@@ -479,6 +479,7 @@ Add them from the source list: **Add network radio…**, choose the type, type i
 | **SDR++ server** (SDR++ run as `sdrpp --server`, any source SDR++ has) | the computer running it | 5259 |
 | **KiwiSDR** (HF receiver on the network, 12 kHz IQ; experimental, see [docs/kiwisdr.md](docs/kiwisdr.md)) | the receiver (or **Find KiwiSDR** for the public list) | 8073 |
 | **SDRplay nRSP-ST** (through SDRconnect's WebSocket API; experimental, see [docs/nrsp-st.md](docs/nrsp-st.md)) | the computer running SDRconnect, with its WebSocket server on | 5454 |
+| **TCI (network)** (Expert Electronics' Transceiver Control Interface of ExpertSDR3, SunSDR and other programs with a TCI server; receive only, see [docs/NETWORK_RADIOS.md](docs/NETWORK_RADIOS.md)) | the computer running the TCI server | 50001 |
 | **Hermes Lite 2** | found by itself on your networks (or type its address) | 1024 |
 | **Red Pitaya** (SDR transceiver app, HPSDR protocol 1) | found by itself on your networks (or type its address) | 1024 |
 

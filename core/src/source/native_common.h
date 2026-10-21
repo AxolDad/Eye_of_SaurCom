@@ -637,6 +637,12 @@ bool sdrppProbe(const std::string& host, int port, int timeoutMs, std::string& e
 void sdrppCaps(DeviceInfo& d);
 // An SDRplay nRSP-ST through SDRconnect's WebSocket API (source_nrspst.cpp), port 5454: nrspStProbe connects and asks api_version (remembered per address with
 // the radios, antennas and LNA range it names); nrspStCaps sets d's ranges and settings from that. nrspParseMessage / nrspMessage: the JSON without a socket.
+// TCI (ExpertSDR3's Transceiver Control Interface over WebSocket, source_tci.cpp), port 50001, receive only: tciProbe connects and waits for "ready;" (remembering the
+// receivers, rate limits and frequency range the greeting names, per address); tciCaps sets d's ranges from that. tciParseCommands: the wire pieces without a socket.
+DeviceInfo tciDevice(const std::string& host, int port);
+std::unique_ptr<IqSource> makeTci(const DeviceInfo& d);
+bool tciProbe(const std::string& host, int port, int timeoutMs, std::string& err);
+void tciCaps(DeviceInfo& d);
 DeviceInfo nrspStDevice(const std::string& host, int port);
 std::unique_ptr<IqSource> makeNrspSt(const DeviceInfo& d);
 bool nrspStProbe(const std::string& host, int port, int timeoutMs, std::string& err);
@@ -648,6 +654,8 @@ std::unique_ptr<IqSource> makeKiwiSdr(const DeviceInfo& d);
 bool kiwiProbe(const std::string& host, int port, int timeoutMs, std::string& err);
 void kiwiSdrCaps(DeviceInfo& d);
 void kiwiSetBackoffForTest(int minMs, int maxMs);
+// a TCI text message "name:a,b;name2;" into (lower-case name, arguments); false when it has no complete command
+bool tciParseCommands(const std::string& text, std::vector<std::pair<std::string, std::vector<std::string>>>& out);
 bool nrspParseMessage(const std::string& json, std::map<std::string, std::string>& out);
 std::string nrspMessage(const char* event, const std::string& prop, const std::string& value);
 // One control of the server's menu (SmGui's draw list), as OnAir reads it
