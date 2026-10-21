@@ -179,6 +179,7 @@ struct SampleLoss {
     float loadPct = 0;                 // the receiver's share of real time on the sample thread over the last seconds (100 = just keeping up)
     float deliveredPct = -1;           // samples the radio handed over, percent of the rate it is set to, over the last seconds. -1 = not measured yet
     bool rateLow = false;              // a live radio under about 97% of that rate (the radio or driver, not the receiver's CPU load)
+    bool network = false;              // the radio is reached over a network link (rtl_tcp, SpyServer, ...), not USB
 };
 
 class Engine {
@@ -841,8 +842,9 @@ private:
     TuneSettings radioTune(const TuneSettings& t) const;  // what the radio is tuned to: the user's frequency plus the mode's tuneOffsetHz
     mutable std::mutex tuneMu_;                 // lastDev_ / lastTune_: what to reopen the radio with
     DeviceInfo lastDev_;
+    std::atomic<bool> lastNetwork_{false};   // lastDev_.isNetwork(), set with lastDev_; read without tuneMu_ by sampleLoss() (interface thread) and watchRadio()
     TuneSettings lastTune_;
-    std::chrono::steady_clock::time_point lastSamples_{}, nextReconnect_{}, lastSkipLog_{};
+    std::chrono::steady_clock::time_point lastSamples_{}, nextReconnect_{}, lastSkipLog_{}, lostSince_{};
     uint64_t skippedSamples_ = 0, skipEvents_ = 0;   // analysis thread only
     // sampleLoss(): the radio's deliveries checked against its rate (checkDelivery(), analysis thread), the OnAir side from the ring
     void checkDelivery();

@@ -101,6 +101,7 @@ bool Engine::start(const DeviceInfo& dev, const TuneSettings& tune, const FileOp
     {
         std::lock_guard<std::mutex> lk(tuneMu_);
         lastDev_ = dev; lastTune_ = tune; lastFile_ = file;
+        lastNetwork_ = dev.isNetwork();
     }
     radioLost_ = false; lastSamples_ = std::chrono::steady_clock::now(); reconnectErr_.clear();
     automation::receiverState("started", "receiver started");
