@@ -251,7 +251,7 @@ void volumeControl(App& a, float w) {
     ImGui::SameLine(0, 6 * gUi);
     ImGui::SetNextItemWidth(w - 34 * gUi - ImGui::GetFrameHeight() - 4 * gUi);
     float vol = a.volume * 100.f;
-    if (ImGui::SliderFloat("##vol", &vol, 0, 100, "%.0f %%")) { a.volume = vol / 100.f; a.engine.player().setVolume(a.volume); a.engine.dabAudio().setVolume(a.volume); }
+    if (ImGui::SliderFloat("##vol", &vol, 0, 100, "%.0f %%")) { a.volume = vol / 100.f; a.engine.player().setVolume(a.volume); a.engine.dabAudio().setVolume(a.volume); a.engine.setWideVolume(a.volume); }
     if (ImGui::IsItemHovered() && a.family == 9) ImGui::SetTooltip("%s", tr("DMR voice is played when an AMBE+2 codec plug-in is installed (DMR panel, ? button); the volume applies to it."));
     ImGui::SameLine(0, 4 * gUi);
     audioCleanupButton(a);

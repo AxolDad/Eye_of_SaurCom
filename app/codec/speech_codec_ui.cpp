@@ -108,6 +108,17 @@ void codecNoticePrompt(const char* id) {
     if (r.status == dect2::codec::CodecStatus::NoticeRequired) speechCodecGate(id, tmp);
 }
 
+void voiceCodecLine(const char* id, const char* name, const std::string& libPath) {
+    voiceCodecTick(id);
+    std::string p;
+    const bool plug = dect2::codec::pluginLoaded(id, &p);
+    const bool ok = plug || !libPath.empty();
+    ImGui::AlignTextToFramePadding();
+    if (ok) ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.6f, 1), "Voice codec loaded: %s %s (%s)", name, plug ? "plug-in" : "libmbe", plug ? p.c_str() : libPath.c_str());
+    else ImGui::TextColored(ImVec4(0.95f, 0.75f, 0.3f, 1), "Voice codec missing: %s. Install the plug-in (see ?). Calls are still found and logged.", name);
+    codecNoticePrompt(id);
+}
+
 void speechCodecRescan(const char* id) {
     last.erase(id);
     lastAt.erase(id);

@@ -2,6 +2,7 @@
 // packets), the trunking system (site, adjacent sites, channel identifiers), the talkgroups with their activity, the decoded control
 // messages, and a "?" about the mbelib library the voice needs (docs/CODECS.md). Receive only; encrypted calls are only reported.
 #include "app.h"
+#include "dect2/codec/codec_registry.h"
 #include "../codec/speech_codec_ui.h"
 #include "dect2/p25/p25_imbe.h"
 #include "dect2/p25/p25_proto.h"
@@ -97,8 +98,9 @@ void kvRow(const App& a, const char* k, const char* fmt, ...) {
 
 void voiceLine() {
     ImGui::AlignTextToFramePadding();
-    const bool mbe = dect2::p25ImbeAvailable();
-    ImGui::TextColored(mbe ? pal::okGreen() : pal::warnAmber(), "%s", mbe ? "voice: mbelib" : codecNeedMbe());
+    std::string lib;
+    if (!dect2::codec::pluginLoaded("imbe")) dect2::p25ImbeAvailable(&lib);
+    appcodec::voiceCodecLine("imbe", "IMBE", lib);
     ImGui::SameLine(0, 4 * gUi);
     codecHelpButton(CodecHelp::P25Imbe);
     ImGui::SameLine(0, 10 * gUi);

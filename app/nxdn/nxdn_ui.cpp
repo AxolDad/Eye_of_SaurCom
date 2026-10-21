@@ -1,6 +1,7 @@
 // NXDN screens: the current call (unit id, talkgroup, call type, encryption, voice), the call log (voice, status and short data), the
 // decoded control messages, the site information, and a "?" about the mbelib library the voice needs (docs/CODECS.md).
 #include "app.h"
+#include "dect2/codec/codec_registry.h"
 #include "../codec/speech_codec_ui.h"
 #include "dect2/nxdn/nxdn_ambe.h"
 #include "dect2/nxdn/nxdn_proto.h"
@@ -50,8 +51,9 @@ void kvRow(const App& a, const char* k, const char* fmt, ...) {
 
 void voiceLine() {
     ImGui::AlignTextToFramePadding();
-    const bool mbe = dect2::nxdnAmbeAvailable();
-    ImGui::TextColored(mbe ? pal::okGreen() : pal::warnAmber(), "%s", mbe ? "voice: mbelib" : codecNeedMbe());
+    std::string lib;
+    if (!dect2::codec::pluginLoaded("ambe2")) dect2::nxdnAmbeAvailable(&lib);
+    appcodec::voiceCodecLine("ambe2", "AMBE+2", lib);
     ImGui::SameLine(0, 4 * gUi);
     codecHelpButton(CodecHelp::NxdnAmbe);
 }

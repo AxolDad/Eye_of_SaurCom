@@ -66,6 +66,8 @@ void voiceStrip(App& a) {
         ImGui::EndPopup();
     }
     ImGui::SameLine();
+    appcodec::voiceCodecLine("tetra", "TETRA ACELP");
+    ImGui::SameLine();
     if (!gVoice.hasCodec()) {
         // The notice gate runs first; a codec is loaded only after the user accepted it. Nothing is decoded without a codec.
         std::unique_ptr<dect2::codec::SpeechCodec> c;

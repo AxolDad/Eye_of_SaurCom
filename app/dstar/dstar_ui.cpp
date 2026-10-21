@@ -2,6 +2,7 @@
 // positions on a map (the ADS-B map underneath, as for APRS and M17), the calling-channel presets, and a "?" about the mbelib library the
 // voice needs (docs/CODECS.md).
 #include "app.h"
+#include "dect2/codec/codec_registry.h"
 #include "../codec/speech_codec_ui.h"
 #include "ui/ui_common.h"
 #include "../adsb/adsb_map.h"
@@ -51,8 +52,9 @@ void presets(App& a) {
         flowNext(6 * gUi);
     }
     ImGui::AlignTextToFramePadding();
-    const bool mbe = dect2::dstarAmbeAvailable();
-    ImGui::TextColored(mbe ? pal::okGreen() : pal::warnAmber(), "%s", mbe ? "voice: mbelib" : codecNeedMbe());
+    std::string lib;
+    if (!dect2::codec::pluginLoaded("ambe")) dect2::dstarAmbeAvailable(&lib);
+    appcodec::voiceCodecLine("ambe", "AMBE", lib);
     ImGui::SameLine(0, 4 * gUi);
     codecHelpButton(CodecHelp::DstarAmbe);
     flowEnd();
