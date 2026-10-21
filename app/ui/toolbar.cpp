@@ -15,6 +15,7 @@
 #include <memory>
 #include <thread>
 #include "toolbar_internal.h"
+#include "../gfx/tune_drag.h"
 
 // the radio picker, the antenna port, rescan, the add-radio windows and the radio warnings
 static void toolbarSource(App& a, bool vertical, bool running) {
@@ -502,7 +503,14 @@ void spectrumTune(App& a, double absMhz) {
         if (a.fmMode) { a.freqMhz = std::round(std::max(0.0, dialMhzFromAbs(a, absMhz)) * 10.0) / 10.0; tuneDecode(a, absMhz); }
         else tuneDecode(a, absMhz);
     } else if (a.fmMode) fmTune(a, absMhz);
-    else tuneFreq(a, dialMhzFromAbs(a, absMhz));
+    else {
+        // normal tuning (default): a click inside the captured band only moves the marker; the target button centres the radio on the click
+        const bool file = !a.devices.empty() && a.devIdx >= 0 && a.devIdx < (int)a.devices.size() && (a.devices[a.devIdx].kind == DeviceInfo::File || a.devices[a.devIdx].isAudio());
+        const double fs = (a.engine.sampleRate() > 0 ? a.engine.sampleRate() : a.tune.sampleRate) / 1e6;
+        if (a.engine.running() && !file && !a.second.drawing && a.family != 55 &&
+            !tunedrag::clickPlan(a.centreTuning, false, absMhz, a.engine.captureCentreHz() / 1e6, fs, 0.001, dect2::kMaxTuneMhz).retune) tuneDecode(a, absMhz);
+        else tuneFreq(a, dialMhzFromAbs(a, absMhz));
+    }
 }
 
 void tuneFreq(App& a, double mhz) {

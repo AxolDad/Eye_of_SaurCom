@@ -147,6 +147,7 @@ std::vector<Tick> makeTicks(int a, double pixels, double minPixelsPerTick) {
 }
 
 // keep [a, b] of axis ax inside the constraints: no wider than they are, and shifted back in
+static double gPanOverflowX = 0;
 void clampAxis(int ax, double& a, double& b) {
     const double lo = C.ax[ax].cmin, hi = C.ax[ax].cmax;
     if (!std::isfinite(lo) || !std::isfinite(hi) || !(hi > lo)) return;
@@ -230,8 +231,10 @@ void finishSetup() {
         const bool smooth = (C.flags & Flags_SmoothZoom) != 0;
         for (int a = 0; a < 2; a++)   // somebody else moved the limits (a drag, a plot sharing the axis, a reset): the eased zoom gives way
             if (C.st->hasTgt[a] && (std::fabs(C.st->lim[a][0] - C.st->last[a][0]) > 1e-12 || std::fabs(C.st->lim[a][1] - C.st->last[a][1]) > 1e-12)) C.st->hasTgt[a] = false;
+        gPanOverflowX = 0;
+        double intendedLo = 0; bool draggedX = false;
         if (held && (io.MouseDelta.x != 0 || io.MouseDelta.y != 0)) {
-            if (movable[0] && C.ax[0].scale == Scale_Linear) { const double d = -io.MouseDelta.x / C.plot.GetWidth() * (C.hi[0] - C.lo[0]); C.st->lim[0][0] += d; C.st->lim[0][1] += d; }
+            if (movable[0] && C.ax[0].scale == Scale_Linear) { const double d = -io.MouseDelta.x / C.plot.GetWidth() * (C.hi[0] - C.lo[0]); C.st->lim[0][0] += d; C.st->lim[0][1] += d; intendedLo = C.st->lim[0][0]; draggedX = true; }
             if (movable[1] && C.ax[1].scale == Scale_Linear) { const double d = io.MouseDelta.y / C.plot.GetHeight() * (C.hi[1] - C.lo[1]); C.st->lim[1][0] += d; C.st->lim[1][1] += d; }
         }
         // wheel: both axes; Ctrl = frequency (x) only; Shift = amplitude (y) only (macOS turns Shift+wheel into a sideways wheel)
@@ -278,6 +281,7 @@ void finishSetup() {
             if (!C.st->hasTgt[a]) clampAxis(a, C.st->lim[a][0], C.st->lim[a][1]);
             C.st->last[a][0] = C.st->lim[a][0]; C.st->last[a][1] = C.st->lim[a][1];
         }
+        if (draggedX) gPanOverflowX = intendedLo - C.st->lim[0][0];   // how far the drag went past the constraint (the caller may retune)
         if (hov && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) C.st->init = false;
         // draw this frame with the new limits (a plot sharing the axis reads them at once, so both must show the same range)
         for (int a = 0; a < 2; a++) if (movable[a] && C.ax[a].scale == Scale_Linear && C.st->init && C.st->lim[a][1] > C.st->lim[a][0]) {
@@ -603,6 +607,8 @@ Point GetPlotMousePos() {
     return Point(fromPx(m.x), fromPy(m.y));
 }
 bool IsPlotHovered() { return C.active && C.hovered; }
+double PanOverflowX() { return gPanOverflowX; }
+bool IsPlotHeld() { return C.active && C.held; }
 ImVec2 GetPlotPos() { if (C.active) finishSetup(); return C.plot.Min; }
 ImVec2 GetPlotSize() { if (C.active) finishSetup(); return C.plot.GetSize(); }
 Rect GetPlotLimits() {

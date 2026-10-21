@@ -1,6 +1,7 @@
 // spectrum, waterfall, histogram and constellation plots
 #include "../app.h"
 #include "plot_util.h"
+#include "tune_drag.h"
 #include "dect2/specan/specan_dsp.h"
 
 // Click on the spectrum or the waterfall to tune to that frequency (a drag still pans). The grid follows the mode: FM 0.1 MHz, DMR 12.5 kHz, else 1 kHz.
@@ -93,7 +94,7 @@ static void clickToTune(App& a, int plotId) {
         plt::Spec ls; ls.LineColor = ImVec4(0.95f, 0.25f, 0.25f, 0.9f); ls.LineWeight = 1.2f;
         plt::PlotLine("##tunehere", lx, ly, 2, ls);
         if (a.tuningMode == 1) ImGui::SetTooltip(tr("click to decode %.4f MHz (radio centre stays)"), mhz);
-        else ImGui::SetTooltip(tr("click to tune to %.4f MHz"), mhz);
+        else ImGui::SetTooltip(a.centreTuning ? tr("click to centre the radio on %.4f MHz") : tr("click to tune to %.4f MHz"), mhz);
     }
 }
 
@@ -755,7 +756,7 @@ void specDisplayPopup(App& a) {
     }
     if (ImGui::Checkbox(tr("Grid"), &a.specGrid)) save = true;
     ImGui::Separator();
-    ImGui::TextDisabled("%s", tr("Spectrum click"));
+    ImGui::TextDisabled("%s", tr("Spectrum click (drag pans; dragging past the band retunes the radio)"));
     if (ImGui::RadioButton(tr("Retune radio"), a.tuningMode == 0)) { a.tuningMode = 0; save = true; }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Move the radio to the clicked frequency (the usual behaviour)"));
     if (ImGui::RadioButton(tr("Decode offset only"), a.tuningMode == 1)) { a.tuningMode = 1; save = true; }
@@ -809,6 +810,65 @@ void drawBandPlanStrip(ImDrawList* dl, float x0, float x1, float y, float h, dou
         const double mhz = loMhz + (mx - x0) / (x1 - x0) * (hiMhz - loMhz);
         if (const dect2::SaBand* at = dect2::saAllocationAt(mhz)) ImGui::SetTooltip("%s — %s", at->name, at->use);
     }
+}
+
+// Two icon toggles by the spectrum controls (SDR++ style, shared by all modes): normal tuning (a click moves the marker inside the captured
+// band, the radio centre stays) and centre tuning (a click puts the clicked frequency in the middle by retuning the radio).
+static float tuneStyleButtons(App& a, ImVec2 plotMin, ImVec2 plotSize, float rightUsed) {
+    const float s = 18 * gUi, m = 4 * gUi, w = 2 * s + 2 * m;
+    const float x = plotMin.x + plotSize.x - rightUsed - w - m;
+    if (x < plotMin.x + 40 * gUi || plotSize.y < s + 2 * m) return 0;
+    const ImVec2 keep = ImGui::GetCursorScreenPos();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    for (int i = 0; i < 2; i++) {   // 0: left/right arrows (normal), 1: target (centre)
+        const bool on = (i == 1) == a.centreTuning;
+        const ImVec2 p0(x + i * (s + m), plotMin.y + m), p1(p0.x + s, p0.y + s);
+        ImGui::SetCursorScreenPos(p0);
+        char id[16]; snprintf(id, sizeof id, "##tunestyle%d", i);
+        const bool click = ImGui::InvisibleButton(id, ImVec2(s, s));
+        const bool hov = ImGui::IsItemHovered();
+        ImVec4 bg = on ? pal::accent(0.55f) : ImGui::GetStyleColorVec4(ImGuiCol_FrameBg); if (!on) bg.w = 0.85f;
+        if (hov) bg.w = std::min(1.f, bg.w + 0.15f);
+        dl->AddRectFilled(p0, p1, ImGui::ColorConvertFloat4ToU32(bg), 3 * gUi);
+        const ImU32 fg = ImGui::GetColorU32(ImGuiCol_Text);
+        const ImVec2 c((p0.x + p1.x) / 2, (p0.y + p1.y) / 2);
+        const float r = s * 0.30f, t = std::max(1.f, 1.2f * gUi);
+        if (i == 1) {
+            dl->AddCircle(c, r, fg, 0, t);
+            dl->AddLine(ImVec2(c.x - r * 1.3f, c.y), ImVec2(c.x + r * 1.3f, c.y), fg, t);
+            dl->AddLine(ImVec2(c.x, c.y - r * 1.3f), ImVec2(c.x, c.y + r * 1.3f), fg, t);
+        } else {
+            const float h = r * 0.55f;
+            dl->AddLine(ImVec2(c.x - r * 1.2f, c.y), ImVec2(c.x + r * 1.2f, c.y), fg, t);
+            dl->AddTriangleFilled(ImVec2(c.x - r * 1.35f, c.y), ImVec2(c.x - r * 0.6f, c.y - h), ImVec2(c.x - r * 0.6f, c.y + h), fg);
+            dl->AddTriangleFilled(ImVec2(c.x + r * 1.35f, c.y), ImVec2(c.x + r * 0.6f, c.y - h), ImVec2(c.x + r * 0.6f, c.y + h), fg);
+        }
+        if (click && (i == 1) != a.centreTuning) { a.centreTuning = i == 1; savePrefs(a); }
+        if (hov) ImGui::SetTooltip("%s", i == 1 ? tr("Centre tuning: a click retunes the radio so the clicked frequency is in the middle of the spectrum")
+                                                : tr("Normal tuning (default): a click moves the tuned frequency inside the captured band and keeps the radio centre; outside the band the radio retunes"));
+    }
+    ImGui::SetCursorScreenPos(keep);
+    return w + m;
+}
+
+// Dragging the spectrum or waterfall pans the view (plot.cpp). A drag that runs past the band the radio captures retunes the radio centre by
+// the overflow, at most about 14 times a second and coalesced; a file or a stopped radio only pans within its band.
+static void dragRetune(App& a) {
+    static tunedrag::Pacer pacer;
+    const double ov = plt::PanOverflowX();
+    const bool held = ImGui::IsMouseDown(0);
+    if (!held) { pacer.pending = 0; return; }
+    if (a.touchUi || ov == 0 || !a.engine.running() || a.second.drawing) return;
+    const bool file = !a.devices.empty() && a.devIdx >= 0 && a.devIdx < (int)a.devices.size() && (a.devices[a.devIdx].kind == DeviceInfo::File || a.devices[a.devIdx].isAudio());
+    if (file) return;
+    const double d = pacer.step(ov, glfwGetTime());
+    if (d == 0) return;
+    double lo = 0.001, hi = dect2::kMaxTuneMhz;
+    if (a.family >= 6) if (const ModeTuning* mt = modeTuning(a.family + 2)) { lo = mt->minMhz; hi = mt->maxMhz; }
+    double applied = 0;
+    const double nf = tunedrag::dragCentre(a.freqMhz, d, lo, hi, applied);
+    if (std::fabs(applied) < 1e-9) return;
+    tuneFreq(a, nf);   // the dial moves with the centre (mode tune offsets are added by radioCenterMhz), one retune per step
 }
 
 static void spectrumPlot(App& a, ImVec2 size, int extraFlags) {
@@ -928,8 +988,10 @@ static void spectrumPlot(App& a, ImVec2 size, int extraFlags) {
         gSpecBtnW = cornerPopup(a, "Spectrum###specbtn", "##specpop", plotMin, plotSize, gBwBtnW + gWideBtnW, ImGui::CalcTextSize(kYLabel).x + 24 * gUi, 0, false,
                                 tr("Spectrum: averaging, max hold, peak markers, fill, grid and the unit (dBFS or dBm)"), specDisplayPopup);
         const float idW = identifyButton(a, plotMin, plotSize, gBwBtnW + gWideBtnW + gSpecBtnW);
-        autoLabelsButton(a, plotMin, plotSize, gBwBtnW + gWideBtnW + gSpecBtnW + idW);
+        const float alW = autoLabelsButton(a, plotMin, plotSize, gBwBtnW + gWideBtnW + gSpecBtnW + idW);
+        tuneStyleButtons(a, plotMin, plotSize, gBwBtnW + gWideBtnW + gSpecBtnW + idW + alW);
     }
+    dragRetune(a);
     // right-click: what is this signal?
     if (openCtx) ImGui::OpenPopup("##specctx");
     if (ImGui::BeginPopup("##specctx")) {
