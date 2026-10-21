@@ -36,7 +36,9 @@ public:
     // Sound (volume, mute) as in FmReceiver; the app pushes its shared controls here. The AMBE+2 voice of one time slot is played (mbelib, as in NXDN).
     void setVolume(float v);                             // 0 .. 1
     void setMuted(bool m);
-    void setSilent(bool s);                              // decode but do not open the sound device (tests, command line)
+    void setListenSlot(int slot);                        // 0 the first slot heard (default), 1 or 2: only that time slot is decoded and played
+    uint64_t encryptedBurstsSkipped() const;             // voice bursts of calls marked encrypted that were not decoded
+    void setSilent(bool s);                             // decode but do not open the sound device (tests, command line)
     void setAudioTap(std::function<void(const float* left, const float* right, size_t n)> cb);   // tests: the 48 kHz sound, called from feed() (8 kHz AMBE+2 speech interpolated to 48 kHz; left == right)
     // The voice bursts as they arrive: slot (1 or 2), position in the superframe (0 = A ... 5 = F), the 216 vocoder bits VS(215)..VS(0) packed into 27 octets.
     void setVoiceCallback(std::function<void(int slot, int pos, const uint8_t* bits27)> cb);

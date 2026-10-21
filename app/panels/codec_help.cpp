@@ -9,6 +9,7 @@
 #include "dect2/nxdn/nxdn_ambe.h"
 #include "dect2/p25/p25_imbe.h"
 #include "dect2/engine/updater.h"
+#include "../codec/speech_codec_ui.h"
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -64,11 +65,17 @@ Text textOf(CodecHelp c) {
                 true};
     case CodecHelp::DmrAmbe:
         return {"AMBE+2 (DMR voice)",
-                "DMR voice uses AMBE+2, a patented vocoder. OnAir finds, counts and logs voice calls, but plays no sound, and it cannot load an "
-                "AMBE library yet.",
-                "To hear DMR voice, use a separate program such as DSD-FME (github.com/lwvmobile/dsd-fme), which uses the mbelib "
-                "library. Check the patent rules where you live first.",
-                false};
+                "DMR voice uses AMBE+2, a patented vocoder. OnAir does not ship it. Put a codec plug-in (onair-codec-ambe2, built around a library such as mbelib; "
+                "docs/CODECS.md has the ABI and a small example wrapper) or the libmbe library itself in the codecs folder, and OnAir decodes and plays the voice of one "
+                "time slot (choose slot 1, slot 2 or the first heard). Encrypted calls are never decoded. Check the patent and radio rules where you live first.",
+#if defined(__APPLE__)
+                kMbeMac,
+#elif defined(_WIN32)
+                kMbeWin,
+#else
+                kMbeLinux,
+#endif
+                true};
     case CodecHelp::Hdc:
         return {"HDC (HD Radio sound)",
                 "HD Radio sound uses HDC, a patented codec (a modified HE-AAC) owned by Xperi. OnAir does not ship it and contains no HDC code: "
@@ -238,6 +245,10 @@ void codecHelpButton(CodecHelp c, const char* label) {
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30);
         ImGui::TextUnformatted(t.title);
         ImGui::Separator();
+        {   // the AMBE / IMBE family: the shared plug-in install helper first
+            const char* pid = c == CodecHelp::DmrAmbe || c == CodecHelp::NxdnAmbe || c == CodecHelp::DpmrAmbe ? "ambe2" : c == CodecHelp::DstarAmbe ? "ambe" : c == CodecHelp::P25Imbe ? "imbe" : nullptr;
+            if (pid) { appcodec::codecInstallHelper(pid); ImGui::Separator(); }
+        }
         if (c == CodecHelp::Ac4) {   // its own layout: the optional FFmpeg, not mbelib or codec2
             const dect2::Ac4LibInfo li = dect2::ac4Library();
             if (li.hasDecoder) ImGui::TextColored(pal::okGreen(), "AC-4 decoder found: %s", li.path.c_str());

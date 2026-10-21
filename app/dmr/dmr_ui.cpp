@@ -1,6 +1,8 @@
 // DMR screens: the two time slots and the call log, the symbol plots, the receiver counters and the options of the test signal.
 #include "app.h"
 #include "dect2/dmr/dmr_ambe.h"
+#include "../codec/speech_codec_ui.h"
+#include "dect2/codec/codec_registry.h"
 #include "dect2/dmr/dmr_proto.h"
 #include <algorithm>
 #include <cmath>
@@ -10,6 +12,7 @@ namespace {
 
 struct State {
     bool wasRunning = false;
+    int listenSlot = 0;              // 0 first heard, 1, 2
     uint64_t lastSeq = 0;
     std::deque<float> snr, ber;      // a point per report (about four a second)
 };
@@ -21,8 +24,10 @@ const ImVec4 kDim(0.62f, 0.65f, 0.68f, 1);
 
 void tick(App& a) {
     const bool run = a.engine.running();
-    if (run) {   // the sound controls do nothing yet (no vocoder) but are kept in step, so that a codec can be plugged in
-        a.engine.dmr().setVolume(a.volume);   // AMBE+2 through mbelib when the vocoder is present
+    if (live(a)) appcodec::voiceCodecTick("ambe2");   // the user's codec plug-in, loaded whichever tab is shown
+    if (run) {
+        a.engine.dmr().setVolume(a.volume);   // AMBE+2 through the codec plug-in or mbelib when present
+        a.engine.dmr().setListenSlot(S.listenSlot);
         a.engine.dmr().setMuted(a.muted);
     }
     if (run && !S.wasRunning) { S.snr.clear(); S.ber.clear(); }
@@ -241,14 +246,27 @@ void tab(App& a) {
     codecHelpButton(CodecHelp::DmrAmbe);
     ImGui::SameLine();
     {
-        const bool mbe = dect2::dmrAmbeAvailable();
+        std::string vp;
+        const bool plug = dect2::codec::pluginLoaded("ambe2", &vp);
+        const bool mbe = plug || dect2::dmrAmbeAvailable(&vp);
         ImGui::PushStyleColor(ImGuiCol_Text, mbe ? pal::okGreen() : pal::warnAmber());
         ImGui::PushTextWrapPos(0);
-        ImGui::TextUnformatted(mbe
-            ? "Voice is decoded: AMBE+2 through the mbelib you installed. Follow a slot to hear it."
-            : "Voice is not decoded: DMR uses AMBE+2. Install mbelib (see ?). Calls are still found and logged.");
+        ImGui::TextUnformatted(mbe ? (plug ? "Voice codec loaded: AMBE+2 plug-in. Encrypted calls are shown as ENC and not decoded." : "Voice codec loaded: AMBE+2 through the mbelib you installed. Encrypted calls are not decoded.")
+                                   : "Voice codec missing: DMR uses AMBE+2. Install the plug-in (see ?). Calls are still found and logged.");
         ImGui::PopTextWrapPos();
         ImGui::PopStyleColor();
+        if (mbe) ImGui::TextDisabled("%s", vp.c_str());
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Listen to");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(130 * gUi);
+        const char* ls[3] = {"first heard", "slot 1", "slot 2"};
+        if (ImGui::BeginCombo("##dmrlisten", ls[S.listenSlot])) {
+            for (int i = 0; i < 3; i++) if (ImGui::Selectable(ls[i], S.listenSlot == i)) S.listenSlot = i;
+            ImGui::EndCombo();
+        }
+        if (t.audioSlot && on) { ImGui::SameLine(); ImGui::TextDisabled("playing slot %d", t.audioSlot); }
+        if (ImGui::TreeNode("Install helper")) { appcodec::codecInstallHelper("ambe2"); ImGui::TreePop(); }
     }
     if (on && !t.cachInfo.empty() && t.cachInfo != "null") ImGui::TextDisabled("CACH: %s", t.cachInfo.c_str());
     ImGui::Spacing();

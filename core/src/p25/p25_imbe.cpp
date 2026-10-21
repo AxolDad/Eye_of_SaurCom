@@ -1,6 +1,7 @@
 // IMBE through the user-installed mbelib (see p25_imbe.h); the loader is shared with the other voice decoders (source/mbe_dyn.h).
 #include "dect2/p25/p25_imbe.h"
 #include "../source/mbe_dyn.h"
+#include "dect2/codec/codec_registry.h"
 #include <cstring>
 
 namespace dect2 {
@@ -10,25 +11,34 @@ using FrameFn = void (DECT2_CALL*)(short* aout, int* errs, int* errs2, char* err
 mbe::Loader<FrameFn> gMbe("mbe_processImbe7200x4400Frame");
 } // namespace
 
-bool p25ImbeAvailable(std::string* path) { return gMbe.available(path); }
+bool p25ImbeAvailable(std::string* path) { return codec::pluginLoaded("imbe", path) || gMbe.available(path); }
 bool p25ImbeRescan() { return gMbe.rescan(); }
 
 struct P25Imbe::Impl {
     const mbe::Api<FrameFn>* a = nullptr;
     mbe::State s;
+    std::unique_ptr<codec::SpeechCodec> plug;   // the user's codec plug-in "imbe" (docs/CODECS.md); preferred over mbelib
 };
 
 P25Imbe::P25Imbe() : p_(std::make_unique<Impl>()) {
+    p_->plug = codec::pluginVocoder("imbe");
+    if (p_->plug) return;
     const mbe::Api<FrameFn>& a = gMbe.api();
     if (!a.ok) return;
     p_->a = &a;
     a.init(p_->s.cur.data(), p_->s.prev.data(), p_->s.enh.data());
 }
 P25Imbe::~P25Imbe() = default;
-bool P25Imbe::ok() const { return p_->a != nullptr; }
+bool P25Imbe::ok() const { return p_->plug || p_->a != nullptr; }
 
 void P25Imbe::decode(const char frIn[8][23], int16_t pcm[160]) {
-    if (!p_->a) { memset(pcm, 0, 160 * sizeof(int16_t)); return; }
+    if (!p_->a && !p_->plug) { memset(pcm, 0, 160 * sizeof(int16_t)); return; }
+    if (p_->plug) {
+        const std::vector<int16_t> v = p_->plug->decode(codec::packCodeWords(&frIn[0][0], 8, 23));
+        memset(pcm, 0, 160 * sizeof(int16_t));
+        for (size_t i = 0; i < v.size() && i < 160; i++) pcm[i] = v[i];
+        return;
+    }
     char fr[8][23], d[88] = {}, err[64] = {};
     memcpy(fr, frIn, sizeof fr);
     int e1 = 0, e2 = 0;
