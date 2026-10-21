@@ -308,20 +308,20 @@ CarrierDecode decodeCarrier(const cf32* x, size_t n, int kMcc, int kMnc, int kCc
         for (const auto& m : out.macs) for (const auto& e : m.calls) calls->onEvent(e, nowSec);
     }
     if (!traffic.empty()) {
-        // Encryption state of the cell from this capture: known only when clear MAC-RESOURCE signalling was read; any encrypted
-        // PDU or an advertised air interface encryption service means encrypted. Unknown counts as encrypted.
+        // What the signalling of this capture says about the cell: any encrypted PDU means encrypted; the air interface encryption service
+        // may be advertised. Whether the call is clear is known from its set-up PDU alone (CallTracker, read from the clear MAC-RESOURCE
+        // signalling of this or an earlier capture): a capture taken during a talk spurt often has no MAC-RESOURCE at all, only null PDUs,
+        // broadcasts and the traffic itself, and demanding one here refused whole captures of a clear call. Unknown counts as encrypted.
         CallEncryption cell;
         for (const auto& m : out.macs) {
-            if (m.resources > 0) cell.known = true;
             if (m.encrypted > 0) cell.encMode = 1;
             if (m.sysinfo && m.si.bsService >= 0 && (m.si.bsService & kSvcAirEncryption)) cell.cellOffersEncryption = true;
         }
         for (const auto& tr : traffic) {
-            // the cell-level gate AND the per-call gate: clear only when both say clear; the call's set-up PDU must have said "no encryption"
-            CallEncryption ce = cell;
-            const CallEncryption call = calls ? calls->slotState(tr.tn, nowSec) : CallEncryption{};
-            if (!call.known) ce.known = false;
-            if (call.encMode != 0) ce.encMode = 1;
+            // the per-call gate AND the cell-level gate: clear only when the call's set-up PDU said "no encryption" and no PDU of the capture is encrypted
+            CallEncryption ce = calls ? calls->slotState(tr.tn, nowSec) : CallEncryption{};
+            ce.cellOffersEncryption = cell.cellOffersEncryption;
+            if (cell.encMode != 0) ce.encMode = 1;
             // one timeslot reaches the codec: two calls (or a call and its other slots) through one speech decoder would be heard in turn
             SpeechFrameSink* to = voiceTn <= 0 || tr.tn == voiceTn ? sink : nullptr;
             const VoiceVerdict v = processTrafficBurst(tr.t.data(), tr.t.data() + 216, scr, ce, to);

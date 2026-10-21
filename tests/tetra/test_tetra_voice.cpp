@@ -137,6 +137,31 @@ int main() {
         {   Sink k; const CarrierDecode d = decode(-2, ts, k);
             CHECK(k.calls == 0 && d.voiceTn == 0 && d.voicePassed == 0, "no call set-up heard: nothing reaches the sink"); }
     }
+    {   // decodeCarrier: a capture with no MAC-RESOURCE at all (frames 2 to 18 of the clear cell: null PDUs, SYSINFO and the traffic slot, as a
+        // capture taken during a talk spurt looks on the air) still gives the voice of a call whose clear set-up was read from an earlier capture;
+        // an encrypted PDU of the capture still refuses it, and so does a set-up never heard
+        const dect2::TetraCellCfg cell = dect2::tetraTestCell(1, 1);
+        const int ts = cell.trafficTs;
+        const double now = 100;
+        auto capture = [&](bool encryptedSignalling, bool setupHeard, Sink& sink, int& resources) {
+            dect2::TetraCellCfg c = cell; c.encryptedSignalling = encryptedSignalling;
+            Modulator mod; std::vector<dect2::cf32> x;
+            const uint32_t a0 = 33u * 72u + 4u;   // multiframe 34, frame 2, timeslot 1: frame 1 (the only MAC-RESOURCE of the cell) is left out
+            for (uint32_t a = 0; a < 17u * 4u; a++) mod.push(cellSlot(c, a0 + a), x);
+            CallTracker calls; calls.setMainCarrier(c.si.mainCarrier);
+            if (setupHeard) { CallEvent e; e.kind = 1; e.callId = 7; e.enc = 0; e.slots = 1 << (4 - ts); e.carrier = c.si.mainCarrier; calls.onEvent(e, now - 5); }
+            const CarrierDecode d = decodeCarrier(x.data(), x.size(), -1, -1, -1, &sink, &calls, now, -1);
+            resources = 0; for (const auto& m : d.macs) resources += m.resources;
+            return d;
+        };
+        {   Sink k; int res = 0; const CarrierDecode d = capture(false, true, k, res);
+            CHECK(d.synced && d.trafficSlots > 0 && res == 0, "the capture has traffic (%d) and no MAC-RESOURCE (%d)", d.trafficSlots, res);
+            CHECK(k.calls > 0 && k.calls == d.voicePassed && d.voiceTn == ts, "no MAC-RESOURCE in the capture, call known clear: voice (%d of %d, slot %d, %s)", k.calls, d.trafficSlots, d.voiceTn, d.voiceStatus); }
+        {   Sink k; int res = 0; const CarrierDecode d = capture(true, true, k, res);
+            CHECK(res > 0 && k.calls == 0 && d.voicePassed == 0 && d.voiceNotDecoded > 0, "an encrypted PDU in the capture: nothing reaches the sink (%s)", d.voiceStatus); }
+        {   Sink k; int res = 0; const CarrierDecode d = capture(false, false, k, res);
+            CHECK(k.calls == 0 && d.voicePassed == 0 && d.voiceNotDecoded > 0, "no set-up heard: nothing reaches the sink"); }
+    }
     printf(fails ? "tetra voice: %d FAILED\n" : "tetra voice: all passed\n", fails);
     return fails ? 1 : 0;
 }

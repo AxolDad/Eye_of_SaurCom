@@ -26,8 +26,8 @@ public:
 
 enum class VoiceVerdict { Passed, EncryptedNotDecoded, StateUnknownNotDecoded };
 
-// What the signalling of the call or cell says about air interface encryption: encMode is the MAC-RESOURCE encryption mode
-// (0 clear, anything else encrypted), known is false when no clear signalling of this call or cell was seen.
+// What the signalling of the call and the cell says about air interface encryption: encMode is the MAC-RESOURCE encryption mode
+// (0 clear, anything else encrypted), known is false when no clear set-up signalling of this call was seen.
 struct CallEncryption {
     bool known = false;
     int encMode = 0;
