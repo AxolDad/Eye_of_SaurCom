@@ -10,6 +10,7 @@
 #include "dect2/df/df.h"
 #include "dect2/df/position.h"
 #include "dect2/df/source.h"
+#include "dect2/df/rtl_group.h"
 #include "dect2/geo/maidenhead.h"
 #include <algorithm>
 #include <cmath>
@@ -22,7 +23,28 @@ namespace {
 
 using namespace dect2::df;
 
-enum SrcKind { SrcSim, SrcFile, SrcJson, NumSrc };
+enum SrcKind { SrcSim, SrcFile, SrcJson, SrcHub, NumSrc };
+
+// A KrakenSDR / KerberosSDR hub found on the USB bus (unverified on real hardware). The group lives here; the source below only forwards to it.
+dect2::df::Hub gHub;
+std::string gHubLabel;
+struct HubSource : dect2::df::MultiChannelSource {
+    int channels() const override { return gHub.group->channels(); }
+    double sampleRate() const override { return gHub.group->sampleRate(); }
+    double centerFreq() const override { return gHub.group->centerFreq(); }
+    bool read(dect2::df::Frame& o, size_t n) override { return gHub.group->read(o, n); }
+};
+bool openHub(double hz) {
+    gHub = dect2::df::Hub{};
+    auto info = dect2::df::findHub(dect2::df::listNativeRtl());
+    if (info.empty()) return false;
+    std::vector<std::unique_ptr<dect2::df::RtlLink>> links;
+    for (auto& d : info) { auto l = dect2::df::makeNativeRtlLink(d.index); if (!l) return false; links.push_back(std::move(l)); }
+    dect2::df::HubStart hs; hs.freqHz = hz; hs.rateHz = 1.024e6; hs.gainTenthsDb = 200;
+    if (!dect2::df::startHub(std::move(links), hs, gHub)) return false;
+    gHubLabel = dect2::df::hubLabel(info);
+    return true;
+}
 enum Geometry { GeoUca, GeoUla, NumGeo };
 
 struct Hist { double t, bearing, conf; };
@@ -118,7 +140,14 @@ std::vector<cd> simGains() {
 
 void rebuildSource(double hz, bool noise = false) {
     S.source.reset();
-    if (S.src == SrcSim) {
+    if (S.src == SrcHub) {
+        if (!gHub.group || std::abs(gHub.group->centerFreq() - hz) > 1) {
+            if (!openHub(hz)) { S.msg = tr("No KrakenSDR / KerberosSDR found (dongles with serials 1000 to 1004), or the RTL-SDR library is missing."); return; }
+            S.msg = gHubLabel + tr(": press Calibrate before measuring.");
+        }
+        S.elements = gHub.group->channels();
+        S.source = std::make_unique<HubSource>();
+    } else if (S.src == SrcSim) {
         SimConfig c;
         c.array = arrayFor(hz); c.freqHz = hz; c.sampleRate = 250e3; c.seed = (uint64_t)ImGui::GetTime() + 1;
         SimSource a; a.bearingDeg = S.simBearing - S.compass; a.snrDb = S.simSnr; c.sources.push_back(a);
@@ -164,6 +193,15 @@ bool step(double hz, size_t n, CMat* covOut = nullptr) {
 
 void calibrate(double hz) {
     const bool noise = S.calMode == 0;
+    if (S.src == SrcHub) {
+        if (!gHub.group) rebuildSource(hz);
+        if (!gHub.group || !gHub.noise) { S.msg = tr("Choose a source first."); return; }
+        // the DoA hub's noise source is switched through the first dongle's GPIO line (unverified); the group removes the offsets itself
+        S.msg = dect2::df::calibrateHub(gHub, *gHub.noise) ? tr("Calibration stored.") : tr("Calibration failed: the channels are not coherent, or the noise source did not switch.");
+        S.useCal = false;
+        S.avg.clear();
+        return;
+    }
     if (S.src == SrcSim) { rebuildSource(hz, noise); if (!noise) { /* known-bearing: the simulator's own source acts as the calibrator */ } }
     if (!S.source) { S.msg = tr("Choose a source first."); return; }
     Frame x;
@@ -343,7 +381,7 @@ void drawWindow(App& a) {
     const double hz = tunedHz(a);
     bool ch = false;
     {   // source and frequency
-        const char* items[] = {N_("Simulator (demo, no hardware)"), N_("Recording (cf32 / SigMF)"), N_("KrakenSDR bearing file (JSON)")};
+        const char* items[] = {N_("Simulator (demo, no hardware)"), N_("Recording (cf32 / SigMF)"), N_("KrakenSDR bearing file (JSON)"), N_("KrakenSDR / KerberosSDR (USB)")};
         ImGui::SetNextItemWidth(250 * gUi);
         if (ImGui::BeginCombo("##dfsrc", tr(items[S.src]))) {
             for (int i = 0; i < NumSrc; i++) if (ImGui::Selectable(tr(items[i]), S.src == i)) { S.src = i; S.builtKey = -1; S.source.reset(); S.avg.clear(); S.hist.clear(); ch = true; }
@@ -357,7 +395,7 @@ void drawWindow(App& a) {
         ImGui::SameLine();
         ImGui::Checkbox(tr("Run"), &S.run);
     }
-    if (S.src != SrcSim) {
+    if (S.src == SrcFile || S.src == SrcJson) {
         ImGui::SetNextItemWidth(380 * gUi);
         if (ImGui::InputText("##dfpath", S.path, sizeof S.path)) { S.builtKey = -1; S.source.reset(); }
         ImGui::SameLine(); ImGui::TextDisabled("%s", S.src == SrcFile ? tr("path of the recording") : tr("a file the DoA server's JSON lines are saved to"));
