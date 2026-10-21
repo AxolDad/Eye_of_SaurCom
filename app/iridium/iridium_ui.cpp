@@ -26,6 +26,10 @@ struct State {
     float pushedThr = -1;
     char bitsName[256] = "output.bits";   // iridium-toolkit file, in the recordings folder unless a full path is typed
     std::string bitsErr;
+    bool netOn = false, netTcp = false, autoTried = false, fileAuto = false;   // live copy of the RAW lines to host:port
+    char netHost[64] = "127.0.0.1";
+    int netPort = 4242;
+    std::string netErr;
 };
 State S;
 
@@ -39,6 +43,12 @@ void loadState() {
     S.thrDb = (float)d.getD("iridiumThr", 13.0);
     const std::string bn = d.getS("iridiumBitsName", "output.bits");
     snprintf(S.bitsName, sizeof S.bitsName, "%s", bn.empty() ? "output.bits" : bn.c_str());
+    S.netOn = d.getI("iridiumNetOn", 0) != 0;
+    S.netTcp = d.getI("iridiumNetTcp", 0) != 0;
+    S.fileAuto = d.getI("iridiumBitsOn", 0) != 0;
+    S.netPort = (int)d.getI("iridiumNetPort", 4242);
+    const std::string nh = d.getS("iridiumNetHost", "127.0.0.1");
+    snprintf(S.netHost, sizeof S.netHost, "%s", nh.empty() ? "127.0.0.1" : nh.c_str());
 }
 
 ImU32 satColour(int id, float alpha = 1.f) {
@@ -555,23 +565,58 @@ void toolkitSave(App& a) {
     if (ImGui::InputText("##irbname", S.bitsName, sizeof S.bitsName)) plat::prefs().setS("iridiumBitsName", S.bitsName);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("File name in the recordings folder, or a full path.");
     ImGui::EndDisabled();
+    auto bitsPathFor = [&]() {
+        const std::string name = S.bitsName[0] ? S.bitsName : "output.bits";
+        const bool full = name.find_first_of("/\\") != std::string::npos;
+        return full ? name : plat::dataDir() + "/recordings/" + name;
+    };
+    auto startFile = [&]() { S.bitsErr.clear(); if (!r.startBitsFile(bitsPathFor(), &S.bitsErr) && S.bitsErr.empty()) S.bitsErr = "cannot write the file"; };
+    auto startNet = [&]() { S.netErr.clear(); if (!r.startBitsStream(S.netTcp, S.netHost, S.netPort, &S.netErr)) S.netOn = false; };
+    // settings persist: what was on when the app closed starts again with the receiver
+    if (!S.autoTried && a.engine.running()) {
+        S.autoTried = true;
+        if (S.fileAuto && !r.bitsFileOpen()) startFile();
+        if (S.netOn && !r.bitsStreamOpen()) startNet();
+    }
     ImGui::BeginDisabled(!a.engine.running() && !on);
     if (ImGui::Button(on ? "Stop##irb" : "Start##irb")) {
-        if (on) r.stopBitsFile();
-        else {
-            const std::string name = S.bitsName[0] ? S.bitsName : "output.bits";
-            const bool full = name.find_first_of("/\\") != std::string::npos;
-            const std::string path = full ? name : plat::dataDir() + "/recordings/" + name;
-            S.bitsErr.clear();
-            r.startBitsFile(path, &S.bitsErr);
-        }
+        if (on) { r.stopBitsFile(); S.fileAuto = false; }
+        else { startFile(); S.fileAuto = S.bitsErr.empty(); }
+        plat::prefs().setI("iridiumBitsOn", S.fileAuto ? 1 : 0);
     }
     ImGui::EndDisabled();
     ImGui::SameLine(0, 8 * gUi);
     ImGui::AlignTextToFramePadding();
     ImGui::Text("%llu lines", (unsigned long long)r.bitsLines());
-    if (ImGui::IsItemHovered() && !r.bitsPath().empty()) ImGui::SetTooltip("%s", r.bitsPath().c_str());
+    // the full path is always shown: the file goes to the recordings folder unless a full path was typed
+    ImGui::TextDisabled("%s", (on ? r.bitsPath() : bitsPathFor()).c_str());
     if (!S.bitsErr.empty()) ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "%s", S.bitsErr.c_str());
+
+    ImGui::TextDisabled("LIVE COPY (IP)");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sends every RAW line as it is demodulated to host:port.\nUDP: one datagram a line. TCP: connects to a listener (e.g. nc -l 4242), reconnects when it drops.");
+    const bool netLive = r.bitsStreamOpen();
+    ImGui::BeginDisabled(netLive);
+    int proto = S.netTcp ? 1 : 0;
+    ImGui::SetNextItemWidth(60 * gUi);
+    if (ImGui::Combo("##irnproto", &proto, "UDP\0TCP\0")) { S.netTcp = proto == 1; plat::prefs().setI("iridiumNetTcp", proto); }
+    ImGui::SameLine(0, 4 * gUi);
+    ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));
+    if (ImGui::InputText("##irnhost", S.netHost, sizeof S.netHost)) plat::prefs().setS("iridiumNetHost", S.netHost);
+    ImGui::SameLine(0, 4 * gUi);
+    ImGui::SetNextItemWidth(70 * gUi);
+    if (ImGui::InputInt("##irnport", &S.netPort, 0, 0)) plat::prefs().setI("iridiumNetPort", S.netPort);
+    ImGui::EndDisabled();
+    ImGui::BeginDisabled(!a.engine.running() && !netLive);
+    if (ImGui::Button(netLive ? "Stop##irn" : "Start##irn")) {
+        if (netLive) { r.stopBitsStream(); S.netOn = false; S.netErr.clear(); }
+        else { S.netOn = true; startNet(); }
+        plat::prefs().setI("iridiumNetOn", S.netOn ? 1 : 0);
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine(0, 8 * gUi);
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("%llu sent", (unsigned long long)r.bitsStreamLines());
+    if (!S.netErr.empty()) ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "%s", S.netErr.c_str());
 }
 
 void decoder(App& a, bool&) {
