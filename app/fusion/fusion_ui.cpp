@@ -32,6 +32,12 @@ void field(const char* label, const std::string& v) {
 void tick(App& a) {
     if (!a.engine.running()) { S.wasRunning = false; return; }
     dect2::FusionReceiver& r = a.engine.fusion();
+    // Load the voice codec while the mode runs, whichever tab is drawn (the tab only shows the state).
+    if (live(a) && !S.codecGiven &&
+        appcodec::speechCodecPoll("ysf", S.codec).status == dect2::codec::CodecStatus::Ready && S.codec) {
+        r.setSpeechCodec(std::move(S.codec), std::string());
+        S.codecGiven = true;
+    }
     if (!S.wasRunning || a.volume != S.pushedVol || a.muted != S.pushedMute) {
         r.setVolume(a.volume); r.setMuted(a.muted);
         S.pushedVol = a.volume; S.pushedMute = a.muted;
