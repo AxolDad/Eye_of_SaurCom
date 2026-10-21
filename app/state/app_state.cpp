@@ -484,7 +484,8 @@ double radioCenterMhz(const App& a) {
     const ModeTuning* mt = a.family >= 6 ? modeTuning(a.family + 2) : nullptr;
     const bool file = !a.devices.empty() && a.devIdx >= 0 && a.devIdx < (int)a.devices.size() &&
                       (a.devices[a.devIdx].kind == DeviceInfo::File || a.devices[a.devIdx].isAudio() || a.devices[a.devIdx].kind == DeviceInfo::Hamlib);
-    return a.freqMhz + (mt && !file ? mt->tuneOffsetHz / 1e6 : 0.0) + audioViewOffsetHz(a) / 1e6;
+    const double shift = a.engine.running() ? a.engine.decodeShiftHz() / 1e6 : 0.0;   // sticky tuning: the tuned frequency sits this far from the radio centre
+    return a.freqMhz - shift + (mt && !file ? mt->tuneOffsetHz / 1e6 : 0.0) + audioViewOffsetHz(a) / 1e6;
 }
 
 std::vector<double> xs(const App& a) {

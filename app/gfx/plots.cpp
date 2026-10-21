@@ -586,7 +586,7 @@ void specFreqViewUpdate(const App& a) {
     const double fs = (a.engine.sampleRate() > 0 ? a.engine.sampleRate() : a.tune.sampleRate) / 1e6;
     static double lastC = 0, lastFs = 0;
     const double rc = radioCenterMhz(a);
-    if (lastC != rc || lastFs != fs || !(gXHi > gXLo)) { gXLo = rc - fs / 2; gXHi = rc + fs / 2; }
+    if (lastC != rc || lastFs != fs || !(gXHi > gXLo)) { const auto v = tunedrag::viewAfterRetune(gXLo, gXHi, rc, fs, gXHi > gXLo && lastFs == fs); gXLo = v.lo; gXHi = v.hi; }
     lastC = rc;
     lastFs = fs;
     const double bLo = rc - fs / 2, bHi = rc + fs / 2;
@@ -761,6 +761,8 @@ void specDisplayPopup(App& a) {
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Move the radio to the clicked frequency (the usual behaviour)"));
     if (ImGui::RadioButton(tr("Decode offset only"), a.tuningMode == 1)) { a.tuningMode = 1; save = true; }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Keep the radio centre fixed and shift the decoder to the clicked frequency (avoid moving the LO / DC spike)"));
+    if (ImGui::Checkbox(tr("Dragging moves the tuned frequency instead"), &a.dragMovesTuned)) save = true;
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Off: dragging past the band moves the radio and the view, the tuned frequency stays. On: the tuned frequency travels with the radio."));
     if (a.engine.running() && std::fabs(a.engine.decodeShiftHz()) > 1) {
         ImGui::TextDisabled(tr("Decode shift %+.1f kHz"), a.engine.decodeShiftHz() / 1e3);
         if (ImGui::SmallButton(tr("Centre decode"))) { a.engine.setDecodeShiftHz(0); savePrefs(a); }
@@ -856,8 +858,11 @@ static float tuneStyleButtons(App& a, ImVec2 plotMin, ImVec2 plotSize, float rig
 static void dragRetune(App& a) {
     static tunedrag::Pacer pacer;
     const double ov = plt::PanOverflowX();
+    static bool dragSaved = true;
     const bool held = ImGui::IsMouseDown(0);
-    if (!held) { pacer.pending = 0; return; }
+    if (plt::IsPlotHeld() && ImGui::IsMouseDragging(0, 4)) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);   // grabbing
+    else if (plt::IsPlotHovered() && !held && !a.identifyTool && !ImGui::GetIO().KeyShift) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    if (!held) { pacer.pending = 0; if (!dragSaved) { dragSaved = true; savePrefs(a); } return; }
     if (a.touchUi || ov == 0 || !a.engine.running() || a.second.drawing) return;
     const bool file = !a.devices.empty() && a.devIdx >= 0 && a.devIdx < (int)a.devices.size() && (a.devices[a.devIdx].kind == DeviceInfo::File || a.devices[a.devIdx].isAudio());
     if (file) return;
@@ -865,10 +870,17 @@ static void dragRetune(App& a) {
     if (d == 0) return;
     double lo = 0.001, hi = dect2::kMaxTuneMhz;
     if (a.family >= 6) if (const ModeTuning* mt = modeTuning(a.family + 2)) { lo = mt->minMhz; hi = mt->maxMhz; }
-    double applied = 0;
-    const double nf = tunedrag::dragCentre(a.freqMhz, d, lo, hi, applied);
-    if (std::fabs(applied) < 1e-9) return;
-    tuneFreq(a, nf);   // the dial moves with the centre (mode tune offsets are added by radioCenterMhz), one retune per step
+    const double shiftMhz = a.engine.decodeShiftHz() / 1e6;
+    const double centre = a.freqMhz - shiftMhz;   // the radio's dial; the tuned (demodulated) dial is freqMhz, so mode tune offsets cancel
+    const double fs = (a.engine.sampleRate() > 0 ? a.engine.sampleRate() : a.tune.sampleRate) / 1e6;
+    const tunedrag::DragResult r = tunedrag::dragWithMarker(centre, a.freqMhz, d, lo, hi, fs, a.dragMovesTuned);
+    if (std::fabs(r.centre - centre) < 1e-9) return;
+    a.tune.centerHz = r.centre * 1e6;
+    a.freqMhz = r.tuned;
+    a.engine.retune(a.tune);
+    a.engine.setDecodeShiftHz((r.tuned - r.centre) * 1e6);
+    a.peak.clear();
+    dragSaved = false;
 }
 
 static void spectrumPlot(App& a, ImVec2 size, int extraFlags) {
