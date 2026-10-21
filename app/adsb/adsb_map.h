@@ -21,6 +21,10 @@ bool draw(View& v, ImVec2 size);
 ImVec2 project(double lat, double lon);        // screen position
 void unproject(ImVec2 p, double& lat, double& lon);   // the other way: where on Earth a screen position is
 bool clickedAt(ImVec2& p);                     // the map was clicked (not dragged); where
+unsigned seaColour();                          // 0xRRGGBB of the map background now
+unsigned overlayText();                        // 0xRRGGBB text colour readable on it (labels over the map)
+unsigned panelColour();                        // 0xRRGGBB backing for panels drawn over the map
+unsigned legible(unsigned rgb);                // a marker/line colour pushed to hold contrast on the map background
 bool tilesAvailable();                         // at least one tile is on screen
 void legend(float mapWidth, const char* fmt, ...);   // TextDisabled() along the bottom left of the map (the cursor put there): cut short before the credit
 // The controls every map has, on the line of the screen's own buttons: a "tiles" button with its menu (whether downloaded tiles are kept or

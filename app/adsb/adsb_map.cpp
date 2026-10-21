@@ -4,6 +4,7 @@
 #include "dect2/geo/mbtiles.h"
 #include "dect2/geo/tilecache.h"
 #include "dect2/geo/worldlow.h"
+#include "map/map_colours.h"
 #include <algorithm>
 #include <atomic>
 #include <cmath>
@@ -345,6 +346,34 @@ bool tilesAvailable() { return gAny; }
 
 const char* const kCredit = "map: OpenStreetMap contributors";
 
+// The map colours (the "tiles" menu > Map colours): a preset or custom, kept in the settings (mapColPreset, mapCol*), one for every map.
+mapcol::Scheme gScheme = mapcol::kPresets[mapcol::kDefault].s;
+int gSchemeSel = mapcol::kDefault;
+bool gSchemeLoaded = false;
+ImU32 u32(uint32_t c, int a = 255) { return IM_COL32((c >> 16) & 255, (c >> 8) & 255, c & 255, a); }
+void schemeLoad() {
+    gSchemeLoaded = true;
+    int sel = (int)plat::prefs().getI("mapColPreset", mapcol::kDefault);
+    if (sel < 0 || sel > mapcol::kCustom) sel = mapcol::kDefault;
+    gSchemeSel = sel;
+    if (sel < mapcol::kCustom) { gScheme = mapcol::kPresets[sel].s; return; }
+    auto g = [](const char* k, uint32_t d) { return (uint32_t)(plat::prefs().getI(k, (int)d) & 0xFFFFFF); };
+    const mapcol::Scheme& d = mapcol::kPresets[mapcol::kDefault].s;
+    gScheme = {g("mapColSea", d.sea), g("mapColGrid", d.grid), g("mapColCoast", d.coast), g("mapColLabel", d.label), g("mapColTint", d.tint)};
+}
+void schemeSave() {
+    plat::prefs().setI("mapColPreset", gSchemeSel);
+    plat::prefs().setI("mapColSea", (int)gScheme.sea); plat::prefs().setI("mapColGrid", (int)gScheme.grid); plat::prefs().setI("mapColCoast", (int)gScheme.coast);
+    plat::prefs().setI("mapColLabel", (int)gScheme.label); plat::prefs().setI("mapColTint", (int)gScheme.tint);
+    plat::prefs().flush();
+}
+const mapcol::Scheme& scheme() { if (!gSchemeLoaded) schemeLoad(); return gScheme; }
+
+unsigned seaColour() { return scheme().sea; }
+unsigned overlayText() { return mapcol::textOn(scheme().sea); }
+unsigned panelColour() { return mapcol::panelOn(scheme().sea); }
+unsigned legible(unsigned c) { return mapcol::legibleOn(c, scheme().sea); }
+
 bool draw(View& v, ImVec2 size) {
     init();
     if (onlineMap) start();
@@ -375,16 +404,16 @@ bool draw(View& v, ImVec2 size) {
     gOrigin = p0; gSize = size; gZoom = v.zoom;
     gCx = mercX(v.lon, v.zoom); gCy = mercY(v.lat, v.zoom);
     dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
-    dl->AddRectFilled(p0, ImVec2(p0.x + size.x, p0.y + size.y), IM_COL32(14, 16, 18, 255));
+    dl->AddRectFilled(p0, ImVec2(p0.x + size.x, p0.y + size.y), u32(scheme().sea));
     // graticule every 10 degrees (what remains when there are no tiles)
     {
-        for (int lo = -180; lo <= 180; lo += (v.zoom < 4 ? 30 : 10)) { const float x = p0.x + size.x * 0.5f + (float)(mercX(lo, v.zoom) - gCx); if (x > p0.x && x < p0.x + size.x) dl->AddLine(ImVec2(x, p0.y), ImVec2(x, p0.y + size.y), IM_COL32(30, 34, 38, 255)); }
-        for (int la = -80; la <= 80; la += (v.zoom < 4 ? 30 : 10)) { const float y = p0.y + size.y * 0.5f + (float)(mercY(la, v.zoom) - gCy); if (y > p0.y && y < p0.y + size.y) dl->AddLine(ImVec2(p0.x, y), ImVec2(p0.x + size.x, y), IM_COL32(30, 34, 38, 255)); }
+        for (int lo = -180; lo <= 180; lo += (v.zoom < 4 ? 30 : 10)) { const float x = p0.x + size.x * 0.5f + (float)(mercX(lo, v.zoom) - gCx); if (x > p0.x && x < p0.x + size.x) dl->AddLine(ImVec2(x, p0.y), ImVec2(x, p0.y + size.y), u32(gScheme.grid)); }
+        for (int la = -80; la <= 80; la += (v.zoom < 4 ? 30 : 10)) { const float y = p0.y + size.y * 0.5f + (float)(mercY(la, v.zoom) - gCy); if (y > p0.y && y < p0.y + size.y) dl->AddLine(ImVec2(p0.x, y), ImVec2(p0.x + size.x, y), u32(gScheme.grid)); }
     }
     // the rough world outline: under the tiles, and what is left when there are none (offline, nothing downloaded yet)
     if (v.zoom <= 8) {
         const double ws = worldSize(v.zoom);
-        const ImU32 col = IM_COL32(58, 74, 66, 255);
+        const ImU32 col = u32(gScheme.coast);
         std::vector<ImVec2> pts;
         for (const auto& poly : dect2::worldOutline()) {
             pts.clear();
@@ -404,7 +433,7 @@ bool draw(View& v, ImVec2 size) {
     const int n = 1 << v.zoom;
     const int tx0 = (int)std::floor((gCx - size.x * 0.5) / 256.0), tx1 = (int)std::floor((gCx + size.x * 0.5) / 256.0);
     const int ty0 = std::max(0, (int)std::floor((gCy - size.y * 0.5) / 256.0)), ty1 = std::min(n - 1, (int)std::floor((gCy + size.y * 0.5) / 256.0));
-    const ImU32 dim = IM_COL32(120, 128, 140, 255);   // dimmed: the standard map is bright
+    const ImU32 dim = u32(gScheme.tint);   // dimmed in the default: the standard map is bright
     int missing = 0;
     for (int ty = ty0; ty <= ty1; ty++)
         for (int tx = tx0; tx <= tx1; tx++) {
@@ -426,10 +455,10 @@ bool draw(View& v, ImVec2 size) {
         }
     dl->PopClipRect();
     { std::lock_guard<std::mutex> lk(mu); dropStale(ImGui::GetFrameCount()); evict(ImGui::GetFrameCount()); }
-    if (gAny) { const ImVec2 ts = ImGui::CalcTextSize(kCredit); dl->AddText(ImVec2(p0.x + size.x - ts.x - 6, p0.y + size.y - ts.y - 3), IM_COL32(140, 144, 148, 220), kCredit); }
+    if (gAny) { const ImVec2 ts = ImGui::CalcTextSize(kCredit); dl->AddText(ImVec2(p0.x + size.x - ts.x - 6, p0.y + size.y - ts.y - 3), u32(gScheme.label, 220), kCredit); }
     else {   // a line above the caption the screens put along the bottom (legend()), cut short in a narrow map
         const char* m = !onlineMap ? "map switched off: rough outline only" : missing ? "loading the map..." : "no map tiles (no network, or no picture decoder on this system): rough outline only";
-        dl->AddText(ImVec2(p0.x + 8, p0.y + size.y - 2 * ImGui::GetTextLineHeightWithSpacing() - 6), IM_COL32(150, 154, 158, 255), ellipsize(m, size.x - 16).c_str());
+        dl->AddText(ImVec2(p0.x + 8, p0.y + size.y - 2 * ImGui::GetTextLineHeightWithSpacing() - 6), u32(gScheme.label), ellipsize(m, size.x - 16).c_str());
     }
     return hov;
 }
@@ -565,6 +594,34 @@ void mbSettings() {
     ImGui::TextDisabled("Raster 256 px PNG/JPEG tiles only (vector MBTiles cannot be drawn).");
 }
 
+// Map colours: presets, custom colours (sea, grid, outline, text, tile tint), and the reset to today's look.
+void colourSettings() {
+    using namespace mapcol;
+    scheme();
+    ImGui::TextUnformatted("Map colours");
+    ImGui::SetNextItemWidth(170 * gUi);
+    const char* cur = gSchemeSel < kPresetCount ? kPresets[gSchemeSel].name : "Custom";
+    bool ch = false;
+    if (ImGui::BeginCombo("##mapcolpreset", cur)) {
+        for (int i = 0; i < kPresetCount; i++) if (ImGui::Selectable(kPresets[i].name, gSchemeSel == i)) { gSchemeSel = i; gScheme = kPresets[i].s; ch = true; }
+        ImGui::EndCombo();
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Colours of the map on every screen, full screen too. Overlay text, markers and panels adapt to the sea colour.");
+    auto pick = [&](const char* label, uint32_t& c, const char* tip) {
+        float f[3] = {unpack(c).r, unpack(c).g, unpack(c).b};
+        if (ImGui::ColorEdit3(label, f, ImGuiColorEditFlags_NoInputs)) { c = pack({f[0], f[1], f[2]}); gSchemeSel = kCustom; ch = true; }
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tip);
+    };
+    pick("sea / background", gScheme.sea, "The map background (shows where there is no tile, and the sea).");
+    pick("grid", gScheme.grid, "The graticule lines.");
+    pick("land outline / borders", gScheme.coast, "The rough world outline drawn under the tiles.");
+    pick("labels", gScheme.label, "The map caption and credit text.");
+    pick("tile tint", gScheme.tint, "Multiplies the downloaded tile pictures: white leaves them as they are, grey dims them.");
+    if (ImGui::SmallButton("Reset to default")) { gSchemeSel = kDefault; gScheme = kPresets[kDefault].s; ch = true; }
+    if (gSchemeSel == kCustom && ratio(gScheme.label, gScheme.sea) < kMinLabelRatio) ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.4f, 1), "Labels are hard to read on this sea colour.");
+    if (ch) schemeSave();
+}
+
 void tilesMenu(ImVec4 buttonColour) {
     static Usage uk, ut;   // kept, this session's
     static double countedAt = -1e9;   // counted again every 2 s while the menu is open: tiles keep arriving
@@ -638,6 +695,8 @@ void tilesMenu(ImVec4 buttonColour) {
         }
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("When the tiles take more room than this, the ones used longest ago are deleted (checked at start and every 50 downloads). Default 500 MB.");
     }
+    ImGui::Separator();
+    colourSettings();
     ImGui::Separator();
     mbSettings();
     ImGui::Separator();
