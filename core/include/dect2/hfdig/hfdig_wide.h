@@ -25,6 +25,9 @@ public:
     ~HfdigWide();
     // dialHz: the radio's tuned frequency; offsetHz: where it sits in the input
     void configure(double inputRate, double spanHz, double dialHz, double offsetHz, bool ftx, bool rtty);
+    // Explicit slots (hfdig_multiband.h): only these (dial, mode) pairs, each decoded by its own channel; every one inside the span counts,
+    // also one at the reference dialHz. spanHz is the span to cover around dialHz (offsetHz: where dialHz sits in the input).
+    void configureSlots(double inputRate, double spanHz, double dialHz, double offsetHz, const std::vector<FtxSlot>& slots);
     void setOffsetHz(double hz);
     void feed(const cf32* x, size_t n);
     void rttyTelemetry(std::vector<RttyWideSignal>& out);   // the receiver thread
