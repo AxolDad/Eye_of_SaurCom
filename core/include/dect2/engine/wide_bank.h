@@ -141,6 +141,12 @@ public:
                 if (!best || rank(*s) > rank(*best)) best = s.get();
             }
         }
+        if (sel_ == 0 && ops_.audio) {   // none chosen: the sound follows the best locked carrier too (it used to stay silent until a row was clicked); it stays on its carrier while that is as good as the best
+            Slot* cur = nullptr;
+            for (auto& s : live_) if (s->car.id == autoPlay_) cur = s.get();
+            const int want = (cur && best && cur->tel.state >= best->tel.state) ? autoPlay_ : (best ? best->car.id : 0);
+            if (want != autoPlay_) { autoPlay_ = want; applyAudio(); }
+        } else if (autoPlay_ != 0) autoPlay_ = 0;
         Tel p = best ? best->tel : Tel();
         // the logs: carriers that have gone first, then the live ones (each list keeps its own order)
         if (ops_.append) {
@@ -192,7 +198,7 @@ private:
         s->rx->configure(ops_.outRate);
         if (ops_.setup) ops_.setup(*s->rx);
         if (!s->ch.configure(spanRate_, ops_.outRate, c.hz, ops_.occupiedHz)) return nullptr;
-        if (ops_.audio) ops_.audio(*s->rx, !muted_ && c.id == sel_);
+        if (ops_.audio) ops_.audio(*s->rx, !muted_ && c.id == effSel());
         if (!hist_.empty()) {   // the start of the transmission that made the finder notice the carrier
             std::vector<cf32> out;
             s->ch.process(hist_.data(), hist_.size(), out);
@@ -216,7 +222,8 @@ private:
         return s.car.hz + (std::fabs(c) < 0.3 * cfg_.stepHz ? c : 0.0);
     }
     void retireAll() { while (!live_.empty()) retire(live_.back()->car.id); }
-    void applyAudio() { if (!ops_.audio) return; for (auto& s : live_) ops_.audio(*s->rx, !muted_ && s->car.id == sel_); }
+    void applyAudio() { if (!ops_.audio) return; for (auto& s : live_) ops_.audio(*s->rx, !muted_ && s->car.id == effSel()); }
+    int effSel() const { return sel_ ? sel_ : autoPlay_; }   // the carrier whose sound plays: the chosen one, else the best locked one
     WideOps<Rx, Tel> ops_;
     mutable std::mutex m_;
     double spanRate_ = 0;
@@ -225,6 +232,7 @@ private:
     std::vector<std::unique_ptr<Slot>> live_;
     std::deque<Retired> retired_;
     int sel_ = 0;
+    int autoPlay_ = 0;   // the carrier that plays while none is chosen (sel_ == 0)
     bool muted_ = false;
     uint64_t seq_ = 1;
     std::vector<cf32> hist_;
