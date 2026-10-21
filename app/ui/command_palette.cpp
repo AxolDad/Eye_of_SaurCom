@@ -28,7 +28,7 @@ const Panel kPanels[] = {
     {"Passive radar", &App::passiveRadarOpen}, {"Images", &App::galleryOpen}, {"Data feeds...", &App::feedsOpen},
     {"Messages...", &App::msgdbOpen}, {"Protocol lab...", &App::protolabOpen}, {"Watchlists...", &App::watchlistOpen},
     {"Automations...", &App::automationOpen}, {"Plugins...", &App::pluginsOpen}, {"Memory...", &App::memoryOpen},
-    {"Data packs...", &App::packsOpen}, {"Frequencies...", &App::freqOpen}, {"Map", &App::mapOpen},
+    {"Data packs...", &App::packsOpen}, {"Frequencies...", &App::freqOpen}, {"Map", &App::mapOpen}, {"Propagation...", &App::propOpen},
     {"Sweep scanner", &App::sweepOpen}, {"Station health", &App::stationHealthOpen}, {"Antenna rotator...", &App::rotatorOpen},
 };
 

@@ -297,6 +297,7 @@ struct App {
     bool freqOpen = false;              // the Frequencies window (View > Frequencies, Ctrl+Shift+F; app/freqdb)
     bool freqTab = false;               // the Frequencies panel as a tab of the main screen (saved as freqTab)
     bool memoryTab = false;             // the Memory panel as a tab of the main screen (View > Memory as a tab; saved as memTab)
+    bool propOpen = false;              // Tools > Propagation (app/prop): predicted coverage of a transmitter on the map
     bool mapOpen = false;               // the map window (View > Map): positions and Maidenhead locators
     bool rotatorOpen = false;           // View > Antenna rotator (rotator_ui.cpp)
     int wizStep = 0;
@@ -705,6 +706,7 @@ void passesMapSatellites(std::vector<MapSatRef>& out);   // passes_ui.cpp: the l
 struct MapCellTower { double lat = 0, lon = 0; int rangeM = 0; std::string label; unsigned colour = 0; };
 void cellMapTowers(const dect2::CellTelemetry& t, std::vector<MapCellTower>& out);   // cell_ui.cpp: the towers placed (OpenCelliD / CSV)
 void mapWindow(App& a);                             // map_ui.cpp: View > Map (a.mapOpen): coordinates, Maidenhead locators, distance and bearing
+void propagationWindow(App& a);                     // prop_ui.cpp: Tools > Propagation (a.propOpen): coverage heat map, range and a probe point (no terrain)
 void mapSendServerMenu(App& a);                     // map_send.cpp: Server menu (opt-in public map)
 void mapSendButton(App& a);                         // classic interface: the same choice as a button
 void mapSendTick(App& a);                           // POST current decoded positions when opted in

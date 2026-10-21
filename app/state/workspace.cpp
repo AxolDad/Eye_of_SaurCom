@@ -16,7 +16,7 @@ const PanelFlag kPanels[] = {
     {"gallery", &App::galleryOpen}, {"direction-finder", &App::dfOpen}, {"interference", &App::rfiOpen},
     {"passive-radar", &App::passiveRadarOpen}, {"passes", &App::passesOpen}, {"station-health", &App::stationHealthOpen},
     {"sweep", &App::sweepOpen}, {"scanner", &App::scannerOpen}, {"memory", &App::memoryOpen}, {"packs", &App::packsOpen},
-    {"frequencies", &App::freqOpen}, {"map", &App::mapOpen}, {"rotator", &App::rotatorOpen}, {"feeds", &App::feedsOpen},
+    {"frequencies", &App::freqOpen}, {"map", &App::mapOpen}, {"propagation", &App::propOpen}, {"rotator", &App::rotatorOpen}, {"feeds", &App::feedsOpen},
     {"watchlist", &App::watchlistOpen}, {"messages", &App::msgdbOpen}, {"protocol-lab", &App::protolabOpen},
     {"automation", &App::automationOpen},
 };
