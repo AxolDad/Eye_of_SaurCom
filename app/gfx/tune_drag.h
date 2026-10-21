@@ -24,6 +24,30 @@ struct Pacer {
 inline double dragCentre(double centreMhz, double delta, double lo, double hi, double& applied) {
     const double c = clampCentre(centreMhz + delta, lo, hi); applied = c - centreMhz; return c;
 }
+// A drag step with the tuned marker: the radio centre moves (clamped), the tuned (demodulated) frequency stays where it is, and is only
+// clamped at the edge of the new passband (edgeFrac of fs around the centre) when the centre would carry it out of the band.
+// movesTuned (the setting): the tuned frequency travels with the centre instead.
+struct DragResult { double centre, tuned; };
+inline DragResult dragWithMarker(double centre, double tuned, double delta, double lo, double hi, double fsMhz, bool movesTuned) {
+    const double c = clampCentre(centre + delta, lo, hi);
+    if (movesTuned) return {c, tuned + (c - centre)};
+    const double e = fsMhz * 0.45;
+    return {c, std::min(c + e, std::max(c - e, tuned))};
+}
+// The view [lo,hi] after the radio centre went from oldC to newC: the span is kept (at most fs). A view still inside the new band stays where
+// it is (a drag); otherwise it is centred on the new centre (a click that tuned far away).
+struct View { double lo, hi; };
+inline View viewAfterRetune(double lo, double hi, double newC, double fsMhz, bool valid) {
+    const double bLo = newC - fsMhz / 2, bHi = newC + fsMhz / 2;
+    if (!valid || !(hi > lo)) return {bLo, bHi};
+    const double span = std::min(fsMhz, hi - lo);
+    if (lo >= bLo - 1e-9 && hi <= bHi + 1e-9) return {lo, hi};
+    if (lo < bHi && hi > bLo && span < fsMhz) {   // partly overlapping: slide it into the band (a drag that ran to the edge)
+        const double l = std::min(bHi - span, std::max(bLo, lo));
+        return {l, l + span};
+    }
+    return {newC - span / 2, newC + span / 2};
+}
 struct Click { bool retune; double centreMhz; bool decodeOnly; };
 // What a click on absMhz does. centreStyle: the target button (centre the radio on the click); else the click only moves the marker
 // inside the captured band and retunes only when it lies outside it. noRetune: a file or a wide mode: the radio never moves.

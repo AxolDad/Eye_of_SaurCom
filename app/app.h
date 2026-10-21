@@ -483,6 +483,7 @@ struct App {
     float yMin = -110, yMax = -30;
     float specZoom = 0.f;   // 0..1 frequency zoom for the vertical slider (0 = full bandwidth, 1 = ~1 kHz span)
     int tuningMode = 0;                 // 0 retune the radio LO on spectrum click, 1 decode offset only (sticky LO)
+    bool dragMovesTuned = false;        // dragging past the band: true = the tuned frequency travels with the radio centre
     bool centreTuning = false;          // spectrum click: true = centre the radio on the click (target button), false = normal (marker inside the band)
     bool peakHold = false;             // the max-hold line (off by default: one trace; the orange max-hold line is for those who switch it on)
     float holdDecay = 4.5f;             // dB a second the max-hold line falls (0: it stays until it is reset)
