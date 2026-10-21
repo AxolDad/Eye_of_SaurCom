@@ -29,6 +29,8 @@ bool voiceCodecTick(const char* id);
 
 // The install helper: loaded / not found with the exact file name, the codecs folder path, Open codecs folder, Build steps and Rescan buttons.
 void codecInstallHelper(const char* id);
+// Shows the codec notice popup (with "I accept") when the plug-in is installed but the notice was not accepted yet; draws nothing otherwise. Call it from a voice panel every frame.
+void codecNoticePrompt(const char* id);
 
 // The "Voice codecs" window (Help menu): every voice codec OnAir knows, the modes that use it, whether it is open, patented (plug-in only,
 // never shipped) or unsupported, and whether it is loaded or missing, with the install helper for each plug-in.

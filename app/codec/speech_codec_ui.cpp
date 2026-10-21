@@ -102,6 +102,12 @@ bool speechCodecGate(const char* id, std::unique_ptr<dect2::codec::SpeechCodec>&
     return false;
 }
 
+void codecNoticePrompt(const char* id) {
+    std::unique_ptr<dect2::codec::SpeechCodec> tmp;
+    const dect2::codec::CodecLookup r = speechCodecPoll(id, tmp);
+    if (r.status == dect2::codec::CodecStatus::NoticeRequired) speechCodecGate(id, tmp);
+}
+
 void speechCodecRescan(const char* id) {
     last.erase(id);
     lastAt.erase(id);
