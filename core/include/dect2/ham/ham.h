@@ -30,6 +30,7 @@ bool hamGridValid(const std::string& grid);                  // 4 or 6 character
 // ---- ADIF log ----
 struct QsoRecord {
     std::string call, grid, mode = "FT8", rstSent, rstRcvd, myCall, myGrid;
+    std::string submode;          // ADIF SUBMODE (mode "PSK", submode "PSK31"); "" none
     double freqHz = 0, startUtc = 0, endUtc = 0;
 };
 std::string bandNameFor(double hz);                          // "20m" ADIF band name, "" outside amateur bands
@@ -50,7 +51,12 @@ private:
 };
 
 // ---- slot timing ----
-double slotPeriod(int mode);                                 // 0 FT8 15 s, 1 FT4 7.5 s, 2 FT2 3.75 s (the hfdig mode numbers)
+// Mode numbers are those of hfdig_ftx.h: 0 FT8, 1 FT4, 2 FT2, 3 WSPR, 4 JT65, 5 JT9, 10 JT4.
+double slotPeriod(int mode);                                 // 15 / 7.5 / 3.75 s, WSPR 120 s, JT65 / JT9 / JT4 60 s
+const char* hamModeName(int mode);                           // "FT8" .. "JT4" (the ADIF MODE)
+bool hamModeHasQso(int mode);                                // the modes the QSO engine runs: FT8 FT4 FT2 JT65 JT9 JT4
+bool hamModeUsesRRR(int mode);                               // JT65 / JT9 / JT4 end with RRR, the FT modes with RR73
+double hamModeBwHz(int mode, int sub);                       // occupied bandwidth for the TX gate (JT65 sub 0 A 1 B 2 C, JT4 sub 0 A .. 6 G)
 long slotIndex(double utc, double period);
 bool slotEven(double utc, double period);
 double slotStart(long index, double period);
@@ -61,6 +67,7 @@ std::string msgCq(const std::string& me, const std::string& grid);
 std::string msgGrid(const std::string& to, const std::string& me, const std::string& grid);
 std::string msgReport(const std::string& to, const std::string& me, int snr, bool roger);
 std::string msgRR73(const std::string& to, const std::string& me);
+std::string msgRRR(const std::string& to, const std::string& me);
 std::string msg73(const std::string& to, const std::string& me);
 std::string msgFree(const std::string& text);                // upper case, 13 characters at most, only the characters FT8 free text allows
 std::string reportText(int snr);                             // "-05" "+12", clamped to -30..+32
@@ -75,7 +82,7 @@ ParsedMsg parseMessage(const std::string& msg);
 // ---- the QSO engine ----
 struct QsoConfig {
     std::string myCall, myGrid;
-    int mode = 0;                 // slot length via slotPeriod
+    int mode = 0;                 // slot length via slotPeriod (hfdig mode number)
     bool txEven = true;           // transmit in even slots (a station answered is on the other parity)
     bool autoSeq = true;
     bool hold = false;            // Hold TX freq: a call to a station does not move the TX frequency to theirs
@@ -119,6 +126,35 @@ private:
     bool resumeCq_ = false, wd_ = false, logged_ = false;
 };
 
+// ---- the WSPR beacon (transmit only): CALL GRID DBM in some of the 2 minute slots, never more than half of them ----
+struct WsprBeaconConfig {
+    std::string myCall, myGrid;
+    int dbm = 10;                 // 0 3 7 10 13 .. 60 (the values WSPR can carry)
+    int everyNth = 5;             // one 2 minute slot in N, N >= 2 (duty cycle 1/N, never above 50 %); default 20 %
+    int offset = 0;               // which of the N (a station of two beacons uses different ones)
+    double audioHz = 1500;        // inside the 200 Hz WSPR window, 1400 .. 1600
+    int maxTx = 30;               // transmissions without any operator action, then the beacon stops
+};
+bool wsprDbmValid(int dbm);
+class WsprBeacon {
+public:
+    WsprBeaconConfig cfg;
+    void start() { on_ = true; sent_ = 0; stopped_.clear(); }
+    void stop() { on_ = false; }
+    bool active() const { return on_; }
+    void userAction() { sent_ = 0; }                               // the operator touched the controls: the maxTx count starts again
+    const std::string& stopReason() const { return stopped_; }
+    std::string message() const;                                    // "LY1ABC KO24 10", "" when call / grid / power are not valid
+    // The message to send in the slot starting at slotUtc, or "" (not running, not a due 2 minute slot, count used up, bad config).
+    std::string messageForSlot(double slotUtc);
+    void txSent() { sent_++; }
+    double audioHz() const;                                         // cfg.audioHz clamped to 1400 .. 1600
+private:
+    bool on_ = false;
+    int sent_ = 0;
+    std::string stopped_;
+};
+
 // ---- the slot transmitter: one FT8 / FT4 / FT2 burst through a rig (PTT + audio) ----
 struct HamRigIo {   // the app's real one is Hamlib PTT + the sound card; tests use a fake
     virtual ~HamRigIo() = default;
@@ -134,11 +170,16 @@ public:
     explicit HamSlotTx(HamRigIo& io) : io_(io) {}
     // Blocking (run it on a worker thread): gate, modulate, PTT on, play, PTT off. True only when the whole burst was played.
     // PTT is released on every exit path. Nothing is keyed when the gate refuses.
-    bool send(const HamTxCheck& gate, int mode, const std::string& msg, double audioHz, double level, std::string& err);
+    // mode: FT8 / FT4 / FT2 / WSPR / JT65 / JT9 / JT4 (hfdig numbers); sub: JT65 A B C, JT4 A .. G. The gate's bandwidth is raised to the mode's own.
+    bool send(const HamTxCheck& gate, int mode, const std::string& msg, double audioHz, double level, std::string& err, int sub = 0);
+    // Any other audio (the keyboard modes): the same gate, PTT, drain and release as send(). audio is mono at 48000 Hz; bwHz raises the gate's width;
+    // it is scaled to peak `level` first.
+    bool sendAudio(const HamTxCheck& gate, std::vector<float> audio, double bwHz, double level, std::string& err);
     void abort();        // Halt TX, any thread: audio dropped, PTT released at once
     bool busy() const;
 private:
     bool pttSet(bool on, std::string& err);
+    bool play(const std::vector<float>& a, size_t n, int rate, std::string& err);   // after the gate: PTT on, audio, drain, PTT off
     HamRigIo& io_;
     std::mutex mu_;
     std::atomic<bool> abort_{false}, busy_{false}, pttOn_{false};

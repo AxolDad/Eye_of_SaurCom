@@ -133,7 +133,9 @@ std::string adifRecord(const QsoRecord& q) {
     dateTime(q.endUtc > 0 ? q.endUtc : q.startUtc, d2, t2);
     field(o, "CALL", q.call);
     field(o, "GRIDSQUARE", q.grid);
-    if (up(q.mode) == "FT4") { field(o, "MODE", "MFSK"); field(o, "SUBMODE", "FT4"); } else field(o, "MODE", up(q.mode));
+    if (up(q.mode) == "FT4") { field(o, "MODE", "MFSK"); field(o, "SUBMODE", "FT4"); }
+    else if (!q.submode.empty()) { field(o, "MODE", up(q.mode)); field(o, "SUBMODE", up(q.submode)); }
+    else field(o, "MODE", up(q.mode));
     field(o, "BAND", bandNameFor(q.freqHz));
     char f[32];
     snprintf(f, sizeof f, "%.6f", q.freqHz / 1e6);
@@ -228,11 +230,30 @@ bool WorkedLog::workedOn(const std::string& call, const std::string& band, const
 }
 
 // ---- timing ----
-double slotPeriod(int mode) { return mode == 1 ? 7.5 : mode == 2 ? 3.75 : 15.0; }
+double slotPeriod(int mode) {
+    switch (mode) { case 1: return 7.5; case 2: return 3.75; case 3: return 120.0; case 4: case 5: case 10: return 60.0; default: return 15.0; }
+}
+const char* hamModeName(int mode) {
+    switch (mode) { case 0: return "FT8"; case 1: return "FT4"; case 2: return "FT2"; case 3: return "WSPR"; case 4: return "JT65"; case 5: return "JT9"; case 10: return "JT4"; default: return "FT8"; }
+}
+bool hamModeHasQso(int mode) { return mode == 0 || mode == 1 || mode == 2 || mode == 4 || mode == 5 || mode == 10; }
+bool hamModeUsesRRR(int mode) { return mode == 4 || mode == 5 || mode == 10; }
+double hamModeBwHz(int mode, int sub) {
+    switch (mode) {
+    case 0: return 50;
+    case 1: return 90;
+    case 2: return 170;
+    case 3: return 6;
+    case 4: return sub == 1 ? 360 : sub == 2 ? 720 : 180;   // JT65 A 177.6 Hz, B 355, C 710 (tone spacing 2.7 Hz x 1/2/4, 65 tones + sync)
+    case 5: return 16;
+    case 10: { static const double a[] = {18, 36, 72, 144, 288, 576, 1152}; return a[sub < 0 ? 0 : sub > 6 ? 6 : sub]; }   // 4 tones, spacing 4.375 Hz x 1 .. 64
+    default: return 50;
+    }
+}
 long slotIndex(double utc, double period) { return (long)std::floor(utc / period + 1e-9); }
 bool slotEven(double utc, double period) { return (slotIndex(utc, period) & 1) == 0; }
 double slotStart(long index, double period) { return (double)index * period; }
-double txStartDelay(int mode) { return mode == 2 ? 0.2 : 0.5; }
+double txStartDelay(int mode) { return mode == 2 ? 0.2 : (mode == 3 || mode == 4 || mode == 5 || mode == 10) ? 1.0 : 0.5; }
 
 // ---- messages ----
 std::string reportText(int snr) {
@@ -245,6 +266,7 @@ std::string msgCq(const std::string& me, const std::string& grid) { return "CQ "
 std::string msgGrid(const std::string& to, const std::string& me, const std::string& grid) { return up(to) + " " + up(me) + " " + up(grid).substr(0, 4); }
 std::string msgReport(const std::string& to, const std::string& me, int snr, bool roger) { return up(to) + " " + up(me) + " " + (roger ? "R" : "") + reportText(snr); }
 std::string msgRR73(const std::string& to, const std::string& me) { return up(to) + " " + up(me) + " RR73"; }
+std::string msgRRR(const std::string& to, const std::string& me) { return up(to) + " " + up(me) + " RRR"; }
 std::string msg73(const std::string& to, const std::string& me) { return up(to) + " " + up(me) + " 73"; }
 std::string msgFree(const std::string& t) {
     std::string o;
@@ -300,7 +322,7 @@ void QsoEngine::logQso(double now) {
     if (logged_) return;
     logged_ = true;
     QsoRecord q;
-    q.call = dx_; q.grid = dxGrid_; q.mode = c_.mode == 1 ? "FT4" : c_.mode == 2 ? "FT2" : "FT8";
+    q.call = dx_; q.grid = dxGrid_; q.mode = hamModeName(c_.mode);
     q.rstSent = reportText(dxSnr_); q.rstRcvd = rstRcvd_;
     q.myCall = up(c_.myCall); q.myGrid = up(c_.myGrid);
     q.startUtc = startUtc_ > 0 ? startUtc_ : now; q.endUtc = now;
@@ -369,7 +391,7 @@ std::string QsoEngine::messageForSlot(double slotUtc) {
     case Tx1Grid: return msgGrid(dx_, me, c_.myGrid);
     case Tx2Report: return msgReport(dx_, me, dxSnr_, false);
     case Tx3RReport: return msgReport(dx_, me, dxSnr_, true);
-    case Tx4RR73: return msgRR73(dx_, me);
+    case Tx4RR73: return hamModeUsesRRR(c_.mode) ? msgRRR(dx_, me) : msgRR73(dx_, me);
     case Tx5Bye: return msg73(dx_, me);
     default: return "";
     }
