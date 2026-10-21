@@ -131,6 +131,7 @@ public:
     }
 
 private:
+    static constexpr uint64_t kSettle = 64;
     static constexpr int kHops = 16, kPaths = 4, kMargin = 3;
     void build() {
         const double f0 = centre_ - bandwidth() / 2.0;
@@ -146,12 +147,13 @@ private:
         r_.assign(nAlign_, 0.f);
         e_.assign(J_, 0.f);
         ph_.assign(kHops, 0.f);
+        phN_.assign(kHops, 0);
         count_ = 0; hopIdx_ = 0; nextDec_ = kHops; decisions_ = 0;
         inl_ = std::make_unique<Interleaver>(p_.symbits, p_.depth, false);
         dec1_ = std::make_unique<Viterbi>(7, kPoly1, kPoly2, 45);
         dec2_ = std::make_unique<Viterbi>(7, kPoly1, kPoly2, 45);
         pair_[0] = pair_[1] = 0;
-        symcounter_ = 0; met1_ = met2_ = 0; metric_ = 0; shreg_ = 1;
+        hist_.clear(); wasLocked_ = false; symcounter_ = 0; met1_ = met2_ = 0; metric_ = 0; shreg_ = 1;
         locked = false; snrDb = 0; offsetHz = 0;
         tf_ = TextFilter();
         shown_ = 0;
@@ -170,7 +172,9 @@ private:
     void hop() {
         hopIdx_++;
         const int phase = (int)(hopIdx_ % kHops);
-        ph_[phase] += 0.1f * (peakness(align_) - ph_[phase]);
+        // the clock averages start fast (1/n of the first visits) so that the symbol phase is right within a few symbols, not ten
+        phN_[phase] = std::min(phN_[phase] + 1, 10);
+        ph_[phase] += (1.f / (float)phN_[phase]) * (peakness(align_) - ph_[phase]);
         if (hopIdx_ < nextDec_) return;
         decide();
         // symbol clock: one hop per symbol towards the best phase
@@ -196,8 +200,8 @@ private:
             if (m[i] > mx) { mx = m[i]; hard = i; }
         }
         // alignment statistics
-        for (int a = 0; a < nAlign_; a++) r_[a] += (peakness(a) - r_[a]) * (1.f / 16);
-        for (int j = 0; j < J_; j++) e_[j] += (float)(bank_.energy(j) - e_[j]) * (1.f / 32);
+        for (int a = 0; a < nAlign_; a++) r_[a] += (peakness(a) - r_[a]) * std::max(1.f / 16, 1.f / (float)decisions_);
+        for (int j = 0; j < J_; j++) e_[j] += (float)(bank_.energy(j) - e_[j]) * std::max(1.f / 32, 1.f / (float)decisions_);
         if ((decisions_ & 7) == 0) realign();
         if (sum < 1e-9) return;
         const double avg = sum / nt;
@@ -239,7 +243,10 @@ private:
         };
         int bg = align_ / kPaths;
         double best = score(bg * kPaths + bf);
-        for (int g = 0; g <= 2 * kMargin; g++) { const double s = score(g * kPaths + bf); if (s > best * 1.05 + 1e-12) { best = s; bg = g; } }
+        // the integer shift is judged only after the preamble: its all-zero data is a single tone, which fits a window in several places
+        // (the receiver moved to a wrong shift at once and garbled the first characters of MFSK32)
+        if (decisions_ >= kSettle)
+            for (int g = 0; g <= 2 * kMargin; g++) { const double s = score(g * kPaths + bf); if (s > best * 1.05 + 1e-12) { best = s; bg = g; } }
         align_ = bg * kPaths + bf;
         offsetHz = ((align_ - kMargin * kPaths) / (double)kPaths) * spacing_;
     }
@@ -269,7 +276,25 @@ private:
         const double shown = std::clamp((metric_ - 60.0) * 0.5, 0.0, 100.0);
         shown_ = (float)shown;
         locked = shown >= kLockLevel;
-        if (!locked) { shreg_ = 1; return; }
+        // the Viterbi metric rises slowly, so the bits just before the lock are already good: they are replayed through the varicode at the
+        // lock (otherwise the first characters of a transmission are lost or garbled, the varicode starting in the middle of a character)
+        if (!locked) {
+            wasLocked_ = false;
+            shreg_ = 1;
+            hist_.push_back((uint8_t)bit);
+            if (hist_.size() > kBack) hist_.erase(hist_.begin());
+            return;
+        }
+        if (!wasLocked_) {
+            wasLocked_ = true;
+            shreg_ = 1;
+            for (uint8_t hb : hist_) varBit(hb);
+            hist_.clear();
+        }
+        varBit(bit);
+    }
+
+    void varBit(int bit) {
         shreg_ = (shreg_ << 1) | (unsigned)bit;
         if ((shreg_ & 7) == 1) {
             const int c = mfskVaridec(shreg_ >> 1);
@@ -277,7 +302,9 @@ private:
             shreg_ = 1;
         }
     }
-
+    static constexpr size_t kBack = 64;
+    std::vector<uint8_t> hist_;
+    bool wasLocked_ = false;
     static constexpr float kLockLevel = 20.f;
     KbdConfig cfg_;
     MfskP p_;
@@ -289,6 +316,7 @@ private:
     int J_ = 0, nAlign_ = 0, align_ = 0, count_ = 0, symcounter_ = 0;
     uint64_t hopIdx_ = 0, nextDec_ = 0, decisions_ = 0;
     std::vector<float> r_, e_, ph_;
+    std::vector<int> phN_;
     std::unique_ptr<Interleaver> inl_;
     std::unique_ptr<Viterbi> dec1_, dec2_;
     uint8_t pair_[2] = {0, 0};
