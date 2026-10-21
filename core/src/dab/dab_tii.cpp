@@ -62,27 +62,23 @@ void Detector::addNull(const std::vector<cf32>& X, uint64_t frame) {
     n_[j]++;
 }
 
-std::vector<Found> Detector::found() const {
+// Names the transmitters in one table of pair powers. `a` is the power with TII in it, `ref` the pair power of the frames without it (null: the
+// noise is estimated from the table itself, the median of the 192 pair positions, which is right while only a few combs are on: one
+// transmitter lights 4 of 192 positions, a network of ten about 40).
+std::vector<Found> Detector::pick(const double (*a)[kPairs], const double (*ref)[kPairs], int n) const {
     std::vector<Found> out;
-    if (n_[0] < 3 || n_[1] < 3) return out;
-    // the frames with TII carry more energy in their null symbol than the ones without
-    double tot[2] = {0, 0};
-    for (int j = 0; j < 2; j++) for (auto& c : p_[j]) for (double v : c) tot[j] += v;
-    const int a = tot[1] > tot[0] ? 1 : 0, d = 1 - a;
-    // the noise of one pair position (8 carriers) in the frames without TII: the median over all 192 positions
     std::vector<double> all;
-    for (auto& c : p_[d]) for (double v : c) all.push_back(v);
+    for (int c = 0; c < kSubIds; c++) for (int b = 0; b < kPairs; b++) all.push_back(ref ? ref[c][b] : a[c][b]);
     std::nth_element(all.begin(), all.begin() + (long)all.size() / 2, all.end());
     const double nf = all[all.size() / 2];
-    // the spread of the difference of two averages of a sum of 8 exponential powers over n null symbols
-    const int n = std::min(std::min(n_[0], n_[1]), 32);
-    const double sigma = nf * std::sqrt(2.0 / (8.0 * n));
+    // the spread of the difference of two averages of a sum of 8 exponential powers over n null symbols (the reference-free case: one average)
+    const double sigma = nf * std::sqrt((ref ? 2.0 : 1.0) / (8.0 * n));
     double eMax = 0;
-    for (int c = 0; c < kSubIds; c++) for (int b = 0; b < kPairs; b++) eMax = std::max(eMax, p_[a][c][b] - p_[d][c][b]);
+    for (int c = 0; c < kSubIds; c++) for (int b = 0; b < kPairs; b++) eMax = std::max(eMax, a[c][b] - (ref ? ref[c][b] : nf));
     if (eMax <= 0) return out;
     for (int c = 0; c < kSubIds; c++) {
         std::array<std::pair<double, int>, kPairs> e;
-        for (int b = 0; b < kPairs; b++) e[(size_t)b] = {p_[a][c][b] - p_[d][c][b], b};
+        for (int b = 0; b < kPairs; b++) e[(size_t)b] = {a[c][b] - (ref ? ref[c][b] : nf), b};
         std::sort(e.begin(), e.end(), [](auto& x, auto& y) { return x.first > y.first; });
         const double e4 = e[3].first, e5 = std::max(0.0, e[4].first);
         // four pairs well above the noise, and clearly apart from the other four (one transmitter on this comb, not two overlapping)
@@ -97,6 +93,25 @@ std::vector<Found> Detector::found() const {
         f.levelDb = (float)std::min(60.0, 10.0 * std::log10(sum / 4.0 / std::max(nf, 1e-30)));
         f.marginDb = (float)std::min(60.0, 10.0 * std::log10(e4 / std::max(std::max(e5, sigma), 1e-30)));
         out.push_back(f);
+    }
+    return out;
+}
+
+std::vector<Found> Detector::found() const {
+    std::vector<Found> out;
+    if (n_[0] < 3 || n_[1] < 3) return out;
+    const int n = std::min(std::min(n_[0], n_[1]), 32);
+    // 1. TII in every other frame only: the frames without it are the reference (the noise and interference of the null symbol)
+    double tot[2] = {0, 0};
+    for (int j = 0; j < 2; j++) for (auto& c : p_[j]) for (double v : c) tot[j] += v;
+    const int a = tot[1] > tot[0] ? 1 : 0, d = 1 - a;
+    out = pick(p_[a], p_[d], n);
+    // 2. TII in every frame (what most networks send and what Qt-DAB and welle.io read from a single null symbol): both kinds of frame carry
+    // it, so there is no reference. The carriers of the combs stand out of the noise of the other carriers of the same null symbol.
+    if (out.empty()) {
+        double m[kSubIds][kPairs];
+        for (int c = 0; c < kSubIds; c++) for (int b = 0; b < kPairs; b++) m[c][b] = 0.5 * (p_[0][c][b] + p_[1][c][b]);
+        out = pick(m, nullptr, 2 * n);
     }
     std::sort(out.begin(), out.end(), [](const Found& x, const Found& y) { return x.levelDb > y.levelDb; });
     return out;

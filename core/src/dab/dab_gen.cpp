@@ -532,7 +532,7 @@ struct Transmitter::Impl {
         // TII in the null symbol of the frames whose CIFs count 0 - 3 modulo 8 (frame m holds CIFs 4m .. 4m+3: the even frames). Every
         // active carrier takes the phase of the phase reference at that carrier, as strong as a data carrier times the transmitter's level;
         // over the null symbol the carrier runs as exp(j 2 pi k (t - T_null) / T_u), so its last T_u samples are one period like a symbol
-        if (!cfg.tii.empty() && frame % 2 == 0) {
+        if (!cfg.tii.empty() && (cfg.tiiEveryFrame || frame % 2 == 0)) {
             std::fill(t.begin(), t.end(), cf32(0, 0));
             std::vector<int> ks;
             for (const auto& x : cfg.tii) {

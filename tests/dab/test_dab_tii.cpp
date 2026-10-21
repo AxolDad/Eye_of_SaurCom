@@ -106,6 +106,24 @@ int main() {
         print("2 transmitters at 2.4 Msps", t);
         CHECK(t.tii.size() == 2 && t.tii[0].mainId == 69 && t.tii[0].subId == 23 && t.tii[1].mainId == 0 && t.tii[1].subId == 0, "2.4 Msps: %zu found", t.tii.size());
     }
+    // ---- TII in the null symbol of every frame (most networks): no frames without it to serve as the reference
+    {
+        dabgen::TxConfig tc;
+        tc.tiiEveryFrame = true;
+        tc.tii = {{11, 1, 0.0}, {11, 5, -6.0}, {40, 17, -12.0}};
+        const DabTelemetry t = run(tc, 20, 900, 2.048e6, 6.0);
+        print("every frame, 3 transmitters, 20 dB", t);
+        CHECK(t.tii.size() == 3, "every-frame TII: %zu found, 3 sent", t.tii.size());
+        if (t.tii.size() == 3) CHECK(t.tii[0].mainId == 11 && t.tii[0].subId == 1 && t.tii[2].mainId == 40 && t.tii[2].subId == 17, "every-frame TII ids wrong");
+        tc.tii = {{23, 9, 0.0}};
+        const DabTelemetry w = run(tc, 10, -2000, 2.048e6, 6.0);
+        print("every frame, 1 transmitter, 10 dB", w);
+        CHECK(w.tii.size() == 1 && w.tii[0].mainId == 23 && w.tii[0].subId == 9, "every-frame TII at 10 dB: %zu found", w.tii.size());
+        dabgen::TxConfig none;
+        none.tiiEveryFrame = true;
+        const DabTelemetry z = run(none, 15, 500, 2.048e6, 6.0);
+        CHECK(z.tii.empty(), "every-frame mode invents %zu transmitters from noise", z.tii.size());
+    }
     // ---- no TII: nothing found (no false transmitters from the noise of the null symbols)
     {
         dabgen::TxConfig tc;

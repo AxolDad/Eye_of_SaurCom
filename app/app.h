@@ -1178,6 +1178,7 @@ void dabJournalineTab(App& a);     // dab_ui.cpp: Journaline pages (ETSI TS 102 
 bool dabHasJournaline(const DabEnsemble& ens);
 void dabFicTab(App& a);            // dab_fic_ui.cpp: the FIC, FIG by FIG, as a tree
 void dabTransmittersTab(App& a);   // dab_tii_ui.cpp: the TII transmitters, on a map with a transmitter list
+void dabTiiCollect(App& a);        // dab_tii_ui.cpp: notes the transmitters heard (every frame, also during a band scan)
 void dabScanTab(App& a);
 void dabScanStep(App& a);
 void fmScanTab(App& a);
