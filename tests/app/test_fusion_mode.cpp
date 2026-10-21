@@ -51,6 +51,13 @@ int main() {
                              "no audio until the codec above is ready", "speechCodecGate(\"ysf\"", "a.rx.standard == 129", "Data channel units"};
     for (const char* s : strings) CHECK(has(ui, s), "panel string missing: %s", s);
 
+    // The codec must load from the per-frame tick (any tab), not only while the tab is drawn.
+    const size_t t0 = ui.find("void tick(App& a)");
+    CHECK(t0 != std::string::npos && has(ui.substr(t0, ui.find("void codecBlock") - t0), "speechCodecPoll(\"ysf\""), "ysf codec not loaded in tick");
+    const std::string tet = readFile("app/tetra/tetra_ui.cpp");
+    const size_t t1 = tet.find("void tick(App& a)");
+    CHECK(t1 != std::string::npos && has(tet.substr(t1, tet.find("void tab(App& a)") - t1), "speechCodecPoll(\"tetra\""), "tetra codec not loaded in tick");
+
     std::printf("%s: %d failure(s)\n", fails ? "test_fusion_mode FAILED" : "test_fusion_mode OK", fails);
     return fails ? 1 : 0;
 }

@@ -269,6 +269,12 @@ void logView(App& a) {
 }
 
 void tick(App& a) {
+    // Load the voice codec while the mode runs, whichever tab is drawn (the strip only shows the state).
+    if (live(a) && a.engine.running() && !gVoice.hasCodec()) {
+        wireVoice(a);
+        std::unique_ptr<dect2::codec::SpeechCodec> c;
+        if (appcodec::speechCodecPoll("tetra", c).status == dect2::codec::CodecStatus::Ready && c) gVoice.setCodec(std::move(c));
+    }
     if (!S.scanning) return;
     if (!a.engine.running()) { S.scanning = false; return; }
     const double now = ImGui::GetTime();

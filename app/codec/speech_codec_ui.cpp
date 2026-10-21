@@ -6,6 +6,7 @@
 #include "dect2/engine/updater.h"
 #include <filesystem>
 #include <cstdio>
+#include <chrono>
 #include <map>
 #include <set>
 
@@ -15,6 +16,7 @@ namespace {
 
 // Codecs whose notice the user chose "Not now" for in this run: the dialog is not reopened until the next start.
 std::set<std::string> gDismissed;
+std::map<std::string, bool> acceptedAt;
 
 std::string prefKey(const std::string& id) { return "codec_notice_" + id; }
 
@@ -22,18 +24,33 @@ std::string prefKey(const std::string& id) { return "codec_notice_" + id; }
 
 std::string codecsFolder() { return plat::dataDir() + "/codecs"; }
 
-bool speechCodecGate(const char* id, std::unique_ptr<dect2::codec::SpeechCodec>& out) {
+dect2::codec::CodecLookup speechCodecPoll(const char* id, std::unique_ptr<dect2::codec::SpeechCodec>& out) {
     const std::string codec = id;
-    const bool accepted = plat::basePrefs().getB(prefKey(codec).c_str(), false);
-    const std::string folder = codecsFolder();
-    const dect2::codec::CodecLookup r = dect2::codec::loadSpeechCodec(codec, folder, accepted, out);
-
-    // Log the reason whenever it changes, so a user with no audio can send the line.
+    // Not ready yet: look again at most once a second (the plug-in file may be dropped in while running), and keep the last verdict between looks.
+    static std::map<std::string, dect2::codec::CodecLookup> last;
+    static std::map<std::string, double> lastAt;
     static std::map<std::string, std::string> lastLogged;
+    const double now = std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    auto it = last.find(codec);
+    const bool accepted = plat::basePrefs().getB(prefKey(codec).c_str(), false);
+    if (it != last.end() && it->second.status != dect2::codec::CodecStatus::Ready && now - lastAt[codec] < 1.0 && accepted == acceptedAt[codec])
+        return it->second;
+    acceptedAt[codec] = accepted;
+    lastAt[codec] = now;
+    const dect2::codec::CodecLookup r = dect2::codec::loadSpeechCodec(codec, codecsFolder(), accepted, out);
+    last[codec] = r;
+    // Log the reason whenever it changes, so a user with no audio can send the line.
     if (lastLogged[codec] != r.message) {
         lastLogged[codec] = r.message;
         fprintf(stderr, "[codec %s] %s\n", id, r.message.c_str());
     }
+    return r;
+}
+
+bool speechCodecGate(const char* id, std::unique_ptr<dect2::codec::SpeechCodec>& out) {
+    const std::string codec = id;
+    const std::string folder = codecsFolder();
+    const dect2::codec::CodecLookup r = speechCodecPoll(id, out);
 
     if (r.status == dect2::codec::CodecStatus::Ready) return true;
 
