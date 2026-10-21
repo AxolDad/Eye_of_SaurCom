@@ -5,6 +5,7 @@
 #include "../app.h"
 #include "../platform/platform.h"
 #include "dect2/ham/ham.h"
+#include "dect2/ham/ham_upload.h"
 #include "dect2/audio/audioout.h"
 #include "dect2/source/hamlib_link.h"
 #include "dect2/source/hamlib_rig.h"
@@ -83,6 +84,10 @@ struct HamUi {
     double txSlot = 0;
     int rigSel = -1;
     float level = 0.4f;
+    ham::HamUploader up;                // logbook uploads: off by default, see uploadSection()
+    ham::UpConfig upCfg;
+    char qrzKey[64] = {}, clubEmail[64] = {}, clubPw[64] = {}, clubApi[64] = {}, eqslUser[32] = {}, eqslPw[64] = {};
+    bool upFieldsInit = false;
     ~HamUi() { tx.abort(); if (worker.joinable()) worker.join(); }
 };
 HamUi& H() { static HamUi h; return h; }
@@ -103,13 +108,70 @@ void load(HamUi& h) {
         ham::QsoRecord r = q;
         std::string err;
         if (ham::adifAppend(h.logPath, r, err)) { h.worked.add(r); h.logged++; h.lastLog = r.call; } else h.status = err;
+        h.up.enqueue(r, (long long)time(nullptr));   // queued only; nothing leaves unless a service is on and auto upload is ticked
     };
+    h.upCfg.autoUpload = p.getB("ham.up.auto", false);
+    h.upCfg.on[0] = p.getB("ham.up.qrz", false); h.upCfg.on[1] = p.getB("ham.up.club", false); h.upCfg.on[2] = p.getB("ham.up.eqsl", false);
+    h.upCfg.qrzKey = p.getS("ham.up.qrzKey", ""); h.upCfg.clubEmail = p.getS("ham.up.clubEmail", ""); h.upCfg.clubPassword = p.getS("ham.up.clubPw", "");
+    h.upCfg.clubApiKey = p.getS("ham.up.clubApi", ""); h.upCfg.eqslUser = p.getS("ham.up.eqslUser", ""); h.upCfg.eqslPassword = p.getS("ham.up.eqslPw", "");
+    h.up.load(plat::dataDir() + "/onair_ham_upload.tsv");
+    h.up.setConfig(h.upCfg);
+    h.up.startWorker();
     h.eng.onEvent = [&h](const std::string& e) { h.status = e == "watchdog" ? "Watchdog: no operator action for too long, TX halted" : "No answer: gave up the call"; h.armed = false; };
 }
 void save(HamUi& h) {
     plat::Prefs& p = plat::basePrefs();
     p.setS("ham.call", h.call); p.setS("ham.grid", h.grid); p.setB("ham.licence", h.licence); p.setD("ham.txHz", h.txHz);
     p.flush();
+}
+void uploadSection(HamUi& h) {
+    if (!ImGui::CollapsingHeader(tr("Logbook uploads (off by default)"))) return;
+    plat::Prefs& p = plat::basePrefs();
+    auto fld = [](char* b, size_t n, const std::string& v) { snprintf(b, n, "%s", v.c_str()); };
+    if (!h.upFieldsInit) {
+        h.upFieldsInit = true;
+        fld(h.qrzKey, sizeof h.qrzKey, h.upCfg.qrzKey); fld(h.clubEmail, sizeof h.clubEmail, h.upCfg.clubEmail); fld(h.clubPw, sizeof h.clubPw, h.upCfg.clubPassword);
+        fld(h.clubApi, sizeof h.clubApi, h.upCfg.clubApiKey); fld(h.eqslUser, sizeof h.eqslUser, h.upCfg.eqslUser); fld(h.eqslPw, sizeof h.eqslPw, h.upCfg.eqslPassword);
+    }
+    ImGui::TextWrapped("%s", tr("Privacy: when a service is switched on, each logged QSO is sent to it over HTTPS: the other station's callsign and grid, mode, band and frequency, the reports, the UTC time, and your own callsign and grid. Nothing else, and nothing at all while a service is off. Your keys and passwords stay on this computer and go only to that service. LoTW is not supported (it needs TQSL certificates): export the ADIF log and sign it with TQSL."));
+    bool ch = false;
+    ch |= ImGui::Checkbox(tr("Upload automatically after logging"), &h.upCfg.autoUpload);
+    ImGui::Separator();
+    ch |= ImGui::Checkbox("QRZ.com Logbook", &h.upCfg.on[0]);
+    ImGui::SetNextItemWidth(260 * gUi);
+    if (ImGui::InputText(tr("QRZ API key"), h.qrzKey, sizeof h.qrzKey, ImGuiInputTextFlags_Password)) { h.upCfg.qrzKey = h.qrzKey; ch = true; }
+    ch |= ImGui::Checkbox("Club Log", &h.upCfg.on[1]);
+    ImGui::SetNextItemWidth(220 * gUi);
+    if (ImGui::InputText(tr("Club Log email"), h.clubEmail, sizeof h.clubEmail)) { h.upCfg.clubEmail = h.clubEmail; ch = true; }
+    ImGui::SetNextItemWidth(220 * gUi);
+    if (ImGui::InputText(tr("Club Log app password"), h.clubPw, sizeof h.clubPw, ImGuiInputTextFlags_Password)) { h.upCfg.clubPassword = h.clubPw; ch = true; }
+    ImGui::SetNextItemWidth(220 * gUi);
+    if (ImGui::InputText(tr("Club Log API key"), h.clubApi, sizeof h.clubApi, ImGuiInputTextFlags_Password)) { h.upCfg.clubApiKey = h.clubApi; ch = true; }
+    ch |= ImGui::Checkbox("eQSL", &h.upCfg.on[2]);
+    ImGui::SetNextItemWidth(160 * gUi);
+    if (ImGui::InputText(tr("eQSL user"), h.eqslUser, sizeof h.eqslUser)) { h.upCfg.eqslUser = h.eqslUser; ch = true; }
+    ImGui::SetNextItemWidth(160 * gUi);
+    if (ImGui::InputText(tr("eQSL password"), h.eqslPw, sizeof h.eqslPw, ImGuiInputTextFlags_Password)) { h.upCfg.eqslPassword = h.eqslPw; ch = true; }
+    if (ch) {
+        p.setB("ham.up.auto", h.upCfg.autoUpload); p.setB("ham.up.qrz", h.upCfg.on[0]); p.setB("ham.up.club", h.upCfg.on[1]); p.setB("ham.up.eqsl", h.upCfg.on[2]);
+        p.setS("ham.up.qrzKey", h.upCfg.qrzKey); p.setS("ham.up.clubEmail", h.upCfg.clubEmail); p.setS("ham.up.clubPw", h.upCfg.clubPassword);
+        p.setS("ham.up.clubApi", h.upCfg.clubApiKey); p.setS("ham.up.eqslUser", h.upCfg.eqslUser); p.setS("ham.up.eqslPw", h.upCfg.eqslPassword);
+        p.flush();
+        h.up.setConfig(h.upCfg);
+    }
+    if (ImGui::Button(tr("Upload now"))) h.up.uploadNow((long long)time(nullptr));
+    ImGui::SameLine(); ImGui::TextDisabled("%s: %d", tr("Waiting"), (int)h.up.pendingCount());
+    // result per QSO (newest first, last 12): U uploaded, F failed with the reason, . waiting, - skipped (service was off)
+    const auto its = h.up.items();
+    int shown = 0;
+    for (int i = (int)its.size() - 1; i >= 0 && shown < 12; i--, shown++) {
+        std::string line = its[i].q.call;
+        for (int k = 0; k < ham::kUpServices; k++) {
+            const ham::UpState& s = its[i].s[k];
+            line += std::string("  ") + ham::upServiceName((ham::UpService)k) + ": " + (s.st == 'u' ? "uploaded" : s.st == 'f' ? "failed: " + s.reason : s.st == 'n' ? "not sent" : s.reason.empty() ? "waiting" : "retrying: " + s.reason);
+        }
+        ImGui::TextUnformatted(line.c_str());
+    }
 }
 }  // namespace
 
@@ -194,6 +256,7 @@ void hamPanel(App& a) {
     static const char* kState[] = {"Idle", "Calling CQ", "Calling: sent grid", "Sent report", "Sent R-report", "Sent RR73", "Sent 73"};
     ImGui::Text("%s: %s %s   %s: %d", tr("State"), kState[h.eng.state()], h.eng.dxCall().c_str(), tr("Logged"), h.logged);
     if (!h.status.empty()) ImGui::TextColored(ImVec4(1, 0.8f, 0.4f, 1), "%s", h.status.c_str());
+    uploadSection(h);
     if (!h.lastTx.empty()) ImGui::TextDisabled("%s", h.lastTx.c_str());
 
     // decodes in, the engine ticks
