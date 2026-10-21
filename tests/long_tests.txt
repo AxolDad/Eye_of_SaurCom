@@ -52,3 +52,6 @@ sigmf_import
 sonde_engine
 vor_rx
 hfdig_jt4
+hfdl_speed
+kaal_chain
+specx_idmatrix_quick
