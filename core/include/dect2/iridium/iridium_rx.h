@@ -41,6 +41,11 @@ public:
     bool bitsFileOpen() const;
     uint64_t bitsLines() const;
     std::string bitsPath() const;
+    // Same RAW lines live to host:port (UDP datagram per line, or TCP to a listener); with or without the file.
+    bool startBitsStream(bool tcp, const std::string& host, int port, std::string* err = nullptr);
+    void stopBitsStream();
+    bool bitsStreamOpen() const;
+    uint64_t bitsStreamLines() const;
     void setBurstCallback(std::function<void(const IridiumBurstBits&, const IridiumFrame&)> cb);
 
 private:

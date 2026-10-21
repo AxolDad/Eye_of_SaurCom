@@ -33,12 +33,21 @@ public:
     void write(const IridiumBurstBits& b, double unixTime);
     uint64_t lines() const;
     std::string path() const;
+    // Optional live copy of every line (text + '\n') to host:port: UDP (one datagram a line) or a TCP connection made to the
+    // listener (re-made every few seconds when it drops). Works with or without the file.
+    bool openStream(bool tcp, const std::string& host, int port, std::string* err = nullptr);
+    void closeStream();
+    bool streamOpen() const;
+    uint64_t streamLines() const;
+    bool active() const;                 // file or stream open
 private:
+    void streamSend(const std::string& line);
     mutable std::mutex mu_;
     FILE* f_ = nullptr;
     std::string path_;
     long long t0_ = -1;
     uint64_t lines_ = 0;
+    int sock_ = -1; bool tcp_ = false; std::string host_; int port_ = 0; double retryAt_ = 0; uint64_t streamed_ = 0; bool stream_ = false;
 };
 
 } // namespace dect2

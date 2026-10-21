@@ -170,7 +170,7 @@ struct IridiumReceiver::Impl {
             bb.confidence = d.confidence;
             bb.snrDb = d.snrDb;
             f = decodeIridiumBurst(bb);
-            if (bitsOut.isOpen() && bb.timeSec >= bitsT0.load()) bitsOut.write(bb, bitsWall0.load() + (bb.timeSec - bitsT0.load()));
+            if (bitsOut.active() && bb.timeSec >= bitsT0.load()) bitsOut.write(bb, bitsWall0.load() + (bb.timeSec - bitsT0.load()));
             haveFrame = true;
         }
         if (haveFrame && burstCb) burstCb(bb, f);
@@ -548,6 +548,19 @@ bool IridiumReceiver::startBitsFile(const std::string& path, std::string* err) {
 void IridiumReceiver::stopBitsFile() { std::lock_guard<std::mutex> wl(p_->wmu); p_->bitsOut.close(); }
 bool IridiumReceiver::bitsFileOpen() const { return p_->bitsOut.isOpen(); }
 uint64_t IridiumReceiver::bitsLines() const { return p_->bitsOut.lines(); }
+bool IridiumReceiver::startBitsStream(bool tcp, const std::string& host, int port, std::string* err) {
+    std::lock_guard<std::mutex> wl(p_->wmu);
+    if (!p_->bitsOut.active()) {
+        double r;
+        { std::lock_guard<std::mutex> lk(p_->mu); r = p_->rate; }
+        p_->bitsT0 = p_->written.load() / std::max(1.0, r);
+        p_->bitsWall0 = Impl::wallNow();
+    }
+    return p_->bitsOut.openStream(tcp, host, port, err);
+}
+void IridiumReceiver::stopBitsStream() { std::lock_guard<std::mutex> wl(p_->wmu); p_->bitsOut.closeStream(); }
+bool IridiumReceiver::bitsStreamOpen() const { return p_->bitsOut.streamOpen(); }
+uint64_t IridiumReceiver::bitsStreamLines() const { return p_->bitsOut.streamLines(); }
 std::string IridiumReceiver::bitsPath() const { return p_->bitsOut.path(); }
 void IridiumReceiver::setOffline(bool on) { std::lock_guard<std::mutex> fl(p_->fmu); p_->offline = on; }
 void IridiumReceiver::flush() {

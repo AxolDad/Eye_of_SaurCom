@@ -5,6 +5,9 @@
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
+#include <chrono>
+#include <cstring>
+#include "../net/netcompat.h"
 
 namespace dect2 {
 
@@ -28,7 +31,7 @@ std::string iridiumRawLine(const IridiumBurstBits& b, long long t0, double unixT
     return head + bits;
 }
 
-IridiumBitsWriter::~IridiumBitsWriter() { close(); }
+IridiumBitsWriter::~IridiumBitsWriter() { close(); closeStream(); }
 
 bool IridiumBitsWriter::open(const std::string& path, std::string* err) {
     std::lock_guard<std::mutex> lk(mu_);
@@ -54,17 +57,91 @@ void IridiumBitsWriter::close() {
     f_ = nullptr;
 }
 bool IridiumBitsWriter::isOpen() const { std::lock_guard<std::mutex> lk(mu_); return f_ != nullptr; }
+bool IridiumBitsWriter::active() const { std::lock_guard<std::mutex> lk(mu_); return f_ != nullptr || stream_; }
+bool IridiumBitsWriter::streamOpen() const { std::lock_guard<std::mutex> lk(mu_); return stream_; }
+uint64_t IridiumBitsWriter::streamLines() const { std::lock_guard<std::mutex> lk(mu_); return streamed_; }
+
+static double nowSec() { return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
+
+static sock_t makeSock(bool tcp, const sockaddr_in& to) {
+    netInit();
+    sock_t s = socket(AF_INET, tcp ? SOCK_STREAM : SOCK_DGRAM, 0);
+    if (s == kBadSock) return kBadSock;
+#ifdef SO_NOSIGPIPE
+    int one = 1; setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, (const char*)&one, sizeof one);
+#endif
+    if (tcp) {
+        // short, bounded connect: a dead listener must not stall the decoder
+#ifdef _WIN32
+        DWORD tmo = 300; setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tmo, sizeof tmo);
+#else
+        timeval tv{0, 300000}; setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof tv);
+#endif
+        if (connect(s, (const sockaddr*)&to, sizeof to) != 0) { sockClose(s); return kBadSock; }
+    }
+    return s;
+}
+
+bool IridiumBitsWriter::openStream(bool tcp, const std::string& host, int port, std::string* err) {
+    std::lock_guard<std::mutex> lk(mu_);
+    if (sock_ >= 0) { sockClose((sock_t)sock_); sock_ = -1; }
+    stream_ = false;
+    if (port < 1 || port > 65535) { if (err) *err = "port must be 1 to 65535"; return false; }
+    sockaddr_in a{};
+    a.sin_family = AF_INET; a.sin_port = htons((uint16_t)port);
+    const std::string h = host.empty() ? "127.0.0.1" : host;
+    if (inet_pton(AF_INET, h.c_str(), &a.sin_addr) != 1) { if (err) *err = "host must be an IPv4 address"; return false; }
+    tcp_ = tcp; host_ = h; port_ = port; retryAt_ = 0; streamed_ = 0; stream_ = true;
+    if (!tcp) {
+        const sock_t s = makeSock(false, a);
+        if (s == kBadSock) { stream_ = false; if (err) *err = "cannot open the UDP socket"; return false; }
+        sock_ = (int)s;
+    }   // TCP connects on the first line and again after a drop
+    return true;
+}
+void IridiumBitsWriter::closeStream() {
+    std::lock_guard<std::mutex> lk(mu_);
+    if (sock_ >= 0) sockClose((sock_t)sock_);
+    sock_ = -1; stream_ = false;
+}
+// mu_ held
+void IridiumBitsWriter::streamSend(const std::string& line) {
+    if (!stream_) return;
+    sockaddr_in a{};
+    a.sin_family = AF_INET; a.sin_port = htons((uint16_t)port_); inet_pton(AF_INET, host_.c_str(), &a.sin_addr);
+    if (tcp_ && sock_ < 0) {
+        if (nowSec() < retryAt_) return;
+        const sock_t s = makeSock(true, a);
+        if (s == kBadSock) { retryAt_ = nowSec() + 5; return; }
+        sock_ = (int)s;
+    }
+    if (sock_ < 0) return;
+    long long r;
+    if (tcp_) {
+#ifdef MSG_NOSIGNAL
+        r = send((sock_t)sock_, line.data(), line.size(), MSG_NOSIGNAL);
+#else
+        r = sockSend((sock_t)sock_, line.data(), line.size());
+#endif
+        if (r != (long long)line.size()) { sockClose((sock_t)sock_); sock_ = -1; retryAt_ = nowSec() + 5; return; }
+    } else {
+        r = sockSendTo((sock_t)sock_, line.data(), line.size(), a);
+        if (r < 0) return;
+    }
+    streamed_++;
+}
 uint64_t IridiumBitsWriter::lines() const { std::lock_guard<std::mutex> lk(mu_); return lines_; }
 std::string IridiumBitsWriter::path() const { std::lock_guard<std::mutex> lk(mu_); return path_; }
 
 void IridiumBitsWriter::write(const IridiumBurstBits& b, double unixTime) {
     std::lock_guard<std::mutex> lk(mu_);
-    if (!f_) return;
+    if (!f_ && !stream_) return;
     if (t0_ < 0) t0_ = (long long)std::floor(unixTime);   // gr-iridium: the whole second of the first burst
-    const std::string s = iridiumRawLine(b, t0_, unixTime, lines_);
-    fputs(s.c_str(), f_);
-    fputc('\n', f_);
-    if ((++lines_ & 31) == 0) fflush(f_);
+    std::string s = iridiumRawLine(b, t0_, unixTime, lines_);
+    s.push_back('\n');
+    if (f_) fputs(s.c_str(), f_);
+    streamSend(s);
+    if ((++lines_ & 31) == 0 && f_) fflush(f_);
 }
 
 } // namespace dect2

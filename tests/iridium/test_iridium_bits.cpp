@@ -1,6 +1,7 @@
 // iridium-toolkit .bits output: every line must match iridium-toolkit bitsparser.py's RAW regex (ported to std::regex) and carry the
 // fields as gr-iridium iridium-extractor prints them. The test signal live (fed straight in) and from a recording file.
 #include "dect2/iridium/iridium_bits.h"
+#include "../../core/src/net/netcompat.h"
 #include "dect2/common/stable_random.h"
 #include "dect2/iridium/iridium_gen.h"
 #include "dect2/iridium/iridium_phy.h"
@@ -114,6 +115,39 @@ int main() {
         const std::string want = "RAW: i-1791374400-t1 0000012.3456 1626270833 N:-20.00-38.00 I:00000000007  97% 0.10000   2 0011000000110000111100111001";
         CHECK(s == want, "line\n  %s\n  %s", s.c_str(), want.c_str());
         CHECK(std::regex_match(s, std::regex(kIridiumRawRegex)), "regex");
+    }
+    // live copy: a synthetic burst written with only the UDP stream open arrives as the same RAW line, newline-ended
+    {
+        const dect2::sock_t rs = socket(AF_INET, SOCK_DGRAM, 0);
+        sockaddr_in a{};
+        a.sin_family = AF_INET; a.sin_addr.s_addr = htonl(INADDR_LOOPBACK); a.sin_port = 0;
+        dect2::netInit();
+        CHECK(rs != dect2::kBadSock && bind(rs, (sockaddr*)&a, sizeof a) == 0, "udp bind");
+        #ifdef _WIN32
+        int al = (int)sizeof a;
+#else
+        socklen_t al = sizeof a;
+#endif
+        getsockname(rs, (sockaddr*)&a, &al);
+#ifdef _WIN32
+        DWORD tv = 2000;
+#else
+        timeval tv{2, 0};
+#endif
+        setsockopt(rs, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+        IridiumBitsWriter w;
+        std::string err;
+        CHECK(w.openStream(false, "127.0.0.1", ntohs(a.sin_port), &err), "stream %s", err.c_str());
+        IridiumBurstBits b;
+        b.bits = {1, 0, 0, 1};
+        b.downlink = true; b.freqHz = 1626270833.4; b.levelDb = -20; b.snrDb = 18; b.confidence = 97.4;
+        w.write(b, 1791374400.0123456);
+        char buf[2048];
+        const long n = (long)dect2::sockRecv(rs, buf, sizeof buf);
+        const std::string want = iridiumRawLine(b, 1791374400, 1791374400.0123456, 0) + "\n";
+        CHECK(n == (long)want.size() && std::string(buf, (size_t)std::max(0L, n)) == want, "udp line (%ld bytes)", n);
+        CHECK(w.streamLines() == 1 && w.active() && !w.isOpen(), "stream counters");
+        dect2::sockClose(rs);
     }
     const double rate = 10e6, secs = 3;
     SynthConfig c;
