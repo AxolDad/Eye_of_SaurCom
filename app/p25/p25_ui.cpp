@@ -2,6 +2,7 @@
 // packets), the trunking system (site, adjacent sites, channel identifiers), the talkgroups with their activity, the decoded control
 // messages, and a "?" about the mbelib library the voice needs (docs/CODECS.md). Receive only; encrypted calls are only reported.
 #include "app.h"
+#include "../codec/speech_codec_ui.h"
 #include "dect2/p25/p25_imbe.h"
 #include "dect2/p25/p25_proto.h"
 #include "dect2/p25/p25_rx.h"
@@ -411,6 +412,7 @@ void followView(App& a) {
 }
 
 void tick(App& a) {
+    if (live(a)) appcodec::voiceCodecTick("imbe");   // the user's codec plug-in (docs/CODECS.md), loaded whichever tab is shown
     trunkTick(a);
     if (!a.engine.running()) { S.wasRunning = false; return; }
     dect2::P25Receiver& r = a.engine.p25();

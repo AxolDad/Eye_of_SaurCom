@@ -56,6 +56,7 @@ void codecBlock(App& a) {
             S.codecGiven = true;
         }
     }
+    if (ImGui::TreeNode("Install helper##ysf")) { appcodec::codecInstallHelper("ysf"); ImGui::TreePop(); }
     if (S.codecGiven) ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.6f, 1), "codec ready: %llu of %llu voice frames decoded", (unsigned long long)t.voiceDecoded, (unsigned long long)t.voiceSubFrames);
     else ImGui::TextDisabled("no audio until the codec above is ready. Callsigns and data are still decoded (%llu voice frames received)", (unsigned long long)t.voiceSubFrames);
 }

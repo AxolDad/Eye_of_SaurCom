@@ -2,6 +2,7 @@
 // positions on a map (the ADS-B map underneath, as for APRS and M17), the calling-channel presets, and a "?" about the mbelib library the
 // voice needs (docs/CODECS.md).
 #include "app.h"
+#include "../codec/speech_codec_ui.h"
 #include "ui/ui_common.h"
 #include "../adsb/adsb_map.h"
 #include "dect2/dstar/dstar_ambe.h"
@@ -192,6 +193,7 @@ void mapView(App& a) {
 // ---------------------------------------------------------------- hooks
 
 void tick(App& a) {
+    if (live(a)) appcodec::voiceCodecTick("ambe");   // the user's codec plug-in (docs/CODECS.md), loaded whichever tab is shown
     load();
     if (!a.engine.running()) { S.wasRunning = false; return; }
     dect2::DstarReceiver& r = a.engine.dstar();
