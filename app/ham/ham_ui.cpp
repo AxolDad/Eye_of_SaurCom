@@ -66,7 +66,10 @@ struct RealIo : ham::HamRigIo {
 struct HamUi {
     bool loaded = false, view = false, armed = false, licence = false, askLicence = false;
     char call[16] = {}, grid[8] = {};
-    int mode = 0;                       // 0 FT8, 1 FT4, 2 FT2
+    int mode = 0;                       // hfdig mode number: 0 FT8, 1 FT4, 2 FT2, 3 WSPR (beacon), 4 JT65, 5 JT9, 10 JT4
+    int sub = 0;                        // JT65 A B C, JT4 A .. G
+    ham::WsprBeacon beacon;
+    bool txBeacon = false;              // the running burst is a beacon one
     float txHz = 1500;
     ham::QsoEngine eng;
     ham::WorkedLog worked;
@@ -119,15 +122,29 @@ void hamPanel(App& a) {
     HamUi& h = H();
     load(h);
     const double now = (double)time(nullptr);
-    static const char* kModes[] = {"FT8", "FT4", "FT2"};
-    static const char* kSub[] = {"ft8", "ft4", "ft2"};
+    // the Ham modes: hfdig mode number, name, mode-list subId (the receiver must be on that mode for the decodes to exist)
+    struct HamMode { int num; const char* name; const char* subId; };
+    static const HamMode kHam[] = {{0, "FT8", "ft8"}, {1, "FT4", "ft4"}, {2, "FT2", "ft2"}, {4, "JT65", "jt65"}, {5, "JT9", "jt9"}, {10, "JT4", "jt4"}, {3, "WSPR beacon", "wspr"}};
     ham::QsoConfig& c = h.eng.config();
     c.myCall = h.call; c.myGrid = h.grid; c.mode = h.mode;
+    h.beacon.cfg.myCall = h.call; h.beacon.cfg.myGrid = h.grid;
+    const bool isBeacon = h.mode == 3;
 
-    // mode: the receiver must be on that FT mode for the decodes to exist
-    for (int i = 0; i < 3; i++) {
-        if (i) ImGui::SameLine();
-        if (ImGui::RadioButton(kModes[i], h.mode == i)) { h.mode = i; h.eng.halt(); for (const auto& m : allModes()) if (m.family == 25 && m.subId && !strcmp(m.subId, kSub[i])) { selectMode(a, m.family, m.subId); break; } }
+    for (const HamMode& hm : kHam) {
+        if (&hm != kHam) ImGui::SameLine();
+        if (ImGui::RadioButton(hm.name, h.mode == hm.num) && h.mode != hm.num) {
+            h.mode = hm.num; h.sub = 0; h.eng.halt(); h.beacon.stop(); h.lastFed = 0;
+            for (const auto& m : allModes()) if (m.family == 25 && m.subId && !strcmp(m.subId, hm.subId)) { selectMode(a, m.family, m.subId); break; }
+            a.engine.hfdig().ftx().setModeOption(h.mode, 0, 0);
+        }
+    }
+    if (h.mode == 4 || h.mode == 10) {   // sub-mode: JT65 A B C, JT4 A .. G
+        int sb = h.sub;
+        ImGui::SetNextItemWidth(70 * gUi);
+        if (ImGui::Combo(tr("Sub-mode"), &sb, h.mode == 4 ? "A\0B\0C\0" : "A\0B\0C\0D\0E\0F\0G\0") && sb != h.sub) {
+            h.sub = sb; h.eng.halt();
+            a.engine.hfdig().ftx().setModeOption(h.mode, sb, 0);
+        }
     }
     ImGui::SameLine(); ImGui::TextDisabled("%.4f MHz", a.freqMhz);
 
@@ -156,11 +173,34 @@ void hamPanel(App& a) {
     if (!h.eng.active()) c.txHz = h.txHz; else h.txHz = (float)c.txHz;
 
     const bool canCq = stationOk && h.licence;
+    if (isBeacon) {
+        // WSPR beacon: transmit only. Power, how often (never more than every second slot), then Start; the gate and Arm apply as always.
+        static const int kDbm[] = {0, 3, 7, 10, 13, 17, 20, 23, 27, 30, 33, 37, 40};
+        int di = 3;
+        for (int i = 0; i < 13; i++) if (kDbm[i] == h.beacon.cfg.dbm) di = i;
+        char dl[16]; snprintf(dl, sizeof dl, "%d dBm", kDbm[di]);
+        ImGui::SetNextItemWidth(90 * gUi);
+        if (ImGui::BeginCombo(tr("Power"), dl)) {
+            for (int i = 0; i < 13; i++) { snprintf(dl, sizeof dl, "%d dBm", kDbm[i]); if (ImGui::Selectable(dl, i == di)) h.beacon.cfg.dbm = kDbm[i]; }
+            ImGui::EndCombo();
+        }
+        ImGui::SameLine(); ImGui::SetNextItemWidth(130 * gUi);
+        int nth = std::max(2, h.beacon.cfg.everyNth);
+        if (ImGui::SliderInt(tr("1 slot in"), &nth, 2, 20)) h.beacon.cfg.everyNth = nth;
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Duty cycle: one 2 minute slot in N. Never more than every second slot."));
+        h.beacon.cfg.audioHz = 1500;
+        ImGui::BeginDisabled(!canCq);
+        if (ImGui::Button(h.beacon.active() ? tr("Stop beacon") : tr("Start beacon"))) { if (h.beacon.active()) h.beacon.stop(); else { h.beacon.start(); h.status.clear(); } h.beacon.userAction(); }
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+        if (!h.beacon.stopReason().empty()) h.status = "Beacon stopped after its limit of transmissions";
+    } else {
     ImGui::BeginDisabled(!canCq);
     if (ImGui::Button(tr("CQ"))) { h.eng.startCq(now); c.txHz = h.txHz; h.status.clear(); }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button(tr("Halt TX"))) { h.eng.halt(); h.armed = false; h.tx.abort(); h.status = "Halted"; }
+    }
+    if (ImGui::Button(tr("Halt TX"))) { h.eng.halt(); h.beacon.stop(); h.armed = false; h.tx.abort(); h.status = "Halted"; }
     ImGui::SameLine();
     ImGui::BeginDisabled(!h.licence);
     ImGui::PushStyleColor(ImGuiCol_Button, h.armed ? ImVec4(0.75f, 0.1f, 0.1f, 1) : ImVec4(0.3f, 0.3f, 0.3f, 1));
@@ -192,7 +232,8 @@ void hamPanel(App& a) {
     }
     // state line
     static const char* kState[] = {"Idle", "Calling CQ", "Calling: sent grid", "Sent report", "Sent R-report", "Sent RR73", "Sent 73"};
-    ImGui::Text("%s: %s %s   %s: %d", tr("State"), kState[h.eng.state()], h.eng.dxCall().c_str(), tr("Logged"), h.logged);
+    if (isBeacon) ImGui::Text("%s: %s", tr("State"), h.beacon.active() ? "Beacon running" : "Beacon off");
+    else ImGui::Text("%s: %s %s   %s: %d", tr("State"), kState[h.eng.state()], h.eng.dxCall().c_str(), tr("Logged"), h.logged);
     if (!h.status.empty()) ImGui::TextColored(ImVec4(1, 0.8f, 0.4f, 1), "%s", h.status.c_str());
     if (!h.lastTx.empty()) ImGui::TextDisabled("%s", h.lastTx.c_str());
 
@@ -211,28 +252,28 @@ void hamPanel(App& a) {
     if (h.txState == 2 || h.txState == 3) {
         if (h.worker.joinable()) h.worker.join();
         std::lock_guard<std::mutex> l(h.mu);
-        if (h.txState == 2) { h.eng.txSent(h.txSlot); h.lastTx = "Sent: " + h.txMsg; }
+        if (h.txState == 2) { if (h.txBeacon) h.beacon.txSent(); else h.eng.txSent(h.txSlot); h.lastTx = "Sent: " + h.txMsg; }
         else h.lastTx = "Not sent (" + h.txErr + "): " + h.txMsg;
         h.txState = 0;
     }
     if (!h.armed && h.tx.busy()) h.tx.abort();   // disarm, watchdog and Halt stop a running burst and release PTT at once
     h.io.rigIdx = h.rigSel;
     const long idx = ham::slotIndex(now, per);
-    if (h.eng.active() && idx != h.lastTxSlot && now - ham::slotStart(idx, per) >= ham::txStartDelay(h.mode)) {
+    if ((isBeacon ? h.beacon.active() : h.eng.active()) && idx != h.lastTxSlot && now - ham::slotStart(idx, per) >= ham::txStartDelay(h.mode)) {
         h.lastTxSlot = idx;
-        const std::string msg = h.eng.messageForSlot(ham::slotStart(idx, per));
+        const std::string msg = isBeacon ? h.beacon.messageForSlot(ham::slotStart(idx, per)) : h.eng.messageForSlot(ham::slotStart(idx, per));
         if (!msg.empty() && h.txState == 0) {
             ham::HamTxCheck g;
             g.licenceConfirmed = h.licence; g.armed = h.armed; g.call = h.call; g.grid = h.grid;
-            g.dialHz = a.freqMhz * 1e6; g.audioHz = c.txHz; g.bwHz = h.mode == 1 ? 90 : h.mode == 2 ? 170 : 50;
+            g.dialHz = a.freqMhz * 1e6; g.audioHz = isBeacon ? h.beacon.audioHz() : c.txHz; g.bwHz = ham::hamModeBwHz(h.mode, h.sub);
             std::string why;
             if (!ham::hamTxAllowed(g, why)) h.lastTx = "Not sent (" + why + "): " + msg;
             else {
-                h.txMsg = msg; h.txSlot = ham::slotStart(idx, per); h.txState = 1;
-                const double hz = c.txHz, lv = h.level; const int md = h.mode;
-                h.worker = std::thread([&h, g, md, msg, hz, lv] {
+                h.txMsg = msg; h.txSlot = ham::slotStart(idx, per); h.txState = 1; h.txBeacon = isBeacon;
+                const double hz = g.audioHz, lv = h.level; const int md = h.mode, sb = h.sub;
+                h.worker = std::thread([&h, g, md, msg, hz, lv, sb] {
                     std::string err;
-                    const bool ok = h.tx.send(g, md, msg, hz, lv, err);
+                    const bool ok = h.tx.send(g, md, msg, hz, lv, err, sb);
                     std::lock_guard<std::mutex> l(h.mu);
                     h.txErr = err;
                     h.txState = ok ? 2 : 3;
@@ -261,14 +302,14 @@ void hamPanel(App& a) {
             snprintf(b, sizeof b, "%02d%02d%02d", g.tm_hour, g.tm_min, g.tm_sec);
             ImGui::TableNextColumn();
             ImGui::Selectable(b, false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick);
-            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0) && !d.call.empty() && h.licence && stationOk) {
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0) && !d.call.empty() && h.licence && stationOk && !isBeacon) {
                 h.eng.callStation(now, d.call, d.grid, (int)std::lround(d.snrDb), d.slotUtc, d.hz);
                 h.status.clear();
             }
             ImGui::TableNextColumn(); ImGui::Text("%+3.0f", d.snrDb);
             ImGui::TableNextColumn(); ImGui::Text("%5.0f", d.hz);
             ImGui::TableNextColumn();
-            const bool w = !d.call.empty() && h.worked.workedOn(d.call, band, kModes[h.mode]);
+            const bool w = !d.call.empty() && h.worked.workedOn(d.call, band, ham::hamModeName(h.mode));
             const bool wAny = !d.call.empty() && h.worked.worked(d.call);
             ImGui::TextUnformatted(w ? "B" : wAny ? "b" : "");
             ImGui::TableNextColumn();

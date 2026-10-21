@@ -34,8 +34,8 @@ New in phase 1: `core/include/dect2/ham/ham.h` (+ `core/src/ham/ham.cpp`, test `
 | FT8 | yes | yes (Ftx) | Phase 1 engine/panel done; phase 2 slot transmitter |
 | FT4 | yes | yes | same, 7.5 s slots |
 | FT2 | yes | yes | same, 3.75 s slots |
-| WSPR | yes | yes | beacon scheduler (every N even 2 min slots), power field, spots optional |
-| JT65 / JT9 | yes | yes | QSO engine variant (60 s slots), JT65 sub-mode choice |
+| WSPR | yes | yes | DONE (0.2.9): beacon in the Ham panel, `WsprBeacon` (core/src/ham/ham_wspr.cpp): 1 slot in N (N >= 2, default 5), power 0..60 dBm in WSPR steps, 1400..1600 Hz, stops after 30 transmissions without operator action; spots optional, not done |
+| JT65 / JT9 / JT4 | yes | yes | DONE (0.2.9): the QSO engine runs them (60 s slots, 1 s start delay, RRR instead of RR73, JT65 A B C and JT4 A..G choice, mode bandwidth in the TX gate); test tests/ham/test_ham_modes.cpp (engine - HamSlotTx - decoder loopback). Known: the JT65 B / C decoder misses signals above about +5 dB |
 | Q65 | yes | yes | engine variant, sub-mode + period choice |
 | FST4 / FST4W | yes | FST4 yes | engine variant; FST4W beacon like WSPR |
 | MSK144 | yes | yes | meteor-scatter 15 s repeating sequences, fast-sequence engine |
