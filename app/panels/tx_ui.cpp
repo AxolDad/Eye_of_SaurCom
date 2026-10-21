@@ -408,7 +408,11 @@ void txViewSwitch(App&) {
     TxUi& s = ui();
     bool& ham = hamViewFlag();
     if (ham && s.view) ham = false;   // set by another route (menu): TX and Ham exclude each other
-    const float h = ImGui::GetFrameHeight(), seg = h * 1.6f, w = seg * 3;
+    const char* labs[3] = {tr("RX"), tr("TX"), tr("Ham")};
+    const float h = ImGui::GetFrameHeight();
+    float seg = h * 1.6f;   // wide enough for the longest label ("Ham", or its translation) with room in the pill
+    for (const char* l : labs) seg = std::max(seg, ImGui::CalcTextSize(l).x + h * 0.9f);
+    const float w = seg * 3;
     const ImVec2 p = ImGui::GetCursorScreenPos();
     ImGui::InvisibleButton("##rxtx", ImVec2(w, h));
     const bool tx = s.session.running();
@@ -422,7 +426,6 @@ void txViewSwitch(App&) {
     const ImU32 bg = tx ? IM_COL32(190, 25, 25, 255) : cur == 1 ? IM_COL32(150, 60, 40, 255) : cur == 2 ? IM_COL32(40, 110, 80, 255) : IM_COL32(60, 70, 85, 255);
     dl->AddRectFilled(p, ImVec2(p.x + w, p.y + h), bg, h * 0.5f);
     dl->AddRectFilled(ImVec2(p.x + seg * cur + 2 * gUi, p.y + 2 * gUi), ImVec2(p.x + seg * (cur + 1) - 2 * gUi, p.y + h - 2 * gUi), IM_COL32(245, 245, 245, 255), h * 0.5f);
-    const char* labs[3] = {tr("RX"), tr("TX"), tr("Ham")};
     for (int i = 0; i < 3; i++) {
         const ImVec2 ts = ImGui::CalcTextSize(labs[i]);
         dl->AddText(ImVec2(p.x + seg * i + (seg - ts.x) * 0.5f, p.y + (h - ts.y) * 0.5f), i == cur ? IM_COL32(30, 30, 30, 255) : IM_COL32(255, 255, 255, 255), labs[i]);
