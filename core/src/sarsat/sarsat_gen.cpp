@@ -84,6 +84,13 @@ public:
         const std::vector<sarsat::Spec> all = sarsat::testBeacons();
         const double carrier = cfg.cfoHz - sarsatTuning().tuneOffsetHz;
         const int pick = cfg.modeOpt[0];
+        if (cfg.modeOpt[2] == 1) {   // second generation: 1 s bursts; modeVal[0] is then the chip rate error in ppm
+            const std::vector<sarsat::SgbSpec> sg = sarsat::sgbTestBeacons();
+            for (size_t i = 0; i < sg.size(); i++) {
+                if (pick > 0 && (int)i != pick - 1) continue;
+                bursts_.push_back(sarsat::sgbBurstSamples(sarsat::sgbEncode(sg[i]), rate, carrier + sarsat::kSgbOffsetHz, false, cfg.modeVal[0]));
+            }
+        } else
         for (size_t i = 0; i < all.size(); i++) {
             if (pick > 0 && (int)i != pick - 1) continue;
             bursts_.push_back(sarsat::burstSamples(sarsat::encode(all[i]), rate, carrier, cfg.modeVal[0], cfg.modeOpt[1] == 1));

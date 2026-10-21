@@ -104,3 +104,6 @@ Merged PRs #231 (KLW/TDCS railway receivers, LBJ fields; checked: clean merge, l
 RX / TX / Ham switch; core/include/dect2/ham (bands, TX gate, ADIF, QSO engine, tested); Ham panel for FT8/FT4/FT2; slot transmitter still to wire (docs/HAM_PLAN.md).
 ## 2026-10-21 KrakenSDR coherent group
 DF core already had MUSIC, calibration, simulator and UI; added core/df/group (N RTL devices as one coherent source: lag + gain calibration from the noise source), test_df_group (MUSIC error 0.14 deg synthetic), docs/direction-finding.md. RTL adapter and hardware noise-source switch not done, no hardware.
+
+## 2026-10-21 COSPAS-SARSAT second-generation beacons (sgb-029)
+SGB (C/S T.018) in the sarsat mode: sgb_proto (PRN segments, BCH(250,202) with 6-bit repair, 23 hex ID, position), sgb_rx (differential matched-filter acquisition by FFT, carrier refinement, decision-directed carrier and timing loops), sgb_gen and synth option modeOpt[2]=1, test_sarsat_sgb (checks Table 2.2 chips, annex B BCH example, 6-error repair, loopback with noise, offsets to +-9.5 kHz, 25 ppm chip rate, 3 sample rates, noise only). Sensitivity about 5 dB in 2.4 kHz on the generated signal, below the 34.8 dBHz spec minimum; not checked against a real signal.

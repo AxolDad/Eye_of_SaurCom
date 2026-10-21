@@ -38,6 +38,11 @@ struct Beacon {
     bool bch2Present = false, bch2Ok = false;
     int corrected = 0;           // bits the BCH codes repaired
     std::string rawHex;          // all message bits (sync included) as hex
+    // second-generation beacons (C/S T.018, see sgb_proto.h): hexId then holds the 23 hex ID
+    bool second = false;
+    int tac = 0, serial = 0;
+    bool rls = false, testProto = false;
+    int rotId = -1;              // bits 155-158, the rotating field of that burst (its content is not decoded)
 };
 
 // the sync bits as the specification gives them, followed by nothing: bits 1-24

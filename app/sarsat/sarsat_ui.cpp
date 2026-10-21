@@ -108,10 +108,11 @@ void details(App& a, const dect2::SarsatEntry& e) {
     kvRow(a, tr("Protocol"), "%s", b.protoName.c_str());
     kvRow(a, tr("Identification"), "%s", b.idText.c_str());
     kvRow(a, tr("Position"), "%s", posText(b).c_str());
-    if (b.hasPos) kvRow(a, tr("Precision"), "%s", b.fine ? tr("about 4 seconds of arc") : tr("15 minutes of arc (short message)"));
+    if (b.hasPos) kvRow(a, tr("Precision"), "%s", b.second ? tr("about 3 m (15 bit fractions of a degree)") : b.fine ? tr("about 4 seconds of arc") : tr("15 minutes of arc (short message)"));
     kvRow(a, tr("Homing 121.5 MHz"), "%s", b.homing ? tr("yes") : tr("no"));
-    kvRow(a, tr("Message"), "%s", b.longMsg ? tr("long, 144 bits") : tr("short, 112 bits"));
-    kvRow(a, tr("Check bits"), "%s%s", b.bch2Present ? (b.bch2Ok ? tr("both good") : tr("first good, second failed")) : tr("first good"),
+    if (b.second) kvRow(a, tr("Rotating field"), "%d", b.rotId);
+    kvRow(a, tr("Message"), "%s", b.second ? tr("second generation, 250 bits") : b.longMsg ? tr("long, 144 bits") : tr("short, 112 bits"));
+    kvRow(a, tr("Check bits"), "%s%s", b.second ? tr("BCH(250,202) good") : b.bch2Present ? (b.bch2Ok ? tr("both good") : tr("first good, second failed")) : tr("first good"),
           b.corrected ? (std::string(", ") + std::to_string(b.corrected) + " " + tr("bits repaired")).c_str() : "");
     kvRow(a, tr("Signal"), "%.1f dB, %+.0f Hz, %.0f dBFS", e.snrDb, e.cfoHz, e.levelDb);
 }
