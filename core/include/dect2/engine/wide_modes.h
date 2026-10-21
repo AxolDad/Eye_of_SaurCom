@@ -28,6 +28,7 @@ public:
     bool telemetry(int stdMode, RxTelemetry& t, uint64_t& lastSeq);
     void setSelected(int carrierId);
     void setMuted(bool m);
+    void setVolume(float v);                                // the sound level of the carrier that plays (all carrier receivers, new ones too)
     // The radio's centre frequency: carriers that have gone keep their absolute frequency in the logs over a retune (any thread)
     void setCenterHz(double hz);
     void setPagerOptions(int protocols, int pocsagBauds);   // the single receiver's POCSAG / FLEX and baud selection, for the carrier receivers

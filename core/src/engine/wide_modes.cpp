@@ -57,6 +57,7 @@ struct WideModes::Impl {
     bool pagerNarrow = false, packetNarrow = false;   // the single receivers' channel width, copied to every carrier receiver (setNarrowChannels)
     int pagerProtos = 3, pagerBauds = 7;   // the single receiver's settings, copied to every carrier's receiver (setPagerOptions)
     bool muted = false;
+    float volume = 1.f;
     int sel = 0;
 
     template <class Rx, class Tel> WideOps<Rx, Tel> baseOps(double outRate) {
@@ -65,7 +66,7 @@ struct WideModes::Impl {
         WideOps<Rx, Tel> o;
         o.outRate = outRate; o.occupiedHz = 60000;
         o.log = [this](const std::string& line) { if (log) log(line); };
-        o.setup = [this](Rx& r) { commonSetup(r, log); };
+        o.setup = [this](Rx& r) { commonSetup(r, log); r.setVolume(volume); };
         o.audio = [](Rx& r, bool play) { audioSwitch(r, play); };
         o.clear = [](Rx& r) { r.clearResults(); };
         return o;
@@ -281,6 +282,17 @@ void WideModes::setSelected(int id) {
 void WideModes::setMuted(bool m) {
     p_->muted = m;
     p_->dmr->setMuted(m); p_->m17->setMuted(m); p_->dstar->setMuted(m); p_->nxdn->setMuted(m); p_->dpmr->setMuted(m); p_->p25->setMuted(m); p_->pager->setMuted(m); p_->packet->setMuted(m);
+}
+
+void WideModes::setVolume(float v) {
+    p_->volume = v;
+    const std::function<void(DmrReceiver&)> fd = [v](DmrReceiver& r) { r.setVolume(v); };
+    p_->dmr->forEach(fd);
+    p_->m17->forEach([v](M17Receiver& r) { r.setVolume(v); });
+    p_->dstar->forEach([v](DstarReceiver& r) { r.setVolume(v); });
+    p_->nxdn->forEach([v](NxdnReceiver& r) { r.setVolume(v); });
+    p_->dpmr->forEach([v](DpmrReceiver& r) { r.setVolume(v); });
+    p_->p25->forEach([v](P25Receiver& r) { r.setVolume(v); });
 }
 
 void WideModes::setCenterHz(double hz) {

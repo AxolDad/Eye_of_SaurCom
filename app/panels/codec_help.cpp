@@ -236,8 +236,15 @@ const char* codecNeedMbe() {
     return t.c_str();
 }
 
+// the plug-in codec id a help topic belongs to (the AMBE / IMBE family), or null
+static const char* pluginIdFor(CodecHelp c) {
+    return c == CodecHelp::DmrAmbe || c == CodecHelp::NxdnAmbe || c == CodecHelp::DpmrAmbe ? "ambe2" : c == CodecHelp::DstarAmbe ? "ambe" : c == CodecHelp::P25Imbe ? "imbe" : nullptr;
+}
+
 void codecHelpButton(CodecHelp c, const char* label) {
     const Text t = textOf(c);
+    // the codec notice must be answerable from the panel itself, not only from inside the collapsed install helper (otherwise an installed plug-in never loads)
+    if (const char* pid0 = pluginIdFor(c)) appcodec::codecNoticePrompt(pid0);
     ImGui::PushID((int)c + 7100);
     if (ImGui::SmallButton(label)) ImGui::OpenPopup("codechelp");
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("How to get the %s codec", t.title);
@@ -246,7 +253,7 @@ void codecHelpButton(CodecHelp c, const char* label) {
         ImGui::TextUnformatted(t.title);
         ImGui::Separator();
         {   // the AMBE / IMBE family: the shared plug-in install helper first
-            const char* pid = c == CodecHelp::DmrAmbe || c == CodecHelp::NxdnAmbe || c == CodecHelp::DpmrAmbe ? "ambe2" : c == CodecHelp::DstarAmbe ? "ambe" : c == CodecHelp::P25Imbe ? "imbe" : nullptr;
+            const char* pid = pluginIdFor(c);
             if (pid) { appcodec::codecInstallHelper(pid); ImGui::Separator(); }
         }
         if (c == CodecHelp::Ac4) {   // its own layout: the optional FFmpeg, not mbelib or codec2

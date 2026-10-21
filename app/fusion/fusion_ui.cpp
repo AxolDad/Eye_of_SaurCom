@@ -49,6 +49,7 @@ void codecBlock(App& a) {
     const dect2::FusionTelemetry& t = a.rx.fusion;
     ImGui::Spacing();
     ImGui::TextUnformatted("Voice");
+    appcodec::voiceCodecLine("ysf", "AMBE+2 (Yaesu)");
     if (!S.codecGiven) {
         // the gate draws the not-installed text, the notice dialog or the load error, and hands over the codec once it is ready
         if (appcodec::speechCodecGate("ysf", S.codec)) {

@@ -2,6 +2,7 @@
 // data), the decoded headers and end frames, the PMR446 channel presets with "scan all 16", and a "?" about the mbelib library the
 // voice needs (docs/CODECS.md).
 #include "app.h"
+#include "dect2/codec/codec_registry.h"
 #include "../codec/speech_codec_ui.h"
 #include "dect2/dpmr/dpmr_proto.h"
 #include "dect2/dpmr/dpmr_rx.h"
@@ -58,8 +59,9 @@ void kvRow(const App& a, const char* k, const char* fmt, ...) {
 
 void voiceLine() {
     ImGui::AlignTextToFramePadding();
-    const bool mbe = dect2::nxdnAmbeAvailable();
-    ImGui::TextColored(mbe ? pal::okGreen() : pal::warnAmber(), "%s", mbe ? "voice: mbelib" : codecNeedMbe());
+    std::string lib;
+    if (!dect2::codec::pluginLoaded("ambe2")) dect2::nxdnAmbeAvailable(&lib);
+    appcodec::voiceCodecLine("ambe2", "AMBE+2", lib);
     ImGui::SameLine(0, 4 * gUi);
     codecHelpButton(CodecHelp::DpmrAmbe);
 }

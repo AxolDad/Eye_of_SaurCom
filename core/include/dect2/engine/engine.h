@@ -492,6 +492,7 @@ public:
     void setWideVoice(bool on) { wideOn_.store(on); for (auto& v : wideSeq_) v = 0; }
     bool wideVoice() const { return wideOn_.load(); }
     void setWideMuted(bool m) { wide_.setMuted(m); }
+    void setWideVolume(float v) { wide_.setVolume(v); }   // the volume slider reaches every carrier receiver of the whole-span modes
     void setWideSelected(int carrierId) { wide_.setSelected(carrierId); }   // the carrier whose sound plays and whose detail shows (0: the best locked)
     static bool wideSupported(int analysisMode) { return WideModes::supports(analysisMode); }
     void clearAllResults();                              // the lists of every mode at once (the top bar's Clear all)
