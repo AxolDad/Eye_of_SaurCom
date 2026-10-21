@@ -351,7 +351,14 @@ static void setupFreqAxis(const App& a) {
     const double fs = (a.engine.sampleRate() > 0 ? a.engine.sampleRate() : a.tune.sampleRate) / 1e6;
     static double lastC = 0, lastFs = 0;
     const double rc = radioCenterMhz(a);   // the axis shows the radio's real centre, so a signal sits at its true frequency
-    if (lastC != rc || lastFs != fs || !(gXHi > gXLo)) { gXLo = rc - fs / 2; gXHi = rc + fs / 2; }   // follow a retune (otherwise keep the user's own zoom)
+    const double bLo = rc - fs / 2, bHi = rc + fs / 2, span = gXHi - gXLo;
+    if (lastFs != fs || !(gXHi > gXLo) || (lastC != rc && span >= lastFs * 0.999)) { gXLo = bLo; gXHi = bHi; }   // a new band, or a view that showed all of the old one
+    else if (lastC != rc) {   // a retune keeps the user's zoom (#238): the same view if the channel is still in it, else the same span around the channel
+        const double chan = a.freqMhz;
+        double lo = chan >= gXLo && chan <= gXHi ? gXLo : chan - span / 2;
+        lo = std::max(bLo, std::min(lo, bHi - span));
+        gXLo = lo; gXHi = lo + span;
+    }
     lastC = rc; lastFs = fs;
     plt::SetupAxisLimits(plt::X1, rc - fs / 2, rc + fs / 2, plt::Cond_Once);
     plt::SetupAxisLinks(plt::X1, &gXLo, &gXHi);
