@@ -100,7 +100,8 @@ fn parse_nwrk(r: &mut Reader, out: &mut Out) {
 }
 
 /// The call set-up PDUs of the CMCE (ETSI EN 300 392-2 clause 14.7), after the MLE protocol discriminator: only the call identifier and the end-to-end
-/// encryption flag of the basic service information are kept (D-SETUP type 00111, D-CONNECT 00010, D-DISCONNECT 00100, D-RELEASE 00110). Nothing else
+/// encryption flag of the basic service information are kept (D-SETUP type 00111, D-CONNECT 00010, D-DISCONNECT 00100, D-RELEASE 00110; D-TX-CEASED 01001,
+/// D-TX-CONTINUE 01010 and D-TX-GRANTED 01011 give only the call id: the call is still going on). Nothing else
 /// of the call (parties, priority, content) is read. `slots` and `carrier` come from the channel allocation of the MAC-RESOURCE that carried the PDU.
 fn parse_cmce(r: &mut Reader, slots: i32, carrier: i32, out: &mut Out) {
     let ty = r.get(5);
@@ -152,6 +153,14 @@ fn parse_cmce(r: &mut Reader, slots: i32, carrier: i32, out: &mut Out) {
                 return;
             }
             (3, id, -1)
+        }
+        9 | 10 | 11 => {
+            // D-TX-CEASED, D-TX-CONTINUE, D-TX-GRANTED: the call goes on (a talk spurt starts or ends); only the call id is read
+            let id = r.get(14);
+            if !r.ok {
+                return;
+            }
+            (4, id, -1)
         }
         _ => return,
     };

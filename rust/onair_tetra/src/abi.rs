@@ -107,7 +107,8 @@ pub struct Nwrk {
     pub time48: u64,
 }
 
-/// The call set-up facts of one clear CMCE PDU (ETSI EN 300 392-2 clause 14): kind 1 D-SETUP, 2 D-CONNECT, 3 D-DISCONNECT / D-RELEASE; the call
+/// The call set-up facts of one clear CMCE PDU (ETSI EN 300 392-2 clause 14): kind 1 D-SETUP, 2 D-CONNECT, 3 D-DISCONNECT / D-RELEASE,
+/// 4 D-TX-GRANTED / D-TX-CONTINUE / D-TX-CEASED (the call goes on: a new talk spurt, or the end of one); the call
 /// identifier; `enc` the end-to-end encryption flag of the basic service information (0 clear, 1 encrypted, -1 not stated); `slots` the
 /// "timeslot assigned" bit map (MSB = timeslot 1) and `carrier` the carrier number of the channel allocation of the same MAC-RESOURCE, -1 when it has none.
 #[repr(C)]

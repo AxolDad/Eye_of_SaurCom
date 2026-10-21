@@ -43,6 +43,8 @@ const char* voiceVerdictText(VoiceVerdict v);   // "voice (clear)", "encrypted, 
 // main (control) carrier; traffic on any other carrier stays unknown (AMBIGUITY, left unresolved: the traffic carrier number cannot be read from the
 // capture of another carrier, so those calls are never decoded). The state expires kTtlSec after the last set-up PDU for the slot (the set-up is
 // repeated for late entry; a stale entry could otherwise outlive the call): a missed repeat only costs audio, never decodes an unchecked call.
+// D-TX-GRANTED / D-TX-CONTINUE / D-TX-CEASED of the same call id (sent at every talk spurt of a group call) restart that time, so a long call
+// is not cut off after kTtlSec; they never create an entry or change its encryption state.
 class CallTracker {
 public:
     static constexpr double kTtlSec = 20.0;

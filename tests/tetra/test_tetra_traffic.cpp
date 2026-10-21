@@ -132,6 +132,26 @@ int main() {
         t.onEvent(first, 18.0);
         CHECK(voiceVerdict(t.slotState(1, 18.5)) == VoiceVerdict::EncryptedNotDecoded, "D-CONNECT saying encrypted: refused");
     }
+    {   // a long group call: D-TX-GRANTED / CEASED of the same call keep a clear call alive past kTtlSec; they never make a slot clear on their own
+        CallTracker t;
+        t.setMainCarrier(1234);
+        CallEvent tx; tx.kind = 4; tx.callId = 300;
+        t.onEvent(tx, 5.0);
+        CHECK(!t.slotState(3, 5.5).known, "D-TX-GRANTED of an unknown call: nothing");
+        CallEvent su; su.kind = 1; su.callId = 300; su.enc = 0; su.slots = 0x2; su.carrier = 1234;   // timeslot 3
+        t.onEvent(su, 10.0);
+        t.onEvent(tx, 25.0);   // the next talk spurt, 15 s after the set-up
+        CHECK(t.slotState(3, 10.0 + CallTracker::kTtlSec + 5).known && t.slotState(3, 35.0).encMode == 0, "the call goes on: still clear after kTtlSec");
+        CHECK(!t.slotState(3, 25.0 + CallTracker::kTtlSec + 1).known, "no talk spurt for kTtlSec: it expires");
+        CallEvent otherTx = tx; otherTx.callId = 301;
+        t.onEvent(otherTx, 40.0);
+        CHECK(!t.slotState(3, 50.0).known, "another call's D-TX-GRANTED does not keep it");
+        CallEvent enc = su; enc.callId = 400; enc.enc = 1; enc.slots = 0x1;   // timeslot 4, encrypted
+        t.onEvent(enc, 60.0);
+        tx.callId = 400;
+        t.onEvent(tx, 75.0);
+        CHECK(voiceVerdict(t.slotState(4, 85.0)) == VoiceVerdict::EncryptedNotDecoded, "an encrypted call stays encrypted");
+    }
     {   // the whole path with a fake plug-in: clear call -> both frames reach the codec; encrypted, unknown, or cell-encrypted -> nothing
         const auto A = randomFrame(g), B = randomFrame(g);
         const uint32_t scr = scramblerInit(262, 1, 5);

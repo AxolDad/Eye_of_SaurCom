@@ -25,6 +25,10 @@ void CallTracker::onEvent(const CallEvent& e, double now) {
         for (auto& s : slot_) if (s.valid && s.callId == e.callId) s.valid = false;
         return;
     }
+    if (e.kind == 4) {   // D-TX-GRANTED / CONTINUE / CEASED: a call already known goes on (a long group call outlives kTtlSec); its state is kept as it is
+        for (auto& s : slot_) if (s.valid && s.callId == e.callId) s.t = now;
+        return;
+    }
     if (e.kind != 1 && e.kind != 2) return;
     if (mainCarrier_ < 0 || e.carrier != mainCarrier_ || e.slots <= 0) return;   // not tied to a slot of this carrier: ignored
     for (int tn = 1; tn <= 4; tn++) {
