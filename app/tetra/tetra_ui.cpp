@@ -58,6 +58,14 @@ void voiceStrip(App& a) {
     ImGui::AlignTextToFramePadding();
     ImGui::TextDisabled("Voice");
     ImGui::SameLine();
+    if (ImGui::SmallButton("Install helper##tetra")) ImGui::OpenPopup("tetrahelper");
+    if (ImGui::BeginPopup("tetrahelper")) {
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30);
+        appcodec::codecInstallHelper("tetra");
+        ImGui::PopTextWrapPos();
+        ImGui::EndPopup();
+    }
+    ImGui::SameLine();
     if (!gVoice.hasCodec()) {
         // The notice gate runs first; a codec is loaded only after the user accepted it. Nothing is decoded without a codec.
         std::unique_ptr<dect2::codec::SpeechCodec> c;
