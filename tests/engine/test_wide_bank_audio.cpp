@@ -43,10 +43,12 @@ int main() {
     const double f1 = 100e3, f2 = -150e3;
     std::vector<cf32> x(48000);
     double ph1 = 0, ph2 = 0;
+    uint32_t rng = 12345;   // a fixed noise floor: with pure tones the floor is far below the window sidelobes and the finder reports them as carriers
+    auto noise = [&]() { rng = rng * 1664525u + 1013904223u; return ((float)(rng >> 8) / 16777216.f - 0.5f) * 0.01f; };
     for (int blk = 0; blk < 40; blk++) {
         for (auto& v : x) {
             ph1 += 2 * M_PI * f1 / fs; ph2 += 2 * M_PI * f2 / fs;
-            v = cf32(0.1f * (float)std::cos(ph1) + 0.03f * (float)std::cos(ph2), 0.1f * (float)std::sin(ph1) + 0.03f * (float)std::sin(ph2));
+            v = cf32(0.1f * (float)std::cos(ph1) + 0.03f * (float)std::cos(ph2) + noise(), 0.1f * (float)std::sin(ph1) + 0.03f * (float)std::sin(ph2) + noise());
         }
         bank.feed(x.data(), x.size());
     }
