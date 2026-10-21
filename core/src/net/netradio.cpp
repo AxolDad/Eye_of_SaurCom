@@ -34,8 +34,8 @@ std::string hostPort(const std::string& host, int port) {
 
 // the type tables and the settings text of the list are in net_proto.h (C++ or the Rust crate onair_net)
 const char* netRadioTypeName(NetRadio::Type t) {
-    static const std::string names[9] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8)};
-    return names[(unsigned)t < 9 ? (unsigned)t : 1].c_str();
+    static const std::string names[10] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8), netp::radioTypeName(9)};
+    return names[(unsigned)t < 10 ? (unsigned)t : 1].c_str();
 }
 int netRadioDefaultPort(NetRadio::Type t) { return netp::radioDefaultPort((uint32_t)t); }
 const char* netRadioDefaultHost(NetRadio::Type t) {
@@ -232,6 +232,7 @@ std::string netRadioDeviceName(const NetRadio& r) {
     case NetRadio::SdrppServer: return native::sdrppDevice(cleanHost(r.host), netRadioPort(r)).name;
     case NetRadio::NrspSt: return native::nrspStDevice(cleanHost(r.host), netRadioPort(r)).name;
     case NetRadio::KiwiSdr: return native::kiwiSdrDevice(cleanHost(r.host), netRadioPort(r)).name;
+    case NetRadio::Tci: return native::tciDevice(cleanHost(r.host), netRadioPort(r)).name;
     default: return native::rtlTcpDevice(cleanHost(r.host), netRadioPort(r)).name;
     }
 }
@@ -271,6 +272,7 @@ std::vector<DeviceInfo> netRadioDevices(const std::vector<NetRadio>& v) {
         case NetRadio::RedPitaya: for (auto& d : native::redPitayaDevices(cleanHost(r.host), netRadioPort(r))) out.push_back(d); break;
         case NetRadio::SdrppServer: out.push_back(native::sdrppDevice(cleanHost(r.host), netRadioPort(r))); break;
         case NetRadio::NrspSt: out.push_back(native::nrspStDevice(cleanHost(r.host), netRadioPort(r))); break;
+        case NetRadio::Tci: out.push_back(native::tciDevice(cleanHost(r.host), netRadioPort(r))); break;
         case NetRadio::KiwiSdr: {
             const auto d = native::kiwiSdrDevice(cleanHost(r.host), netRadioPort(r));
             kiwiSetPassword(d.nativeArgs, r.remote);   // for the source; not in the device entry
@@ -308,6 +310,7 @@ bool probeNetRadio(const NetRadio& r, int timeoutMs, std::string& err) {
     if (r.type == NetRadio::HermesLite2) return native::hermesLite2Probe(host, netRadioPort(r), timeoutMs, err);   // UDP: a discovery to it
     if (r.type == NetRadio::RedPitaya) return native::redPitayaProbe(host, netRadioPort(r), timeoutMs, err);
     if (r.type == NetRadio::KiwiSdr) { kiwiSetPassword(hostPort(host, netRadioPort(r)), r.remote); return native::kiwiProbe(host, netRadioPort(r), timeoutMs, err); }   // upgrade, auth, sample_rate; then the slot is given back
+    if (r.type == NetRadio::Tci) return native::tciProbe(host, netRadioPort(r), timeoutMs, err);   // WebSocket upgrade, then the server's "ready;"
     if (r.type == NetRadio::NrspSt) return native::nrspStProbe(host, netRadioPort(r), timeoutMs, err);   // WebSocket upgrade, then api_version
     if (r.type == NetRadio::SdrppServer) return native::sdrppProbe(host, netRadioPort(r), timeoutMs, err);   // GET_UI, then its menu
     const sock_t s = tcpConnect(host, netRadioPort(r), timeoutMs, err);

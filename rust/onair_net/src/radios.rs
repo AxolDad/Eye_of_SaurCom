@@ -20,6 +20,8 @@ pub const SDRPP_SERVER: u32 = 6;
 pub const NRSP_ST: u32 = 7;
 /// KiwiSDR (HF receiver on the network, WebSocket on port 8073); its `remote` text is the password, if it has one.
 pub const KIWI_SDR: u32 = 8;
+/// TCI (Transceiver Control Interface of ExpertSDR3 and others; WebSocket on port 50001), receive only.
+pub const TCI: u32 = 9;
 
 /// The key of a type in the settings text (an unknown type is written as rtl_tcp).
 pub fn type_key(t: u32) -> &'static str {
@@ -32,6 +34,7 @@ pub fn type_key(t: u32) -> &'static str {
         SDRPP_SERVER => "sdrpp",
         NRSP_ST => "nrspst",
         KIWI_SDR => "kiwisdr",
+        TCI => "tci",
         _ => "rtltcp",
     }
 }
@@ -47,6 +50,7 @@ pub fn type_name(t: u32) -> &'static str {
         SDRPP_SERVER => "SDR++ server",
         NRSP_ST => "SDRplay nRSP-ST (SDRconnect)",
         KIWI_SDR => "KiwiSDR",
+        TCI => "TCI (network)",
         _ => "rtl_tcp",
     }
 }
@@ -61,6 +65,7 @@ pub fn default_port(t: u32) -> i32 {
         SDRPP_SERVER => 5259,
         NRSP_ST => 5454,
         KIWI_SDR => 8073,
+        TCI => 50001,
         _ => 1234,
     }
 }
@@ -140,6 +145,7 @@ fn type_from_key(t: &[u8]) -> Option<u32> {
         b"sdrpp" => SDRPP_SERVER,
         b"nrspst" => NRSP_ST,
         b"kiwisdr" => KIWI_SDR,
+        b"tci" => TCI,
         _ => return None,
     })
 }
@@ -270,5 +276,19 @@ mod kiwi_tests {
         assert_eq!(radios[1].remote.len, 0);
         assert_eq!(radios[2].remote.len, 0);
         assert_eq!((type_key(KIWI_SDR), type_name(KIWI_SDR), default_port(KIWI_SDR)), ("kiwisdr", "KiwiSDR", 8073));
+    }
+
+    #[test]
+    fn tci_is_listed_and_round_trips() {
+        let text = b"tci,192.168.1.5,50001;tci,h2,0,ignored";
+        let mut radios = [Radio::default(); 3];
+        let mut arena = vec![0u8; text.len()];
+        let n = parse(text, &mut radios, &mut arena);
+        assert_eq!(n, 2);
+        assert_eq!((radios[0].kind, radios[1].remote.len), (TCI, 0));
+        assert_eq!((type_key(TCI), type_name(TCI), default_port(TCI)), ("tci", "TCI (network)", 50001));
+        let mut out = [0u8; 64];
+        let len = format(&radios[..1], &arena, &mut out);
+        assert_eq!(&out[..len], b"tci,192.168.1.5,50001");
     }
 }

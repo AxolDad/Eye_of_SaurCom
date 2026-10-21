@@ -10,7 +10,7 @@
 namespace dect2 {
 
 struct NetRadio {
-    enum Type { Pluto = 0, RtlTcp = 1, SoapyRemote = 2, SpyServer = 3, HermesLite2 = 4, RedPitaya = 5, SdrppServer = 6, NrspSt = 7, KiwiSdr = 8 } type = RtlTcp;
+    enum Type { Pluto = 0, RtlTcp = 1, SoapyRemote = 2, SpyServer = 3, HermesLite2 = 4, RedPitaya = 5, SdrppServer = 6, NrspSt = 7, KiwiSdr = 8, Tci = 9 } type = RtlTcp;
     std::string host;   // name or address ("ip:" in front of a Pluto's is accepted and dropped)
     int port = 0;       // 0 = the type's default (a Pluto: libiio's own, 30431)
     std::string remote; // KiwiSDR: the password ("" = none; stored in the settings, never shown or logged). SoapyRemote: which of the server's radios to ask for, "mirisdr" or "driver=mirisdr,serial=1" (empty: the ones it lists)
