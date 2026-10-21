@@ -133,7 +133,9 @@ std::string adifRecord(const QsoRecord& q) {
     dateTime(q.endUtc > 0 ? q.endUtc : q.startUtc, d2, t2);
     field(o, "CALL", q.call);
     field(o, "GRIDSQUARE", q.grid);
-    if (up(q.mode) == "FT4") { field(o, "MODE", "MFSK"); field(o, "SUBMODE", "FT4"); } else field(o, "MODE", up(q.mode));
+    if (up(q.mode) == "FT4") { field(o, "MODE", "MFSK"); field(o, "SUBMODE", "FT4"); }
+    else if (!q.submode.empty()) { field(o, "MODE", up(q.mode)); field(o, "SUBMODE", up(q.submode)); }
+    else field(o, "MODE", up(q.mode));
     field(o, "BAND", bandNameFor(q.freqHz));
     char f[32];
     snprintf(f, sizeof f, "%.6f", q.freqHz / 1e6);

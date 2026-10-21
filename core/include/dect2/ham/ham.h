@@ -30,6 +30,7 @@ bool hamGridValid(const std::string& grid);                  // 4 or 6 character
 // ---- ADIF log ----
 struct QsoRecord {
     std::string call, grid, mode = "FT8", rstSent, rstRcvd, myCall, myGrid;
+    std::string submode;          // ADIF SUBMODE (mode "PSK", submode "PSK31"); "" none
     double freqHz = 0, startUtc = 0, endUtc = 0;
 };
 std::string bandNameFor(double hz);                          // "20m" ADIF band name, "" outside amateur bands
@@ -171,10 +172,14 @@ public:
     // PTT is released on every exit path. Nothing is keyed when the gate refuses.
     // mode: FT8 / FT4 / FT2 / WSPR / JT65 / JT9 / JT4 (hfdig numbers); sub: JT65 A B C, JT4 A .. G. The gate's bandwidth is raised to the mode's own.
     bool send(const HamTxCheck& gate, int mode, const std::string& msg, double audioHz, double level, std::string& err, int sub = 0);
+    // Any other audio (the keyboard modes): the same gate, PTT, drain and release as send(). audio is mono at 48000 Hz; bwHz raises the gate's width;
+    // it is scaled to peak `level` first.
+    bool sendAudio(const HamTxCheck& gate, std::vector<float> audio, double bwHz, double level, std::string& err);
     void abort();        // Halt TX, any thread: audio dropped, PTT released at once
     bool busy() const;
 private:
     bool pttSet(bool on, std::string& err);
+    bool play(const std::vector<float>& a, size_t n, int rate, std::string& err);   // after the gate: PTT on, audio, drain, PTT off
     HamRigIo& io_;
     std::mutex mu_;
     std::atomic<bool> abort_{false}, busy_{false}, pttOn_{false};

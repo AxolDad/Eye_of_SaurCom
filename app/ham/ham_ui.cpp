@@ -3,6 +3,7 @@
 // core/include/dect2/ham/ham.h (tested); this file draws it and feeds it the decodes. Transmission goes only through hamTransmit(), which
 // is behind the gate hamTxAllowed (licence confirmed, explicit Arm, inside an amateur band): see docs/HAM_PLAN.md for what phase 2 wires.
 #include "../app.h"
+#include "ham_kbd_ui.h"
 #include "../platform/platform.h"
 #include "dect2/ham/ham.h"
 #include "dect2/audio/audioout.h"
@@ -68,6 +69,7 @@ struct HamUi {
     char call[16] = {}, grid[8] = {};
     int mode = 0;                       // hfdig mode number: 0 FT8, 1 FT4, 2 FT2, 3 WSPR (beacon), 4 JT65, 5 JT9, 10 JT4
     int sub = 0;                        // JT65 A B C, JT4 A .. G
+    int kbdIdx = -1;                    // a keyboard mode (ham::kbdPresets index) instead of the slot modes
     ham::WsprBeacon beacon;
     bool txBeacon = false;              // the running burst is a beacon one
     float txHz = 1500;
@@ -132,13 +134,24 @@ void hamPanel(App& a) {
 
     for (const HamMode& hm : kHam) {
         if (&hm != kHam) ImGui::SameLine();
-        if (ImGui::RadioButton(hm.name, h.mode == hm.num) && h.mode != hm.num) {
+        if (ImGui::RadioButton(hm.name, h.kbdIdx < 0 && h.mode == hm.num) && (h.mode != hm.num || h.kbdIdx >= 0)) {
+            h.kbdIdx = -1;
             h.mode = hm.num; h.sub = 0; h.eng.halt(); h.beacon.stop(); h.lastFed = 0;
             for (const auto& m : allModes()) if (m.family == 25 && m.subId && !strcmp(m.subId, hm.subId)) { selectMode(a, m.family, m.subId); break; }
             a.engine.hfdig().ftx().setModeOption(h.mode, 0, 0);
         }
     }
-    if (h.mode == 4 || h.mode == 10) {   // sub-mode: JT65 A B C, JT4 A .. G
+    {   // keyboard modes
+        const auto& kp = ham::kbdPresets();
+        const std::string cur = h.kbdIdx >= 0 ? kp[(size_t)h.kbdIdx].name : "Keyboard modes";
+        ImGui::SameLine(); ImGui::SetNextItemWidth(150 * gUi);
+        if (ImGui::BeginCombo("##kbdmode", cur.c_str())) {
+            for (int i = 0; i < (int)kp.size(); i++)
+                if (ImGui::Selectable(kp[(size_t)i].name, h.kbdIdx == i)) { h.kbdIdx = i; h.eng.halt(); h.beacon.stop(); hamKbdSelect(a, i); }
+            ImGui::EndCombo();
+        }
+    }
+    if (h.kbdIdx < 0 && (h.mode == 4 || h.mode == 10)) {   // sub-mode: JT65 A B C, JT4 A .. G
         int sb = h.sub;
         ImGui::SetNextItemWidth(70 * gUi);
         if (ImGui::Combo(tr("Sub-mode"), &sb, h.mode == 4 ? "A\0B\0C\0" : "A\0B\0C\0D\0E\0F\0G\0") && sb != h.sub) {
@@ -158,6 +171,38 @@ void hamPanel(App& a) {
 
     // licence confirmation, stored; asked before the first TX
     if (ImGui::Checkbox(tr("I hold an amateur licence for this callsign and will follow its rules"), &h.licence)) { save(h); if (!h.licence) h.armed = false; }
+
+    auto rigWidgets = [&h] {   // rig and audio output, level (shared with the keyboard modes)
+        const auto rigs = hamlibRigs();
+        const std::string curS = h.rigSel >= 0 && h.rigSel < (int)rigs.size() ? hamlibRigDeviceName(rigs[h.rigSel]) : "none (VOX / audio only)";
+        ImGui::SetNextItemWidth(220 * gUi);
+        if (ImGui::BeginCombo(tr("PTT rig"), curS.c_str())) {
+            if (ImGui::Selectable("none (VOX / audio only)", h.rigSel < 0)) { h.rigSel = -1; plat::basePrefs().setI("ham.rig", -1); }
+            for (int i = 0; i < (int)rigs.size(); i++) if (ImGui::Selectable(hamlibRigDeviceName(rigs[i]).c_str(), h.rigSel == i)) { h.rigSel = i; plat::basePrefs().setI("ham.rig", i); h.io.link.close(); }
+            ImGui::EndCombo();
+        }
+        ImGui::SameLine(); ImGui::SetNextItemWidth(220 * gUi);
+        const std::string dn = h.io.device.empty() ? "system default" : h.io.device;
+        if (ImGui::BeginCombo(tr("Audio out"), dn.c_str())) {
+            if (ImGui::Selectable("system default", h.io.device.empty())) { h.io.device.clear(); plat::basePrefs().setS("ham.audioOut", ""); }
+            for (const auto& d : AudioOut::devices()) if (!d.empty() && ImGui::Selectable(d.c_str(), d == h.io.device)) { h.io.device = d; plat::basePrefs().setS("ham.audioOut", d); }
+            ImGui::EndCombo();
+        }
+        ImGui::SameLine(); ImGui::SetNextItemWidth(90 * gUi);
+        ImGui::SliderFloat(tr("Level"), &h.level, 0.05f, 0.9f, "%.2f");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Audio level into the rig. Set it so the rig shows no ALC action and the power stays low."));
+    };
+
+    if (h.kbdIdx >= 0) {   // keyboard modes: their own panel, the same station, licence, Arm and transmitter
+        HamKbdCtx kc{a, h.call, h.grid, stationOk, h.licence, h.armed, h.level, h.tx, h.worker, h.txState, h.mu, h.txErr, h.status, h.worked, rigWidgets,
+                     [&h](const ham::QsoRecord& q) {
+                         std::string err;
+                         if (ham::adifAppend(h.logPath, q, err)) { h.worked.add(q); h.logged++; h.lastLog = q.call; } else h.status = err;
+                     }};
+        h.io.rigIdx = h.rigSel;
+        hamKbdPanel(kc, h.kbdIdx);
+        return;
+    }
 
     // TX controls
     ImGui::Separator();
@@ -209,27 +254,7 @@ void hamPanel(App& a) {
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s", tr("Nothing is sent unless this is armed, the licence box is ticked and the frequency is inside an amateur band. Disarmed again when you halt or the watchdog fires."));
 
-    // rig and audio output, level
-    {
-        const auto rigs = hamlibRigs();
-        const std::string curS = h.rigSel >= 0 && h.rigSel < (int)rigs.size() ? hamlibRigDeviceName(rigs[h.rigSel]) : "none (VOX / audio only)";
-        ImGui::SetNextItemWidth(220 * gUi);
-        if (ImGui::BeginCombo(tr("PTT rig"), curS.c_str())) {
-            if (ImGui::Selectable("none (VOX / audio only)", h.rigSel < 0)) { h.rigSel = -1; plat::basePrefs().setI("ham.rig", -1); }
-            for (int i = 0; i < (int)rigs.size(); i++) if (ImGui::Selectable(hamlibRigDeviceName(rigs[i]).c_str(), h.rigSel == i)) { h.rigSel = i; plat::basePrefs().setI("ham.rig", i); h.io.link.close(); }
-            ImGui::EndCombo();
-        }
-        ImGui::SameLine(); ImGui::SetNextItemWidth(220 * gUi);
-        const std::string dn = h.io.device.empty() ? "system default" : h.io.device;
-        if (ImGui::BeginCombo(tr("Audio out"), dn.c_str())) {
-            if (ImGui::Selectable("system default", h.io.device.empty())) { h.io.device.clear(); plat::basePrefs().setS("ham.audioOut", ""); }
-            for (const auto& d : AudioOut::devices()) if (!d.empty() && ImGui::Selectable(d.c_str(), d == h.io.device)) { h.io.device = d; plat::basePrefs().setS("ham.audioOut", d); }
-            ImGui::EndCombo();
-        }
-        ImGui::SameLine(); ImGui::SetNextItemWidth(90 * gUi);
-        ImGui::SliderFloat(tr("Level"), &h.level, 0.05f, 0.9f, "%.2f");
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Audio level into the rig. Set it so the rig shows no ALC action and the power stays low."));
-    }
+    rigWidgets();
     // state line
     static const char* kState[] = {"Idle", "Calling CQ", "Calling: sent grid", "Sent report", "Sent R-report", "Sent RR73", "Sent 73"};
     if (isBeacon) ImGui::Text("%s: %s", tr("State"), h.beacon.active() ? "Beacon running" : "Beacon off");

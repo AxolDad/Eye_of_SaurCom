@@ -2,6 +2,7 @@
 #include "dect2/hfdig/hfdig_ftx.h"
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <thread>
 
 namespace dect2::ham {
@@ -39,6 +40,25 @@ bool HamSlotTx::send(const HamTxCheck& gateIn, int mode, const std::string& msg,
     size_t n = a.size();
     while (n > 0 && a[n - 1] == 0.f) n--;
     if (n == 0) { err = "empty audio"; return false; }
+    return play(a, n, rate, err);
+}
+
+bool HamSlotTx::sendAudio(const HamTxCheck& gateIn, std::vector<float> a, double bwHz, double level, std::string& err) {
+    err.clear();
+    if (busy_.exchange(true)) { err = "a transmission is already running"; return false; }
+    struct Done { std::atomic<bool>& b; ~Done() { b = false; } } done{busy_};
+    HamTxCheck gate = gateIn;
+    gate.bwHz = std::max(gate.bwHz, bwHz);
+    if (!hamTxAllowed(gate, err)) return false;
+    float pk = 0;
+    for (float v : a) pk = std::max(pk, std::fabs(v));
+    if (a.empty() || pk <= 0) { err = "empty audio"; return false; }
+    const float amp = (float)(level < 0.05 ? 0.05 : level > 0.9 ? 0.9 : level);
+    for (auto& v : a) v *= amp / pk;
+    return play(a, a.size(), 48000, err);
+}
+
+bool HamSlotTx::play(const std::vector<float>& a, size_t n, int rate, std::string& err) {
     abort_ = false;
     if (!io_.beginAudio(rate, err)) return false;
     if (!pttSet(true, err)) { io_.endAudio(); return false; }
