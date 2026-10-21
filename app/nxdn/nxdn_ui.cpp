@@ -1,6 +1,7 @@
 // NXDN screens: the current call (unit id, talkgroup, call type, encryption, voice), the call log (voice, status and short data), the
 // decoded control messages, the site information, and a "?" about the mbelib library the voice needs (docs/CODECS.md).
 #include "app.h"
+#include "../codec/speech_codec_ui.h"
 #include "dect2/nxdn/nxdn_ambe.h"
 #include "dect2/nxdn/nxdn_proto.h"
 #include "dect2/nxdn/nxdn_rx.h"
@@ -138,6 +139,7 @@ void siteView(App& a) {
 // ---------------------------------------------------------------- hooks
 
 void tick(App& a) {
+    if (live(a)) appcodec::voiceCodecTick("ambe2");   // the user's codec plug-in (docs/CODECS.md), loaded whichever tab is shown
     if (!a.engine.running()) { S.wasRunning = false; return; }
     dect2::NxdnReceiver& r = a.engine.nxdn();
     if (!S.wasRunning || a.volume != S.pushedVol || a.muted != S.pushedMute) {   // the sound controls are shared with the other modes

@@ -2,6 +2,7 @@
 // data), the decoded headers and end frames, the PMR446 channel presets with "scan all 16", and a "?" about the mbelib library the
 // voice needs (docs/CODECS.md).
 #include "app.h"
+#include "../codec/speech_codec_ui.h"
 #include "dect2/dpmr/dpmr_proto.h"
 #include "dect2/dpmr/dpmr_rx.h"
 #include "dect2/dpmr/dpmr_tel.h"
@@ -136,6 +137,7 @@ void messageView(App& a) {
 // ---------------------------------------------------------------- hooks
 
 void tick(App& a) {
+    if (live(a)) appcodec::voiceCodecTick("ambe2");   // the user's codec plug-in (docs/CODECS.md), loaded whichever tab is shown
     loadState();
     if (!a.engine.running()) { S.wasRunning = false; return; }
     dect2::DpmrReceiver& r = a.engine.dpmr();
