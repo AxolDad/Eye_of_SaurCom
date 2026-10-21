@@ -88,7 +88,7 @@ struct KaalLiveReceiver::Impl {
         }
         level = std::max(peak, level * 0.9f);
         if (silent.load()) return;
-        if (!audioOut) { audioOut = std::make_unique<AudioOut>(); audioOut->start(48000); audioOut->setStartThreshold(48000 / 5); }
+        if (!audioOut) { audioOut = std::make_unique<AudioOut>(); audioOut->start(48000); audioOut->setStartThreshold(48000 / 10); }   // 0.1 s of prefill (the speech arrives in 80 ms blocks)
         audioOut->setVolume(volume.load());
         audioOut->setMuted(muted.load());
         if (audioOut->bufferedFrames() > 48000 * 3 / 2) audioOut->flush();
