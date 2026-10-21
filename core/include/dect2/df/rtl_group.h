@@ -3,6 +3,7 @@
 // core/src/source/source_rtlsdr.cpp. Verified only against fakes: no hub has been connected.
 #pragma once
 #include "dect2/df/group.h"
+#include <memory>
 #include <string>
 
 namespace dect2::df {

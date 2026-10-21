@@ -6,6 +6,7 @@
 #pragma once
 #include "dect2/common/ring.h"
 #include "dect2/sarsat/sgb_proto.h"
+#include <memory>
 #include <vector>
 
 namespace dect2::sarsat {

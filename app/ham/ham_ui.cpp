@@ -386,7 +386,12 @@ void hamPanel(App& a) {
             ImGui::PushID((int)i);
             char b[16];
             const time_t t = (time_t)d.slotUtc;
-            struct tm g; gmtime_r(&t, &g);
+            struct tm g;
+#ifdef _WIN32
+            gmtime_s(&g, &t);
+#else
+            gmtime_r(&t, &g);
+#endif
             snprintf(b, sizeof b, "%02d%02d%02d", g.tm_hour, g.tm_min, g.tm_sec);
             ImGui::TableNextColumn();
             ImGui::Selectable(b, false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick);
