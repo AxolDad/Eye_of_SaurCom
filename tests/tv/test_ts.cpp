@@ -170,6 +170,8 @@ int main() {
     CHECK(dvbText(gb, 11) == cctv, "GB2312 decode");
     CHECK(dvbText(gb + 1, 10, true) == cctv, "unprefixed GB2312 decode (DTMB)");
     CHECK(dvbText(gb + 1, 10) != cctv, "unprefixed high bytes stay ISO 6937 outside DTMB");
+    const uint8_t guangdong[] = {0xB9, 0xE3, 0xB6, 0xAB, 0xCE, 0xC0, 0xCA, 0xD3, '-', 'H', 'D'};
+    CHECK(dvbText(guangdong, sizeof(guangdong), true) == "广东卫视-HD", "unprefixed Guangdong GBK service name");
     {   // GBK names with a character outside GB 2312 (U+5586 is 86 B4) convert whole, and the DTMB switch reaches every dvbText() caller
         const uint8_t gbk[] = {0xD6, 0xD0, 0x86, 0xB4};
         const char* want = "\xE4\xB8\xAD\xE5\x96\x86";

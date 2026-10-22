@@ -322,8 +322,8 @@ void Engine::applyReset() {
 
 void Engine::onTsPackets(const uint8_t* pk, size_t n, double secs) {
     std::lock_guard<std::mutex> lk(tsMu_);
-    demux_.setGbDefault(stdMode_.load() == 8);   // DTMB
-    dvbsi::setGbDefaultGlobal(stdMode_.load() == 8);
+    demux_.setGbDefault(stdMode_.load() == 9);   // DTMB
+    dvbsi::setGbDefaultGlobal(stdMode_.load() == 9);
     for (size_t i = 0; i < n; i++) {
         const uint8_t* q = pk + i * 188;
         demux_.feed(q);
