@@ -31,6 +31,8 @@ struct TetraTelemetry;   // tetra_tel.h
 
 class TetraReceiver {
 public:
+    static constexpr double kCaptureSec = 2.3;   // the air time of one capture: the carriers are searched and decoded a capture at a time
+
     TetraReceiver();
     ~TetraReceiver();
 
@@ -77,15 +79,19 @@ struct CarrierDecode {
                                                 // a passed burst of a timeslot other than voiceTn asked for is not handed to the sink
     const char* voiceStatus = "";                // text of the last traffic burst verdict (tetra_voice.h)
     int voiceTn = 0;                             // the timeslot whose clear traffic reached the sink (0: none)
+    int voiceGaps = 0;                           // frames of the followed timeslot given to the sink as silence (no clear burst, or lost between captures)
     std::vector<MacBlock> macs;
     int tsUsage[4] = {-1, -1, -1, -1};
 };
 // knownMcc etc.: the identity of a cell already heard on this carrier, used when this capture has no synchronisation burst (-1: none)
 // calls: the per-call encryption state of this carrier, kept across captures by the caller (null: no call state, so no traffic burst is ever decoded);
 // nowSec: the clock of its expiry (any monotonic seconds).
-// voiceTn: the timeslot (1..4) whose clear traffic goes to the sink; -1 the first timeslot with clear traffic, 0 every one.
+// voiceTn: the timeslot (1..4) whose clear traffic goes to the sink; -1 the first timeslot with clear traffic, 0 every one (no silence then).
+// timeline: the followed timeslot across captures (tetra_voice.h), kept by the caller; the frames of the slot lost between this capture and the
+// last one go to the sink as silence first (null: none).
 CarrierDecode decodeCarrier(const cf32* x72k, size_t n, int knownMcc = -1, int knownMnc = -1, int knownCc = -1,
-                              SpeechFrameSink* sink = nullptr, CallTracker* calls = nullptr, double nowSec = 0, int voiceTn = 0);
+                              SpeechFrameSink* sink = nullptr, CallTracker* calls = nullptr, double nowSec = 0, int voiceTn = 0,
+                              VoiceTimeline* timeline = nullptr);
 
 } // namespace tetra
 

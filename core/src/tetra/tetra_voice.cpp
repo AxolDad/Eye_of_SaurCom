@@ -6,8 +6,8 @@ namespace dect2::tetra {
 VoiceVerdict voiceVerdict(const CallEncryption& e) {
     if (!e.known) return VoiceVerdict::StateUnknownNotDecoded;
     // A cell that only advertises the air interface encryption service (SYSINFO) is not an encrypted call: many networks offer it and still run
-    // clear calls. What counts is the evidence of this call: clear MAC-RESOURCE signalling was read and the call set-up did not say encrypted
-    // (`known`), and no PDU of the capture was encrypted (encMode). Anything unclear stays "not decoded"; nothing is ever decrypted.
+    // clear calls. What counts is the evidence of this call: its set-up PDU was read from clear MAC-RESOURCE signalling and did not say
+    // encrypted (`known`), and no PDU of the capture was encrypted (encMode). Anything unclear stays "not decoded"; nothing is ever decrypted.
     if (e.encMode != 0) return VoiceVerdict::EncryptedNotDecoded;
     return VoiceVerdict::Passed;
 }
@@ -23,6 +23,10 @@ const char* voiceVerdictText(VoiceVerdict v) {
 void CallTracker::onEvent(const CallEvent& e, double now) {
     if (e.kind == 3) {   // D-DISCONNECT / D-RELEASE: the call is over
         for (auto& s : slot_) if (s.valid && s.callId == e.callId) s.valid = false;
+        return;
+    }
+    if (e.kind == 4) {   // D-TX-GRANTED / CONTINUE / CEASED: a call already known goes on (a long group call outlives kTtlSec); its state is kept as it is
+        for (auto& s : slot_) if (s.valid && s.callId == e.callId) s.t = now;
         return;
     }
     if (e.kind != 1 && e.kind != 2) return;

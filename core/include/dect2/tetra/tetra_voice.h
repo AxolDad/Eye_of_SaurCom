@@ -18,16 +18,33 @@
 namespace dect2::tetra {
 
 // Where coded speech frames go: the codec loader (tetra_voice_codec.h). bits: one bit per byte, the 432 descrambled type-4 bits of a burst.
+// The followed timeslot comes frame by frame, in the order of the air: onCodedFrame() for a TDMA frame with a clear traffic burst,
+// onMissingBurst() for one without (a pause, a stolen half slot, a burst too weak or not decoded, a slot lost where two captures meet), so that
+// the sink can play the air as it was, pauses and all. The frames of a capture come in one run, once per capture; onCaptureEnd() then says that
+// nothing more comes from that capture.
 class SpeechFrameSink {
 public:
     virtual ~SpeechFrameSink() = default;
     virtual void onCodedFrame(const uint8_t* bits, size_t n) = 0;
+    virtual void onMissingBurst() {}
+    virtual void onCaptureEnd() {}
+};
+
+// The followed timeslot as one sequence of TDMA frames across captures: next is the speech frame index, (mn - 1) * 17 + fn - 1 in the hyperframe
+// (frame 18 of a multiframe carries no speech), of the frame expected after the last one given to the sink; -1: nothing followed yet. Kept by the
+// caller of decodeCarrier for the carrier it follows (key is the caller's name for it), so that the frames of the slot lost where two captures
+// meet are given to the sink as silence and the pauses keep their length.
+struct VoiceTimeline {
+    static constexpr long kSpeechFrames = 60 * 17;   // per hyperframe
+    long key = -1;
+    int tn = 0;
+    long next = -1;
 };
 
 enum class VoiceVerdict { Passed, EncryptedNotDecoded, StateUnknownNotDecoded };
 
-// What the signalling of the call or cell says about air interface encryption: encMode is the MAC-RESOURCE encryption mode
-// (0 clear, anything else encrypted), known is false when no clear signalling of this call or cell was seen.
+// What the signalling of the call and the cell says about air interface encryption: encMode is the MAC-RESOURCE encryption mode
+// (0 clear, anything else encrypted), known is false when no clear set-up signalling of this call was seen.
 struct CallEncryption {
     bool known = false;
     int encMode = 0;
@@ -43,6 +60,8 @@ const char* voiceVerdictText(VoiceVerdict v);   // "voice (clear)", "encrypted, 
 // main (control) carrier; traffic on any other carrier stays unknown (AMBIGUITY, left unresolved: the traffic carrier number cannot be read from the
 // capture of another carrier, so those calls are never decoded). The state expires kTtlSec after the last set-up PDU for the slot (the set-up is
 // repeated for late entry; a stale entry could otherwise outlive the call): a missed repeat only costs audio, never decodes an unchecked call.
+// D-TX-GRANTED / D-TX-CONTINUE / D-TX-CEASED of the same call id (sent at every talk spurt of a group call) restart that time, so a long call
+// is not cut off after kTtlSec; they never create an entry or change its encryption state.
 class CallTracker {
 public:
     static constexpr double kTtlSec = 20.0;

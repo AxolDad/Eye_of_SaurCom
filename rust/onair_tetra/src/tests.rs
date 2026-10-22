@@ -168,6 +168,21 @@ fn call_setup_encryption_flag() {
         let c = o.blk.call[0];
         assert_eq!((c.kind, c.call_id, c.enc, c.slots, c.carrier), (1, 777, want, 0b0100, 1234));
     }
+    // D-TX-GRANTED, D-TX-CONTINUE, D-TX-CEASED (types 11, 10, 9): the call id, kind 4 (the call goes on)
+    for ty in [11u64, 10, 9] {
+        let mut b = setup_block(0, 0b0100, 1234);
+        // the CMCE PDU type sits after the MAC-RESOURCE header (43 bits), the channel allocation (25), LLC (4) and MLE discriminator (3)
+        for k in 0..5 {
+            b[75 + k] = ((ty >> (4 - k)) & 1) as u8;
+        }
+        let mut nw = [Nwrk::default(); 4];
+        let mut nb = [Neighbour::default(); 8];
+        let mut o = Out { blk: MacBlock::default(), nwrk: &mut nw, nbr: &mut nb };
+        parse_block(&b, &mut o);
+        assert_eq!(o.blk.n_call, 1, "type {ty}");
+        let c = o.blk.call[0];
+        assert_eq!((c.kind, c.call_id, c.enc), (4, 777, -1), "type {ty}");
+    }
     // an air interface encrypted MAC-RESOURCE: nothing of the call is read
     let mut b = setup_block(0, 0b0100, 1234);
     b[4] = 1; // encryption mode bits (after type 2, fill 1, grant 1): 2 bits at 4..6

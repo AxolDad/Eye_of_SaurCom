@@ -131,7 +131,8 @@ SlotFit fitSlot(const std::vector<cf32>& dd, long s) {
 
 // ---------------------------------------------------------------- one carrier
 
-CarrierDecode decodeCarrier(const cf32* x, size_t n, int kMcc, int kMnc, int kCc, SpeechFrameSink* sink, CallTracker* calls, double nowSec, int voiceTn) {
+CarrierDecode decodeCarrier(const cf32* x, size_t n, int kMcc, int kMnc, int kCc, SpeechFrameSink* sink, CallTracker* calls, double nowSec, int voiceTn,
+                            VoiceTimeline* timeline) {
     CarrierDecode out;
     if (n < (size_t)kSlotSamples * 8) return out;
     // matched filter
@@ -253,21 +254,26 @@ CarrierDecode decodeCarrier(const cf32* x, size_t n, int kMcc, int kMnc, int kCc
     const uint32_t scr = scramblerInit(mcc, mnc, cc);
     out.scrambler = scr;
     // pass 2: the access assignment and the signalling blocks of every slot
-    auto frameOf = [&](size_t i, int& tn, int& fn) {
-        tn = 0; fn = 0;
+    auto frameOf = [&](size_t i, int& tn, int& fn, int& mn) {
+        tn = 0; fn = 0; mn = 0;
         if (syncSlot < 0) return;
         const long a0 = ((long)(out.sync.mn - 1) * 18 + (out.sync.fn - 1)) * 4 + (out.sync.tn - 1);
         const long a = ((a0 + (long)i - syncSlot) % (60L * 72) + 60L * 72) % (60L * 72);
-        tn = (int)(a % 4) + 1; fn = (int)((a / 4) % 18) + 1;
+        tn = (int)(a % 4) + 1; fn = (int)((a / 4) % 18) + 1; mn = (int)(a / 72) + 1;
     };
     struct TrafficSlot { int tn; std::vector<float> t; };
     std::vector<TrafficSlot> traffic;
+    // the TDMA frames of each timeslot in the capture, in order: the speech frame index (tetra_voice.h, VoiceTimeline) of frames 1 to 17 of the
+    // multiframe (frame 18 carries no speech) and the traffic burst of the frame (index into traffic, -1 none)
+    struct SlotFrame { long speech; int burst; };
+    std::vector<SlotFrame> frames[5];
     for (size_t i = 0; i < slots.size(); i++) {
         const Slot& sl = slots[i];
+        int tn, fn, mn;
+        frameOf(i, tn, fn, mn);
+        if (tn >= 1 && fn <= 17) frames[tn].push_back({(long)(mn - 1) * 17 + fn - 1, -1});
         if (sl.f.mid < 0.5f || sl.f.total < 1.0f) continue;
         softBits(sl, llr.data());
-        int tn, fn;
-        frameOf(i, tn, fn);
         float bb[30];
         if (sl.f.type == Burst::Sync) std::copy(llr.begin() + kSbBb, llr.begin() + kSbBb + 30, bb);
         else { std::copy(llr.begin() + kNbBb1, llr.begin() + kNbBb1 + 14, bb); std::copy(llr.begin() + kNbBb2, llr.begin() + kNbBb2 + 16, bb + 14); }
@@ -293,6 +299,7 @@ CarrierDecode decodeCarrier(const cf32* x, size_t n, int kMcc, int kMnc, int kCc
                 std::vector<float> t(432);
                 std::copy(llr.begin() + kNbBkn1, llr.begin() + kNbBkn1 + 216, t.begin());
                 std::copy(llr.begin() + kNbBkn2, llr.begin() + kNbBkn2 + 216, t.begin() + 216);
+                if (tn >= 1 && fn <= 17) frames[tn].back().burst = (int)traffic.size();
                 traffic.push_back({tn, std::move(t)});
                 continue;
             }
@@ -307,31 +314,53 @@ CarrierDecode decodeCarrier(const cf32* x, size_t n, int kMcc, int kMnc, int kCc
         for (const auto& m : out.macs) if (m.sysinfo) calls->setMainCarrier(m.si.mainCarrier);
         for (const auto& m : out.macs) for (const auto& e : m.calls) calls->onEvent(e, nowSec);
     }
+    // The encryption gate of every traffic burst, taken before any burst is read. What the signalling of this capture says about the cell:
+    // any encrypted PDU means encrypted; the air interface encryption service may be advertised. Whether the call is clear is known from
+    // its set-up PDU alone (CallTracker, read from the clear MAC-RESOURCE signalling of this or an earlier capture): a capture taken during
+    // a talk spurt often has no MAC-RESOURCE at all, only null PDUs, broadcasts and the traffic itself, and demanding one here refused whole
+    // captures of a clear call. Unknown counts as encrypted.
+    std::vector<CallEncryption> gate(traffic.size());
     if (!traffic.empty()) {
-        // Encryption state of the cell from this capture: known only when clear MAC-RESOURCE signalling was read; any encrypted
-        // PDU or an advertised air interface encryption service means encrypted. Unknown counts as encrypted.
         CallEncryption cell;
         for (const auto& m : out.macs) {
-            if (m.resources > 0) cell.known = true;
             if (m.encrypted > 0) cell.encMode = 1;
             if (m.sysinfo && m.si.bsService >= 0 && (m.si.bsService & kSvcAirEncryption)) cell.cellOffersEncryption = true;
         }
-        for (const auto& tr : traffic) {
-            // the cell-level gate AND the per-call gate: clear only when both say clear; the call's set-up PDU must have said "no encryption"
-            CallEncryption ce = cell;
-            const CallEncryption call = calls ? calls->slotState(tr.tn, nowSec) : CallEncryption{};
-            if (!call.known) ce.known = false;
-            if (call.encMode != 0) ce.encMode = 1;
-            // one timeslot reaches the codec: two calls (or a call and its other slots) through one speech decoder would be heard in turn
-            SpeechFrameSink* to = voiceTn <= 0 || tr.tn == voiceTn ? sink : nullptr;
-            const VoiceVerdict v = processTrafficBurst(tr.t.data(), tr.t.data() + 216, scr, ce, to);
+        for (size_t k = 0; k < traffic.size(); k++) {
+            // the per-call gate AND the cell-level gate: clear only when the call's set-up PDU said "no encryption" and no PDU of the capture is encrypted
+            CallEncryption ce = calls ? calls->slotState(traffic[k].tn, nowSec) : CallEncryption{};
+            ce.cellOffersEncryption = cell.cellOffersEncryption;
+            if (cell.encMode != 0) ce.encMode = 1;
+            gate[k] = ce;
+            const VoiceVerdict v = voiceVerdict(ce);
             out.voiceStatus = voiceVerdictText(v);
             if (v == VoiceVerdict::Passed) out.voicePassed++; else out.voiceNotDecoded++;
-            if (v == VoiceVerdict::Passed && to) {
-                out.voiceTn = tr.tn;
-                if (voiceTn < 0) voiceTn = tr.tn;
-            }
         }
+    }
+    if (!sink) return out;
+    if (voiceTn == 0) {   // every clear burst, in the order of the air, nothing else
+        for (size_t k = 0; k < traffic.size(); k++)
+            if (processTrafficBurst(traffic[k].t.data(), traffic[k].t.data() + 216, scr, gate[k], sink) == VoiceVerdict::Passed) out.voiceTn = traffic[k].tn;
+        return out;
+    }
+    // One timeslot reaches the codec: two calls (or a call and its other slots) through one speech decoder would be heard in turn. The followed
+    // timeslot (the one asked for, else the first with a clear burst) goes to the sink frame by frame: its clear traffic bursts, and one silence for
+    // every frame without one (a pause, a stolen half slot, a burst too weak or refused, a slot lost where two captures meet), so that the sink
+    // plays the air as it was, pauses included, and never runs dry in the middle of a call.
+    int ftn = voiceTn > 0 ? voiceTn : 0;
+    for (size_t k = 0; k < traffic.size() && !ftn; k++) if (voiceVerdict(gate[k]) == VoiceVerdict::Passed) ftn = traffic[k].tn;
+    if (ftn < 1 || ftn > 4) return out;
+    constexpr long kMaxLost = 41;   // frames of the slot between two captures filled with silence: one capture; after more the sound has run dry anyway
+    if (timeline && timeline->tn != ftn) timeline->next = -1;
+    for (const SlotFrame& f : frames[ftn]) {
+        if (timeline && timeline->next >= 0) {
+            const long lost = (f.speech - timeline->next + VoiceTimeline::kSpeechFrames) % VoiceTimeline::kSpeechFrames;
+            if (lost <= kMaxLost) for (long k = 0; k < lost; k++) { sink->onMissingBurst(); out.voiceGaps++; }
+        }
+        if (f.burst >= 0 && processTrafficBurst(traffic[(size_t)f.burst].t.data(), traffic[(size_t)f.burst].t.data() + 216, scr, gate[(size_t)f.burst], sink) == VoiceVerdict::Passed) {
+            out.voiceTn = ftn;
+        } else { sink->onMissingBurst(); out.voiceGaps++; }
+        if (timeline) { timeline->tn = ftn; timeline->next = (f.speech + 1) % VoiceTimeline::kSpeechFrames; }
     }
     return out;
 }
@@ -341,8 +370,6 @@ CarrierDecode decodeCarrier(const cf32* x, size_t n, int kMcc, int kMnc, int kCc
 // ---------------------------------------------------------------- receiver
 
 namespace {
-
-constexpr double kBlockSec = 2.3;
 
 int64_t wallNow() { return dect2::unixNow(); }
 
@@ -361,6 +388,7 @@ struct TetraReceiver::Impl {
     // per-call encryption state of each carrier (analysis thread only), keyed by the carrier's 25 kHz channel
     std::map<long, tetra::CallTracker> callTrackers;
     tetra::VoiceStreamPicker voicePick;   // the one carrier and timeslot whose voice is played
+    tetra::VoiceTimeline voiceTimeline;   // its frames across captures (the slots lost between two captures go to the sink as silence)
     static long callKey(double center, double off) { return std::lround(((center > 0 ? center : 0.0) + off) / 25e3); }
     // capture (analysis thread)
     std::vector<cf32> acc;
@@ -459,6 +487,7 @@ struct TetraReceiver::Impl {
         std::vector<Found> found;
         std::vector<TetraCarrierSeen> seen;
         voicePick.newCapture();
+        bool captureEnded = false;
         for (const auto& c : car) {
             if (gen.load() != g) return;   // retuned meanwhile: these samples belong to another frequency
             int kMcc = -1, kMnc = -1, kCc = -1;
@@ -472,13 +501,20 @@ struct TetraReceiver::Impl {
             const long key = callKey(center, c.off);
             int voiceTn = 0;
             const bool voice = voicePick.offer(key, sec, voiceTn);
-            tetra::CarrierDecode d = tetra::decodeCarrier(s.data(), s.size(), kMcc, kMnc, kCc, voice ? voiceSink.load() : nullptr, &callTrackers[key], (double)wallNow(), voiceTn);
+            if (voice && voiceTimeline.key != key) { voiceTimeline = tetra::VoiceTimeline{}; voiceTimeline.key = key; }   // another carrier: a new stream
+            tetra::CarrierDecode d = tetra::decodeCarrier(s.data(), s.size(), kMcc, kMnc, kCc, voice ? voiceSink.load() : nullptr, &callTrackers[key], (double)wallNow(), voiceTn,
+                                                          voice ? &voiceTimeline : nullptr);
             if (voice) voicePick.heard(key, d.voiceTn, sec);
+            if (voice && (d.voiceTn > 0 || d.voiceGaps > 0)) {   // the voice of this capture is all out: told at once, not after the other carriers (the sink may hold it)
+                if (SpeechFrameSink* vs = voiceSink.load()) vs->onCaptureEnd();
+                captureEnded = true;
+            }
             const double freq = (center > 0 ? center : 0.0) + c.off + d.cfoHz;
             TetraCarrierSeen cs; cs.freqHz = d.tetra ? freq : (center > 0 ? center : 0.0) + c.off; cs.levelDb = c.levelDb; cs.synced = d.synced;
             seen.push_back(cs);
             if (d.tetra && (d.synced || d.scrambler)) found.push_back({c, std::move(d), freq});
         }
+        if (!captureEnded) if (SpeechFrameSink* vs = voiceSink.load()) vs->onCaptureEnd();   // no carrier gave voice: the capture is over all the same
         std::lock_guard<std::mutex> lk(mu);
         if (gen.load() != g) return;
         if (clearReq.exchange(false)) { tel.cells.clear(); tel.events.clear(); tel.blocksOk = tel.blocksBad = 0; }
@@ -623,7 +659,7 @@ void TetraReceiver::configure(double rate) {
     std::lock_guard<std::mutex> lk(p_->mu);
     p_->rateSet = rate;
     p_->tel.inputRate = rate;
-    p_->want = (size_t)(rate * kBlockSec);
+    p_->want = (size_t)(rate * TetraReceiver::kCaptureSec);
     p_->gen++;
 }
 
