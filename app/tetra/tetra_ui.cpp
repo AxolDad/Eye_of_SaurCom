@@ -4,6 +4,7 @@
 #include "app.h"
 #include "codec/speech_codec_ui.h"
 #include "dect2/audio/audioout.h"
+#include "dect2/dsp/resampler.h"
 #include "dect2/tetra/tetra_traffic.h"
 #include "dect2/tetra/tetra_voice_codec.h"
 #include "state/results_export.h"
@@ -42,12 +43,31 @@ bool gVoiceWired = false;
 void wireVoice(App& a) {
     if (gVoiceWired) return;
     gVoiceWired = true;
+    // Played at 48 kHz: AudioOut's start and underrun thresholds are counted in frames for 48 kHz, and at the codec's 8 kHz they meant
+    // 1.8 s and 4.8 s of waiting. The codec's rate is the plug-in's to choose, so it goes through the rational resampler, not a fixed
+    // factor. The speech comes a capture (2.3 s) at a time, so after an underrun a little silence goes first: it absorbs the
+    // capture-to-capture variation of the decoding time.
     gVoice.setPcmOut([&a](const int16_t* pcm, size_t n, int rate) {
-        if (!gVoiceOut.running() || gVoiceOut.sampleRate() != rate) { gVoiceOut.stop(); gVoiceOut.start(rate); }
+        constexpr int kOut = 48000;
+        static dect2::RationalResampler rs;
+        static int rsRate = 0;
+        static std::vector<dect2::cf32> in, out;
+        if (rate <= 0) return;
+        if (rate != rsRate) { rsRate = rate; rs.configure(rate, kOut); }
+        if (!gVoiceOut.running()) gVoiceOut.start(kOut);
         gVoiceOut.setVolume(a.volume); gVoiceOut.setMuted(a.muted);
-        std::vector<float> st(n * 2);
-        for (size_t i = 0; i < n; i++) st[2 * i] = st[2 * i + 1] = pcm[i] / 32768.f;
-        gVoiceOut.write(st.data(), (int)n);
+        if (!gVoiceOut.playing() && gVoiceOut.bufferedFrames() == 0) {
+            const std::vector<float> lead((size_t)kOut * 2 * 2 / 5, 0.f);   // 0.4 s
+            gVoiceOut.write(lead.data(), (int)lead.size() / 2);
+            rs.reset();
+        }
+        in.resize(n);
+        for (size_t i = 0; i < n; i++) in[i] = dect2::cf32(pcm[i] / 32768.f, 0.f);
+        out.clear();
+        rs.process(in.data(), n, out);
+        std::vector<float> st(out.size() * 2);
+        for (size_t i = 0; i < out.size(); i++) st[2 * i] = st[2 * i + 1] = out[i].real();
+        gVoiceOut.write(st.data(), (int)out.size());
     });
     gVoice.setFrameDecoder(dect2::tetra::makeTrafficFrameDecoder());   // channel decoding from EN 300 395-2 clause 5.5; the codec itself is the user's plug-in
     a.engine.tetra().setVoiceSink(&gVoice);

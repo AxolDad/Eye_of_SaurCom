@@ -676,21 +676,23 @@ void TetraReceiver::feed(const cf32* x, size_t n) {
     m.total += n;
     const uint64_t g = m.gen.load();
     if (g != m.accGen) { m.acc.clear(); m.accGen = g; }
-    if (m.idle.load()) {
+    // The next capture is gathered while the last one is decoded, so the captures follow each other without a gap (voice is heard
+    // whole). Samples are dropped only when a capture is complete and the decoder is still busy, i.e. when it is slower than real time.
+    for (size_t i = 0; i < n;) {
         if (m.acc.empty()) { m.accCenter = center; m.acc.reserve(m.want); }
-        const size_t take = std::min(n, m.want - m.acc.size());
-        for (size_t i = 0; i < take; i++) {
-            cf32 v = x[i];
+        const size_t take = std::min(n - i, m.want - m.acc.size());
+        for (size_t k = 0; k < take; k++) {
+            cf32 v = x[i + k];
             if (!std::isfinite(v.real()) || !std::isfinite(v.imag())) v = cf32(0, 0);
             m.acc.push_back(v);
         }
-        if (m.acc.size() >= m.want) {
-            std::lock_guard<std::mutex> lk(m.mu);
-            m.job.swap(m.acc); m.acc.clear();
-            m.jobCenter = m.accCenter; m.jobRate = rate; m.jobSec = (double)m.total / rate; m.jobGen = g;
-            m.jobReady = true; m.idle = false;
-            m.cv.notify_one();
-        }
+        i += take;
+        if (m.acc.size() < m.want || !m.idle.load()) break;
+        std::lock_guard<std::mutex> lk(m.mu);
+        m.job.swap(m.acc); m.acc.clear();
+        m.jobCenter = m.accCenter; m.jobRate = rate; m.jobSec = (double)(m.total - n + i) / rate; m.jobGen = g;
+        m.jobReady = true; m.idle = false;
+        m.cv.notify_one();
     }
     const double now = (double)m.total / rate;
     if (now - m.lastPubSec >= 0.5) {
