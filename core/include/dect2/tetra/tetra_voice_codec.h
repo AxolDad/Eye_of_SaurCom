@@ -56,8 +56,10 @@ private:
 // begins in the middle of a capture gives only its tail, and the next piece comes a whole capture later: played at once, the sound ran
 // dry before that piece arrived, a hole of up to 2 s a few seconds into every call. So the audio that starts from a silent output is held
 // until the capture is decoded (captureEnd), then written with silence in front of it: as much as the capture lacked, plus kCushionSec for
-// the capture-to-capture variation of the decoding time. While the sound plays, the audio goes straight through. Samples are interleaved
-// float, `channels` per frame, at `sampleRate`.
+// the capture-to-capture variation of the decoding time. Silence at the head of the held audio (a pause before the first burst, a capture
+// lost before this one and filled with silence) only delays a stream that starts here: as much of it goes as keeps a capture's worth plus
+// the cushion in front of the next capture. While the sound plays, the audio goes straight through. Samples are interleaved float,
+// `channels` per frame, at `sampleRate`.
 class CaptureLeadIn {
 public:
     static constexpr double kCushionSec = 0.6;

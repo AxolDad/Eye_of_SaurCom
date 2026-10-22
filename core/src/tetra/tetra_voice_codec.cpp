@@ -16,9 +16,15 @@ void CaptureLeadIn::push(const float* samples, size_t frames, bool idle, std::ve
 
 void CaptureLeadIn::captureEnd(std::vector<float>& out) {
     if (!holding_) return;
-    const double lead = kCushionSec + std::max(0.0, capture_ - heldSec());
-    out.insert(out.end(), (size_t)(lead * rate_) * (size_t)ch_, 0.f);
-    out.insert(out.end(), held_.begin(), held_.end());
+    // silence at the head of the held audio (a pause before the first burst, or a capture lost before this one and filled with silence)
+    // only delays a stream that starts here: as much of it goes as keeps a capture's worth plus the cushion in front of the next capture
+    size_t zeros = 0;
+    while (zeros < held_.size() && held_[zeros] == 0.f) zeros++;
+    const size_t frame = (size_t)ch_;
+    const size_t strip = std::min(zeros / frame, (size_t)std::max(0.0, (heldSec() - capture_) * rate_)) * frame;
+    const double lead = kCushionSec + std::max(0.0, capture_ - heldSec() + (double)(strip / frame) / rate_);
+    out.insert(out.end(), (size_t)(lead * rate_) * frame, 0.f);
+    out.insert(out.end(), held_.begin() + (std::ptrdiff_t)strip, held_.end());
     held_.clear();
     holding_ = false;
 }

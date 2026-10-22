@@ -350,7 +350,7 @@ CarrierDecode decodeCarrier(const cf32* x, size_t n, int kMcc, int kMnc, int kCc
     int ftn = voiceTn > 0 ? voiceTn : 0;
     for (size_t k = 0; k < traffic.size() && !ftn; k++) if (voiceVerdict(gate[k]) == VoiceVerdict::Passed) ftn = traffic[k].tn;
     if (ftn < 1 || ftn > 4) return out;
-    constexpr long kMaxLost = 3 * 41;   // frames of the slot between two captures filled with silence; more means the stream was left (the picker's hold)
+    constexpr long kMaxLost = 41;   // frames of the slot between two captures filled with silence: one capture; after more the sound has run dry anyway
     if (timeline && timeline->tn != ftn) timeline->next = -1;
     for (const SlotFrame& f : frames[ftn]) {
         if (timeline && timeline->next >= 0) {

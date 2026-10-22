@@ -117,6 +117,21 @@ int main() {
         for (int i = 0; i < 80; i++) full.push(frame.data(), (size_t)fr, true, out);   // 2.4 s: more than a capture
         out.clear(); full.captureEnd(out);
         CHECK(out.size() == 2 * ((size_t)(CaptureLeadIn::kCushionSec * rate) + 80 * (size_t)fr), "a whole capture from idle: the cushion only (%zu)", out.size());
+        // silence at the head of the held audio (a capture lost before this one, filled with silence) only delays the start: as much goes
+        // as keeps a capture's worth plus the cushion in front, the rest is dropped
+        CaptureLeadIn filled(rate, 2, 2.3);
+        const std::vector<float> zero((size_t)fr * 2, 0.f);
+        for (int i = 0; i < 100; i++) filled.push(zero.data(), (size_t)fr, true, out);    // 3.0 s of silence
+        for (int i = 0; i < 40; i++) filled.push(frame.data(), (size_t)fr, true, out);    // then 1.2 s of speech: 4.2 s held
+        out.clear(); filled.captureEnd(out);
+        const size_t want = (size_t)(2.3 * rate) + (size_t)(CaptureLeadIn::kCushionSec * rate);
+        CHECK(out.size() >= 2 * (want - 2) && out.size() <= 2 * (want + 2) && out[out.size() - 1] == 0.5f, "3 s of silence then 1.2 s of speech: 1.1 s of silence, the cushion and the speech (%zu of %zu)", out.size() / 2, want);
+        CaptureLeadIn pause(rate, 2, 2.3);
+        for (int i = 0; i < 30; i++) pause.push(zero.data(), (size_t)fr, true, out);     // 0.9 s of silence (a pause before the first burst)
+        for (int i = 0; i < 40; i++) pause.push(frame.data(), (size_t)fr, true, out);    // 1.2 s of speech: 2.1 s held, less than a capture
+        out.clear(); pause.captureEnd(out);
+        CHECK(out.size() == 2 * ((size_t)((2.3 - 2.1 + CaptureLeadIn::kCushionSec) * rate + 0.5) + 70 * (size_t)fr) || out.size() == 2 * ((size_t)((2.3 - 2.1 + CaptureLeadIn::kCushionSec) * rate) + 70 * (size_t)fr),
+              "a pause before the first burst inside a capture is kept (%zu)", out.size() / 2);
     }
     {   // one voice stream: a group call heard on three sites in one capture reaches the codec once
         VoiceStreamPicker p; int tn = 0;
