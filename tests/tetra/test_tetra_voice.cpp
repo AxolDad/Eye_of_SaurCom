@@ -1,8 +1,11 @@
 // TETRA voice path: an unencrypted generated traffic burst reaches the speech frame sink as the right coded frame; an
 // encrypted one, and one with unknown encryption state, produce "not decoded" and the sink is never called.
+#include "dect2/tetra/tetra_gen.h"
 #include "dect2/tetra/tetra_phy.h"
+#include "dect2/tetra/tetra_rx.h"
 #include "dect2/tetra/tetra_voice.h"
 #include "dect2/tetra/tetra_voice_codec.h"
+#include "dect2/source/source.h"
 #include <cstdio>
 #include <cstring>
 #include <random>
@@ -85,6 +88,54 @@ int main() {
             processTrafficBurst(l.data(), l.data() + 216, scr, e, &vs);
             CHECK(pcmN == 0, "no traffic channel decoder: nothing reaches the codec");
         }
+    }
+    {   // one voice stream: a group call heard on three sites in one capture reaches the codec once
+        VoiceStreamPicker p; int tn = 0;
+        p.newCapture();
+        CHECK(p.offer(100, 10, tn) && tn == -1, "nothing followed: the first carrier may give voice");
+        p.heard(100, 2, 10);
+        CHECK(!p.offer(101, 10, tn) && !p.offer(102, 10, tn), "the other copies of the call in the same capture stay out");
+        p.newCapture();
+        CHECK(!p.offer(101, 13, tn), "next capture: another carrier stays out while the call is followed");
+        CHECK(p.offer(100, 13, tn) && tn == 2, "next capture: the followed carrier, only its timeslot");
+        p.heard(100, 2, 13);
+        p.newCapture();
+        CHECK(p.offer(100, 16, tn) && tn == 2, "still followed");
+        p.heard(100, 0, 16);   // the call is over
+        CHECK(p.offer(101, 16, tn) && tn == -1, "a quiet followed carrier frees the codec in the same capture");
+        p.heard(101, 3, 16);
+        p.newCapture();
+        CHECK(!p.offer(100, 20, tn) && p.offer(101, 20, tn) && tn == 3, "the new call is followed");
+        p.newCapture();
+        CHECK(p.offer(100, 20 + VoiceStreamPicker::kHoldSec + 1, tn) && tn == -1, "a followed carrier not heard for kHoldSec is let go");
+    }
+    {   // decodeCarrier: the timeslot filter, and the encryption gate in front of it (the clear cell of scene 1)
+        const double rate = 300e3;
+        dect2::SynthConfig sc; sc.mode = 48; sc.snrDb = 30; sc.modeOpt[0] = 1;
+        auto syn = dect2::makeTetraSynth(sc, rate);
+        std::vector<dect2::cf32> x((size_t)(rate * 2.3));
+        syn->generate(x.data(), x.size());
+        const dect2::TetraCellCfg cell = dect2::tetraTestCell(1, 1);
+        const std::vector<dect2::cf32> s = channelize(x.data(), x.size(), rate, 392.6e6 - dect2::kTetraTestCentreHz);
+        const int ts = cell.trafficTs, other = ts == 1 ? 2 : 1;
+        const double now = 100;
+        // a call set-up for the traffic timeslot of the cell's main carrier, as decodeCarrier would read it; enc: 0 clear, 1 encrypted, -2 none heard
+        auto decode = [&](int enc, int voiceTn, Sink& sink) {
+            CallTracker calls;
+            calls.setMainCarrier(cell.si.mainCarrier);
+            if (enc >= -1) { CallEvent e; e.kind = 1; e.callId = 7; e.enc = enc; e.slots = 1 << (4 - ts); e.carrier = cell.si.mainCarrier; calls.onEvent(e, now); }
+            return decodeCarrier(s.data(), s.size(), -1, -1, -1, &sink, &calls, now, voiceTn);
+        };
+        {   Sink k; const CarrierDecode d = decode(0, -1, k);
+            CHECK(d.trafficSlots > 0 && k.calls == d.voicePassed && k.calls > 0 && d.voiceTn == ts, "first clear timeslot: %d of %d traffic bursts to the sink, slot %d", k.calls, d.trafficSlots, d.voiceTn); }
+        {   Sink k; const CarrierDecode d = decode(0, ts, k);
+            CHECK(k.calls > 0 && d.voiceTn == ts, "the followed timeslot reaches the sink (%d)", k.calls); }
+        {   Sink k; const CarrierDecode d = decode(0, other, k);
+            CHECK(k.calls == 0 && d.voiceTn == 0 && d.voicePassed > 0, "another timeslot: clear but kept from the sink (%d passed)", d.voicePassed); }
+        {   Sink k; const CarrierDecode d = decode(1, -1, k);
+            CHECK(k.calls == 0 && d.voiceTn == 0 && d.voicePassed == 0 && d.voiceNotDecoded > 0, "encrypted call: nothing reaches the sink"); }
+        {   Sink k; const CarrierDecode d = decode(-2, ts, k);
+            CHECK(k.calls == 0 && d.voiceTn == 0 && d.voicePassed == 0, "no call set-up heard: nothing reaches the sink"); }
     }
     printf(fails ? "tetra voice: %d FAILED\n" : "tetra voice: all passed\n", fails);
     return fails ? 1 : 0;

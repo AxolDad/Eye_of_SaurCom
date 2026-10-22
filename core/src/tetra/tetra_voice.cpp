@@ -50,6 +50,22 @@ CallEncryption CallTracker::slotState(int tn, double now) const {
     return c;
 }
 
+bool VoiceStreamPicker::offer(long key, double sec, int& tn) const {
+    if (fed_) return false;   // this capture already gave its voice
+    if (key_ >= 0 && sec - sec_ <= kHoldSec) {
+        if (key != key_) return false;
+        tn = tn_;
+        return true;
+    }
+    tn = -1;
+    return true;
+}
+
+void VoiceStreamPicker::heard(long key, int tn, double sec) {
+    if (tn > 0) { key_ = key; tn_ = tn; sec_ = sec; fed_ = true; }
+    else if (key == key_) key_ = -1;   // the followed stream was decoded and is quiet: the next call may come from anywhere
+}
+
 VoiceVerdict processTrafficBurst(const float* bkn1, const float* bkn2, uint32_t scr, const CallEncryption& e, SpeechFrameSink* sink) {
     const VoiceVerdict v = voiceVerdict(e);   // first, before the burst is read
     if (v != VoiceVerdict::Passed) return v;

@@ -131,7 +131,7 @@ SlotFit fitSlot(const std::vector<cf32>& dd, long s) {
 
 // ---------------------------------------------------------------- one carrier
 
-CarrierDecode decodeCarrier(const cf32* x, size_t n, int kMcc, int kMnc, int kCc, SpeechFrameSink* sink, CallTracker* calls, double nowSec) {
+CarrierDecode decodeCarrier(const cf32* x, size_t n, int kMcc, int kMnc, int kCc, SpeechFrameSink* sink, CallTracker* calls, double nowSec, int voiceTn) {
     CarrierDecode out;
     if (n < (size_t)kSlotSamples * 8) return out;
     // matched filter
@@ -322,9 +322,15 @@ CarrierDecode decodeCarrier(const cf32* x, size_t n, int kMcc, int kMnc, int kCc
             const CallEncryption call = calls ? calls->slotState(tr.tn, nowSec) : CallEncryption{};
             if (!call.known) ce.known = false;
             if (call.encMode != 0) ce.encMode = 1;
-            const VoiceVerdict v = processTrafficBurst(tr.t.data(), tr.t.data() + 216, scr, ce, sink);
+            // one timeslot reaches the codec: two calls (or a call and its other slots) through one speech decoder would be heard in turn
+            SpeechFrameSink* to = voiceTn <= 0 || tr.tn == voiceTn ? sink : nullptr;
+            const VoiceVerdict v = processTrafficBurst(tr.t.data(), tr.t.data() + 216, scr, ce, to);
             out.voiceStatus = voiceVerdictText(v);
             if (v == VoiceVerdict::Passed) out.voicePassed++; else out.voiceNotDecoded++;
+            if (v == VoiceVerdict::Passed && to) {
+                out.voiceTn = tr.tn;
+                if (voiceTn < 0) voiceTn = tr.tn;
+            }
         }
     }
     return out;
@@ -354,6 +360,7 @@ struct TetraReceiver::Impl {
     std::atomic<SpeechFrameSink*> voiceSink{nullptr};
     // per-call encryption state of each carrier (analysis thread only), keyed by the carrier's 25 kHz channel
     std::map<long, tetra::CallTracker> callTrackers;
+    tetra::VoiceStreamPicker voicePick;   // the one carrier and timeslot whose voice is played
     static long callKey(double center, double off) { return std::lround(((center > 0 ? center : 0.0) + off) / 25e3); }
     // capture (analysis thread)
     std::vector<cf32> acc;
@@ -451,6 +458,7 @@ struct TetraReceiver::Impl {
         struct Found { Carrier c; tetra::CarrierDecode d; double freq; };
         std::vector<Found> found;
         std::vector<TetraCarrierSeen> seen;
+        voicePick.newCapture();
         for (const auto& c : car) {
             if (gen.load() != g) return;   // retuned meanwhile: these samples belong to another frequency
             int kMcc = -1, kMnc = -1, kCc = -1;
@@ -461,7 +469,11 @@ struct TetraReceiver::Impl {
             }
             const std::vector<cf32> s = tetra::channelize(x.data(), x.size(), fs, c.off);
             if (callTrackers.size() > 64) callTrackers.clear();
-            tetra::CarrierDecode d = tetra::decodeCarrier(s.data(), s.size(), kMcc, kMnc, kCc, voiceSink.load(), &callTrackers[callKey(center, c.off)], (double)wallNow());
+            const long key = callKey(center, c.off);
+            int voiceTn = 0;
+            const bool voice = voicePick.offer(key, sec, voiceTn);
+            tetra::CarrierDecode d = tetra::decodeCarrier(s.data(), s.size(), kMcc, kMnc, kCc, voice ? voiceSink.load() : nullptr, &callTrackers[key], (double)wallNow(), voiceTn);
+            if (voice) voicePick.heard(key, d.voiceTn, sec);
             const double freq = (center > 0 ? center : 0.0) + c.off + d.cfoHz;
             TetraCarrierSeen cs; cs.freqHz = d.tetra ? freq : (center > 0 ? center : 0.0) + c.off; cs.levelDb = c.levelDb; cs.synced = d.synced;
             seen.push_back(cs);

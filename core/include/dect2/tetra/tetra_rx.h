@@ -73,16 +73,19 @@ struct CarrierDecode {
     double cfoHz = 0;          // the frequency error found, relative to the carrier's assumed centre
     float snrDb = -99;
     int slots = 0, trafficSlots = 0, blocksOk = 0, blocksBad = 0;
-    int voicePassed = 0, voiceNotDecoded = 0;   // traffic bursts handed to the speech frame sink / refused (encrypted or state unknown)
+    int voicePassed = 0, voiceNotDecoded = 0;   // traffic bursts that passed the encryption gate / refused (encrypted or state unknown);
+                                                // a passed burst of a timeslot other than voiceTn asked for is not handed to the sink
     const char* voiceStatus = "";                // text of the last traffic burst verdict (tetra_voice.h)
+    int voiceTn = 0;                             // the timeslot whose clear traffic reached the sink (0: none)
     std::vector<MacBlock> macs;
     int tsUsage[4] = {-1, -1, -1, -1};
 };
 // knownMcc etc.: the identity of a cell already heard on this carrier, used when this capture has no synchronisation burst (-1: none)
 // calls: the per-call encryption state of this carrier, kept across captures by the caller (null: no call state, so no traffic burst is ever decoded);
 // nowSec: the clock of its expiry (any monotonic seconds).
+// voiceTn: the timeslot (1..4) whose clear traffic goes to the sink; -1 the first timeslot with clear traffic, 0 every one.
 CarrierDecode decodeCarrier(const cf32* x72k, size_t n, int knownMcc = -1, int knownMnc = -1, int knownCc = -1,
-                              SpeechFrameSink* sink = nullptr, CallTracker* calls = nullptr, double nowSec = 0);
+                              SpeechFrameSink* sink = nullptr, CallTracker* calls = nullptr, double nowSec = 0, int voiceTn = 0);
 
 } // namespace tetra
 
