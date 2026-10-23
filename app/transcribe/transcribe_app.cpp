@@ -745,7 +745,7 @@ void modelPopups() {
             ImGui::PushTextWrapPos(480 * gUi);
             ImGui::Text(tr("Download the speech model %s (%d MB)?"), U.askModel->id, U.askModel->mib);
             ImGui::TextDisabled("%s", dect2::speechModelUrl(*U.askModel).c_str());
-            ImGui::TextUnformatted(tr("OnAir asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed."));
+            ImGui::TextUnformatted(tr("Eye of ZorCom asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed."));
             ImGui::PopTextWrapPos();
             ImGui::Spacing();
             if (ImGui::Button(tr("Download"), ImVec2(140 * gUi, 0))) {

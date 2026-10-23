@@ -20,12 +20,12 @@
 
 // The three texts of soapyRemoteModuleHelpFor() (core/src/net/netradio.cpp): listed here so the catalogs carry them; the error line below passes the text through tr().
 [[maybe_unused]] static const char* const kSoapyRemoteModuleTexts[] = {
-    N_("The SoapyRemote module is missing from this installation of OnAir, so it cannot reach a remote radio. Reinstall OnAir, and please report it if it happens again. "
+    N_("The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. "
        "The radio's computer must run SoapySDRServer --bind."),
-    N_("The SoapyRemote module is missing from this installation of OnAir, so it cannot reach a remote radio. Reinstall OnAir (or run brew install soapyremote), and please report it if it happens again. "
+    N_("The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. "
        "The radio's computer must run SoapySDRServer --bind."),
     N_("SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; "
-       "other systems: github.com/pothosware/SoapyRemote), then restart OnAir. The radio's computer must run SoapySDRServer --bind."),
+       "other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind."),
 };
 
 static bool netTypeSearches(int t) { return t == NetRadio::HermesLite2 || t == NetRadio::RedPitaya; }   // found by a discovery broadcast
@@ -180,7 +180,7 @@ void netRadioWindow(App& a) {
                                      "and type that computer's address. No password is needed or stored."));
     if (a.netAddType == NetRadio::Tci)
         ImGui::TextDisabled("%s", tr("TCI: the Transceiver Control Interface of ExpertSDR3 (and SunSDR or other programs with a TCI server), port 50001. Turn its TCI server on and type "
-                                     "that computer's address. OnAir only receives (the IQ stream, 48 to 384 kHz); it never transmits. No password is needed."));
+                                     "that computer's address. Eye of ZorCom only receives (the IQ stream, 48 to 384 kHz); it never transmits. No password is needed."));
     if (a.netAddType == NetRadio::KiwiSdr) {
         ImGui::SetNextItemWidth(200 * gUi);
         ImGui::InputTextWithHint(tr("Password"), tr("blank if the owner set none"), a.netAddPass, sizeof a.netAddPass, ImGuiInputTextFlags_Password);
@@ -188,9 +188,9 @@ void netRadioWindow(App& a) {
         ImGui::SameLine();
         ImGui::TextDisabled("%s", tr("pick a public receiver from the list"));
         ImGui::PushTextWrapPos(400 * gUi);
-        ImGui::TextDisabled("%s", tr("A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; OnAir takes its 12 kHz IQ stream. "
+        ImGui::TextDisabled("%s", tr("A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; Eye of ZorCom takes its 12 kHz IQ stream. "
                                      "Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. "
-                                     "The password is kept in OnAir's settings."));
+                                     "The password is kept in Eye of ZorCom's settings."));
         ImGui::PopTextWrapPos();
     }
     if (a.netAddType == NetRadio::SoapyRemote && !soapySupported()) ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.25f, 1), "%s", tr("This build has no SoapySDR, which SoapyRemote needs."));
@@ -412,7 +412,7 @@ void hamlibRigWindow(App& a) {
         a.hamlibModelQuery[0] = 0;
     }
     ImGui::PushTextWrapPos(440 * gUi);
-    ImGui::TextDisabled("%s", tr("A radio controlled over CAT (an Icom IC-R8600, an IC-7300, a rigctld on the network): OnAir and the rig follow each other's frequency and mode. IQ or audio comes from a sound card. OnAir never transmits through this."));
+    ImGui::TextDisabled("%s", tr("A radio controlled over CAT (an Icom IC-R8600, an IC-7300, a rigctld on the network): Eye of ZorCom and the rig follow each other's frequency and mode. IQ or audio comes from a sound card. Eye of ZorCom never transmits through this."));
     ImGui::PopTextWrapPos();
 
     const RigModelInfo* cur = hamlibRigPicker(a);
@@ -488,7 +488,7 @@ void kiwiFindWindow(App& a) {
             receiverLocation(lat, lon);
             kiwiSortByDistance(a.kiwiList, lat, lon);
             a.netAddErr.clear();
-        } else a.netAddErr = f->err == "parse" ? N_("The downloaded list has no receivers OnAir can read.") : N_("Could not download the list. Check the internet connection.");
+        } else a.netAddErr = f->err == "parse" ? N_("The downloaded list has no receivers Eye of ZorCom can read.") : N_("Could not download the list. Check the internet connection.");
     }
     if (!a.kiwiFindOpen) return;
     if (a.kiwiListUrl[0] == 0) snprintf(a.kiwiListUrl, sizeof a.kiwiListUrl, "%s", kKiwiListUrl);

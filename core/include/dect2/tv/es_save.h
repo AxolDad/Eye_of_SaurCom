@@ -1,4 +1,4 @@
-// Saves a raw audio elementary stream (DRA, MPEG audio) to a file that FFmpeg can play, for sound OnAir cannot decode itself.
+// Saves a raw audio elementary stream (DRA, MPEG audio) to a file that FFmpeg can play, for sound Eye of ZorCom cannot decode itself.
 #pragma once
 #include <cstddef>
 #include <cstdint>

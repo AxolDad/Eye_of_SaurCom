@@ -122,7 +122,7 @@ struct ShareServer::Impl {
                     char ip[64] = "?";
                     inet_ntop(AF_INET, &pa.sin_addr, ip, sizeof ip);
                     cl.name = std::string(ip) + ":" + std::to_string(ntohs(pa.sin_port));
-                    // the greeting: "RTL0", tuner type 0 (not an RTL-SDR tuner: an OnAir client then takes any rate), 0 gains
+                    // the greeting: "RTL0", tuner type 0 (not an RTL-SDR tuner: an Eye of ZorCom client then takes any rate), 0 gains
                     const unsigned char hdr[12] = {'R', 'T', 'L', '0', 0, 0, 0, 0, 0, 0, 0, 0};
                     cl.pending.assign((const char*)hdr, sizeof hdr);
                     clients.push_back(std::move(cl));

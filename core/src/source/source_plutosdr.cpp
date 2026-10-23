@@ -89,13 +89,13 @@ struct IioApi {
         else snprintf(b, sizeof b, "%s", strerror(e));
         return std::string(b) + " (" + std::to_string(e) + ")";
     }
-    static constexpr const char* kV1Msg = "libiio 1.x found: OnAir needs libiio 0.23-0.26 for now";
+    static constexpr const char* kV1Msg = "libiio 1.x found: Eye of ZorCom needs libiio 0.23-0.26 for now";
 };
 #if defined(__APPLE__)
 constexpr const char* kNoIioMsg = "PlutoSDR: libiio is not installed. Install libiio 0.26 (Analog Devices' macOS package, which puts iio.framework in "
-                                  "/Library/Frameworks, or Homebrew), then start OnAir again";
+                                  "/Library/Frameworks, or Homebrew), then start Eye of ZorCom again";
 #else
-constexpr const char* kNoIioMsg = "PlutoSDR: libiio is not installed (OnAir needs libiio 0.23-0.26)";
+constexpr const char* kNoIioMsg = "PlutoSDR: libiio is not installed (Eye of ZorCom needs libiio 0.23-0.26)";
 #endif
 IioApi& iio() { static IioApi a; return a; }
 
@@ -376,7 +376,7 @@ protected:
             radio_->rxFir = firOn_;
             radio_->rxCs8 = cs8_;
         }
-        // the gain control: manual, with OnAir's gain (the default), or the AD9361's own AGC (TuneSettings "gainmode": slow_attack, fast_attack)
+        // the gain control: manual, with Eye of ZorCom's gain (the default), or the AD9361's own AGC (TuneSettings "gainmode": slow_attack, fast_attack)
         const std::string gm = radioOption(s, "gainmode", "manual");
         if (!live || gm != gainMode_) {
             if (iio().channel_attr_write(rxCh_, "gain_control_mode", gm.c_str()) >= 0) gainMode_ = gm;
@@ -635,7 +635,7 @@ private:
             std::string e;
             push(e);
         }
-        if (txCh_) { iio().channel_attr_write(txCh_, "hardwaregain", "-89.75"); }   // least power, and the TX LO off, before OnAir lets go of the radio
+        if (txCh_) { iio().channel_attr_write(txCh_, "hardwaregain", "-89.75"); }   // least power, and the TX LO off, before Eye of ZorCom lets go of the radio
         if (lo_) iio().channel_attr_write_longlong(lo_, "powerdown", 1);
         if (buf_) { iio().buffer_destroy(buf_); buf_ = nullptr; }
         if (i_) iio().channel_disable(i_);
@@ -679,7 +679,7 @@ DeviceInfo plutoEntry(const std::string& uri, const std::string& desc, bool prob
     d.minFreqHz = 70e6; d.maxFreqHz = 6e9;
     d.canTransmit = true;   // PlutoTx (the AD9361 transmits; not tested on a radio)
     d.txFullDuplex = true;  // native RX/TX share their context and clock; incompatible configurations are refused at open
-    d.txChannels = 1;       // the firmware OnAir opens exposes one RF output; a second (voltage1) is used only when that image has it, and the open says so
+    d.txChannels = 1;       // the firmware Eye of ZorCom opens exposes one RF output; a second (voltage1) is used only when that image has it, and the open says so
     d.txMinRateHz = 2.1e6; d.txMaxRateHz = 61.44e6;
     d.txGainMinDb = -89.75; d.txGainMaxDb = 0;
     d.txGainNote = "the AD9361's TX attenuation shown as a gain: -89.75 dB (least power) to 0 dB (most)";
@@ -688,7 +688,7 @@ DeviceInfo plutoEntry(const std::string& uri, const std::string& desc, bool prob
                               "Receive 2.048 Msps directly through the hardware FIR. RX only: disable this to share the radio with TX.\n"
                               "Off by default: use at least 2.1 Msps (or the running TX rate), with software resampling in the receiver.", false, true),
                   choiceSetting("gainmode", "Gain mode",
-                                "Manual: the gain slider (and OnAir's AGC) set the AD9361's gain (the default).\n"
+                                "Manual: the gain slider (and Eye of ZorCom's AGC) set the AD9361's gain (the default).\n"
                                 "Slow / fast attack: the AD9361's own AGC sets it (fast attack for bursts); the gain slider then has no effect.",
                                 {"manual", "slow_attack", "fast_attack"}, {"Manual", "Radio AGC, slow attack", "Radio AGC, fast attack"}, "manual")};
     bool tez = false, known = false;

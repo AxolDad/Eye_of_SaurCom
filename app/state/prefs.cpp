@@ -1,6 +1,7 @@
 // Saved settings: loadPrefs() and savePrefs(). The plain keys (a flag, a number with limits, a text) are one table, kKeys,
 // that both directions walk, so a key is spelled once; the keys that need real logic (the mode and its gains, the
 // spectrum range, the FM station lists, the wide-capture mask) are written out below the table.
+#include "dect2/audio/audioout.h"
 #include "../app.h"
 #include "state_internal.h"
 #include <climits>
@@ -326,6 +327,7 @@ void loadPrefs(App& a) {
     a.recFormat = fixRecFormat((int)d.getI("recFormat", 0));
     a.recSigmf = d.getB("recSigmf", true);
     a.audioRecFmt = std::max(0, std::min(2, (int)d.getI("audioRecFmt", 0)));
+    dect2::AudioOut::setDefaultDevice(d.getS("audioOutDevice", ""));   // the sound output chosen in the audio tools (a virtual cable, ...)
     a.audioRecGate = d.getB("audioRecGate", false); a.audioRecSplit = d.getB("audioRecSplit", false); a.audioRecKeep = d.getB("audioRecKeep", false);
     a.monOn = d.getB("monOn", false); a.monDemod = std::max(0, std::min(4, (int)d.getI("monDemod", 4)));
     a.monVol = (float)d.getD("monVol", 1.0); a.monVol2 = (float)d.getD("monVol2", 1.0);

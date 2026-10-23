@@ -247,7 +247,7 @@ void listsTab() {
     ImGui::SameLine();
     ImGui::BeginChild("edit", ImVec2(0, 0), false);
     if (S.sel < 0 || S.sel >= (int)S.lists.size()) {
-        ImGui::TextWrapped("%s", tr("Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. OnAir tells you when something on it is heard."));
+        ImGui::TextWrapped("%s", tr("Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. Eye of ZorCom tells you when something on it is heard."));
         ImGui::EndChild();
         return;
     }

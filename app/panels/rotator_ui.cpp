@@ -327,7 +327,7 @@ void rotatorWindow(App& a) {
         ImGui::Separator();
         ImGui::TextDisabled("%s", tr("Calibrate with a geostationary satellite"));
         ImGui::PushTextWrapPos(440 * gUi);
-        ImGui::TextDisabled("%s", tr("Peak the dish on a DVB-S signal from the satellite (signal meter or OnAir lock). Leave the rotator as it is — even if it reads 0° when you are not on north. OnAir compares the true sky direction to the mechanical reading and stores the offset."));
+        ImGui::TextDisabled("%s", tr("Peak the dish on a DVB-S signal from the satellite (signal meter or Eye of ZorCom lock). Leave the rotator as it is — even if it reads 0° when you are not on north. Eye of ZorCom compares the true sky direction to the mechanical reading and stores the offset."));
         ImGui::PopTextWrapPos();
         if (!receiverLocationSet()) {
             ImGui::TextColored(pal::warnAmber(), "%s", tr("Set the receiver position in ADS-B or View > Map first."));

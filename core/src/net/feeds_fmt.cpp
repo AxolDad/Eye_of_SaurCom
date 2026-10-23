@@ -8,6 +8,7 @@
 #include <ctime>
 #include <cstring>
 #include "dect2/common/str.h"
+#include "dect2/rs/cot.h"
 
 #ifndef ONAIR_VERSION
 #define ONAIR_VERSION "dev"
@@ -153,7 +154,7 @@ std::string aprsIsLine(const std::string& from, const std::string& to, const std
 }
 
 std::string aprsIsLogin(const std::string& call, const std::string& pass) {
-    return "user " + upper(call) + " pass " + pass + " vers OnAir " ONAIR_VERSION "\r\n";
+    return "user " + upper(call) + " pass " + pass + " vers EyeOfZorCom " ONAIR_VERSION "\r\n";
 }
 
 // ---------------------------------------------------------------- ACARS / VDL2
@@ -312,6 +313,24 @@ std::string loraJson(const char* kind, const std::string& hex, float snrDb, doub
     if (!extra.empty()) { o += ','; o += extra; }
     o += '}';
     return o;
+}
+
+std::string cotEvent(const MapMarker& m, int64_t wallMs, int staleSec) {
+    // the layer gives the uid prefix (so an aircraft and a ship with the same number stay apart) and the CoT type
+    static const struct { const char* prefix; uint32_t kind; } kLayer[] = {{"ICAO-", 0}, {"MMSI-", 1}, {"APRS-", 2}, {"SONDE-", 3}};
+    if (m.layer < 0 || m.layer >= (int)(sizeof kLayer / sizeof kLayer[0]) || m.id.empty()) return {};
+    const std::string uid = std::string(kLayer[m.layer].prefix) + m.id;
+    const char* type = reinterpret_cast<const char*>(onair_cot_type(kLayer[m.layer].kind));
+    const std::string& call = m.label.empty() ? m.id : m.label;
+    const double hae = m.hasAlt ? m.altM : NAN, speed = m.hasSpeed ? m.speedKt * 0.514444 : -1;
+    std::string out(1024 + m.detail.size() * 6, '\0');   // room for the escaped remarks
+    const auto u8 = [](const std::string& t) { return reinterpret_cast<const uint8_t*>(t.data()); };
+    const size_t n = onair_cot_encode(u8(uid), uid.size(), reinterpret_cast<const uint8_t*>(type), std::strlen(type), u8(call), call.size(),
+                                      u8(m.detail), m.detail.size(), m.lat, m.lon, hae, m.headingDeg, speed, wallMs, staleSec,
+                                      reinterpret_cast<uint8_t*>(out.data()), out.size());
+    if (n == SIZE_MAX) return {};
+    out.resize(n);
+    return out;
 }
 
 } // namespace dect2::feedfmt

@@ -1,8 +1,9 @@
-// MP3 recording through LAME (libmp3lame), loaded at run time: OnAir does not ship the library (LGPL, patents in some regions), so MP3 is
+// MP3 recording through LAME (libmp3lame), loaded at run time: Eye of ZorCom does not ship the library (LGPL, patents in some regions), so MP3 is
 // offered when it is installed and the WAV / FLAC recorders work without it.
 #pragma once
 #include <cstdint>
 #include <cstdio>
+#include <functional>
 #include <string>
 #include <vector>
 #if defined(_WIN32)
@@ -38,22 +39,33 @@ public:
         f_ = f;
         return true;
     }
+    // The same encoder with the MP3 bytes handed to `sink` instead of a file (a network stream, audio_stream.h).
+    using Sink = std::function<void(const unsigned char*, size_t)>;
+    bool begin(Sink sink, uint32_t rate, int kbps, int channels) {
+        FILE* none = reinterpret_cast<FILE*>(this);   // begin() wants a non-null file; it is never written while a sink is set
+        sink_ = std::move(sink);
+        if (!sink_ || !begin(none, rate, kbps, {}, channels)) { sink_ = nullptr; return false; }
+        return true;
+    }
     void write(const int16_t* pcm, size_t n) {
         if (!gf_) return;
         std::vector<unsigned char> out(n * 5 / 4 + 7200);   // n frames; stereo input is interleaved
         const int r = ch_ == 2 ? api().encodeInter(gf_, pcm, (int)n, out.data(), (int)out.size()) : api().encode(gf_, pcm, nullptr, (int)n, out.data(), (int)out.size());
-        if (r > 0) fwrite(out.data(), 1, (size_t)r, f_);
+        if (r > 0) emit(out.data(), (size_t)r);
     }
     void finish() {
         if (!gf_) return;
         unsigned char out[7200];
         const int r = api().flush(gf_, out, (int)sizeof out);
-        if (r > 0) fwrite(out, 1, (size_t)r, f_);
+        if (r > 0) emit(out, (size_t)r);
         api().close(gf_);
         gf_ = nullptr;
+        sink_ = nullptr;
     }
 
 private:
+    void emit(const unsigned char* d, size_t n) { if (sink_) sink_(d, n); else fwrite(d, 1, n, f_); }
+    Sink sink_;
     struct Api {
         bool ok = false;
         void* (*init)() = nullptr;

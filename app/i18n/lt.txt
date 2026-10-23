@@ -1,4 +1,4 @@
-# OnAir interface in Lithuanian. One text per line: the English text as in the source, a tab, the translation.
+# Eye of ZorCom interface in Lithuanian. One text per line: the English text as in the source, a tab, the translation.
 # \n is a line break. Keep the printf conversions (%s, %d, %.1f ...) in the same order. tests/app/test_i18n.cpp checks this file.
 #  menus, status words, common buttons
 %.1f dB	%.1f dB
@@ -38,7 +38,6 @@ Dial frequency the decoder should assume (the sound card is not tuned)	Rinkimo d
 DVB standard	DVB standard
 Empty: the demo 802.15.4 scene.	Empty: the demo 802.15.4 scene.
 Empty: the demo FLARM scene. This ID is not packed into the unpublished newer protocol.	Empty: the demo FLARM scene. This ID is not packed into the unpublished newer protocol.
-Empty: the demo LoRa / mesh scene.	Empty: the demo LoRa / mesh scene.
 Empty: the demo Mode S uplink scene.	Empty: the demo Mode S uplink scene.
 Empty: the demo VDES scene.	Empty: the demo VDES scene.
 File	Failas
@@ -109,7 +108,7 @@ The file bytes go out as a HamDRM object with this callsign. Empty file: the tes
 The microphone starts only when you press START TRANSMITTING.	The microphone starts only when you press START TRANSMITTING.
 The registration and free-text go on the air as an H1 / ACARS downlink. Empty: the demo traffic.	The registration and free-text go on the air as an H1 / ACARS downlink. Empty: the demo traffic.
 this mode has no transmit generator	this mode has no transmit generator
-This vocoder cannot encode: OnAir loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.	This vocoder cannot encode: OnAir loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.
+This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.	This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.
 Timeslot	Timeslot
 To	To
 USB audio	USB garsas
@@ -203,7 +202,7 @@ Instrument palette	Prietaiso paletė
 Mono palette	Vienspalvė paletė
 Show in Discord	Rodyti „Discord“
 Show the frequency	Rodyti dažnį
-Shows on your Discord profile that you are using OnAir, the mode and the frequency. Needs the Discord desktop app running.	Jūsų „Discord“ profilyje rodo, kad naudojate OnAir, režimą ir dažnį. Turi veikti „Discord“ darbalaukio programa.
+Shows on your Discord profile that you are using Eye of ZorCom, the mode and the frequency. Needs the Discord desktop app running.	Jūsų „Discord“ profilyje rodo, kad naudojate Eye of ZorCom, režimą ir dažnį. Turi veikti „Discord“ darbalaukio programa.
 Discord application ID not set in this build	Šioje versijoje nenurodytas „Discord“ programos ID
 Passes	Praskridimai
 Data feeds...	Duomenų srautai...
@@ -261,7 +260,7 @@ no stations yet: run the scan	stočių dar nėra: paleiskite paiešką
 no saved channels yet: run the scan	išsaugotų kanalų dar nėra: paleiskite paiešką
 Hz	Hz
 Frequency in MHz (%.3f to %.3f)	Dažnis MHz (nuo %.3f iki %.3f)
-OnAir crashed	OnAir užstrigo
+Eye of ZorCom crashed	Eye of ZorCom užstrigo
 no picture - press Esc	vaizdo nėra - paspauskite Esc
 no picture	vaizdo nėra
 Video	Vaizdas
@@ -524,7 +523,7 @@ Auto start at AOS, stop at LOS	Automatiškai pradėti per AOS, sustoti per LOS
 Switches to the satellite's mode and starts the receiver at AOS (when it is stopped), and stops it at LOS	Perjungia į palydovo režimą, per AOS paleidžia imtuvą (jei jis sustabdytas) ir per LOS jį sustabdo
 Auto record IQ	Automatiškai įrašyti IQ
 Records the radio's IQ during the pass, as Record IQ does (format from the Record IQ setting), into %s/recordings	Praskridimo metu įrašo radijo IQ kaip „Įrašyti IQ“ (formatas pagal tą nustatymą) į %s/recordings
-OnAir has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	OnAir neturi tam dekoderio: automatinis paleidimas atveria Spectrum explorer, o automatinis įrašymas išsaugo IQ
+Eye of ZorCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	Eye of ZorCom neturi tam dekoderio: automatinis paleidimas atveria Spectrum explorer, o automatinis įrašymas išsaugo IQ
 tracking%s	sekama%s
 , recording	, įrašoma
 #  data feeds
@@ -562,7 +561,7 @@ Import CSV...	Importuoti CSV...
 Export CSV...	Eksportuoti CSV...
 Columns: frequency_mhz, mode, name, dwell_s, lockout, priority.\nmode is a mode id: fm, dab, airband, dmr, pocsag, ft8 ...	Stulpeliai: frequency_mhz, mode, name, dwell_s, lockout, priority.\nmode – režimo ID: fm, dab, airband, dmr, pocsag, ft8 ...
 imported %d entries%s	importuota įrašų: %d%s
- (some with a mode OnAir does not know)	 (kai kurie su OnAir nežinomu režimu)
+ (some with a mode Eye of ZorCom does not know)	 (kai kurie su Eye of ZorCom nežinomu režimu)
 exported	eksportuota
 could not write	nepavyko įrašyti
 start MHz	pradžia MHz
@@ -629,11 +628,11 @@ Skip this version	Praleisti šią versiją
 Release page	Versijos puslapis
 Download page	Atsisiuntimo puslapis
 Checking and preparing the new version…	Tikrinama ir ruošiama nauja versija…
-Downloaded and checked. It is installed when you close OnAir.	Atsisiųsta ir patikrinta. Bus įdiegta uždarius OnAir.
+Downloaded and checked. It is installed when you close Eye of ZorCom.	Atsisiųsta ir patikrinta. Bus įdiegta uždarius Eye of ZorCom.
 Restart now and update	Paleisti iš naujo ir atnaujinti
 Windows asks for permission to run the installer.	Windows paprašys leidimo paleisti diegimo programą.
 The system asks for your password to install the package.	Sistema paprašys slaptažodžio paketui įdiegti.
-This copy of OnAir cannot replace itself.	Ši OnAir kopija negali pati savęs pakeisti.
+This copy of Eye of ZorCom cannot replace itself.	Ši Eye of ZorCom kopija negali pati savęs pakeisti.
 The update to v%s did not install (setup exit code %d).	Atnaujinimas į v%s neįdiegtas (diegimo išėjimo kodas %d).
 Only github.com is contacted. Downloads are checked against the SHA-256 GitHub lists for the file.	Jungiamasi tik prie github.com. Atsisiuntimai tikrinami pagal GitHub nurodytą failo SHA-256.
 checking…	tikrinama…
@@ -673,7 +672,7 @@ Add a receiver: another radio with its own mode	Pridėti imtuvą: kitas radijas 
 Add receiver	Pridėti imtuvą
 Added to a level in dBFS to give dBm for this radio: feed a known signal into the antenna port and set the difference. Used when the spectrum shows dBm (Spectrum button on the plot).	Pridedama prie dBFS lygio, kad gautumėte šio radijo dBm: į antenos lizdą paduokite žinomą signalą ir nustatykite skirtumą. Naudojama, kai spektras rodo dBm (grafiko mygtukas Spektras).
 Aircraft	Orlaiviai
-All set. OnAir will start here:	Viskas paruošta. OnAir prasidės čia:
+All set. Eye of ZorCom will start here:	Viskas paruošta. Eye of ZorCom prasidės čia:
 Allow remote control (frequency and gain)	Leisti nuotolinį valdymą (dažnis ir stiprinimas)
 Amateur radio	Radijo mėgėjai
 An SDRplay RSP is plugged in, but the SDRplay Hardware API is not installed. Install it separately even if SDRconnect already works with the radio.	Prijungtas SDRplay RSP, bet SDRplay Hardware API neįdiegta. Įdiekite ją atskirai, net jei SDRconnect jau veikia su radiju.
@@ -681,7 +680,7 @@ Another program is using the HackRF	Kita programa naudoja HackRF
 Australia and New Zealand	Australija ir Naujoji Zelandija
 Average	Vidurkis
 CPU load now: %.0f%% (100%% = one core)	Dabartinė procesoriaus apkrova: %.0f%% (100%% = vienas branduolys)
-Calls and data are shown, but the voice is silent until you install the codec yourself. OnAir does not ship it (patents).	Skambučiai ir duomenys rodomi, bet balsas tylės, kol pats neįdiegsite kodeko. OnAir jo nepateikia (patentai).
+Calls and data are shown, but the voice is silent until you install the codec yourself. Eye of ZorCom does not ship it (patents).	Skambučiai ir duomenys rodomi, bet balsas tylės, kol pats neįdiegsite kodeko. Eye of ZorCom jo nepateikia (patentai).
 Cancel	Atšaukti
 Carrier MHz	Nešlys MHz
 Carriers in the span (click: listen and show; double click: tune to it)	Nešlio dažniai juostoje (spustelėkite: klausyti ir rodyti; dukart: derinti)
@@ -698,7 +697,7 @@ Choose a frequency inside the range shown in the message.	Pasirinkite dažnį pr
 Choose the file again.	Pasirinkite failą iš naujo.
 Close other programs that use the radio.	Uždarykite kitas programas, naudojančias radiją.
 Close programs that hold the sound device exclusively.	Uždarykite programas, kurios išskirtinai laiko garso įrenginį.
-Close the other program (a second OnAir, SDR software, hackrf_info).	Uždarykite kitą programą (antrą OnAir, SDR programinę įrangą, hackrf_info).
+Close the other program (a second Eye of ZorCom, SDR software, hackrf_info).	Uždarykite kitą programą (antrą Eye of ZorCom, SDR programinę įrangą, hackrf_info).
 Close this receiver: it stops and lets go of its radio	Uždaryti šį imtuvą: jis sustos ir paleis savo radiją
 Colour map	Spalvų žemėlapis
 Colours	Spalvos
@@ -722,7 +721,7 @@ Files: audio and IQ	Failai: garsas ir IQ
 Fill under the line	Užpildyti po linija
 Find "SDRplay API Service" and press Start (or Restart).	Raskite „SDRplay API Service“ ir paspauskite Paleisti (arba Paleisti iš naujo).
 Fix the address of the network radio (host:port).	Pataisykite tinklo radijo adresą (kompiuteris:prievadas).
-Download OnAir again and unpack or install the whole package: the codec2 library belongs next to the program.	Atsisiųskite OnAir iš naujo ir išpakuokite arba įdiekite visą paketą: codec2 biblioteka yra šalia programos.
+Download Eye of ZorCom again and unpack or install the whole package: the codec2 library belongs next to the program.	Atsisiųskite Eye of ZorCom iš naujo ir išpakuokite arba įdiekite visą paketą: codec2 biblioteka yra šalia programos.
 Follow the steps in the full instructions to install the codec.	Sekite pilnos instrukcijos žingsnius, kad įdiegtumėte kodeką.
 For an RSP, install the SDRplay API first (sdrplay.com).	RSP atveju pirmiausia įdiekite SDRplay API (sdrplay.com).
 Found %s (%s)	Rasta %s (%s)
@@ -735,13 +734,13 @@ How far the converter's oscillator runs fast (positive) or slow. The LO used is 
 How fast the max-hold line falls; 0: it stays until reset	Kaip greitai krenta maksimumo išlaikymo linija; 0: išlieka iki nustatymo iš naujo
 How to fix	Kaip ištaisyti
 Images	Vaizdai
-Install OnAir's blacklist file (the .deb package does it), or run: sudo systemctl restart sdrplay	Įdiekite OnAir juodojo sąrašo failą (.deb paketas tai padaro) arba paleiskite: sudo systemctl restart sdrplay
+Install Eye of ZorCom's blacklist file (the .deb package does it), or run: sudo systemctl restart sdrplay	Įdiekite Eye of ZorCom juodojo sąrašo failą (.deb paketas tai padaro) arba paleiskite: sudo systemctl restart sdrplay
 Install the SDRplay API	Įdiegti SDRplay API
 Install the SDRplay API from sdrplay.com if you have not.	Jei dar neįdiegėte, įdiekite SDRplay API iš sdrplay.com.
 Install the WinUSB driver once with Zadig (zadig.akeo.ie): choose the radio, then the driver WinUSB, then Install.	Vieną kartą įdiekite WinUSB tvarkyklę su Zadig (zadig.akeo.ie): pasirinkite radiją, tada tvarkyklę WinUSB, tada Įdiegti.
 Install the udev rules (install-udev-rules.sh), then unplug and replug the radio.	Įdiekite udev taisykles (install-udev-rules.sh), tada atjunkite ir vėl prijunkite radiją.
-Install the udev rules: run install-udev-rules.sh from the OnAir folder (the .deb does it).	Įdiekite udev taisykles: paleiskite install-udev-rules.sh iš OnAir aplanko (.deb tai padaro).
-Install the udev rules: run install-udev-rules.sh from the OnAir folder (the .deb package does it for you).	Įdiekite udev taisykles: paleiskite install-udev-rules.sh iš OnAir aplanko (.deb paketas tai padaro už jus).
+Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb does it).	Įdiekite udev taisykles: paleiskite install-udev-rules.sh iš Eye of ZorCom aplanko (.deb tai padaro).
+Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb package does it for you).	Įdiekite udev taisykles: paleiskite install-udev-rules.sh iš Eye of ZorCom aplanko (.deb paketas tai padaro už jus).
 Intensity (dB)	Intensyvumas (dB)
 IoT, 2.4 GHz	IoT, 2,4 GHz
 IoT, sub-GHz	IoT, sub-GHz
@@ -775,13 +774,13 @@ No sound output	Nėra garso išvesties
 North America	Šiaurės Amerika
 Not a locator or coordinates	Ne lokatorius ir ne koordinatės
 On Windows a HackRF needs its WinUSB driver once: install it with Zadig (zadig.akeo.ie).	„Windows“ sistemoje HackRF vieną kartą reikalauja WinUSB tvarkyklės: įdiekite ją su Zadig (zadig.akeo.ie).
-OnAir %s	OnAir %s
-OnAir cannot see a HackRF on the USB ports.	OnAir nmato HackRF USB prievaduose.
-OnAir could not open the speakers, so there will be no sound.	OnAir nepavyko atidaryti garsiakalbių, todėl garso nebus.
-OnAir could not use the rtl_tcp server, or the connection dropped.	OnAir negalėjo naudoti rtl_tcp serverio arba ryšys nutrūko.
-OnAir found the SDRplay software, but its background service does not answer, so the RSP cannot be opened.	OnAir rado SDRplay programinę įrangą, bet jos foninė tarnyba neatsako, todėl RSP atidaryti negalima.
-OnAir lists a radio when the computer sees it. You can still try everything with the synthetic signal or an IQ file.	OnAir parodo radiją, kai kompiuteris jį mato. Vis tiek galite viską išbandyti su sintetiniu signalu ar IQ failu.
-OnAir needs SDRplay API 3.07 or a newer 3.x.	OnAir reikia SDRplay API 3.07 arba naujesnės 3.x versijos.
+Eye of ZorCom %s	Eye of ZorCom %s
+Eye of ZorCom cannot see a HackRF on the USB ports.	Eye of ZorCom nmato HackRF USB prievaduose.
+Eye of ZorCom could not open the speakers, so there will be no sound.	Eye of ZorCom nepavyko atidaryti garsiakalbių, todėl garso nebus.
+Eye of ZorCom could not use the rtl_tcp server, or the connection dropped.	Eye of ZorCom negalėjo naudoti rtl_tcp serverio arba ryšys nutrūko.
+Eye of ZorCom found the SDRplay software, but its background service does not answer, so the RSP cannot be opened.	Eye of ZorCom rado SDRplay programinę įrangą, bet jos foninė tarnyba neatsako, todėl RSP atidaryti negalima.
+Eye of ZorCom lists a radio when the computer sees it. You can still try everything with the synthetic signal or an IQ file.	Eye of ZorCom parodo radiją, kai kompiuteris jį mato. Vis tiek galite viską išbandyti su sintetiniu signalu ar IQ failu.
+Eye of ZorCom needs SDRplay API 3.07 or a newer 3.x.	Eye of ZorCom reikia SDRplay API 3.07 arba naujesnės 3.x versijos.
 Only one program can use an rtl_tcp server at a time: close any other client.	Vienu metu rtl_tcp serverį gali naudoti tik viena programa: uždarykite kitus klientus.
 Only one program can use the radio at a time.	Vienu metu radiją gali naudoti tik viena programa.
 Only one receiver plays its sound at a time: click to hear this one	Vienu metu garsą groja tik vienas imtuvas: spustelėkite, kad girdėtumėte šį
@@ -794,7 +793,7 @@ Open the SDRplay API page	Atidaryti SDRplay API puslapį
 Open the device list	Atidaryti įrenginių sąrašą
 Optional: your position, as a Maidenhead locator (KO24pq) or coordinates (54.68, 25.28). It is kept on this computer and used for maps and satellite passes.	Neprivaloma: jūsų vieta kaip Maidenhead lokatorius (KO24pq) arba koordinatės (54.68, 25.28). Ji saugoma šiame kompiuteryje ir naudojama žemėlapiams bei palydovų praskridimams.
 Or choose another radio from the list.	Arba pasirinkite kitą radiją iš sąrašo.
-Or install OnAir's blacklist file (the .deb package does it).	Arba įdiekite OnAir juodojo sąrašo failą (.deb paketas tai padaro).
+Or install Eye of ZorCom's blacklist file (the .deb package does it).	Arba įdiekite Eye of ZorCom juodojo sąrašo failą (.deb paketas tai padaro).
 Or set the UHD_IMAGES_DIR variable to the folder with the images.	Arba nustatykite kintamąjį UHD_IMAGES_DIR į aplanką su vaizdais.
 Own accent colour	Nuosava akcento spalva
 PSK Reporter	PSK Reporter
@@ -807,7 +806,7 @@ Plug the radio in, directly or through a powered hub.	Prijunkite radiją tiesiog
 Press "Look again" in the ? help next to the sound.	Paspauskite „Ieškoti iš naujo“ ? pagalboje šalia garso.
 Press the refresh button next to the radio list.	Paspauskite atnaujinimo mygtuką šalia radijų sąrašo.
 Press the refresh button next to the source.	Paspauskite atnaujinimo mygtuką šalia šaltinio.
-Put the library in the OnAir codecs folder (button below).	Įdėkite biblioteką į OnAir kodekų aplanką (mygtukas žemiau).
+Put the library in the Eye of ZorCom codecs folder (button below).	Įdėkite biblioteką į Eye of ZorCom kodekų aplanką (mygtukas žemiau).
 Put the panels back to their automatic sizes (drag the bars between panels to resize them)	Grąžinti skydelius į automatinius dydžius (tempkite juostas tarp skydelių, kad pakeistumėte dydį)
 Radar chirps, HF	Radarų čirpai, HF
 Radio settings (%d changed)###radioset	Radijo nustatymai (pakeista: %d)###radioset
@@ -817,8 +816,8 @@ Reduce CPU when hidden	Mažinti procesoriaus apkrovą, kai paslėpta
 Remote driver	Nuotolinė tvarkyklė
 Reset	Nustatyti iš naujo
 Reset layout	Atstatyti išdėstymą
-Restart OnAir (the installer starts SDRplay's background service).	Paleiskite OnAir iš naujo (diegimo programa paleidžia SDRplay foninę tarnybą).
-Restart OnAir.	Paleiskite OnAir iš naujo.
+Restart Eye of ZorCom (the installer starts SDRplay's background service).	Paleiskite Eye of ZorCom iš naujo (diegimo programa paleidžia SDRplay foninę tarnybą).
+Restart Eye of ZorCom.	Paleiskite Eye of ZorCom iš naujo.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Perkraukite „Mac“ arba terminale paleiskite: sudo launchctl kickstart -k system/com.sdrplay.service
 Right-click the speaker icon, open Sound settings and pick an output device.	Dešiniuoju pelės klavišu spustelėkite garsiakalbio piktogramą, atidarykite garso nustatymus ir pasirinkite išvesties įrenginį.
 Run in a terminal: sudo systemctl restart sdrplay	Paleiskite terminale: sudo systemctl restart sdrplay
@@ -866,7 +865,7 @@ The USRP software is installed, but the firmware images it loads are missing.	US
 The address of the network radio must look like host:port, for example 192.168.1.20:1234.	Tinklo radijo adresas turi atrodyti kaip kompiuteris:prievadas, pavyzdžiui, 192.168.1.20:1234.
 The file could not be opened	Nepavyko atidaryti failo
 The firmware inside the HackRF is older than the software talking to it.	HackRF programinė įranga senesnė nei su juo bendraujanti programa.
-OnAir still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.	OnAir vis tiek jo paprašo radijo, bet radijas ar jo tvarkyklė gali nepasiekti šio dažnio, o signalas gali būti silpnas arba jo gali nebūti.
+Eye of ZorCom still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.	Eye of ZorCom vis tiek jo paprašo radijo, bet radijas ar jo tvarkyklė gali nepasiekti šio dažnio, o signalas gali būti silpnas arba jo gali nebūti.
 The most receivers are open	Atidaryta daugiausia imtuvų
 The network radio (rtl_tcp) does not answer	Tinklo radijas (rtl_tcp) neatsako
 The picture holds the last %.0f s.	Paveikslėlyje yra paskutinės %.0f s.
@@ -880,7 +879,7 @@ The radio's USB connection failed	Radijo USB ryšys nepavyko
 The recording file is missing, moved or not readable.	Įrašo failo nėra, jis perkeltas arba neskaitomas.
 The rtl_tcp address is not valid	rtl_tcp adresas netinkamas
 The server has no radio	Serveryje nėra radijo
-The text and data are shown, but speech needs the codec2 library. It comes with OnAir, so this copy is probably incomplete.	Tekstas ir duomenys rodomi, bet kalbai reikia codec2 bibliotekos. Ji pateikiama kartu su OnAir, todėl ši kopija greičiausiai nepilna.
+The text and data are shown, but speech needs the codec2 library. It comes with Eye of ZorCom, so this copy is probably incomplete.	Tekstas ir duomenys rodomi, bet kalbai reikia codec2 bibliotekos. Ji pateikiama kartu su Eye of ZorCom, todėl ši kopija greičiausiai nepilna.
 The voice codec (mbelib) is not installed	Balso kodekas (mbelib) neįdiegtas
 This frequency is not reachable through the converter.	Šio dažnio per keitiklį pasiekti negalima.
 This is a Linux problem. On this system, unplug the radio, plug it in again and press the refresh button.	Tai „Linux“ problema. Šioje sistemoje atjunkite radiją, vėl prijunkite ir paspauskite atnaujinimo mygtuką.
@@ -914,7 +913,7 @@ Weather pictures, 1.7 GHz	Orų paveikslėliai, 1,7 GHz
 What do you want to receive? Tick anything that interests you.	Ką norite priimti? Pažymėkite viską, kas jus domina.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Ką pridėti prie dBFS lygio, kad gautumėte šio radijo dBm (jo kalibravimas: žinomas signalas antenos lizde jį parodo). Taip pat radijo nustatymuose.
 Where are you? This picks the right TV standard and FM band.	Kur esate? Pagal tai parenkamas tinkamas TV standartas ir FM juosta.
-Which language do you want OnAir in?	Kokia kalba norite naudoti OnAir?
+Which language do you want Eye of ZorCom in?	Kokia kalba norite naudoti Eye of ZorCom?
 Which radio do you have?	Kokį radiją turite?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Režimą galite keisti bet kada ir šią sąranką paleisti iš naujo per Pagalba > Sąrankos vedlys.
 You can go on without one: the synthetic signal and IQ files work with no hardware.	Galite tęsti ir be jo: sintetinis signalas ir IQ failai veikia be aparatūros.
@@ -959,7 +958,6 @@ GI	GI
 LNB	LNB
 LoRa, 433.175 MHz	LoRa, 433.175 MHz
 LoRa, 433.775 MHz	LoRa, 433.775 MHz
-ONAIR	ONAIR
 SNR	SNR
 SRO	SRO
 TR	TR
@@ -974,17 +972,17 @@ WSJT, 14.100 MHz	WSJT, 14.100 MHz
 %s, %llu spots sent in %llu packets, %llu duplicates skipped	%s, išsiųsta %llu spotų %llu paketuose, praleista %llu dublikatų
 offset %+.3f %+.3f	poslinkis %+.3f %+.3f
 sigma %.3f per axis (%.0f%% of the half-distance to a neighbour)	sigma %.3f vienai ašiai (%.0f%% pusės atstumo iki kaimyno)
-A second OnAir (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. Without 'allow remote control' the clients cannot change the frequency or gain.	Antras OnAir (Pridėti tinklo radiją, rtl_tcp), SDR# arba SDR++ jungiasi prie šio kompiuterio adreso ir prievado. Mėginiai siunčiami kaip 8 bitų IQ radijo veikimo sparta. Be „leisti nuotolinį valdymą“ klientai negali keisti dažnio ar stiprinimo.
-Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'OnAir'. Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'.	Siunčia jūsų dekoduojamas FT8, FT4, FT2, WSPR, JS8Call, PSK31 ir CW stotis į pskreporter.info, kad jos būtų rodomos viešame žemėlapyje ir statistikoje. Ataskaitoje yra: siuntėjo šaukinys, dažnis, SNR, režimas, jo lokatorius, jei pranešime jis yra, ir kada buvo išgirstas; taip pat jūsų šaukinys, lokatorius, antenos tekstas ir „OnAir“. Ataskaitos grupuojamos ir siunčiamos kas 5 minutes; ta pati stotis tame pačiame diapazone siunčiama kartą per 10 minučių. Niekas nesiunčiama, kol nepažymėsite langelio. Spotai yra vieši: naudokite savo galiojantį radijo mėgėjo šaukinį. CW ir PSK31 pranešami tik tada, kai tekste yra „DE šaukinys“.
+A second Eye of ZorCom (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. Without 'allow remote control' the clients cannot change the frequency or gain.	Antras Eye of ZorCom (Pridėti tinklo radiją, rtl_tcp), SDR# arba SDR++ jungiasi prie šio kompiuterio adreso ir prievado. Mėginiai siunčiami kaip 8 bitų IQ radijo veikimo sparta. Be „leisti nuotolinį valdymą“ klientai negali keisti dažnio ar stiprinimo.
+Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'Eye of ZorCom'. Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'.	Siunčia jūsų dekoduojamas FT8, FT4, FT2, WSPR, JS8Call, PSK31 ir CW stotis į pskreporter.info, kad jos būtų rodomos viešame žemėlapyje ir statistikoje. Ataskaitoje yra: siuntėjo šaukinys, dažnis, SNR, režimas, jo lokatorius, jei pranešime jis yra, ir kada buvo išgirstas; taip pat jūsų šaukinys, lokatorius, antenos tekstas ir „Eye of ZorCom“. Ataskaitos grupuojamos ir siunčiamos kas 5 minutes; ta pati stotis tame pačiame diapazone siunčiama kartą per 10 minučių. Niekas nesiunčiama, kol nepažymėsite langelio. Spotai yra vieši: naudokite savo galiojantį radijo mėgėjo šaukinį. CW ir PSK31 pranešami tik tada, kai tekste yra „DE šaukinys“.
 BW	BW
 CH	CH
 Channel scan	Kanalų paieška
 FM	FM
 # RX888 MkII
 The RX888 needs its firmware file	RX888 reikia programinės įrangos failo
-The RX888 MkII has no program of its own in its USB chip: OnAir loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official OnAir packages include this file; a copy built by hand may not.	RX888 MkII USB lustas neturi savo programos: OnAir įkelia SDDC_FX3.img į RAM įkrovos režimu (niekas neįrašoma į radiją). Oficialiuose OnAir paketuose šis failas yra; rankiniu būdu surinktoje kopijoje gali nebūti.
+The RX888 MkII has no program of its own in its USB chip: Eye of ZorCom loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official Eye of ZorCom packages include this file; a copy built by hand may not.	RX888 MkII USB lustas neturi savo programos: Eye of ZorCom įkelia SDDC_FX3.img į RAM įkrovos režimu (niekas neįrašoma į radiją). Oficialiuose Eye of ZorCom paketuose šis failas yra; rankiniu būdu surinktoje kopijoje gali nebūti.
 Download SDDC_FX3.img from the Releases page of the SDDC_Driver project (button below).	Atsisiųskite SDDC_FX3.img iš SDDC_Driver projekto Releases puslapio (mygtukas žemiau).
-Put the file in OnAir's codecs folder (button below).	Įdėkite failą į OnAir kodekų aplanką (mygtukas žemiau).
+Put the file in Eye of ZorCom's codecs folder (button below).	Įdėkite failą į Eye of ZorCom kodekų aplanką (mygtukas žemiau).
 The RX888 is on a USB 2 port	RX888 prijungtas prie USB 2 prievado
 The RX888 MkII sends up to 256 MB per second. It needs a USB 3 (SuperSpeed) port and a USB 3 cable; on a USB 2 port it cannot stream.	RX888 MkII siunčia iki 256 MB per sekundę. Jam reikia USB 3 (SuperSpeed) prievado ir USB 3 laido; per USB 2 prievadą jis negali transliuoti.
 Plug the radio into a USB 3 port directly on the computer, not through a USB 2 hub.	Prijunkite radiją prie USB 3 prievado tiesiai kompiuteryje, ne per USB 2 šakotuvą.
@@ -1044,9 +1042,8 @@ Frequency (MHz)	Dažnis (MHz)
 Repeat until stopped	Kartoti, kol sustabdysite
 seconds	sekundės
 START TRANSMITTING	PRADĖTI SIŲSTI
-This radio has no transmit driver in OnAir.	Šis radijas neturi siuntimo tvarkyklės OnAir.
+This radio has no transmit driver in Eye of ZorCom.	Šis radijas neturi siuntimo tvarkyklės Eye of ZorCom.
 Before you transmit	Prieš siunčiant
-Transmitting needs a licence or permission where you are. You are responsible for what you emit and for not interfering with others (including services that people rely on for safety). Connect an antenna, an attenuator or a dummy load to the radio before you start. OnAir does not limit the frequency or the power: the radio's own limits are the only ones.	Siųsti reikia licencijos ar leidimo ten, kur esate. Atsakote už tai, ką skleidžiate, ir už tai, kad netrukdytumėte kitiems (įskaitant tarnybas, kuriomis žmonės pasitiki saugumo sumetimais). Prieš pradėdami prijunkite prie radijo anteną, slopintuvą arba netikrą apkrovą. OnAir neriboja nei dažnio, nei galios: galioja tik paties radijo ribos.
 I understand	Suprantu
 TX VGA 0 to 47 dB; the +14 dB amplifier has its own switch	TX VGA nuo 0 iki 47 dB; +14 dB stiprintuvas turi savo jungiklį
 the AD9361's TX attenuation shown as a gain: -89.75 dB (least power) to 0 dB (most)	AD9361 TX slopinimas rodomas kaip stiprinimas: -89,75 dB (mažiausia galia) iki 0 dB (didžiausia)
@@ -1064,7 +1061,7 @@ Bluetooth LE advertisements, JSON (UDP)	Bluetooth LE skelbimai, JSON (UDP)
 LoRa / LoRaWAN / Meshtastic, JSON (UDP)	LoRa / LoRaWAN / Meshtastic, JSON (UDP)
 JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent.	JSON eilutės (vienas objektas eilutėje), išskyrus GNSS, kuris yra NMEA. Išjungta, kol įjungsite srautą. Siunčiamos tik veislės, turinčios struktūrinius pranešimus.
 Support	Support
-Support OnAir on Ko-fi	Support OnAir on Ko-fi
+Support Eye of ZorCom on Ko-fi	Support Eye of ZorCom on Ko-fi
 Documentation	Dokumentacija
 Troubleshooting	Trikčių šalinimas
 Website	Svetainė
@@ -1096,14 +1093,14 @@ Bright numbers: preferred scanning channels (PSC), where FILS discovery is sent.
 start the receiver to see the channels	paleiskite imtuvą, kad pamatytumėte kanalus
 # map server start-up question
 Keep sending positions	Toliau siųsti pozicijas
-OnAir asks this question at every start. "No, do not ask again" stops it until OnAir is updated.	„OnAir“ šį klausimą užduoda per kiekvieną paleidimą. „Ne, daugiau neklausti“ jį išjungia iki kito „OnAir“ atnaujinimo.
-Nothing is sent in this session. OnAir asks again the next time it starts.	Šioje sesijoje niekas nesiunčiama. „OnAir“ vėl paklaus kitą kartą paleidus.
-Nothing is sent and this question is not shown again until OnAir is updated. You can still turn it on later in the Server menu.	Niekas nesiunčiama, o šis klausimas nerodomas iki kito „OnAir“ atnaujinimo. Vėliau vis tiek galite įjungti meniu Serveris.
+Eye of ZorCom asks this question at every start. "No, do not ask again" stops it until Eye of ZorCom is updated.	„Eye of ZorCom“ šį klausimą užduoda per kiekvieną paleidimą. „Ne, daugiau neklausti“ jį išjungia iki kito „Eye of ZorCom“ atnaujinimo.
+Nothing is sent in this session. Eye of ZorCom asks again the next time it starts.	Šioje sesijoje niekas nesiunčiama. „Eye of ZorCom“ vėl paklaus kitą kartą paleidus.
+Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu.	Niekas nesiunčiama, o šis klausimas nerodomas iki kito „Eye of ZorCom“ atnaujinimo. Vėliau vis tiek galite įjungti meniu Serveris.
 #  Wi-Fi HaLow
 (hidden)	(paslėptas)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	Radijas veikia %.1f Msps greičiu: %d MHz kanalams reikia bent %.0f Msps (rekomenduojama %.0f). Pasirink GREITĮ viršutinėje juostoje arba kitą priėmimo plotį.
 At %.1f Msps channels up to %d MHz are read; 16 MHz channels need 16 Msps or more (20 recommended).	Esant %.1f Msps skaitomi iki %d MHz kanalai; 16 MHz kanalams reikia 16 Msps ar daugiau (rekomenduojama 20).
-Receive only: OnAir never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon announces, shown for information. Sub-GHz Wi-Fi HaLow (802.11ah) is for low power sensors and cameras at long range; 1, 2, 4, 8 and 16 MHz channels. 1 and 2 MHz channels work from 2.4 Msps (an RTL-SDR), 4 MHz from 4 Msps, 8 MHz from 10 Msps, 16 MHz from 20 Msps.	Tik priėmimas: OnAir niekada nesiunčia, neuždavinėja, neprisijungia ir neatsako tinklui, o nieko neiššifruoja. Saugos tipas yra tai, ką skelbia švyturys (beacon), tik informacijai. Sub-GHz Wi-Fi HaLow (802.11ah) skirtas mažai energijos naudojantiems jutikliams ir kameroms dideliu atstumu; 1, 2, 4, 8 ir 16 MHz kanalai. 1 ir 2 MHz kanalai veikia nuo 2,4 Msps (RTL-SDR), 4 MHz nuo 4 Msps, 8 MHz nuo 10 Msps, 16 MHz nuo 20 Msps.
+Receive only: Eye of ZorCom never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon announces, shown for information. Sub-GHz Wi-Fi HaLow (802.11ah) is for low power sensors and cameras at long range; 1, 2, 4, 8 and 16 MHz channels. 1 and 2 MHz channels work from 2.4 Msps (an RTL-SDR), 4 MHz from 4 Msps, 8 MHz from 10 Msps, 16 MHz from 20 Msps.	Tik priėmimas: Eye of ZorCom niekada nesiunčia, neuždavinėja, neprisijungia ir neatsako tinklui, o nieko neiššifruoja. Saugos tipas yra tai, ką skelbia švyturys (beacon), tik informacijai. Sub-GHz Wi-Fi HaLow (802.11ah) skirtas mažai energijos naudojantiems jutikliams ir kameroms dideliu atstumu; 1, 2, 4, 8 ir 16 MHz kanalai. 1 ir 2 MHz kanalai veikia nuo 2,4 Msps (RTL-SDR), 4 MHz nuo 4 Msps, 8 MHz nuo 10 Msps, 16 MHz nuo 20 Msps.
 channel	kanalas
 Filter	Filtras
 SSID, BSSID, vendor, security, country	SSID, BSSID, gamintojas, sauga, šalis
@@ -1129,7 +1126,7 @@ Security	Sauga
 Beacon	Švyturys
 Country	Šalis
 Last seen	Paskutinį kartą matytas
-What the beacon announces, for information. OnAir does not decrypt or test anything.	Ką skelbia švyturys, tik informacijai. OnAir nieko neiššifruoja ir netikrina.
+What the beacon announces, for information. Eye of ZorCom does not decrypt or test anything.	Ką skelbia švyturys, tik informacijai. Eye of ZorCom nieko neiššifruoja ir netikrina.
 nothing heard yet	dar nieko negirdėti
 no network passes the filter	joks tinklas netinka filtrui
 start the receiver to see the frames	paleisk imtuvą, kad pamatytum kadrus
@@ -1344,7 +1341,7 @@ Ham It Down: 1500 MHz down-converter for about 1.5 to 3 GHz (2.4 GHz, 2.3/3.4 GH
 Contrast	Kontrastas
 Below 1 lifts the weak signals, above 1 darkens the noise (double click: 1)	Below 1 lifts the weak signals, above 1 darkens the noise (double click: 1)
 Credits and licences	Credits and licences
-OnAir is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.	OnAir is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.
+Eye of ZorCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.	Eye of ZorCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.
 Click a link to open it in your browser. The full notices and open licence points are in THIRD_PARTY.md.	Click a link to open it in your browser. The full notices and open licence points are in THIRD_PARTY.md.
 Project	Project
 Author	Author
@@ -1439,13 +1436,13 @@ HDC sound codec not installed (no sound; click ? for the steps)	HDC garso kodeka
 sound: HD%d (HDC)	garsas: HD%d (HDC)
 sound: HD%d, waiting for audio	garsas: HD%d, laukiama garso
 The HD Radio sound codec (HDC) is not installed	HD Radio garso kodekas (HDC) neįdiegtas
-The station, program data and pictures are shown, but HD Radio sound stays silent until you install the codec yourself. OnAir does not ship it (HDC is patented and owned by Xperi).	Stotis, programos duomenys ir paveikslėliai rodomi, bet HD Radio garsas tylės, kol patys neįdiegsite kodeko. „OnAir“ jo neįtraukia (HDC yra patentuotas ir priklauso „Xperi“).
+The station, program data and pictures are shown, but HD Radio sound stays silent until you install the codec yourself. Eye of ZorCom does not ship it (HDC is patented and owned by Xperi).	Stotis, programos duomenys ir paveikslėliai rodomi, bet HD Radio garsas tylės, kol patys neįdiegsite kodeko. „Eye of ZorCom“ jo neįtraukia (HDC yra patentuotas ir priklauso „Xperi“).
 Build the HDC-patched FAAD2 as the full instructions explain (it needs the open-source nrsc5 patch).	Sukompiliuokite FAAD2 su HDC pataisa, kaip aiškinama visose instrukcijose (reikia atvirojo kodo nrsc5 pataisos).
-Put the library (libfaad_hdc) in the OnAir codecs folder (button below).	Įdėkite biblioteką (libfaad_hdc) į „OnAir“ kodekų aplanką (mygtukas žemiau).
+Put the library (libfaad_hdc) in the Eye of ZorCom codecs folder (button below).	Įdėkite biblioteką (libfaad_hdc) į „Eye of ZorCom“ kodekų aplanką (mygtukas žemiau).
 The HD Radio sound library cannot be used	HD Radio garso bibliotekos naudoti negalima
-OnAir found a library for HDC, but it is not a FAAD2 build with the HDC patch that OnAir knows how to call, so it was left alone.	„OnAir“ rado HDC biblioteką, bet tai nėra FAAD2 versija su HDC pataisa, kurią „OnAir“ moka iškviesti, todėl ji nenaudota.
+Eye of ZorCom found a library for HDC, but it is not a FAAD2 build with the HDC patch that Eye of ZorCom knows how to call, so it was left alone.	„Eye of ZorCom“ rado HDC biblioteką, bet tai nėra FAAD2 versija su HDC pataisa, kurią „Eye of ZorCom“ moka iškviesti, todėl ji nenaudota.
 Build the library again from FAAD2 2.10 or 2.11 with the nrsc5 patch, as the full instructions explain.	Iš naujo sukompiliuokite biblioteką iš FAAD2 2.10 arba 2.11 su nrsc5 pataisa, kaip aiškinama visose instrukcijose.
-Replace the file in the OnAir codecs folder (button below).	Pakeiskite failą „OnAir“ kodekų aplanke (mygtukas žemiau).
+Replace the file in the Eye of ZorCom codecs folder (button below).	Pakeiskite failą „Eye of ZorCom“ kodekų aplanke (mygtukas žemiau).
 # band plans (scan tab, TV channel list)
 Band plan	Dažnių planas
 None (built-in ranges)	Nėra (įtaisyti diapazonai)
@@ -1524,9 +1521,9 @@ WAV: 16-bit, large. FLAC: lossless, about half the size. MP3: small (needs libmp
 Saves only while there is sound (like a squelch): silence is cut out, with a short lead-in and tail	Įrašo tik kol yra garso (kaip triukšmo slopintuvas): tyla iškerpama, paliekant trumpą pradžią ir pabaigą
 One file per transmission: a new file starts after 3 s of silence	Vienas failas vienam perdavimui: po 3 s tylos pradedamas naujas failas
 Keeps recording when the mode or the frequency changes. Off: the recording stops then.	Tęsia įrašymą pasikeitus režimui ar dažniui. Išjungta: tada įrašymas sustoja.
-The SoapyRemote module is missing from this installation of OnAir, so it cannot reach a remote radio. Reinstall OnAir, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Šioje OnAir įdiegtyje trūksta SoapyRemote modulio, todėl nepavyksta pasiekti nuotolinio radijo. Iš naujo įdiekite OnAir, o jei pasikartotų, praneškite. Radijo kompiuteryje turi veikti SoapySDRServer --bind.
-The SoapyRemote module is missing from this installation of OnAir, so it cannot reach a remote radio. Reinstall OnAir (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Šioje OnAir įdiegtyje trūksta SoapyRemote modulio, todėl nepavyksta pasiekti nuotolinio radijo. Iš naujo įdiekite OnAir (arba paleiskite brew install soapyremote), o jei pasikartotų, praneškite. Radijo kompiuteryje turi veikti SoapySDRServer --bind.
-SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart OnAir. The radio's computer must run SoapySDRServer --bind.	Šis SoapySDR neturi SoapyRemote kliento modulio, todėl nepavyksta pasiekti nuotolinio radijo. Įdiekite jį (Debian/Ubuntu: sudo apt install soapysdr-module-remote; kitos sistemos: github.com/pothosware/SoapyRemote) ir paleiskite OnAir iš naujo. Radijo kompiuteryje turi veikti SoapySDRServer --bind.
+The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Šioje Eye of ZorCom įdiegtyje trūksta SoapyRemote modulio, todėl nepavyksta pasiekti nuotolinio radijo. Iš naujo įdiekite Eye of ZorCom, o jei pasikartotų, praneškite. Radijo kompiuteryje turi veikti SoapySDRServer --bind.
+The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Šioje Eye of ZorCom įdiegtyje trūksta SoapyRemote modulio, todėl nepavyksta pasiekti nuotolinio radijo. Iš naujo įdiekite Eye of ZorCom (arba paleiskite brew install soapyremote), o jei pasikartotų, praneškite. Radijo kompiuteryje turi veikti SoapySDRServer --bind.
+SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind.	Šis SoapySDR neturi SoapyRemote kliento modulio, todėl nepavyksta pasiekti nuotolinio radijo. Įdiekite jį (Debian/Ubuntu: sudo apt install soapysdr-module-remote; kitos sistemos: github.com/pothosware/SoapyRemote) ir paleiskite Eye of ZorCom iš naujo. Radijo kompiuteryje turi veikti SoapySDRServer --bind.
 # frequency database
 %zu built in, %zu yours	%zu įmontuoti, %zu jūsų
 Add entry...	Pridėti įrašą...
@@ -1614,7 +1611,7 @@ Listeners:	Klausytojai:
 video	vaizdas
 audio	garsas
 profile	profilis
-Video: %s (OnAir cannot decode this video) — audio, subtitles and data still work	Vaizdas: %s (OnAir šio vaizdo nemoka dekoduoti) — garsas, subtitrai ir duomenys veikia
+Video: %s (Eye of ZorCom cannot decode this video) — audio, subtitles and data still work	Vaizdas: %s (Eye of ZorCom šio vaizdo nemoka dekoduoti) — garsas, subtitrai ir duomenys veikia
 Open in an external player	Atidaryti išoriniame grotuve
 Save the transport stream to a file	Išsaugoti transporto srautą į failą
 Stream it as UDP to %s	Siųsti kaip UDP į %s
@@ -1817,7 +1814,7 @@ Password	Slaptažodis
 blank if the owner set none	palikite tuščią, jei savininkas nenustatė
 Find KiwiSDR…	Rasti KiwiSDR…
 pick a public receiver from the list	pasirinkti viešą imtuvą iš sąrašo
-A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; OnAir takes its 12 kHz IQ stream. Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. The password is kept in OnAir's settings.	KiwiSDR yra internete esantis imtuvas, apimantis 0–30 MHz; OnAir naudoja jo 12 kHz IQ srautą. Vieši imtuvai turi mažai vartotojų vietų, o daugelis užbaigia seansą po maždaug 30 minučių: naudokite tik vieną ryšį su imtuvu ir išeikite, kai baigsite. Slaptažodis saugomas OnAir nustatymuose.
+A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; Eye of ZorCom takes its 12 kHz IQ stream. Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. The password is kept in Eye of ZorCom's settings.	KiwiSDR yra internete esantis imtuvas, apimantis 0–30 MHz; Eye of ZorCom naudoja jo 12 kHz IQ srautą. Vieši imtuvai turi mažai vartotojų vietų, o daugelis užbaigia seansą po maždaug 30 minučių: naudokite tik vieną ryšį su imtuvu ir išeikite, kai baigsite. Slaptažodis saugomas Eye of ZorCom nustatymuose.
 S-meter %.0f dBm%s	S-metras %.0f dBm%s
 , ADC overload	, ADC perkrova
 Find KiwiSDR	Rasti KiwiSDR
@@ -1832,7 +1829,7 @@ Distance	Atstumas
 offline	neprisijungęs
 full	pilnas
 Adds this receiver to the Network radios (it does not connect until you pick it as the radio).	Prideda šį imtuvą prie tinklo radijų (jis neprisijungs, kol nepasirinksite jo kaip radijo).
-The downloaded list has no receivers OnAir can read.	Atsisiųstame sąraše nėra imtuvų, kuriuos OnAir gali perskaityti.
+The downloaded list has no receivers Eye of ZorCom can read.	Atsisiųstame sąraše nėra imtuvų, kuriuos Eye of ZorCom gali perskaityti.
 Could not download the list. Check the internet connection.	Nepavyko atsisiųsti sąrašo. Patikrinkite interneto ryšį.
 # live transcripts (docs/TRANSCRIBE.md)
 Transcribing speech: %s	Kalba transkribuojama: %s
@@ -1878,7 +1875,7 @@ How many processor threads the speech engine may use for one transmission. Fewer
 Keep transcripts (days)	Saugoti transkripcijas (dienomis)
 Heard %llu, kept %llu, left out %llu (silence, noise, repeats), skipped %llu (too slow), speed %.2f x real time	Išgirsta %llu, palikta %llu, atmesta %llu (tyla, triukšmas, pasikartojimai), praleista %llu (per lėtai), greitis %.2f x realusis laikas
 Download the speech model %s (%d MB)?	Atsisiųsti kalbos modelį %s (%d MB)?
-OnAir asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed.	OnAir prašo šio vieno failo modelių saugyklos (huggingface.co) ir nieko daugiau nesiunčia. Failas tikrinamas pagal fiksuotą SHA-256 kontrolinę sumą ir išmetamas, jei nesutampa. Modelis licencijuotas pagal MIT.
+Eye of ZorCom asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed.	Eye of ZorCom prašo šio vieno failo modelių saugyklos (huggingface.co) ir nieko daugiau nesiunčia. Failas tikrinamas pagal fiksuotą SHA-256 kontrolinę sumą ir išmetamas, jei nesutampa. Modelis licencijuotas pagal MIT.
 Download	Atsisiųsti
 Delete all saved transcripts? This cannot be undone.	Ištrinti visas išsaugotas transkripcijas? Atšaukti negalima.
 Delete all	Ištrinti viską
@@ -2156,7 +2153,7 @@ Timeshift	Laiko poslinkis
 Play	Groti
 behind live	atsilieka nuo tiesioginės
 Live	Tiesiogiai
-Recordings run only while OnAir is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only.	Įrašymas vyksta tik kol OnAir atidarytas ir kompiuteris nemiega; miegantis kompiuteris nieko neįrašo. Užšifruotos paslaugos įrašomos tokios, kokios gaunamos, ir neiššifruojamos. Tik asmeniniam naudojimui.
+Recordings run only while Eye of ZorCom is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only.	Įrašymas vyksta tik kol Eye of ZorCom atidarytas ir kompiuteris nemiega; miegantis kompiuteris nieko neįrašo. Užšifruotos paslaugos įrašomos tokios, kokios gaunamos, ir neiššifruojamos. Tik asmeniniam naudojimui.
 Scheduled	Suplanuota
 recording	įrašoma
 conflict	konfliktas
@@ -2199,7 +2196,7 @@ Last 24 hours (UTC), 15 minute cells, darker: fewer stations	Paskutinės 24 vala
 # plugins (plugin/plugin_app.cpp, the PLUGINS group, View > Plugins)
 %s asks for these permissions:	%s prašo šių leidimų:
 A crash or a hang of the plugin then only ends its helper process. Takes effect the next time the plugin starts.	Įskiepio strigimas ar luzimas tada nutraukia tik jo pagalbinį procesą. Įsigalioja kitą kartą paleidus įskiepį.
-Add decoders and actions without rebuilding OnAir: install, enable and set up plugins	Pridėkite dekoderių ir veiksmų neperkompiliuodami OnAir: įdiekite, įjunkite ir sukonfigūruokite įskiepius
+Add decoders and actions without rebuilding Eye of ZorCom: install, enable and set up plugins	Pridėkite dekoderių ir veiksmų neperkompiliuodami Eye of ZorCom: įdiekite, įjunkite ir sukonfigūruokite įskiepius
 Add-ons	Papildiniai
 Allow	Leisti
 Asks for	Prašo
@@ -2218,7 +2215,7 @@ No plugins installed. Use Install from file, or copy a plugin folder into the pl
 Not installed	Neįdiegta
 Open its folder	Atidaryti jo aplanką
 PLUGINS	ĮSKIEPIAI
-Permissions are what OnAir hands the plugin. A plugin running inside OnAir can still use the system itself: install plugins you trust, or run them in a helper process.	Leidimai nusako, ką OnAir suteikia įskiepiui. OnAir viduje veikiantis įskiepis vis tiek gali pats naudotis sistema: diekite tik patikimus įskiepius arba paleiskite juos pagalbiniame procese.
+Permissions are what Eye of ZorCom hands the plugin. A plugin running inside Eye of ZorCom can still use the system itself: install plugins you trust, or run them in a helper process.	Leidimai nusako, ką Eye of ZorCom suteikia įskiepiui. Eye of ZorCom viduje veikiantis įskiepis vis tiek gali pats naudotis sistema: diekite tik patikimus įskiepius arba paleiskite juos pagalbiniame procese.
 Plugin idle	Įskiepis neveikia
 Plugin log	Įskiepio žurnalas
 Plugin modes run on receiver 1.	Įskiepių režimai veikia 1 imtuve.
@@ -2296,7 +2293,7 @@ sky + spill K	dangus + išsiliejimas K
 , bursts (%.0f %% on)	, impulsai (%.0f %% įjungta)
 , every %.3g ms	, kas %.3g ms
 , useful symbol %.4g us	, naudingas simbolis %.4g µs
-A score is the share of the evidence that holds; the percentages are calibrated on OnAir's own test signals, not on every real signal.	Įvertis yra patvirtintų įrodymų dalis; procentai sukalibruoti pagal paties OnAir bandomuosius signalus, o ne pagal visus tikrus signalus.
+A score is the share of the evidence that holds; the percentages are calibrated on Eye of ZorCom's own test signals, not on every real signal.	Įvertis yra patvirtintų įrodymų dalis; procentai sukalibruoti pagal paties Eye of ZorCom bandomuosius signalus, o ne pagal visus tikrus signalus.
 Add to memory	Pridėti į Memory
 Best guess	Geriausias spėjimas
 Copy as text	Kopijuoti kaip tekstą
@@ -2314,7 +2311,7 @@ Opened %s	Atidaryta: %s
 Perhaps %s (%.0f %%).	Galbūt %s (%.0f %%).
 Signals in the view	Signalai rodinyje
 The frequency list has here:	Dažnių sąraše čia yra:
-What is this? Click a signal, or drag across it, and OnAir says what it is and how sure it is. Key I. Shift+drag does it without the tool.	Kas tai? Spustelėkite signalą arba pervilkite per jį, ir OnAir pasakys, kas tai yra ir kiek tuo tikra. Klavišas I. Shift+vilkimas veikia ir be įrankio.
+What is this? Click a signal, or drag across it, and Eye of ZorCom says what it is and how sure it is. Key I. Shift+drag does it without the tool.	Kas tai? Spustelėkite signalą arba pervilkite per jį, ir Eye of ZorCom pasakys, kas tai yra ir kiek tuo tikra. Klavišas I. Shift+vilkimas veikia ir be įrankio.
 Why?	Kodėl?
 Identify selected	Atpažinti pažymėtą
 Tune the radio to the selected signal and say what it is (needs the receiver in a mode whose sample rate covers it)	Suderina radiją su pažymėtu signalu ir pasako, kas tai yra (imtuvas turi veikti režimu, kurio atrankos dažnis jį apima)
@@ -2479,7 +2476,7 @@ The live rooms server did not answer in time.	Tiesioginių kambarių serveris ne
 The live rooms server is full right now. Try again later.	Tiesioginių kambarių serveris šiuo metu pilnas. Bandykite vėliau.
 Too many rooms were started from here. Try again in a few minutes.	Iš čia paleista per daug kambarių. Bandykite dar kartą po kelių minučių.
 The live rooms server refused the request.	Tiesioginių kambarių serveris atmetė užklausą.
-The live rooms server sent an answer OnAir does not understand.	Tiesioginių kambarių serveris atsiuntė atsakymą, kurio OnAir nesupranta.
+The live rooms server sent an answer Eye of ZorCom does not understand.	Tiesioginių kambarių serveris atsiuntė atsakymą, kurio Eye of ZorCom nesupranta.
 Checking the live rooms server...	Tikrinamas tiesioginių kambarių serveris...
 Check the live rooms server again	Dar kartą patikrinti tiesioginių kambarių serverį
 Live rooms: while you are live, anyone with the room link can watch this receiver's waterfall, the mode and the frequency you are tuned to, and chat with each other. The room list on the web also shows its title. Nothing is sent before you press Go live, and nothing is stored after the room ends. Your location, your name and the audio are never sent.	Gyvi kambariai: kol transliuojate, kiekvienas, turintis kambario nuorodą, gali matyti šio imtuvo krioklio diagramą, režimą ir derinamą dažnį bei kalbėtis tarpusavyje. Kambarių sąraše internete rodomas ir jo pavadinimas. Kol nenuspausite Pradėti transliaciją, niekas nesiunčiama, o kambariui pasibaigus nieko nelieka saugoma. Jūsų vieta, vardas ir garsas niekada nesiunčiami.
@@ -2676,7 +2673,7 @@ One per line: a call sign. Without an SSID (LY1ABC) every SSID matches; with one
 One per line: a frequency in MHz (162.025), with a unit (162025 kHz) or a range (144-146). Anything decoded on it counts.	Po vieną eilutėje: dažnis MHz (162.025), su vienetu (162025 kHz) arba intervalas (144-146). Skaičiuojama viskas, kas joje dekoduojama.
 One per line: a word or a phrase (not case sensitive). A trailing * matches word starts (fire*). Searched in pager, ACARS, APRS and other decoded text.	Po vieną eilutėje: žodis arba frazė (didžiosios ir mažosios raidės nesvarbios). Galinė * atitinka žodžių pradžią (fire*). Ieškoma ieškiklių, ACARS, APRS ir kituose dekoduotuose tekstuose.
 New list...	Naujas sąrašas...
-Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. OnAir tells you when something on it is heard.	Sukurkite sąrašą kairėje: orlaiviai, laivai, APRS šaukiniai, dažniai arba žodžiai. OnAir praneš, kai kas nors iš jo bus išgirsta.
+Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. Eye of ZorCom tells you when something on it is heard.	Sukurkite sąrašą kairėje: orlaiviai, laivai, APRS šaukiniai, dažniai arba žodžiai. Eye of ZorCom praneš, kai kas nors iš jo bus išgirsta.
 On	Įjungta
 Tolerance (kHz)	Paklaida (kHz)
 entries	įrašai
@@ -3428,7 +3425,7 @@ start the receiver to see the codes	paleiskite imtuvą, kad pamatytumėte kodus
 Squawk and altitude, 1090 MHz	Squawk ir aukštis, 1090 MHz
 Mode A is the squawk, Mode C the altitude in 100 ft steps. A reply does not say which of the two it is: a code shows as A/C until it can only be a squawk or is matched to a Mode S aircraft by its squawk or its altitude.	A režimas yra squawk kodas, C režimas – aukštis 100 pėdų žingsniais. Atsakymas nenurodo, kuris iš jų tai yra: kodas rodomas kaip A/C, kol gali būti tik squawk arba kol pagal squawk ar aukštį nesusiejamas su Mode S orlaiviu.
 # BLE tracker detector
-Receive only: item trackers are recognised from their public advertisements. OnAir never connects to one, sends to one or reads its owner's data. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.	Tik priėmimas: daiktų sekimo žymekliai atpažįstami pagal viešus skelbimus. OnAir niekada nesijungia prie žymeklio, nieko jam nesiunčia ir neskaito savininko duomenų. Identifikatoriai lieka atmintyje 30 minučių po paskutinio išgirdimo, rodomi tik kaip paskutiniai du adreso baitai ir niekada neišsaugomi.
+Receive only: item trackers are recognised from their public advertisements. Eye of ZorCom never connects to one, sends to one or reads its owner's data. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.	Tik priėmimas: daiktų sekimo žymekliai atpažįstami pagal viešus skelbimus. Eye of ZorCom niekada nesijungia prie žymeklio, nieko jam nesiunčia ir neskaito savininko duomenų. Identifikatoriai lieka atmintyje 30 minučių po paskutinio išgirdimo, rodomi tik kaip paskutiniai du adreso baitai ir niekada neišsaugomi.
 your own	jūsų
 following you	seka jus
 separated from its owner	atsiskyręs nuo savininko

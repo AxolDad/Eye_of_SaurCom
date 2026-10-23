@@ -12,7 +12,7 @@
 
 namespace dect2 {
 
-enum MapLayer { LayerAdsb = 0, LayerAis, LayerAprs, LayerSonde, LayerSat, LayerCell, LayerCount };
+enum MapLayer { LayerAdsb = 0, LayerAis, LayerAprs, LayerSonde, LayerSat, LayerCell, LayerCot, LayerCount };   // LayerCot: contacts from ATAK / TAK (net/cot_rx.h)
 
 struct MapMarker {
     int layer = LayerAdsb;

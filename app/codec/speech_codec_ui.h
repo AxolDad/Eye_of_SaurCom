@@ -37,7 +37,7 @@ void codecNoticePrompt(const char* id);
 // `libPath` is the path of a plain libmbe when that is what decodes (empty if none). Put the "?" button on the same line after it.
 void voiceCodecLine(const char* id, const char* name, const std::string& libPath = std::string());
 
-// The "Voice codecs" window (Help menu): every voice codec OnAir knows, the modes that use it, whether it is open, patented (plug-in only,
+// The "Voice codecs" window (Help menu): every voice codec Eye of ZorCom knows, the modes that use it, whether it is open, patented (plug-in only,
 // never shipped) or unsupported, and whether it is loaded or missing, with the install helper for each plug-in.
 void voiceCodecsWindow(App& a);
 

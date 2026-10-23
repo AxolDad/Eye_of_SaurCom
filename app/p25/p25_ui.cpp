@@ -106,7 +106,7 @@ void voiceLine() {
     ImGui::SameLine(0, 10 * gUi);
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("OnAir only receives. It shows what P25 radios send in the clear: talkgroups, unit IDs, the trunking system and,\n"
+        ImGui::SetTooltip("Eye of ZorCom only receives. It shows what P25 radios send in the clear: talkgroups, unit IDs, the trunking system and,\n"
                           "with your own mbelib, clear voice. Encrypted calls are only reported as encrypted; nothing is decrypted.\n"
                           "Listening to radio services is regulated in many countries: follow the rules where you live.");
 }

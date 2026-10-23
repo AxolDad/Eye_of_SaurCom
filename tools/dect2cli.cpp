@@ -5,7 +5,7 @@
 //   dect2cli ... --record out.cs8|out.cf32|folder|auto --secs N   (any radio or --synthetic, not --file: saves the radio's raw samples at its own
 //     rate while receiving, for N seconds, and prints the size; a folder or "auto" (the current folder) gets a name like
 //   dect2cli --standard iridium ... --iridium-bits output.bits   (Iridium: every burst as a gr-iridium "RAW:" line for iridium-toolkit;
-//     then `iridium-parser.py output.bits > output.parsed`. --iridium-parsed is not written by OnAir: use the toolkit's parser)
+//     then `iridium-parser.py output.bits > output.parsed`. --iridium-parsed is not written by Eye of ZorCom: use the toolkit's parser)
 //   dect2cli --standard isdbt --isdbt-bw 6|7|8|auto ...   (ISDB-T channel width: 6 MHz Japan / the Americas, 8 MHz the Maldives; auto tries each)
 //   dect2cli --standard orbcomm --freq 137.25 --orbcomm-downlinks 2   (Orbcomm: up to two downlinks in the passband; satellites, Doppler and packets in the status line and the log)
 //   dect2cli --standard tetra --freq 392.5   (TETRA network information: the cells found are listed at the end; receive only, nothing is decrypted)
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
         std::string a = argv[i];
         auto next = [&]() { return i + 1 < argc ? argv[++i] : (char*)""; };
-        if (a == "--version") { printf("dect2cli (OnAir)\nAIS frame layer: %s\n", dect2::ais::protoImplementation()); return 0; }   // always the Rust crate now
+        if (a == "--version") { printf("dect2cli (Eye of ZorCom)\nAIS frame layer: %s\n", dect2::ais::protoImplementation()); return 0; }   // always the Rust crate now
         else if (a == "--hackrf") haveDev = true;
         else if (a == "--radio") { const std::string kv = next(); const auto eq = kv.find('='); if (eq != std::string::npos) tune.radio[kv.substr(0, eq)] = kv.substr(eq + 1); }   // a setting of the radio, e.g. --radio iqformat=cs8 (PlutoSDR with Tezuka), --radio ppm=-3
         else if (a == "--atv-fm") atvFm = true;
@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
         else if (a == "--format") { fmtSet = true; std::string f = next(); file.format = f == "cu8" ? FileFormat::CU8 : f == "cf32" ? FileFormat::CF32 : FileFormat::CS8; }
         else if (a == "--record") record = next();
         else if (a == "--iridium-bits") iridiumBits = next();
-        else if (a == "--iridium-parsed") { fprintf(stderr, "--iridium-parsed: OnAir writes .bits only; run iridium-toolkit's iridium-parser.py on an --iridium-bits file for output.parsed\n"); return 1; }
+        else if (a == "--iridium-parsed") { fprintf(stderr, "--iridium-parsed: Eye of ZorCom writes .bits only; run iridium-toolkit's iridium-parser.py on an --iridium-bits file for output.parsed\n"); return 1; }
         else if (a == "--ts") out.file = true, out.path = next();
         else if (a == "--udp") { std::string hp = next(); auto c = hp.find(':'); out.udp = true; out.host = hp.substr(0, c); if (c != std::string::npos) out.port = atoi(hp.c_str() + c + 1); }
         else if (a == "--gain") { tune.gainDb = atof(next()); }

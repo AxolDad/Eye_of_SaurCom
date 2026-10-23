@@ -353,9 +353,9 @@ std::string recipeToText(const Recipe& r) { return json::dump(recipeToJson(r), t
 bool recipeFromText(const std::string& text, Recipe& out, std::string& err, bool fromStore) {
     json::Value j;
     if (!json::parse(text, j, err)) return false;
-    if (j.type != json::Value::Obj) { err = "not an OnAir automation file"; return false; }
-    if (j.str("format") != "onair-automation") { err = "not an OnAir automation file (\"format\" is missing)"; return false; }
-    if (j.num("version", 0) > 1) { err = "this file is from a newer OnAir"; return false; }
+    if (j.type != json::Value::Obj) { err = "not an Eye of ZorCom automation file"; return false; }
+    if (j.str("format") != "onair-automation") { err = "not an Eye of ZorCom automation file (\"format\" is missing)"; return false; }
+    if (j.num("version", 0) > 1) { err = "this file is from a newer Eye of ZorCom"; return false; }
     const std::string kind = j.str("kind");
     Recipe r;
     auto str = [&](const char* k, size_t n) { return clip(j.str(k), n); };

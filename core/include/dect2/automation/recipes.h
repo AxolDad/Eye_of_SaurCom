@@ -1,4 +1,4 @@
-// The recipes that come with OnAir: ready rules and scripts, every one editable. Disabled until the user switches them on.
+// The recipes that come with Eye of ZorCom: ready rules and scripts, every one editable. Disabled until the user switches them on.
 #pragma once
 #include "dect2/automation/rules.h"
 #include <vector>

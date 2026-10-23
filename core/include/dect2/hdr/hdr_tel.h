@@ -1,6 +1,6 @@
 // HD Radio receiver telemetry, shared by the receiver and the UI.
 // The first members are copied into RxTelemetry (history plot, top bar): keep them and their meaning.
-// Sound: HD Radio audio uses the patented HDC codec, which OnAir does not ship. The receiver counts the audio packets and their bit rate;
+// Sound: HD Radio audio uses the patented HDC codec, which Eye of ZorCom does not ship. The receiver counts the audio packets and their bit rate;
 // with the user's own patched FAAD2 installed (hdr_hdc.h, docs/CODECS.md) it plays the selected program. Everything else on the signal
 // (station information, program data, pictures and other data services) is decoded either way.
 #pragma once

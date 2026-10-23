@@ -186,7 +186,7 @@ struct PskReporter::Impl {
     void flush(int64_t now) {   // called with mu held
         const std::vector<pskr::Spot> sp = bat.take(now);
         if (!credsOk() || !openSock()) { st.active = false; return; }
-        const pskr::Receiver rx{cfg.call, cfg.locator, "OnAir", cfg.antenna};
+        const pskr::Receiver rx{cfg.call, cfg.locator, "Eye of ZorCom", cfg.antenna};
         size_t at = 0;
         while (at < sp.size()) {
             const bool tpl = packetsWithTemplates < 3 || now - lastTemplates >= 600;   // the first few packets, then every 10 minutes

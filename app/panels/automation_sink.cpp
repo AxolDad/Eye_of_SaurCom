@@ -1,4 +1,4 @@
-// The actions of the Automations inside OnAir: notification, sound (respects Mute), recording, tuning, memories, screenshot, webhook, run.
+// The actions of the Automations inside Eye of ZorCom: notification, sound (respects Mute), recording, tuning, memories, screenshot, webhook, run.
 #include "dect2/common/thread_name.h"
 #include "../app.h"
 #include "../memory/memory_options.h"
@@ -135,13 +135,13 @@ std::pair<bool, std::string> doOnUi(App& a, const Pending& p) {
     auto get = [&](const char* k) { auto it = p.p.find(k); return it == p.p.end() ? std::string() : it->second; };
     const double now = nowS();
     if (p.kind == "notify") {
-        const std::string title = get("title").empty() ? "OnAir" : get("title"), body = get("body");
+        const std::string title = get("title").empty() ? "Eye of ZorCom" : get("title"), body = get("body");
         {
             std::lock_guard<std::mutex> lk(gMu);
             gBanner = {title, body, now + 10};
         }
         const bool ok = plat::notify(title, body);
-        return {true, ok ? "shown" : "shown in OnAir (the system could not show it)"};
+        return {true, ok ? "shown" : "shown in Eye of ZorCom (the system could not show it)"};
     }
     if (p.kind == "sound") {
         std::string note;

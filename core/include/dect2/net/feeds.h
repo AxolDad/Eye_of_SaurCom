@@ -1,10 +1,12 @@
 // Data feeds out to other programs: ADS-B (SBS-1 BaseStation and Beast TCP servers), AIS (NMEA over UDP), APRS (APRS-IS igate
-// client and a KISS TCP server), ACARS and VDL2 (acarsdec / dumpvdl2 JSON over UDP). All off until the user turns one on.
+// client and a KISS TCP server), ACARS and VDL2 (acarsdec / dumpvdl2 JSON over UDP), and every tracked position as Cursor on Target for
+// ATAK / WinTAK / TAK servers (UDP, multicast by default). All off until the user turns one on.
 // The decoders hand their results to Feeds::get(); the network work runs on the feeds' own thread. A decoder never waits:
 // when the thread or a client is slow, data is dropped (and counted).
 #pragma once
 #include "dect2/acars/acars_tel.h"
 #include "dect2/adsb/adsb_msg.h"
+#include "dect2/geo/maplayers.h"
 #include "dect2/gnss/gnss_tel.h"
 #include "dect2/net/feed_targets.h"
 #include "dect2/vdl2/vdl2_tel.h"
@@ -20,7 +22,7 @@
 
 namespace dect2 {
 
-enum FeedId { kFeedSbs, kFeedBeast, kFeedAis, kFeedAprsIs, kFeedKiss, kFeedAcars, kFeedVdl2, kFeedGnss, kFeedBle, kFeedLora, kNumFeeds };
+enum FeedId { kFeedSbs, kFeedBeast, kFeedAis, kFeedAprsIs, kFeedKiss, kFeedAcars, kFeedVdl2, kFeedGnss, kFeedBle, kFeedLora, kFeedCot, kNumFeeds };
 
 struct FeedConfig {
     bool on[kNumFeeds] = {};
@@ -32,6 +34,7 @@ struct FeedConfig {
     std::string gnssHost = "127.0.0.1"; int gnssPort = 10111;  // UDP, NMEA RMC/GGA
     std::string bleHost = "127.0.0.1"; int blePort = 5620;    // UDP JSON lines: mac, name, rssi
     std::string loraHost = "127.0.0.1"; int loraPort = 5621;  // UDP JSON lines: LoRa / LoRaWAN / Meshtastic
+    std::string cotHost = "239.2.3.1"; int cotPort = 6969;    // UDP Cursor on Target: the ATAK situational-awareness multicast group
     std::string aprsCall, aprsPass;                            // APRS-IS login; the feed stays idle without a callsign
     std::string aprsServer = "rotate.aprs2.net"; int aprsServerPort = 14580;
     std::vector<FeedTarget> targets;                           // outbound aggregator targets (feed_targets.h), each off until enabled
@@ -83,6 +86,8 @@ std::string gnssGga(const GnssFix& f);
 std::string bleJson(const std::string& mac, const std::string& name, float rssi);
 // kind: "lora", "meshtastic", "meshcore", "lorawan", ... extra: more JSON object fields without braces (may be empty)
 std::string loraJson(const char* kind, const std::string& hex, float snrDb, double freqHz, int sf, const std::string& extra);
+// One Cursor on Target event for a map marker (uid "<layer>-<id>", the layer's CoT type, stale after staleSec); "" when it cannot be written.
+std::string cotEvent(const MapMarker& m, int64_t wallMs, int staleSec);
 } // namespace feedfmt
 
 class Feeds {
@@ -104,6 +109,7 @@ public:
     bool wantGnss() const { return want_[kFeedGnss].load(std::memory_order_relaxed); }
     bool wantBle() const { return want_[kFeedBle].load(std::memory_order_relaxed); }
     bool wantLora() const { return want_[kFeedLora].load(std::memory_order_relaxed); }
+    bool wantCot() const { return want_[kFeedCot].load(std::memory_order_relaxed); }
     void adsb(const FeedAdsbFrame& f);
     void ais(const std::vector<std::string>& sentences);
     void aprs(const std::vector<uint8_t>& ax25NoFcs, const std::string& from, const std::string& to, const std::string& path, const std::string& info, bool uiF0);
@@ -113,6 +119,7 @@ public:
     void gnss(const GnssFix& f);
     void ble(const std::string& mac, const std::string& name, float rssi);
     void lora(const char* kind, const std::string& hex, float snrDb, double freqHz, int sf, const std::string& extra = {});
+    void cot(const std::vector<MapMarker>& markers, int64_t wallMs);   // one event per marker (aircraft, vessels, APRS, sondes)
 
     struct Impl;
 private:

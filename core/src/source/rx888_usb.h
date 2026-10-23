@@ -82,7 +82,7 @@ void rx888SetReenumWaitMs(int ms);
 void rx888SetReenumPollMs(int ms);
 
 // The firmware image of the SDDC project (SDDC_FX3.img). Not shipped (the Cypress SDK code inside it has a licence of its own): found in
-// this order: ONAIR_RX888_FIRMWARE (a file), SDDC_FX3.img in the OnAir codecs folders (codecFolders()).
+// this order: ONAIR_RX888_FIRMWARE (a file), SDDC_FX3.img in the Eye of ZorCom codecs folders (codecFolders()).
 std::vector<std::string> rx888FirmwarePaths();
 // "" when the image has the format the FX3 boot loader takes (Cypress "CY" header, normal binary image with checksum, sections within the
 // file, checksum correct), else what is wrong

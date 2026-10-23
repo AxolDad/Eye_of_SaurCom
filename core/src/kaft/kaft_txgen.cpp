@@ -187,7 +187,7 @@ bool kaftFromRequest(const TxRequest& r, std::string& fileName, std::vector<uint
         if (data.size() > kMaxFile) { err = "KAFT: a file is at most 256 MiB"; return false; }
         fileName = baseOf(r.file);
     } else {
-        const std::string t = "OnAir KAFT demo file.\nA file sent one-way in frames of LDPC blocks, each with its own CRC-32.\n";
+        const std::string t = "Eye of ZorCom KAFT demo file.\nA file sent one-way in frames of LDPC blocks, each with its own CRC-32.\n";
         data.assign(t.begin(), t.end());
         fileName = "onair-kaft-demo.txt";
     }

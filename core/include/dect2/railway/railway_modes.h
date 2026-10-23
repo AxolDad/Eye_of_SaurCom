@@ -1,6 +1,6 @@
 #pragma once
 namespace dect2::railway {
-// OnAir uses three numbering domains: the UI family, Engine::setStandard
+// Eye of ZorCom uses three numbering domains: the UI family, Engine::setStandard
 // (family + 2), and RxTelemetry/feed/poll/reset (engine standard - 1).
 inline constexpr int kKlwFamily = 146;
 inline constexpr int kTdcsFamily = 147;

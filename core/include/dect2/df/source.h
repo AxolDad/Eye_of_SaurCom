@@ -91,7 +91,7 @@ bool parseKrakenIqHeader(const uint8_t* buf, size_t len, KrakenIqHeader& h);
 // when sampleBitDepth == 32 with dataType 1, else interleaved int8 I/Q: UNVERIFIED, see the doc.
 bool decodeKrakenPayload(const KrakenIqHeader& h, const uint8_t* payload, size_t len, Frame& out);
 
-// ---- bearings imported from a KrakenSDR DoA server line (no coherent IQ needed in OnAir)
+// ---- bearings imported from a KrakenSDR DoA server line (no coherent IQ needed in Eye of ZorCom)
 struct ImportedBearing { bool ok = false; double bearingDeg = 0, confidence = 0, freqHz = 0, latDeg = 0, lonDeg = 0; bool hasPos = false; };
 // Accepts a JSON object with any of doa/max_doa/bearing/angle (deg), confidence/conf (0..100 or 0..1), freq/frequency (Hz or MHz), latitude/longitude,
 // or a CSV line "timestamp,doa,confidence,rssi,freq_hz,..." (field order UNVERIFIED: the first two numeric fields after a timestamp are taken as bearing, confidence).

@@ -1,4 +1,4 @@
-// The satellite pass planner (View > Passes): the next 24 hours of passes of the satellites OnAir's modes receive (weather satellites
+// The satellite pass planner (View > Passes): the next 24 hours of passes of the satellites Eye of ZorCom's modes receive (weather satellites
 // on 137 MHz, the ISS, Orbcomm, a short editable list of amateur satellites) over the receiver's position, a polar sky plot of the
 // current or chosen pass, and optional tracking: Doppler-corrected retuning about once a second, the right mode started at AOS and
 // an IQ recording (the same as Record IQ) until LOS. TLEs are downloaded from Celestrak or Keplerpass on request, or pasted.
@@ -930,7 +930,7 @@ void drawWindow(App& a) {
             ImGui::TableNextColumn(); { const int d = (int)std::lround(r.p.los - r.p.aos); ImGui::Text("%d:%02d", d / 60, d % 60); }
             ImGui::TableNextColumn(); ImGui::Text("%.3f", s.mhz);
             ImGui::TableNextColumn(); ImGui::TextUnformatted(s.mode.c_str());
-            if (ImGui::IsItemHovered() && s.family == kSpecx) ImGui::SetTooltip("%s", tr("OnAir has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ"));
+            if (ImGui::IsItemHovered() && s.family == kSpecx) ImGui::SetTooltip("%s", tr("Eye of ZorCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ"));
             if (S.sched) { ImGui::TableNextColumn(); const char* st = planStatus(r.sat, r.p.aos); ImGui::TextUnformatted(st ? tr(st) : ""); }
         }
         ImGui::EndTable();

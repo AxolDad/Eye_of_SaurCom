@@ -2,14 +2,25 @@
 // Every feed is off until the user turns it on; the network work is in core (feeds.cpp).
 #include "../app.h"
 #include "../ui/typography.h"
+#include "dect2/net/cot_rx.h"
 #include <cstdio>
 #include <ctime>
+#include <map>
 
 namespace {
-const char* kKeys[dect2::kNumFeeds] = {"feedSbs", "feedBeast", "feedAis", "feedAprsIs", "feedKiss", "feedAcars", "feedVdl2", "feedGnss", "feedBle", "feedLora"};
+const char* kKeys[dect2::kNumFeeds] = {"feedSbs", "feedBeast", "feedAis", "feedAprsIs", "feedKiss", "feedAcars", "feedVdl2", "feedGnss", "feedBle", "feedLora", "feedCot"};
+
+// listening for ATAK / TAK contacts (the map's ATAK layer) on the CoT feed's address and port
+std::string gCotListenErr;
+void cotListen(const dect2::FeedConfig& c, bool on) {
+    gCotListenErr.clear();
+    if (!on) { dect2::CotListener::get().stop(); return; }
+    dect2::CotListener::get().start(c.cotHost, c.cotPort, gCotListenErr);
+}
 
 void apply(App& a) {
     dect2::Feeds::get().configure(a.feeds);
+    if (dect2::CotListener::get().running()) cotListen(a.feeds, true);   // the address or the port may have changed
     savePrefs(a);
 }
 
@@ -100,6 +111,7 @@ void loadFeedPrefs(App& a) {
     c.gnssHost = d.getS("feedGnssHost", c.gnssHost); c.gnssPort = (int)d.getI("feedGnssPort", c.gnssPort);
     c.bleHost = d.getS("feedBleHost", c.bleHost); c.blePort = (int)d.getI("feedBlePort", c.blePort);
     c.loraHost = d.getS("feedLoraHost", c.loraHost); c.loraPort = (int)d.getI("feedLoraPort", c.loraPort);
+    c.cotHost = d.getS("feedCotHost", c.cotHost); c.cotPort = (int)d.getI("feedCotPort", c.cotPort);
     c.aprsCall = d.getS("feedAprsCall", ""); c.aprsPass = d.getS("feedAprsPass", "");
     c.aprsServer = d.getS("feedAprsServer", c.aprsServer); c.aprsServerPort = (int)d.getI("feedAprsServerPort", c.aprsServerPort);
     c.stationId = d.getS("feedStationId", c.stationId);
@@ -122,6 +134,7 @@ void loadFeedPrefs(App& a) {
     for (bool o : c.on) any = any || o;
     for (const dect2::FeedTarget& t : c.targets) any = any || t.enabled;
     if (any) dect2::Feeds::get().configure(c);
+    if (d.getB("cotListen", false)) cotListen(c, true);
     dect2::ShareConfig& sc = a.share;
     sc.on = d.getB("shareOn", false); sc.port = (int)d.getI("sharePort", sc.port); sc.lan = d.getI("shareLan", 0) != 0; sc.allowControl = d.getI("shareControl", 0) != 0;
     if (sc.on) dect2::ShareServer::get().configure(sc);
@@ -130,7 +143,20 @@ void loadFeedPrefs(App& a) {
 }
 
 // Remote control from the clients of "Share my radio": their frequency and gain commands (only arrive when the box is ticked)
+// every 5 s while the CoT feed is on: the positions this receiver tracks (each receiver keeps its own time)
+static void cotTick(App& a) {
+    static std::map<int, double> next;
+    double& at = next[a.rxId];
+    if (!dect2::Feeds::get().wantCot() || !a.engine.running() || ImGui::GetTime() < at) return;
+    at = ImGui::GetTime() + 5;
+    std::vector<dect2::MapMarker> m = dect2::markersFromAdsb(a.rx.adsb);
+    const auto add = [&](std::vector<dect2::MapMarker>&& v) { m.insert(m.end(), std::make_move_iterator(v.begin()), std::make_move_iterator(v.end())); };
+    add(dect2::markersFromAis(a.rx.ais)); add(dect2::markersFromAprs(a.rx.packet)); add(dect2::markersFromSonde(a.rx.sonde));
+    dect2::Feeds::get().cot(m, (int64_t)std::time(nullptr) * 1000);
+}
+
 void shareTick(App& a) {
+    cotTick(a);
     if (a.rxId != 1 || !a.share.on || !a.share.allowControl) return;
     bool retune = false;
     for (const dect2::ShareCommand& m : dect2::ShareServer::get().takeCommands()) {
@@ -152,6 +178,7 @@ void saveFeedPrefs(const App& a) {
     d.setS("feedGnssHost", c.gnssHost); d.setI("feedGnssPort", c.gnssPort);
     d.setS("feedBleHost", c.bleHost); d.setI("feedBlePort", c.blePort);
     d.setS("feedLoraHost", c.loraHost); d.setI("feedLoraPort", c.loraPort);
+    d.setS("feedCotHost", c.cotHost); d.setI("feedCotPort", c.cotPort);
     d.setS("feedAprsCall", c.aprsCall); d.setS("feedAprsPass", c.aprsPass);
     d.setS("feedAprsServer", c.aprsServer); d.setI("feedAprsServerPort", c.aprsServerPort);
     d.setS("feedStationId", c.stationId);
@@ -257,6 +284,20 @@ void feedsWindow(App& a) {
     ImGui::SameLine(); changed |= portField(N_("Port"), c.loraPort);
     statusLine(dect2::kFeedLora, false);
     ImGui::PopID();
+    ImGui::PushID("cot");
+    changed |= ImGui::Checkbox(tr("Aircraft, ships, APRS and sondes to ATAK / TAK, Cursor on Target (UDP)"), &c.on[dect2::kFeedCot]);
+    ImGui::SameLine(); changed |= textField("##host", c.cotHost, 0, 120);
+    ImGui::SameLine(); changed |= portField(N_("Port"), c.cotPort);
+    statusLine(dect2::kFeedCot, false);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("239.2.3.1 port 6969 is the group ATAK and WinTAK listen on; use a TAK server's address and its UDP input port to send there."));
+    bool listen = dect2::CotListener::get().running();
+    if (ImGui::Checkbox(tr("Show ATAK / TAK contacts on the map (listen on the same address and port)"), &listen)) {
+        plat::prefs().setB("cotListen", listen);
+        cotListen(c, listen);
+    }
+    if (!gCotListenErr.empty()) ImGui::TextColored(pal::badRed(), "%s", gCotListenErr.c_str());
+    else if (listen) ImGui::TextDisabled("%s %llu", tr("Events received:"), (unsigned long long)dect2::CotListener::get().received());
+    ImGui::PopID();
     ImGui::PushTextWrapPos(460 * gUi);
     ImGui::TextDisabled("%s", tr("JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent."));
     ImGui::PopTextWrapPos();
@@ -267,7 +308,7 @@ void feedsWindow(App& a) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(380 * gUi);
         ImGui::TextUnformatted(tr("Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. "
-            "A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'OnAir'. "
+            "A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'Eye of ZorCom'. "
             "Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. "
             "Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'."));
         ImGui::PopTextWrapPos();
@@ -350,7 +391,7 @@ void feedsWindow(App& a) {
             for (const std::string& c : ss.clients) ImGui::BulletText("%s", c.c_str());
         }
         ImGui::PushTextWrapPos(460 * gUi);
-        ImGui::TextDisabled("%s", tr("A second OnAir (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. "
+        ImGui::TextDisabled("%s", tr("A second Eye of ZorCom (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. "
                                      "Without 'allow remote control' the clients cannot change the frequency or gain."));
         ImGui::PopTextWrapPos();
         ImGui::Unindent();

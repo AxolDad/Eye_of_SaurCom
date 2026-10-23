@@ -1,7 +1,7 @@
 // DAB: the Map tab (the transmitters). The receiver names the transmitters of the network it hears by their TII codes (MainId / SubId, EN 300 401
 // clause 14.8); with a list of where each transmitter of an ensemble stands they go on the map, with the distance and bearing from the
 // antenna. The list comes from the crowd-sourced OnAir-channels repository (dab-tii/<country>.csv, downloaded and kept for offline use) and
-// from the user's own file in OnAir's data folder (dab-transmitters.csv, the same columns; it wins where both name a transmitter):
+// from the user's own file in Eye of ZorCom's data folder (dab-transmitters.csv, the same columns; it wins where both name a transmitter):
 //   eid,main,sub,lat,lon,site,power_kw,channel_mhz[,reports,first_seen,last_seen]      (eid in hex; a line starting with # is a comment)
 // TII codes are unique within an ensemble, not worldwide: a transmitter is found by (ensemble id, MainId, SubId). A transmitter that is heard but
 // not in the list can be submitted from here: the app fills in the ids, the user adds where it stands (the issue form of the repository).
@@ -189,7 +189,7 @@ void dabTiiCollect(App& a) {
     }
 }
 
-// the heard transmitters as a file in OnAir's data folder: the list's columns (so it can go straight into dab-transmitters.csv or a submission) plus the ensemble and level
+// the heard transmitters as a file in Eye of ZorCom's data folder: the list's columns (so it can go straight into dab-transmitters.csv or a submission) plus the ensemble and level
 static void exportHeard() {
     const std::string path = plat::dataDir() + "/dab-heard-" + std::to_string((long long)time(nullptr)) + ".csv";
     std::ofstream o(u8(path));
@@ -237,7 +237,7 @@ void dabTransmittersTab(App& a) {
     const double now = ImGui::GetTime();
 
     { ImGui::PushTextWrapPos(0);
-      ImGui::TextDisabled("Every transmitter of a DAB network sends its own identification (TII: MainId / SubId) in the null symbol. OnAir lists every one it hears, on every channel "
+      ImGui::TextDisabled("Every transmitter of a DAB network sends its own identification (TII: MainId / SubId) in the null symbol. Eye of ZorCom lists every one it hears, on every channel "
                           "(run a band scan to fill the list), and puts them on the map where a transmitter list or the ensemble itself (FIG 0/22) gives the position. Click a marker or a row to tune that ensemble.");
       ImGui::PopTextWrapPos(); }
 
@@ -391,7 +391,7 @@ void dabTransmittersTab(App& a) {
     ImGui::BeginDisabled(S.heard.empty());
     if (ImGui::SmallButton("export heard")) exportHeard();
     ImGui::EndDisabled();
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Save every transmitter heard (all channels) as a CSV file in OnAir's data folder, to share or to add to the list");
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Save every transmitter heard (all channels) as a CSV file in Eye of ZorCom's data folder, to share or to add to the list");
     flowNext(6 * gUi);
     if (ImGui::SmallButton("clear heard")) S.heard.clear();
     flowEnd();

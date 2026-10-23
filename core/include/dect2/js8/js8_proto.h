@@ -8,7 +8,7 @@
 // GPL-3) lib/ft8/ldpc_174_87_params.f90, whose (174,87) code JS8 kept from the first FT8. The grid locator to latitude / longitude
 // conversion is the FT8 one (hfdig_ftx_msg.cpp).
 //
-// Not decoded: JSC compressed text (a dictionary of some 260 000 words that OnAir does not carry); such frames show "[compressed]".
+// Not decoded: JSC compressed text (a dictionary of some 260 000 words that Eye of ZorCom does not carry); such frames show "[compressed]".
 #pragma once
 #include <cstdint>
 #include <string>

@@ -17,10 +17,10 @@ const std::vector<CodecInfo>& codecTable() {
         {"imbe",  "IMBE (7200x4400)",   CodecKind::Patented, "P25 phase 1, ProVoice / EDACS", "plug-in onair-codec-imbe, or libmbe in the codecs folder"},
         {"ysf",   "AMBE+2 (Yaesu)",     CodecKind::Patented, "Yaesu System Fusion (C4FM)", "plug-in onair-codec-ysf"},
         {"tetra", "TETRA ACELP",        CodecKind::Patented, "TETRA", "plug-in onair-codec-tetra (unencrypted calls only)"},
-        {"",      "Codec 2",            CodecKind::Open,     "M17, FreeDV 700D / 700E / 1600", "built in (libcodec2 comes with OnAir)"},
+        {"",      "Codec 2",            CodecKind::Open,     "M17, FreeDV 700D / 700E / 1600", "built in (libcodec2 comes with Eye of ZorCom)"},
         {"",      "RADE",               CodecKind::Open,     "FreeDV RADE", "optional librade"},
         {"",      "KA codecs",          CodecKind::Open,     "KAAL, KAPP, KAFT, KAVB, KAIT, KAWS", "built in"},
-        {"",      "TETRAPOL, DECT and satellite voice", CodecKind::Unsupported, "TETRAPOL, DECT, Iridium, Inmarsat, other satellite voice", "no voice decoder in OnAir (signalling and data only)"},
+        {"",      "TETRAPOL, DECT and satellite voice", CodecKind::Unsupported, "TETRAPOL, DECT, Iridium, Inmarsat, other satellite voice", "no voice decoder in Eye of ZorCom (signalling and data only)"},
     };
     return t;
 }
@@ -66,7 +66,7 @@ std::unique_ptr<SpeechCodec> pluginVocoder(const std::string& id) {
 std::string pluginStatusLine(const std::string& id, const std::string& folder) {
     std::string p;
     if (pluginLoaded(id, &p)) return "Codec plug-in loaded: " + p;
-    return "Codec plug-in not found. OnAir looks for " + speechCodecFileName(id) + " in " + folder + " (Windows onair-codec-" + id + ".dll, macOS .dylib, Linux .so).";
+    return "Codec plug-in not found. Eye of ZorCom looks for " + speechCodecFileName(id) + " in " + folder + " (Windows onair-codec-" + id + ".dll, macOS .dylib, Linux .so).";
 }
 
 } // namespace dect2::codec

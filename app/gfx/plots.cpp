@@ -44,7 +44,7 @@ static float identifyButton(App& a, ImVec2 plotMin, ImVec2 plotSize, float right
     ImGui::PushStyleColor(ImGuiCol_Button, bg);
     if (ImGui::SmallButton(lb)) a.identifyTool = !a.identifyTool;
     ImGui::PopStyleColor();
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("What is this? Click a signal, or drag across it, and OnAir says what it is and how sure it is. Key I. Shift+drag does it without the tool."));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("What is this? Click a signal, or drag across it, and Eye of ZorCom says what it is and how sure it is. Key I. Shift+drag does it without the tool."));
     if (a.identifyTool && plotSize.y > 3 * sz.y + 6 * m) {
         const char* hint = tr("Identify: click a signal or drag across it. Esc or I leaves the tool.");
         const ImVec2 hs = ImGui::CalcTextSize(hint);

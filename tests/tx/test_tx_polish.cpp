@@ -281,6 +281,12 @@ static void dryRunChecks() {
     printf("  dry run ok\n");
 }
 
+static void agreementChecks() {
+    CHECK(txNeedsAgreement(false, false, false), "a radio waits for the agreement");
+    CHECK(!txNeedsAgreement(false, false, true), "after the agreement a radio transmits");
+    CHECK(!txNeedsAgreement(true, false, false) && !txNeedsAgreement(false, true, false), "a dry run or an IQ file never asks");
+}
+
 static void infoChecks() {
     DeviceInfo d;
     d.name = "TestSDR"; d.kind = DeviceInfo::Soapy; d.minFreqHz = 70e6; d.maxFreqHz = 6e9;
@@ -344,6 +350,7 @@ int main() {
     audioFileChecks();
     dryRunChecks();
     infoChecks();
+    agreementChecks();
     printf(fails ? "tx polish tests FAILED (%d)\n" : "tx polish tests passed\n", fails);
     return fails ? 1 : 0;
 }

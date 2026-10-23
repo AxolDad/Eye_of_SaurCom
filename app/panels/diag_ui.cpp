@@ -2,6 +2,7 @@
 // radio picker, plus a "Copy diagnostics" button that puts what a bug report needs on the clipboard.
 #include "dect2/common/u8file.h"
 #include "dect2/audio/audio_rec.h"
+#include "dect2/audio/audio_stream.h"
 #include "dect2/audio/audio_monitor.h"
 #include "dect2/audio/audioout.h"
 #include "dect2/audio/hf_demod.h"
@@ -245,7 +246,7 @@ void audioRecordUi(App& a) {
             o.format = (dect2::AudioRecFormat)a.audioRecFmt; o.gated = a.audioRecGate; o.split = a.audioRecGate && a.audioRecSplit;
             const int m = a.engine.standardMode();
             const double hz = a.freqMhz * 1e6;
-            char tag[96]; snprintf(tag, sizeof tag, "OnAir %s %.3f MHz", dect2::recordingModeId(m).c_str(), a.freqMhz);
+            char tag[96]; snprintf(tag, sizeof tag, "Eye of ZorCom %s %.3f MHz", dect2::recordingModeId(m).c_str(), a.freqMhz);
             o.tag = tag;
             const std::string path = plat::dataDir() + "/recordings/" + dect2::AudioRecorder::fileName(dect2::recordingModeId(m), hz, o.format);
             std::string err;
@@ -294,6 +295,62 @@ void audioRecordUi(App& a) {
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", a.audioRecDonePath.c_str());
         if (!rs.error.empty()) { flowNext(4 * gUi); ImGui::TextColored(pal::warnAmber(), "%s", rs.error.c_str()); }
     }
+    flowEnd();
+}
+
+// The sound output (where every mode's sound plays: a speaker, or a virtual audio cable another program reads) and "Stream audio" to an
+// Icecast server. The device applies from the next start of the radio; the stream follows the sound you hear, like "Record audio".
+void audioStreamUi(App& a) {
+    static bool loaded = false;
+    static dect2::AudioStreamConfig c;
+    static std::string err;
+    plat::Prefs& d = plat::prefs();
+    if (!loaded) {
+        loaded = true;
+        c.host = d.getS("streamHost", ""); c.port = (int)d.getI("streamPort", 8000); c.mount = d.getS("streamMount", c.mount);
+        c.user = d.getS("streamUser", c.user); c.password = d.getS("streamPass", ""); c.kbps = (int)d.getI("streamKbps", c.kbps);
+    }
+    const std::string cur = dect2::AudioOut::defaultDevice();
+    ImGui::SetNextItemWidth(200 * gUi);
+    if (ImGui::BeginCombo("##soundout", cur.empty() ? tr("System default output") : cur.c_str())) {
+        if (ImGui::Selectable(tr("System default output"), cur.empty())) { dect2::AudioOut::setDefaultDevice(""); d.setS("audioOutDevice", ""); }
+        for (const std::string& n : dect2::AudioOut::devices())
+            if (!n.empty() && ImGui::Selectable(n.c_str(), n == cur)) { dect2::AudioOut::setDefaultDevice(n); d.setS("audioOutDevice", n); }
+        ImGui::EndCombo();
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Where the sound of every mode plays. Pick a virtual audio cable (VB-Cable, BlackHole, a PipeWire null sink) to hand it to another program. Applies the next time the radio starts."));
+    flowNext(6 * gUi);
+    dect2::AudioStreamer& st = dect2::AudioStreamer::instance();
+    const dect2::AudioStreamStats ss = st.stats();
+    if (ss.active) {
+        char b[128];
+        snprintf(b, sizeof b, "%s  %s  %.0f s  %.1f MB###streamstop", tr("Stop stream"), ss.connected ? tr("on air") : tr("connecting"), ss.seconds, ss.bytesSent / 1e6);
+        if (ImGui::SmallButton(b)) st.stop();
+        if (!ss.error.empty()) { flowNext(4 * gUi); ImGui::TextColored(pal::warnAmber(), "%s", ss.error.c_str()); }
+        flowEnd();
+        return;
+    }
+    const auto field = [&](const char* id, const char* hint, std::string& v, float w, ImGuiInputTextFlags fl = 0) {
+        char b[160]; snprintf(b, sizeof b, "%s", v.c_str());
+        ImGui::SetNextItemWidth(w * gUi);
+        if (ImGui::InputTextWithHint(id, hint, b, sizeof b, fl)) v = b;
+    };
+    field("##host", "icecast.example.net", c.host, 150); flowNext(4 * gUi);
+    ImGui::SetNextItemWidth(70 * gUi); ImGui::InputInt("##port", &c.port, 0, 0); c.port = std::max(1, std::min(65535, c.port)); flowNext(4 * gUi);
+    field("##mount", "/zorcom", c.mount, 90); flowNext(4 * gUi);
+    field("##pass", tr("password"), c.password, 90, ImGuiInputTextFlags_Password); flowNext(4 * gUi);
+    const bool can = a.engine.running() && dect2::Mp3Enc::available();
+    ImGui::BeginDisabled(!can);
+    if (ImGui::SmallButton(tr("Stream audio"))) {
+        char desc[96]; snprintf(desc, sizeof desc, "%s %.3f MHz", dect2::recordingModeId(a.engine.standardMode()).c_str(), a.freqMhz);
+        c.description = desc;
+        d.setS("streamHost", c.host); d.setI("streamPort", c.port); d.setS("streamMount", c.mount); d.setS("streamUser", c.user); d.setS("streamPass", c.password); d.setI("streamKbps", c.kbps);
+        if (!st.start(c, err)) a.engine.log("audio stream: " + err);
+    }
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", !dect2::Mp3Enc::available() ? tr("Streaming needs the LAME library (libmp3lame), which is not installed") :
+                                !a.engine.running() ? tr("Start the radio first") : tr("Sends the sound you hear as MP3 to an Icecast server (Broadcastify, AzuraCast, your own), and reconnects when the server goes away"));
     flowEnd();
 }
 
@@ -396,10 +453,10 @@ std::string radioRangeWarning(const DeviceInfo& d, double freqMhz, const std::ma
     if (c.active) {   // the radio is tuned to the converter's output
         hz = c.rfToIf(hz);
         if (hz >= d.minFreqHz && hz <= d.maxFreqHz) return "";
-        return fmt("%.3f MHz at the antenna is %.3f MHz at the radio, outside what this radio is specified for (%.6g-%.6g MHz); OnAir still asks for it, but the driver may not reach it or the signal may be weak or absent", freqMhz, hz / 1e6, d.minFreqHz / 1e6, d.maxFreqHz / 1e6);
+        return fmt("%.3f MHz at the antenna is %.3f MHz at the radio, outside what this radio is specified for (%.6g-%.6g MHz); Eye of ZorCom still asks for it, but the driver may not reach it or the signal may be weak or absent", freqMhz, hz / 1e6, d.minFreqHz / 1e6, d.maxFreqHz / 1e6);
     }
     if (hz >= d.minFreqHz && hz <= d.maxFreqHz) return "";
-    return fmt("%.3f MHz is outside what this radio is specified for (%.6g-%.6g MHz); OnAir still asks for it, but the driver may not reach it or the signal may be weak or absent", freqMhz, d.minFreqHz / 1e6, d.maxFreqHz / 1e6);
+    return fmt("%.3f MHz is outside what this radio is specified for (%.6g-%.6g MHz); Eye of ZorCom still asks for it, but the driver may not reach it or the signal may be weak or absent", freqMhz, d.minFreqHz / 1e6, d.maxFreqHz / 1e6);
 }
 
 std::vector<RadioMsg> radioMessages(const App& a) {
@@ -462,7 +519,7 @@ std::string slurp(const std::filesystem::path& p, size_t maxBytes = 4u << 20) {
 bool writeZipFile(const std::string& path, const std::vector<std::pair<std::string, std::string>>& files) { return writeZip(path, files); }
 
 std::string buildDiagnostics(const DiagInput& in) {
-    std::string s = "OnAir diagnostics\n";
+    std::string s = "Eye of ZorCom diagnostics\n";
     s += "Version: " + in.version + "\n";
     s += "OS: " + in.os + "\n";
     s += "CPU: " + in.cpu + "\n";
@@ -628,6 +685,8 @@ void radioMessagesUi(App& a, bool vertical) {
     recordingLibraryUi(a);
     flowNext(10 * gUi);
     audioRecordUi(a);
+    flowNext(6 * gUi);
+    audioStreamUi(a);
     flowNext(6 * gUi);
     clipsui::button(a);
     audioMonitorUi(a);

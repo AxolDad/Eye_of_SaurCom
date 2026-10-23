@@ -1,8 +1,8 @@
-// Shared declarations of the OnAir window: the application state, small helpers and the panels that draw the interface.
+// Shared declarations of the Eye of ZorCom window: the application state, small helpers and the panels that draw the interface.
 // The panels live in widgets.cpp, app_state.cpp, toolbar*.cpp, plots.cpp, analysis_tabs.cpp, tv.cpp, scan_outputs.cpp,
 // antenna.cpp, dab_ui.cpp, wizard.cpp; main.cpp has the window loop.
 #pragma once
-// OnAir — digital TV receiver (DVB-T2, DVB-T, ATSC) for macOS. Phase 0 shell: sources, spectrum, waterfall, status, log.
+// Eye of ZorCom — digital TV receiver (DVB-T2, DVB-T, ATSC) for macOS. Phase 0 shell: sources, spectrum, waterfall, status, log.
 #ifdef _WIN32
 #include <direct.h>
 #endif
@@ -773,7 +773,7 @@ void lamp(const char* label, int state /*0 grey 1 green 2 amber 3 red*/, int ico
 std::string lossText(const SampleLoss& l);
 ImVec4 lossColour(const SampleLoss& l, ImVec4 normal = ImVec4(0.93f, 0.95f, 0.97f, 1));
 void lossTooltip(const SampleLoss& l);
-// The "?" button next to the sound of a mode whose voice needs a codec OnAir does not ship (codec_help.cpp, docs/CODECS.md): found or not,
+// The "?" button next to the sound of a mode whose voice needs a codec Eye of ZorCom does not ship (codec_help.cpp, docs/CODECS.md): found or not,
 // what it is, how to install it here, where to put it, a link to the full page and "Look again"
 enum class CodecHelp { Codec2, DmrAmbe, Hdc, Dra, AeroAmbe, IridiumAmbe, DstarAmbe, NxdnAmbe, DpmrAmbe, P25Imbe, Avs, DraTv, Ac4 };
 void codecHelpButton(CodecHelp c, const char* label = "?");   // label: the button's text ("?" by default)
@@ -1077,7 +1077,7 @@ void updateTick(App& a);
 void updateButton(App& a);
 void supportButton();
 std::string modeCreditsLine(const char* modeName);   // "\n\nCredits: a, b" for a mode's tooltip, empty when nobody is credited for it (credits_ui.cpp)
-void creditsWindow(App& a);   // Help, Credits and licences: the projects OnAir uses (app/panels/credits_ui.cpp)
+void creditsWindow(App& a);   // Help, Credits and licences: the projects Eye of ZorCom uses (app/panels/credits_ui.cpp)
 void clearAllButton(App& a);   // top bar, next to the version: empties every decoded list, after an "are you sure"
 void marineFaxClearUi();     // marine_ui.cpp: empties the weather fax picture on screen and in the saved copy (engine side: MarineReceiver::clearFax)
 bool updateOnExit(App& a);

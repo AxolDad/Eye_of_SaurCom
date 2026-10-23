@@ -116,7 +116,7 @@ public:
     void beginSession();
     void endSession();                              // clean exit: removes the "plugin code was running" marker
     bool safeMode() const;
-    std::string safeModeReason() const;             // e.g. "OnAir did not shut down cleanly while plugin tone-detector was running"
+    std::string safeModeReason() const;             // e.g. "Eye of ZorCom did not shut down cleanly while plugin tone-detector was running"
     void leaveSafeMode();                           // the user's choice; the plugin that was running stays disabled
     void forceSafeMode(bool on);                    // the command line / settings switch
 

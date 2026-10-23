@@ -131,7 +131,7 @@ protected:
                 info_.data_type == RFNM_CH_DATA_TYPE_REAL ? "real" : "complex");
         fflush(stderr);
         if (info_.data_type == RFNM_CH_DATA_TYPE_REAL) {
-            err = "RFNM: channel " + std::to_string(ch_) + " carries a real signal (a directly sampled input), which OnAir does not support yet";
+            err = "RFNM: channel " + std::to_string(ch_) + " carries a real signal (a directly sampled input), which Eye of ZorCom does not support yet";
             openFailure_ = OpenFailure::Final;
             return false;
         }

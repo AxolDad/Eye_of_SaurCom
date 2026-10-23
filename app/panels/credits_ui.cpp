@@ -1,5 +1,5 @@
 // The Credits window (Help, Credits and licences; also the "by: ..." button in the menu bar): every project whose code, data or
-// specification OnAir uses, with its author, licence and a link that opens in the browser. The table is generated from
+// specification Eye of ZorCom uses, with its author, licence and a link that opens in the browser. The table is generated from
 // tools/credits_data.tsv into credits_data.h; the full notices are in THIRD_PARTY.md. The Contributors tab (people, and a view by mode)
 // is generated from tools/contributors.tsv into contributors_data.h; modeCreditsLine() adds the names to a mode's tooltip.
 #include "../app.h"
@@ -16,7 +16,7 @@
 
 static void licencesTab() {
     ImGui::PushTextWrapPos(0);
-    ImGui::TextUnformatted(tr("OnAir is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you."));
+    ImGui::TextUnformatted(tr("Eye of ZorCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you."));
     ImGui::TextDisabled("%s", tr("Click a link to open it in your browser. The full notices and open licence points are in THIRD_PARTY.md."));
     ImGui::PopTextWrapPos();
     static char filter[64] = "";

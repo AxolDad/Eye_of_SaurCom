@@ -1,5 +1,5 @@
 // Native driver for the SDRplay RSPs (RSP1, RSP1A, RSP1B, RSP2, RSPduo, RSPdx, RSPdx-R2) through the SDRplay API 3.x. The API is a
-// service plus a library that the user installs from sdrplay.com (separately from SDRconnect; OnAir does not ship it); the library is
+// service plus a library that the user installs from sdrplay.com (separately from SDRconnect; Eye of ZorCom does not ship it); the library is
 // loaded at run time like the other radios' libraries (native_common.h). The API's interface is in sdrplay_api_min.h.
 #include "native_common.h"
 #define DECT2_SDRPLAY_CALL DECT2_CALL
@@ -74,7 +74,7 @@ struct SdrplayApi {
     bool ok = false;        // the library is there with every function
     bool opened = false;    // sdrplay_api_Open() worked: the service answers
     float version = 0;
-    int selected = 0;       // radios OnAir has selected now
+    int selected = 0;       // radios Eye of ZorCom has selected now
     std::mutex mu;
     DynLib lib;
     SdrplayApi() {
@@ -85,10 +85,10 @@ struct SdrplayApi {
              lib.get(ReleaseDevice, "sdrplay_api_ReleaseDevice") && lib.get(GetErrorString, "sdrplay_api_GetErrorString") &&
              lib.get(GetDeviceParams, "sdrplay_api_GetDeviceParams") && lib.get(Init, "sdrplay_api_Init") && lib.get(Uninit, "sdrplay_api_Uninit") &&
              lib.get(Update, "sdrplay_api_Update");
-        if (!ok) { fprintf(stderr, "SDRplay API library %s lacks functions OnAir needs (an API older than 3.x?)\n", lib.path.c_str()); fflush(stderr); }
+        if (!ok) { fprintf(stderr, "SDRplay API library %s lacks functions Eye of ZorCom needs (an API older than 3.x?)\n", lib.path.c_str()); fflush(stderr); }
         if (ok) lib.opt(GetLastError, "sdrplay_api_GetLastError");
     }
-    // The API wants Open() first and Close() last; it stays open while OnAir runs (a service that was not running yet is tried again on the
+    // The API wants Open() first and Close() last; it stays open while Eye of ZorCom runs (a service that was not running yet is tried again on the
     // next rescan)
     ~SdrplayApi() { if (opened && selected == 0) Close(); }
     std::string err(sp::ErrT e) { const char* s = GetErrorString ? GetErrorString(e) : nullptr; return s ? s : "error " + std::to_string((int)e); }
@@ -110,14 +110,14 @@ struct SdrplayApi {
             Close();
             return false;
         }
-        // 3.x keeps the layouts of what OnAir uses (sdrplay_api_min.h); 3.07 is the oldest the layouts were checked against
+        // 3.x keeps the layouts of what Eye of ZorCom uses (sdrplay_api_min.h); 3.07 is the oldest the layouts were checked against
         if (v < 3.065f || v >= 4.0f) {
-            fprintf(stderr, "SDRplay API %.2f is not supported: OnAir needs SDRplay API 3.07 or a newer 3.x (install the current one from sdrplay.com)\n", v);
+            fprintf(stderr, "SDRplay API %.2f is not supported: Eye of ZorCom needs SDRplay API 3.07 or a newer 3.x (install the current one from sdrplay.com)\n", v);
             fflush(stderr);
             Close();
             return false;
         }
-        if (v > sp::kHeaderVersion + 0.005f) fprintf(stderr, "SDRplay API %.2f (newer than the %.2f OnAir was written for; 3.x keeps its layouts, so it should work)\n", v, sp::kHeaderVersion);
+        if (v > sp::kHeaderVersion + 0.005f) fprintf(stderr, "SDRplay API %.2f (newer than the %.2f Eye of ZorCom was written for; 3.x keeps its layouts, so it should work)\n", v, sp::kHeaderVersion);
         else fprintf(stderr, "SDRplay API %.2f\n", v);
         fflush(stderr);
         version = v;
@@ -217,7 +217,7 @@ static bool sdrplayHasBiasT(unsigned char hw) {
 }
 // The notch filters (API: rfNotchEnable, the FM/MW broadcast notch; rfDabNotchEnable, the DAB band III notch; the RSPduo's Hi-Z input has its
 // own MW notch, tuner1AmNotchEnable): every model but the RSP1 has the broadcast notch, the RSP2 has no DAB notch. All are off by default
-// (the API's default, which OnAir left alone before these settings).
+// (the API's default, which Eye of ZorCom left alone before these settings).
 static bool sdrplayHasNotch(unsigned char hw) { return sdrplayHasBiasT(hw); }
 static bool sdrplayHasDabNotch(unsigned char hw) { return sdrplayHasNotch(hw) && hw != sp::kRsp2; }
 static bool sdrplayIsDx(unsigned char hw) { return hw == sp::kRspDx || hw == sp::kRspDxR2; }
@@ -243,7 +243,7 @@ static sp::Bw_MHzT sdrplayBandwidth(double channelHz, double filterHz, double ra
 
 // ------------------------------------------------------------------ the source
 
-// the radios OnAir has open: GetDevices() no longer lists those, so a rescan while streaming keeps them from this list
+// the radios Eye of ZorCom has open: GetDevices() no longer lists those, so a rescan while streaming keeps them from this list
 static std::mutex gInUseMu;
 static std::vector<DeviceInfo> gInUse;
 
@@ -288,7 +288,7 @@ protected:
         if (dev_.hwVer == sp::kRspDuo) {   // the RSPduo: tuner A on its own, like a single-tuner RSP
             if (!(dev_.rspDuoMode & sp::RspDuoMode_Single_Tuner)) {
                 api.UnlockDeviceApi();
-                err = "SDRplay: the RSPduo is in use by another program (only its second tuner is free, which OnAir does not use)";
+                err = "SDRplay: the RSPduo is in use by another program (only its second tuner is free, which Eye of ZorCom does not use)";
                 return false;
             }
             dev_.tuner = port_ == 1 ? sp::Tuner_B : sp::Tuner_A;   // the socket the user picked: "Tuner 1", "Tuner 2" or "Tuner 1 Hi-Z"
@@ -578,7 +578,7 @@ void listSdrplay(std::vector<DeviceInfo>& out) {
             continue;
         }
         // one entry per antenna socket on the radios that have several, so the user picks the one the antenna is on (the first is what
-        // OnAir used before); the RSP2's and the RSPduo's high-impedance HF inputs (1 kHz - 30 MHz) come last
+        // Eye of ZorCom used before); the RSP2's and the RSPduo's high-impedance HF inputs (1 kHz - 30 MHz) come last
         std::vector<std::string> ports;
         if (dv.hwVer == sp::kRspDuo) ports = {"Tuner 1", "Tuner 2", "Tuner 1 Hi-Z"};
         else if (dv.hwVer == sp::kRsp2) ports = {"antenna A", "antenna B", "Hi-Z"};
@@ -602,7 +602,7 @@ void listSdrplay(std::vector<DeviceInfo>& out) {
         found.push_back(d);
         }
     }
-    {   // the ones OnAir is streaming from are not in the API's list
+    {   // the ones Eye of ZorCom is streaming from are not in the API's list
         std::lock_guard<std::mutex> lk(gInUseMu);
         for (const auto& u : gInUse) {
             bool dup = false;

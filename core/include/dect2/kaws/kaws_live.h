@@ -4,7 +4,7 @@
 // is looked for from 1.5 s before the slot to 4.5 s after its start. When a slot has passed the audio of its window goes to a worker thread that runs the
 // Rust receiver (preamble search, ARQ-less decode of the blocks); the first block gives the length of the message, a message that is complete goes to the
 // lists of the telemetry. This receiver only listens: it sends no acknowledgement, so a sender that waits for acks needs more than one slot of the
-// same message (the OnAir transmitter repeats the message instead). Voice (P6, P7) is not received. Family 133, engine standard 135, telemetry 134.
+// same message (the Eye of ZorCom transmitter repeats the message instead). Voice (P6, P7) is not received. Family 133, engine standard 135, telemetry 134.
 //
 // Written to the engine's contract: configure() once the sample rate is known, feed() from the analysis thread (never blocks, the search runs on a worker),
 // telemetry() and the setters from the interface thread.

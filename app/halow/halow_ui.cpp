@@ -129,7 +129,7 @@ void rateNote(const App& a) {
 // The note that this is receive only, and what each width needs.
 void receiveNote() {
     ImGui::PushTextWrapPos(0);
-    ImGui::TextDisabled("%s", tr("Receive only: OnAir never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon "
+    ImGui::TextDisabled("%s", tr("Receive only: Eye of ZorCom never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon "
                                  "announces, shown for information. Sub-GHz Wi-Fi HaLow (802.11ah) is for low power sensors and cameras at long range; 1, 2, 4, 8 and 16 MHz channels. "
                                  "1 and 2 MHz channels work from 2.4 Msps (an RTL-SDR), 4 MHz from 4 Msps, 8 MHz from 10 Msps, 16 MHz from 20 Msps."));
     ImGui::PopTextWrapPos();
@@ -280,7 +280,7 @@ void networksView(App& a) {
         ImGui::TableNextColumn(); ImGui::Text("%d", n.nss);
         ImGui::TableNextColumn(); ImGui::Text("%.0f dB", n.snrDb);
         ImGui::TableNextColumn(); ImGui::TextUnformatted(n.security.c_str());
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("What the beacon announces, for information. OnAir does not decrypt or test anything."));
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("What the beacon announces, for information. Eye of ZorCom does not decrypt or test anything."));
         ImGui::TableNextColumn(); if (n.intervalTu) ImGui::Text("%d TU", n.intervalTu); else ImGui::TextDisabled("-");
         ImGui::TableNextColumn(); ImGui::Text("%.0f", n.rssi);
         ImGui::TableNextColumn(); ImGui::Text("%llu", (unsigned long long)n.beacons);

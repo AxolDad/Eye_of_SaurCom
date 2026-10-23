@@ -547,7 +547,7 @@ void tick(App& a) {
 }
 
 // Save for iridium-toolkit: every burst as a gr-iridium "RAW:" line (.bits). The toolkit's iridium-parser.py turns it into
-// output.parsed; anything further (voice included) is done with the toolkit, outside OnAir.
+// output.parsed; anything further (voice included) is done with the toolkit, outside Eye of ZorCom.
 void toolkitSave(App& a) {
     dect2::IridiumReceiver& r = a.engine.iridium();
     const bool on = r.bitsFileOpen();

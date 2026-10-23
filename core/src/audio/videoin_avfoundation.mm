@@ -103,7 +103,7 @@ struct Cam {
 bool videoInCameraStart(VideoIn::Impl* I, const std::string& deviceId, std::string& err) {
     @autoreleasepool {
         const AVAuthorizationStatus st = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
-        if (st == AVAuthorizationStatusDenied || st == AVAuthorizationStatusRestricted) { err = "camera access is off for OnAir (System Settings > Privacy & Security > Camera)"; return false; }
+        if (st == AVAuthorizationStatusDenied || st == AVAuthorizationStatusRestricted) { err = "camera access is off for Eye of ZorCom (System Settings > Privacy & Security > Camera)"; return false; }
         AVCaptureDevice* dev = findDev(deviceId);
         if (!dev) { err = deviceId.empty() ? "no camera or capture card was found" : "the chosen camera is not connected any more"; return false; }
         NSError* nse = nil;

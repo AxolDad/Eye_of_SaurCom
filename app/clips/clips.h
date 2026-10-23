@@ -85,7 +85,7 @@ struct Meta {
     double snrDb = -1000;            // < -999: unknown
     std::string summary;             // "16 aircraft"
     std::string title, notes;        // the user's
-    std::string version;             // OnAir version
+    std::string version;             // Eye of ZorCom version
     std::string grid;                // optional, empty = not shown
 };
 struct Content {
@@ -95,7 +95,7 @@ struct Content {
     std::vector<int16_t> audio; int audioRate = 0;
     resexp::Table table;
 };
-inline const char* kRepoUrl = "https://github.com/adswill/OnAir";
+inline const char* kRepoUrl = "https://github.com/AxolDad/OnAir-SDR-Suite";
 std::string freqText(double hz);                                    // "1090 MHz", "93.9 MHz", "7.074 MHz", "145.8 kHz"
 std::string utcText(double t, bool seconds = false);                // "2026-10-17 14:32 UTC"
 std::string buildHtml(const Content& c);                           // one file, no scripts, no external requests

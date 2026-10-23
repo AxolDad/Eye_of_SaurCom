@@ -226,12 +226,12 @@ static void crashNotePopup(ImVec2 disp) {
     if (!gCrashNote.empty()) {   // once per start; the same text is in the log panel
         // asked again until OK is pressed: another popup opened at the same level (the data-sharing consent) closes this one unanswered,
         // so it only opens while nothing else is up and the two dialogs take turns
-        if (!ImGui::IsPopupOpen(trw("OnAir crashed")) &&
+        if (!ImGui::IsPopupOpen(trw("Eye of ZorCom crashed")) &&
             !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel))
-            ImGui::OpenPopup(trw("OnAir crashed"));
+            ImGui::OpenPopup(trw("Eye of ZorCom crashed"));
         ImGui::SetNextWindowPos(ImVec2(disp.x * 0.5f, disp.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
         ImGui::SetNextWindowSizeConstraints(ImVec2(420 * gUi, 0), ImVec2(560 * gUi, 400 * gUi));
-        if (ImGui::BeginPopupModal(trw("OnAir crashed"), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::BeginPopupModal(trw("Eye of ZorCom crashed"), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::PushTextWrapPos(520 * gUi);
             ImGui::TextUnformatted(gCrashNote.c_str());
             ImGui::PopTextWrapPos();

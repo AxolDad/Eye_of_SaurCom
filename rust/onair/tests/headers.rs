@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 const MODULES: &[&str] = &[
     "proto", "adsb", "acars", "same", "pager", "ax25", "dmr", "p25", "nxdn", "dstar", "tetra", "vdl2", "hfdl", "mesh", "wisun", "uat",
-    "ts", "dvbsi", "dab", "drm", "files", "net", "engine", "fec", "usb", "ring", "kris", "kaws",
+    "ts", "dvbsi", "dab", "drm", "files", "net", "engine", "fec", "usb", "ring", "kris", "kaws", "cot",
 ];
 
 fn ident_before_paren(line: &str, from: usize) -> Option<String> {

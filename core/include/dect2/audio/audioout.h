@@ -15,6 +15,10 @@ public:
     // A named device is opened through miniaudio (Windows, Linux) or a HAL unit (macOS); one that is not found falls back to the default.
     static std::vector<std::string> devices();
     void setDevice(const std::string& name) { device_ = name; }
+    // The device every output without a device of its own plays on ("" = the system default): where the program's sound goes, for example a
+    // virtual audio cable (VB-Cable, BlackHole, a PipeWire / PulseAudio null sink) that another program reads. Takes effect at the next start().
+    static void setDefaultDevice(const std::string& name);
+    static std::string defaultDevice();
     const std::string& device() const { return device_; }
     // A monitor output (audio_monitor.h) is not "the mode's sound": the monitor yields while any other, unmuted AudioOut has written lately.
     void setMonitorRole(bool m) { monitor_ = m; }

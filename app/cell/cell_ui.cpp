@@ -401,7 +401,7 @@ void keyHelpButton() {
         ImGui::TextUnformatted("OpenCelliD API key");
         ImGui::Separator();
         ImGui::TextUnformatted("Cell towers broadcast who they are (operator, area code, cell id) but not where they stand. OpenCelliD is an open, "
-                               "crowd-sourced database of tower positions; OnAir asks it where each decoded cell is. It needs a free personal API key.");
+                               "crowd-sourced database of tower positions; Eye of ZorCom asks it where each decoded cell is. It needs a free personal API key.");
         ImGui::Spacing();
         ImGui::TextUnformatted("1. Sign up (free) at https://opencellid.org and confirm the e-mail.\n2. Log in and open your account page (My Account / API "
                                "access): your API token (pk.\xE2\x80\xA6) is shown there.\n3. Paste it into the key field here. It is saved with the other settings.");

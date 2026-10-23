@@ -82,7 +82,7 @@ std::string protocolJson(const Candidate& c, const FieldReport& f, const std::st
         i = k + 1;
     }
     j += "\n  ],\n";
-    j += "  \"notes\": \"Made by the OnAir Protocol lab from captured packets. Field kinds are guesses from the packets seen; nothing is decrypted.\"\n}\n";
+    j += "  \"notes\": \"Made by the Eye of ZorCom Protocol lab from captured packets. Field kinds are guesses from the packets seen; nothing is decrypted.\"\n}\n";
     return j;
 }
 

@@ -1,5 +1,6 @@
 #include "audioout_impl.h"
 #include "dect2/audio/audio_rec.h"
+#include "dect2/audio/audio_stream.h"
 #include "dect2/audio/clip_ring.h"
 #include "dect2/transcribe/audio_tap.h"
 #include <algorithm>
@@ -7,6 +8,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstdio>
+#include <mutex>
 #include <string>
 #include <chrono>
 #ifdef __linux__
@@ -24,6 +26,10 @@ static std::atomic<int64_t> gModeWriteMs{INT64_MIN / 4};
 static int64_t nowMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
 int AudioOut::msSinceModeWrite() { const int64_t d = nowMs() - gModeWriteMs.load(std::memory_order_relaxed); return d > 1000000000 ? 1000000000 : (int)d; }
 std::vector<std::string> AudioOut::devices() { return audioListOutputs(); }
+
+namespace { std::mutex gDefaultMu; std::string gDefaultDevice; }
+void AudioOut::setDefaultDevice(const std::string& name) { std::lock_guard<std::mutex> lk(gDefaultMu); gDefaultDevice = name; }
+std::string AudioOut::defaultDevice() { std::lock_guard<std::mutex> lk(gDefaultMu); return gDefaultDevice; }
 
 void AudioOut::Impl::render(float* out, uint32_t nFrames) {
     if (flushReq.exchange(false)) { r.store(w.load()); playing = false; leveler.reset(); }
@@ -60,7 +66,7 @@ AudioOut::~AudioOut() { stop(); }
 bool AudioOut::start(int rate) {
     if (running_) return true;
     rate_ = rate;
-    p_->device = device_;
+    p_->device = device_.empty() ? defaultDevice() : device_;
 #ifdef __linux__
     // run with sudo, the sound server of the user who ran sudo is not found (issue #67): point PulseAudio/PipeWire at it
     if (geteuid() == 0 && !getenv("PULSE_SERVER") && !getenv("XDG_RUNTIME_DIR")) {
@@ -117,6 +123,7 @@ int AudioOut::write(const float* s, int frames) {
         } else AudioRecorder::offer(this, raw, m, rate_);
         AudioClipRing::offer(this, raw, m, rate_);   // radio clips: the last seconds, kept in a ring
         AudioTap::offer(this, raw, m, rate_);        // live transcripts of the modes that have no channel audio of their own
+        if (!monitor_) AudioStreamer::offer(this, raw, m, rate_);   // the Icecast stream: the mode's own sound
         off += m;
     }
     p_->w.store(w + n, std::memory_order_release);

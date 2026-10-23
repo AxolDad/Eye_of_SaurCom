@@ -649,7 +649,7 @@ void tvRecordingsTab(App& a) {
     init(a);
     const double t = glfwGetTime();
     ImGui::PushTextWrapPos(0);
-    ImGui::TextDisabled("%s", tr("Recordings run only while OnAir is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only."));
+    ImGui::TextDisabled("%s", tr("Recordings run only while Eye of ZorCom is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only."));
     ImGui::PopTextWrapPos();
     if (!s.msg.empty() && t - s.msgT < 12) ImGui::TextColored(pal::warnAmber(), "%s", s.msg.c_str());
     tvPlaybackBar(a);

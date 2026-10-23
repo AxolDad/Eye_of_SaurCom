@@ -48,7 +48,7 @@ UpRequest buildUpRequest(UpService s, const UpConfig& c, const QsoRecord& q) {
         r.body = pair("email", c.clubEmail) + "&" + pair("password", c.clubPassword) + "&" + pair("callsign", q.myCall) + "&" + pair("api", c.clubApiKey) + "&" + pair("adif", adif);
     } else {   // eQSL ImportADIF: the account goes into the ADIF header as EQSL_USER / EQSL_PSWD
         r.url = "https://www.eqsl.cc/qslcard/ImportADIF.cfm";
-        r.body = pair("ADIFData", "OnAir upload\n" + adifField("EQSL_USER", c.eqslUser) + adifField("EQSL_PSWD", c.eqslPassword) + "<EOH>\n" + adif);
+        r.body = pair("ADIFData", "Eye of ZorCom upload\n" + adifField("EQSL_USER", c.eqslUser) + adifField("EQSL_PSWD", c.eqslPassword) + "<EOH>\n" + adif);
     }
     return r;
 }

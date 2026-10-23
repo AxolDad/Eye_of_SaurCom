@@ -10,6 +10,7 @@ dependencies = [
  "onair_adsb",
  "onair_ax25",
  "onair_common",
+ "onair_cot",
  "onair_dab",
  "onair_dmr",
  "onair_drm",
@@ -60,6 +61,10 @@ dependencies = [
 
 [[package]]
 name = "onair_common"
+version = "0.1.0"
+
+[[package]]
+name = "onair_cot"
 version = "0.1.0"
 
 [[package]]

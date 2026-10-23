@@ -57,13 +57,13 @@ void codecHelp(const App& a) {
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("What the M17 voice needs");
     if (ImGui::BeginPopup("##m17codechelp")) {
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 28);
-        ImGui::TextUnformatted("M17 voice is Codec 2 (3200 or 1600 bit/s). OnAir ships Codec 2 as the library libcodec2 next to the program, and decodes the voice through it: nothing to install.");
+        ImGui::TextUnformatted("M17 voice is Codec 2 (3200 or 1600 bit/s). Eye of ZorCom ships Codec 2 as the library libcodec2 next to the program, and decodes the voice through it: nothing to install.");
         ImGui::Spacing();
         ImGui::TextDisabled("%s", dect2::m17Codec2InstallHint());
         ImGui::Spacing();
         std::string path;
         if (dect2::m17Codec2Available(&path)) ImGui::TextColored(pal::okGreen(), "found: %s", path.c_str());
-        else ImGui::TextColored(pal::warnAmber(), "not found (this copy of OnAir came without it): callsigns, text and positions are shown, without sound");
+        else ImGui::TextColored(pal::warnAmber(), "not found (this copy of Eye of ZorCom came without it): callsigns, text and positions are shown, without sound");
         (void)a;
         ImGui::PopTextWrapPos();
         ImGui::EndPopup();

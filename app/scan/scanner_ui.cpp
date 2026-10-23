@@ -259,7 +259,7 @@ void listTable(App& a) {
             int unknown = 0;
             for (const Entry& e : v) if (modeIndex(e.mode) < 0) unknown++;
             S.m.list.insert(S.m.list.end(), v.begin(), v.end()); S.dirty = true;
-            char b[120]; snprintf(b, sizeof b, tr("imported %d entries%s"), (int)v.size(), unknown ? tr(" (some with a mode OnAir does not know)") : "");
+            char b[120]; snprintf(b, sizeof b, tr("imported %d entries%s"), (int)v.size(), unknown ? tr(" (some with a mode Eye of ZorCom does not know)") : "");
             S.msg = b;
         }
     }

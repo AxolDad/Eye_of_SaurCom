@@ -5,7 +5,7 @@ namespace onair_server {
 
 static const char* const kIndexHtml = R"HTML(<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OnAir server</title>
+<title>Eye of ZorCom server</title>
 <style>
 :root{--bg:#f4f5f7;--fg:#1c2128;--mut:#59626d;--card:#fff;--line:#d5d9df;--acc:#1f6feb;--bad:#c62828;--ok:#1a7f37}
 @media (prefers-color-scheme:dark){:root{--bg:#0e1116;--fg:#e6e9ee;--mut:#98a2b0;--card:#171b22;--line:#2b323c;--acc:#58a6ff;--bad:#ff7b72;--ok:#56d364}}
@@ -20,7 +20,7 @@ canvas{width:100%;display:block;border-radius:4px;background:#000}#sp{height:180
 table{border-collapse:collapse;width:100%;font-size:13px}td{padding:3px 6px;border-bottom:1px solid var(--line)}td:first-child{color:var(--mut);width:45%}
 #err{color:var(--bad);min-height:1.2em;font-size:13px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--bad);margin-right:6px}.dot.ok{background:var(--ok)}
 </style></head><body>
-<header><h1>OnAir server</h1><span id="st"><span class="dot" id="dot"></span><span id="stt">connecting</span></span></header>
+<header><h1>Eye of ZorCom server</h1><span id="st"><span class="dot" id="dot"></span><span id="stt">connecting</span></span></header>
 <main>
 <div class="card"><div class="row">
 <label>Radio<select id="dev"></select></label>

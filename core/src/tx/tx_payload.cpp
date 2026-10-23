@@ -1,4 +1,5 @@
 // Transmit payload: turn the operator's own strings (callsign, text, a file) into a ModeSynth. Empty fields keep the mode's demo signal.
+#include "dect2/mesh/mesh_gen.h"
 #include "dect2/tx/tx.h"
 #include "dect2/acars/acars_gen.h"
 #include "dect2/adsb/adsb_encode.h"
@@ -322,6 +323,8 @@ std::string txFtxMessage(const TxRequest& r) {
 std::unique_ptr<ModeSynth> makeTxPayloadSynth(const TxModeSpec& m, const TxRequest& r, const SynthConfig& s, double rate) {
     const std::string id = m.id ? m.id : "";
 
+    if (m.stdMode == 22 && !r.text.empty()) return makeMeshMessageSynth(s, rate, r.text, r.callsign);   // mesh: your message, not the demo scene
+
     if (m.stdMode == 27) {
         const int which = m.variant;
         const int ftxm = ftxModeOf(which);
@@ -462,7 +465,7 @@ std::unique_ptr<ModeSynth> makeTxPayloadSynth(const TxModeSpec& m, const TxReque
                      (int)alat, (alat - (int)alat) * 60.0, r.lat < 0 ? 'S' : 'N',
                      (int)alon, (alon - (int)alon) * 60.0, r.lon < 0 ? 'W' : 'E',
                      r.text.c_str());
-        } else snprintf(info, sizeof info, ">%s", r.text.empty() ? "OnAir" : r.text.c_str());
+        } else snprintf(info, sizeof info, ">%s", r.text.empty() ? "Eye of ZorCom" : r.text.c_str());
         f.info = info;
         return makePacketSynthFrame(s, rate, f, r.baudIdx == 1 ? 9600 : 1200);
     }

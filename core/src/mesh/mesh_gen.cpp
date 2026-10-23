@@ -414,4 +414,67 @@ std::unique_ptr<ModeSynth> makeMeshSynth(const SynthConfig& cfg, double sampleRa
     return std::make_unique<MeshSynth>(cfg, sampleRate);
 }
 
+namespace {
+
+class MeshMessageSynth : public ModeSynth {
+public:
+    MeshMessageSynth(const SynthConfig& cfg, double rate, const std::string& text, const std::string& sender) : rate_(rate), cfg_(cfg), text_(text) {
+        meshcore_ = cfg.modeOpt[0] == 2;
+        const int region = cfg.modeOpt[1] >= 1 && cfg.modeOpt[1] <= 5 ? cfg.modeOpt[1] : 0;
+        MeshLoraSettings s;
+        if (meshcore_) s = meshcoreDefaults(region == 1 ? "US" : region == 5 ? "AU" : "EU");
+        else meshtasticPreset("LongFast", s);
+        p_.sf = s.sf; p_.bwHz = s.bwHz; p_.cr = s.cr; p_.preamble = s.preamble; p_.syncWord = s.syncWord; p_.ldro = s.ldro; p_.crc = true;
+        const std::string name = sender.empty() ? "Eye of ZorCom" : sender;
+        uint32_t h = 2166136261u;   // FNV-1a of the name: a stable node number
+        for (unsigned char c : name) h = (h ^ c) * 16777619u;
+        mt_.num = 0x2a000000u | (h & 0x00ffffffu);
+        mt_.longName = name;
+        mt_.shortName = name.substr(0, 4);
+        mc_.seed = (uint8_t)(h >> 24 | 1);
+        mc_.name = name;
+        nextId_ = 0x30000000u | (h & 0x0fffffffu);
+    }
+    double sampleRate() const override { return rate_; }
+    void generate(cf32* out, size_t n) override {
+        const double t0 = (double)pos_ / rate_, t1 = (double)(pos_ + n) / rate_;
+        while (nextAt_ <= t1 + 1) {
+            const std::vector<uint8_t> bytes = meshcore_ ? meshcorePublicText(mc_, kUnix0 + (uint32_t)nextAt_, text_, {})
+                                                         : meshtasticTextEx(mt_, kBroadcast, nextId_++, 3, 3, text_, 0, false);
+            lora::TxFrame f;
+            f.p = p_;
+            f.data = lora::encode(p_, bytes.data(), bytes.size());
+            f.startSec = nextAt_;
+            f.freqHz = -meshTuning().tuneOffsetHz + cfg_.cfoHz;
+            f.amp = 0.5f;
+            active_.push_back(f);
+            nextAt_ += 30;
+        }
+        for (size_t i = 0; i < n; i++) out[i] = cf32(0, 0);
+        for (const auto& f : active_) f.render(out, n, t0, rate_);
+        active_.erase(std::remove_if(active_.begin(), active_.end(), [&](const lora::TxFrame& f) { return f.endSec() < t1; }), active_.end());
+        pos_ += (int64_t)n;
+    }
+
+private:
+    double rate_;
+    SynthConfig cfg_;
+    std::string text_;
+    bool meshcore_ = false;
+    lora::Params p_;
+    MeshtasticNode mt_;
+    MeshCoreNode mc_;
+    uint32_t nextId_ = 1;
+    double nextAt_ = 0.3;
+    std::vector<lora::TxFrame> active_;
+    int64_t pos_ = 0;
+};
+
+} // namespace
+
+std::unique_ptr<ModeSynth> makeMeshMessageSynth(const SynthConfig& cfg, double sampleRate, const std::string& text, const std::string& sender) {
+    if (sampleRate <= 0 || text.empty()) return nullptr;
+    return std::make_unique<MeshMessageSynth>(cfg, sampleRate, text, sender);
+}
+
 } // namespace dect2

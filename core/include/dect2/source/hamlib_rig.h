@@ -37,7 +37,7 @@ std::vector<DeviceInfo> hamlibRigDevices(const std::vector<HamlibRig>& v);
 bool hamlibSupported();   // false when built without Hamlib
 
 // What the running Hamlib source last learned from the rig, for the interface: the dial and mode the operator turned on the rig.
-// seq grows each time the RIG changed it (not when OnAir set it), so the interface applies each change once.
+// seq grows each time the RIG changed it (not when Eye of ZorCom set it), so the interface applies each change once.
 struct HamlibRigState {
     bool active = false;       // a Hamlib source is running
     bool connected = false;    // the CAT link answers; false while it is being re-opened

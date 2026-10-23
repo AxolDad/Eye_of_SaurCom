@@ -54,13 +54,13 @@ void updateTick(App& a) {
     if (st.phase != lastPhase) {
         lastPhase = st.phase;
         switch (st.phase) {
-        case Updater::Phase::UpToDate: a.updLast = nowS(); savePrefs(a); a.engine.log(std::string("OnAir ") + ONAIR_VERSION + " is the newest version"); break;
+        case Updater::Phase::UpToDate: a.updLast = nowS(); savePrefs(a); a.engine.log(std::string("Eye of ZorCom ") + ONAIR_VERSION + " is the newest version"); break;
         case Updater::Phase::Available:
             a.updLast = nowS(); savePrefs(a);
-            a.engine.log("update available: OnAir " + st.release.version + (st.release.prerelease ? tr(" (beta)") : ""));
-            if (a.updAuto && st.autoInstallable && !st.mirrorUnverified && !skipped(a, st.release) && !failedBefore(st, st.release)) { U(a).download(); a.engine.log("downloading OnAir " + st.release.version + " in the background"); }
+            a.engine.log("update available: Eye of ZorCom " + st.release.version + (st.release.prerelease ? tr(" (beta)") : ""));
+            if (a.updAuto && st.autoInstallable && !st.mirrorUnverified && !skipped(a, st.release) && !failedBefore(st, st.release)) { U(a).download(); a.engine.log("downloading Eye of ZorCom " + st.release.version + " in the background"); }
             break;
-        case Updater::Phase::Ready: a.engine.log("OnAir " + st.release.version + " is ready: it is installed when you close the program"); break;
+        case Updater::Phase::Ready: a.engine.log("Eye of ZorCom " + st.release.version + " is ready: it is installed when you close the program"); break;
         case Updater::Phase::Failed: a.engine.log("update: " + st.error); break;
         default: break;
         }
@@ -80,7 +80,7 @@ bool updateOnExit(App& a) {
 void supportButton() {
     if (ImGui::SmallButton(tr("Support"))) dect2::openUrl("https://ko-fi.com/adswill");
     if (ImGui::IsItemHovered() && ImGui::BeginTooltip()) {
-        ImGui::TextUnformatted(tr("Support OnAir on Ko-fi"));
+        ImGui::TextUnformatted(tr("Support Eye of ZorCom on Ko-fi"));
         ImGui::Separator();
         ImGui::TextDisabled("%s", tr("Thank you to our supporters:"));
         for (const char* n : kSupporters) ImGui::TextUnformatted(n);
@@ -111,7 +111,7 @@ void updateButton(App& a) {
     ImGui::SetNextWindowPos(ImVec2(bmax.x + 70 * gUi, bmax.y + 4), ImGuiCond_Always, ImVec2(1, 0));   // under the button, its right edge near the window's
     ImGui::SetNextWindowSizeConstraints(ImVec2(400 * gUi, 0), ImVec2(520 * gUi, 520 * gUi));
     if (ImGui::BeginPopup("##updates")) {
-        ImGui::Text(tr("OnAir %s"), ONAIR_VERSION);
+        ImGui::Text(tr("Eye of ZorCom %s"), ONAIR_VERSION);
         ImGui::SameLine(0, 10 * gUi);
         ImGui::TextDisabled("(%s)", installKindName(st.kind));
         ImGui::Separator();
@@ -143,7 +143,7 @@ void updateButton(App& a) {
             if (st.phase == Updater::Phase::Downloading) ImGui::ProgressBar(st.total ? (float)((double)st.done / (double)st.total) : 0.f, ImVec2(-1, 0));
             else if (st.phase == Updater::Phase::Preparing) ImGui::TextUnformatted(tr("Checking and preparing the new version…"));
             else if (st.phase == Updater::Phase::Ready) {
-                ImGui::TextColored(ImVec4(0.35f, 0.9f, 0.45f, 1), "%s", tr("Downloaded and checked. It is installed when you close OnAir."));
+                ImGui::TextColored(ImVec4(0.35f, 0.9f, 0.45f, 1), "%s", tr("Downloaded and checked. It is installed when you close Eye of ZorCom."));
                 if (ImGui::Button(tr("Restart now and update"))) {
                     std::string err;
                     if (u.apply(true, &err)) glfwSetWindowShouldClose(gWindow, 1); else a.engine.log(err.compare(0, 6, "Update") == 0 ? err : "update: " + err);
@@ -164,7 +164,7 @@ void updateButton(App& a) {
                     if (ImGui::Button(tr("Download and install"))) u.download(st.mirrorUnverified && a.updConfirm);
                     ImGui::EndDisabled();
                 }
-                else { ImGui::TextDisabled("%s", tr("This copy of OnAir cannot replace itself.")); }
+                else { ImGui::TextDisabled("%s", tr("This copy of Eye of ZorCom cannot replace itself.")); }
                 ImGui::SameLine();
                 if (ImGui::Button(tr("Release page"))) u.openReleasePage();
                 ImGui::SameLine();

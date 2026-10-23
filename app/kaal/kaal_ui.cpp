@@ -140,7 +140,7 @@ void kaalPanel(TxUi& s, bool running) {
         if (s.kaalBitrate != 12 && s.kaalBitrate != 16 && s.kaalBitrate != 24 && s.kaalBitrate != 32) s.kaalBitrate = 16;
     }
     ImGui::TextWrapped("%s", "KAAL: digital voice, 10 kHz wide (20 kHz at 24 and 32 kbit/s). The speech of the audio input below is coded and sent with the identity beacon. "
-                              "Empty callsign and grid send the demo identity ONAIR / AA00aa. OnAir sets no limit on the frequency or the power.");
+                              "Empty callsign and grid send the demo identity ONAIR / AA00aa. Eye of ZorCom sets no limit on the frequency or the power.");
     ImGui::BeginDisabled(running);
     {
         static const int kRates[4] = {12, 16, 24, 32};

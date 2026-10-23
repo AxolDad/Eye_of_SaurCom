@@ -1,14 +1,14 @@
 // Dolby AC-4 audio (ATSC 3.0 in the US and South Korea, some DVB) through an OPTIONAL FFmpeg that has an "ac4" decoder.
-// The FFmpeg inside OnAir has no AC-4 decoder (nobody has merged one: only third-party patches exist, see docs/CODECS.md), and OnAir ships
+// The FFmpeg inside Eye of ZorCom has no AC-4 decoder (nobody has merged one: only third-party patches exist, see docs/CODECS.md), and Eye of ZorCom ships
 // no patented codec. So, as with mbelib and codec2: the user may put libavcodec + libavutil, built from a FFmpeg that includes an AC-4
-// decoder, into the OnAir codecs folder. This file loads them at run time (dlopen / LoadLibrary); without them everything else works and
+// decoder, into the Eye of ZorCom codecs folder. This file loads them at run time (dlopen / LoadLibrary); without them everything else works and
 // the AC-4 audio of a service is dropped, with a note in the receiver tab.
 //
 // The loaded libraries are used through a handful of functions only, and the structures are touched only in their stable first fields
 // (AVPacket data/size, AVFrame data/extended_data/nb_samples/format); the rest goes through AVOptions. That is what lets a FFmpeg of a
-// different major version than the one OnAir was built with be used (a 6.1 build with the patch, for example).
+// different major version than the one Eye of ZorCom was built with be used (a 6.1 build with the patch, for example).
 //
-// Search: DECT2_AC4_DIR (a folder; development and tests), then the OnAir codecs folders. In each folder the newest libavcodec[.N].dylib /
+// Search: DECT2_AC4_DIR (a folder; development and tests), then the Eye of ZorCom codecs folders. In each folder the newest libavcodec[.N].dylib /
 // libavcodec.so[.N] / avcodec-N.dll is tried, with the libavutil of the same folder loaded first.
 #pragma once
 #include <cstdint>
@@ -87,7 +87,7 @@ private:
 
 // ---- AC-4 -> AC-3 for the transport stream ---------------------------------------------------------------------------------------
 // The transport stream that feeds the player must carry something the built-in FFmpeg can decode. The AC-4 audio is decoded with the
-// optional library, mixed to stereo or 5.1 (by the channel count of the sample entry), and encoded as AC-3 by the FFmpeg inside OnAir.
+// optional library, mixed to stereo or 5.1 (by the channel count of the sample entry), and encoded as AC-3 by the FFmpeg inside Eye of ZorCom.
 struct Ac4TsPacket { std::vector<uint8_t> data; int64_t pts90 = 0; int samples = 0; };
 
 class Ac4ToAc3 {

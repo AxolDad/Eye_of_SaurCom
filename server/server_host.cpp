@@ -511,7 +511,7 @@ std::string ServerHost::indexHtml() { return kIndexHtml; }
 int ServerHost::handleExtra(const std::string& method, const std::string& path, const std::map<std::string, JsonVal>& body, std::string& json) {
     if (path == "/api/v1/x/server" && method == "GET") {
         std::lock_guard<std::mutex> lk(mu_);
-        json = std::string("{\"name\":\"OnAir headless server\",\"version\":\"") + ONAIR_SERVER_VERSION + "\",\"demod\":\"" + demodName(demod_) + "\",\"autostart\":" + (cfg_.flag("autostart", false) ? "true" : "false") + "}";
+        json = std::string("{\"name\":\"Eye of ZorCom headless server\",\"version\":\"") + ONAIR_SERVER_VERSION + "\",\"demod\":\"" + demodName(demod_) + "\",\"autostart\":" + (cfg_.flag("autostart", false) ? "true" : "false") + "}";
         return 200;
     }
     if (path == "/api/v1/x/demod" && method == "POST") {

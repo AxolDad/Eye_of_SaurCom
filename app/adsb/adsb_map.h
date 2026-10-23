@@ -28,7 +28,7 @@ unsigned legible(unsigned rgb);                // a marker/line colour pushed to
 bool tilesAvailable();                         // at least one tile is on screen
 void legend(float mapWidth, const char* fmt, ...);   // TextDisabled() along the bottom left of the map (the cursor put there): cut short before the credit
 // The controls every map has, on the line of the screen's own buttons: a "tiles" button with its menu (whether downloaded tiles are kept or
-// deleted when OnAir closes, how many there are per zoom level, deleting them) and the "online map" switch. Both are one setting for every
+// deleted when Eye of ZorCom closes, how many there are per zoom level, deleting them) and the "online map" switch. Both are one setting for every
 // map. `privacy` (or null) ends "only tile numbers are sent" in the switch's tooltip, e.g. "never the position itself". After draw(), with
 // SameLine() before it; when they do not fit before the map's right edge they go on a line of their own.
 void tileControls(const char* privacy, bool fullButton = true);

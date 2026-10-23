@@ -1,5 +1,5 @@
-/* Reference wrapper: an OnAir speech codec plug-in around YOUR OWN mbelib. This file contains no codec; it only calls the library you build.
- * OnAir does not ship mbelib or any binary built from this file (see docs/CODECS.md, "AMBE+2, AMBE and IMBE plug-ins").
+/* Reference wrapper: an Eye of ZorCom speech codec plug-in around YOUR OWN mbelib. This file contains no codec; it only calls the library you build.
+ * Eye of ZorCom does not ship mbelib or any binary built from this file (see docs/CODECS.md, "AMBE+2, AMBE and IMBE plug-ins").
  *
  * Choose the codec at compile time:  -DCODEC_AMBE2 (DMR, NXDN, dPMR; plug-in file onair-codec-ambe2)
  *                                    -DCODEC_AMBE  (D-STAR;           onair-codec-ambe)
@@ -7,7 +7,7 @@
  * Build (macOS / Linux), with mbelib's header and library installed:
  *   cc -shared -fPIC -O2 -DCODEC_AMBE2 mbelib_wrapper.c -lmbe -o onair-codec-ambe2.dylib      (use .so on Linux)
  * Windows (MSYS2): cc -shared -O2 -DCODEC_AMBE2 mbelib_wrapper.c -lmbe -o onair-codec-ambe2.dll
- * Copy the result into the OnAir codecs folder and press "Rescan for plug-in".
+ * Copy the result into the Eye of ZorCom codecs folder and press "Rescan for plug-in".
  *
  * mbelib API used (mbelib.h 1.3): mbe_initMbeParms, mbe_processAmbe3600x2450Frame, mbe_processAmbe3600x2400Frame, mbe_processImbe7200x4400Frame.
  * Their argument lists differ between mbelib forks; adjust the call lines to your version if the compiler complains. */

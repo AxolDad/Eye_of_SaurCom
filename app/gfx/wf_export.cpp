@@ -151,6 +151,6 @@ void wfExportPopup(App& a) {
     if (dirBuf[0]) ImGui::TextWrapped("Folder: %s", dirBuf);
     else ImGui::TextDisabled("No folder chosen yet.");
     ImGui::TextDisabled("%s", e.status.c_str());
-    ImGui::TextWrapped("Each frame is a PNG file, up to 1024 x 512 pixels, newest row at the top. OnAir does not make a video: "
+    ImGui::TextWrapped("Each frame is a PNG file, up to 1024 x 512 pixels, newest row at the top. Eye of ZorCom does not make a video: "
                        "turn the PNG files into one with your own tool, for example ffmpeg with an input pattern like wf_<start time>_%%06d.png.");
 }

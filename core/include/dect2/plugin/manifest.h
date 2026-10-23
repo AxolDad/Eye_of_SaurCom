@@ -43,7 +43,7 @@ struct Manifest {
 bool validId(const std::string& id);
 // -1 / 0 / 1; compares dotted numbers ("0.2.10" > "0.2.9"), ignores a suffix after '-' or '+'
 int compareVersions(const std::string& a, const std::string& b);
-// false and err on any problem. hostVersion: the running OnAir version ("0.2.7") for minimum-version checks (empty skips it).
+// false and err on any problem. hostVersion: the running Eye of ZorCom version ("0.2.7") for minimum-version checks (empty skips it).
 bool parseManifest(const std::string& text, Manifest& out, std::string& err, const std::string& hostVersion = {});
 
 } // namespace dect2::plugin

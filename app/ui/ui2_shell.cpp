@@ -241,7 +241,7 @@ void sidebar(App& a) {
         tool("Protocol lab...", a.protolabOpen, N_("Work out an unknown digital signal: modulation, baud rate, sync word, CRC and fields, with an export"));
         tool("Watchlists...", a.watchlistOpen, N_("Alerts when listed aircraft, ships, call signs, frequencies or words are heard: notification, sound, ntfy, Telegram or webhook"));
         tool("Automations...", a.automationOpen, N_("Rules and scripts: when something is decoded, notify, record, tune or call a webhook"));
-        tool("Plugins...", a.pluginsOpen, N_("Add decoders and actions without rebuilding OnAir: install, enable and set up plugins"));
+        tool("Plugins...", a.pluginsOpen, N_("Add decoders and actions without rebuilding Eye of ZorCom: install, enable and set up plugins"));
         tool("Memory...", a.memoryOpen, "The frequencies you keep, with mode and settings (Ctrl+M)");
         tool("Data packs...", a.packsOpen, N_("Download map tiles, satellite elements and airports once, to work without internet"));
         tool("Frequencies...", a.freqOpen, "Known frequencies of every mode (Ctrl+Shift+F)");
@@ -401,7 +401,7 @@ static void viewMenu(App& a) {
             ImGui::SameLine();
             ImGui::TextDisabled("(?)");
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("%s", tr(have ? "Shows on your Discord profile that you are using OnAir, the mode and the frequency. Needs the Discord desktop app running." : "Discord application ID not set in this build"));
+                ImGui::SetTooltip("%s", tr(have ? "Shows on your Discord profile that you are using Eye of ZorCom, the mode and the frequency. Needs the Discord desktop app running." : "Discord application ID not set in this build"));
         }
         ImGui::Separator();
         if (ImGui::MenuItem(tr("Classic interface"))) { a.newUi = false; savePrefs(a); }

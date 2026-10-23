@@ -186,7 +186,7 @@ std::string sigmfMeta(double fc, double rate, const std::string& desc, const std
     char b[400];
     std::string s = "{\n  \"global\": {\n    \"core:datatype\": \"cf32_le\",\n    \"core:version\": \"1.0.0\",\n";
     snprintf(b, sizeof b, "    \"core:sample_rate\": %.3f,\n", rate); s += b;
-    s += "    \"core:description\": \"" + jsonEsc(desc) + "\",\n    \"core:recorder\": \"OnAir hydrogen line toolkit\",\n";
+    s += "    \"core:description\": \"" + jsonEsc(desc) + "\",\n    \"core:recorder\": \"Eye of ZorCom hydrogen line toolkit\",\n";
     snprintf(b, sizeof b, "    \"core:geolocation\": {\"type\": \"Point\", \"coordinates\": [%.5f, %.5f]}\n  },\n", lon, lat); s += b;
     s += "  \"captures\": [\n    {\"core:sample_start\": 0, ";
     snprintf(b, sizeof b, "\"core:frequency\": %.3f, \"core:datetime\": \"%s\"}\n  ],\n", fc, jsonEsc(iso).c_str()); s += b;

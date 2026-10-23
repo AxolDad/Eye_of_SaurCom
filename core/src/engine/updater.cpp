@@ -447,9 +447,9 @@ void spawnDetached(const std::string& script, const std::vector<std::string>& ar
 #endif
 }
 
-// Runs curl with these arguments, its output in *out when asked for. No shell and, on Windows, no console window (OnAir has none, so cmd.exe or
+// Runs curl with these arguments, its output in *out when asked for. No shell and, on Windows, no console window (Eye of ZorCom has none, so cmd.exe or
 // a console program started through it would open one). tick() is called about every 100 ms; curl is stopped as soon as cancel is set, so that
-// closing OnAir never waits for a download. The exit code of curl; kCurlMissing when it could not be started, kCurlCancelled when stopped.
+// closing Eye of ZorCom never waits for a download. The exit code of curl; kCurlMissing when it could not be started, kCurlCancelled when stopped.
 constexpr int kCurlMissing = -2, kCurlCancelled = -1;
 int runCurl(const std::vector<std::string>& args, std::string* out, const std::atomic<bool>& cancel, const std::function<void()>& tick = {}) {
 #if defined(_WIN32)
@@ -616,7 +616,7 @@ std::string windowsApplyScript(int pid, const std::string& setupExe, const std::
       << "set \"RESULT=" << batchValue(resultFile, true) << "\"\r\n"
       << "set \"VER=" << batchValue(version, false) << "\"\r\n"
       << "set \"RESTART=" << (restart ? 1 : 0) << "\"\r\n"
-      // up to two minutes for OnAir to end: the setup program cannot replace files that are in use
+      // up to two minutes for Eye of ZorCom to end: the setup program cannot replace files that are in use
       << "set /a N=0\r\n"
       << ":wait\r\n"
       << "tasklist /FI \"PID eq %PID%\" 2>nul | find \"%PID%\" >nul\r\n"
@@ -672,7 +672,7 @@ std::string updateResultPath() { const std::string t = tempRoot(); return t + (t
 // ---------------------------------------------------------------- the updater
 
 Updater::Updater(const std::string& v) : current_(v) {
-    api_ = "https://api.github.com/repos/adswill/OnAir/releases?per_page=12";
+    api_ = "https://api.github.com/repos/" + std::string(kUpdateRepo) + "/releases?per_page=12";
     if (const char* e = getenv("ONAIR_UPDATE_URL")) if (*e) setApiUrl(e);
     setExecutable(executablePath());
 }
@@ -730,8 +730,9 @@ bool mirrorEnabled(const MirrorConfig& c) {
 }
 
 bool isOfficialUrl(const std::string& u) {
-    return u.compare(0, 44, "https://api.github.com/repos/adswill/OnAir/r") == 0
-        || u.compare(0, 42, "https://github.com/adswill/OnAir/releases/") == 0;
+    static const std::string api = "https://api.github.com/repos/" + std::string(kUpdateRepo) + "/r",
+                             rel = "https://github.com/" + std::string(kUpdateRepo) + "/releases/";
+    return u.compare(0, api.size(), api) == 0 || u.compare(0, rel.size(), rel) == 0;
 }
 
 static std::string percentEncode(const std::string& s) {
@@ -986,7 +987,7 @@ bool Updater::prepare(const std::string& file, std::string& err) {
         staged_ = file;
         return true;
     default:
-        err = "this copy of OnAir cannot replace itself";
+        err = "this copy of Eye of ZorCom cannot replace itself";
         return false;
     }
 }
@@ -1026,7 +1027,7 @@ bool Updater::apply(bool restart, std::string* err) {
             o << windowsApplyScript((int)std::stoi(pid), utf8(staged_), utf8(exe_), utf8(result), version, restart);
             if (!o) return fail("Update not installed: the installer script could not be written to " + dir);
         }
-        // Elevated from here, while the window of OnAir is still in front: the UAC question appears at once and in the foreground.
+        // Elevated from here, while the window of Eye of ZorCom is still in front: the UAC question appears at once and in the foreground.
         // The elevated script waits for this program to end, so it can be asked now.
         auto wide = [](const std::string& a) {
             const int w = MultiByteToWideChar(CP_ACP, 0, a.c_str(), -1, nullptr, 0);
@@ -1087,7 +1088,7 @@ bool Updater::apply(bool restart, std::string* err) {
         return true;
     }
 #endif
-    if (err) *err = "this copy of OnAir cannot replace itself";
+    if (err) *err = "this copy of Eye of ZorCom cannot replace itself";
     return false;
 }
 
@@ -1097,9 +1098,9 @@ void Updater::openReleasePage() const {
         std::lock_guard<std::mutex> lk(mu_);
         url = st_.release.pageUrl;
         // after a failed installation the page of the version that did not install
-        if (url.empty() && st_.lastResult.found && !st_.lastResult.ok) url = "https://github.com/adswill/OnAir/releases/tag/v" + st_.lastResult.version;
+        if (url.empty() && st_.lastResult.found && !st_.lastResult.ok) url = "https://github.com/" + std::string(kUpdateRepo) + "/releases/tag/v" + st_.lastResult.version;
     }
-    if (url.empty()) url = "https://github.com/adswill/OnAir/releases";
+    if (url.empty()) url = "https://github.com/" + std::string(kUpdateRepo) + "/releases";
     openUrl(url);
 }
 
@@ -1118,7 +1119,7 @@ int curlDownloadFile(const std::string& url, const std::string& outFile, uint64_
     if (url.compare(0, 8, "https://") != 0) return 1;
     const std::vector<std::string> a = {"-fsSL", "--connect-timeout", "15", "--max-time", std::to_string(maxTime), "--max-redirs", "5", "--max-filesize", std::to_string(maxBytes),
                                         "--speed-limit", "1000", "--speed-time", "40", "--proto", "=https", "--proto-redir", "=https", "--retry", "2",
-                                        "-H", "User-Agent: OnAir", "-o", outFile, url};
+                                        "-H", "User-Agent: EyeOfZorCom", "-o", outFile, url};
     return runCurl(a, nullptr, cancel, tick);
 }
 std::string curlDownloadError(int rc) {

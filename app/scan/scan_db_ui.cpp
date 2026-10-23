@@ -126,7 +126,7 @@ JobP fetchText(const std::string& rel, bool refresh) {
             if (fresh) ok = readAll(cache, j->text);
             if (!ok) {
                 const std::string tmp = cache.empty() ? std::string() : cache + ".part";
-                if (!tmp.empty() && plat::fetchUrl(base + "/" + rel, tmp, "OnAir") && readAll(tmp, j->text)) {
+                if (!tmp.empty() && plat::fetchUrl(base + "/" + rel, tmp, "EyeOfZorCom") && readAll(tmp, j->text)) {
                     fs::rename(u8(tmp), u8(cache), ec); ok = true;
                 } else { j->err = "could not download it"; if (!tmp.empty()) fs::remove(u8(tmp), ec); }
             }
@@ -302,7 +302,7 @@ void sharedView(App& a) {
         else vw.country = countryIndex(plat::prefs().getS("scanDbCountry", ""));
     }
     static std::vector<std::string> countries = countryItems();
-    { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("Channels other OnAir users received, by country and city (%s). Public list at github.com/%s.", mode.c_str(), kRepoName); ImGui::PopTextWrapPos(); }
+    { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("Channels other Eye of ZorCom users received, by country and city (%s). Public list at github.com/%s.", mode.c_str(), kRepoName); ImGui::PopTextWrapPos(); }
     if (filterCombo("country##sd", vw.country >= 0 ? countries[(size_t)vw.country].c_str() : "choose a country", countries, vw.country, vw.flt, sizeof vw.flt, 320 * gUi)) { vw.consent = false; vw.job.reset(); vw.rows.clear(); vw.shownFor.clear(); }
     ImGui::SameLine();
     bool ask = plat::prefs().getB("scanDbAsk", true);
