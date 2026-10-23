@@ -229,6 +229,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "onair_wifisense"
+version = "0.1.0"
+
+[[package]]
 name = "onair_wisun"
 version = "0.1.0"
 dependencies = [

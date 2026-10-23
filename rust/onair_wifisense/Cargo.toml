@@ -1,0 +1,9 @@
+[package]
+name = "onair_wifisense"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of ZorCom WiFi sensing: ESP32 CSI frames (ADR-018), breathing and heart rate (ported from RuView, MIT), presence and motion"
+
+[dependencies]
