@@ -9,7 +9,7 @@
 This is a **partial** hunt, not a complete one.
 
 - The reviewer subagents hit an API weekly usage limit partway through. Of 17 planned shards, **16 produced partial findings** and **1 produced none**:
-  - **Shard 15 (`tests/` a–m):** no output.
+  - **Shard 15 (`tests/` a–m, 721 files, ~91k lines):** not read line by line. A pattern scan covered every file, looking for duplicated `||`/`&&` operands, self-comparisons, constant `CHECK(true)`, and integer `abs()` on floating values. It found nothing reportable. The self-comparison hits are member-against-parameter lookups, and the four `CHECK(true, …)` calls deliberately check that a run survived without crashing. This is a weak pass: logic errors in expected values would not show up in it.
   - **Shard 09 (`core/include/dect2/` a–h):** completed, but most declaration-only headers were skimmed rather than read line by line.
   - **Shard 11 (`rust/onair_usb`):** completed in full; `cargo test -p onair_usb` passes (11/11).
   - **Shards 01–08, 10, 12–14, 16, 17:** partial. The reviewers got through some files and stopped before others, so some directories have no findings because they were never reached, not because they are clean.
@@ -17,7 +17,7 @@ This is a **partial** hunt, not a complete one.
 - **Treat "no finding" as "not checked," not "clean."** Directories with zero findings in the list below should be considered unreviewed.
 
 Coverage gaps to close in a follow-up pass:
-- `tests/` directories a–m (entire shard)
+- `tests/` directories a–m (pattern scan only, no line-by-line read)
 - Most of `core/src/` in shards 08 and 12 (remaining Rust crates)
 - `core/include/dect2/` headers, declaration-only, not read line by line
 
