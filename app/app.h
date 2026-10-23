@@ -880,6 +880,11 @@ extern std::string gAutomationShotPath;   // automation_sink.cpp: a screenshot o
 void feedsWindow(App& a);          // feeds_ui.cpp: the "Data feeds" window (View > Data feeds)
 void webRadioWindow(App& a);       // web_radio_ui.cpp: internet radio stations (View > Internet radio)
 void wifiSenseWindow(App& a);      // wifisense_ui.cpp: presence and vital signs from ESP32 CSI nodes (View > WiFi sensing)
+void wifiSenseDevOpen(App& a);     // dev: the window open and listening (screenshots)
+void cotListenDev(App& a);         // dev: feeds_ui.cpp: the Cursor on Target listener on (screenshots)
+void p25DevView(int v);            // dev: P25 tab sub-view (0 now ... 5 follow)
+void nxdnDevView(int v);           // dev: NXDN tab sub-view (0 now ... 3 site)
+extern bool gTrunkPanelDevOpen;    // dev: the DMR / NXDN "follow calls" panels start open
 namespace dect2 { struct AtvFrame; }
 void videoOutPush(std::shared_ptr<const dect2::AtvFrame> f);   // video_out_ui.cpp: the analog picture to the network stream
 void videoOutButton();

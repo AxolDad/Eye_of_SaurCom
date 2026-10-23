@@ -107,7 +107,14 @@ void parseDevFlags(App& app, int argc, char** argv, DevOpts& o) {
         if (std::string(argv[i]) == "--memdev" && i + 1 < argc) memoryDev(atoi(argv[++i]));   // dev: 1 the Store current dialog, 2 the quick list as a window
         if (std::string(argv[i]) == "--memory") app.memoryOpen = true;   // dev: open View > Memory
         if (std::string(argv[i]) == "--memtab") app.memoryTab = true;    // dev: the Memory tab of the main screen
-        if (std::string(argv[i]) == "--scanner") app.scannerOpen = true;   // dev: open View > Scanner   // dev: open View > Passes
+        if (std::string(argv[i]) == "--scanner") app.scannerOpen = true;
+        if (std::string(argv[i]) == "--feeds") app.feedsOpen = true;
+        if (std::string(argv[i]) == "--p25view" && i + 1 < argc) p25DevView(atoi(argv[++i]));
+        if (std::string(argv[i]) == "--nxdnview" && i + 1 < argc) nxdnDevView(atoi(argv[++i]));
+        if (std::string(argv[i]) == "--trunkopen") gTrunkPanelDevOpen = true;   // dev: open View > Data feeds (screenshots)
+        if (std::string(argv[i]) == "--cotlisten") cotListenDev(app);   // dev: listen for ATAK / TAK contacts (screenshots)
+        if (std::string(argv[i]) == "--webradio") app.webRadioOpen = true;   // dev: open View > Internet radio
+        if (std::string(argv[i]) == "--wifisense") wifiSenseDevOpen(app);   // dev: open View > WiFi sensing, listening   // dev: open View > Scanner   // dev: open View > Passes
         if (std::string(argv[i]) == "--tle" && i + 1 < argc) passesDevTle(argv[++i]);   // dev: TLEs from a file for the pass planner (no download)
         if (std::string(argv[i]) == "--rx2") addReceiver();   // dev: a second receiver at once (no warning dialog)
         if (std::string(argv[i]) == "--tour") { app.wizOpen = true; app.wizStep = i + 1 < argc && argv[i + 1][0] != '-' ? atoi(argv[++i]) : -1; }   // dev: open the tour (at this step)

@@ -8,6 +8,7 @@
 #include "dect2/common/timecompat.h"
 #include "scan_list.h"
 #include "dect2/common/u8file.h"
+#include <algorithm>
 #include <cstring>
 #include <ctime>
 #include <fstream>
@@ -110,7 +111,9 @@ void load() {
     if (S.loaded) return;
     S.loaded = true;
     plat::Prefs& p = plat::prefs();
-    S.m.list = scanlist::fromCsv(p.getS("scanList", ""));
+    std::string csv = p.getS("scanList", "");
+    std::replace(csv.begin(), csv.end(), '\t', '\n');   // stored with tabs between the lines: the settings file keeps one line per key
+    S.m.list = scanlist::fromCsv(csv);
     S.m.hangSec = p.getD("scanHang", 3);
     S.m.prioritySec = p.getD("scanPrio", 5);
     S.thrDb = (float)p.getD("scanThr", 8);
@@ -123,7 +126,9 @@ void load() {
 }
 void save(App& a) {
     plat::Prefs& p = plat::prefs();
-    p.setS("scanList", scanlist::toCsv(S.fromMemory ? S.userList : S.m.list));
+    std::string csv = scanlist::toCsv(S.fromMemory ? S.userList : S.m.list);
+    std::replace(csv.begin(), csv.end(), '\n', '\t');
+    p.setS("scanList", csv);
     p.setD("scanHang", S.m.hangSec); p.setD("scanPrio", S.m.prioritySec); p.setD("scanThr", S.thrDb);
     p.setB("scanUseBand", S.m.useBand);
     p.setD("scanBandStart", S.m.band.startMhz); p.setD("scanBandStop", S.m.band.stopMhz); p.setD("scanBandStep", S.m.band.stepKhz);

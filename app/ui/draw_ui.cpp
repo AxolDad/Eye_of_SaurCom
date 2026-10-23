@@ -22,6 +22,7 @@
 #include "../main_internal.h"
 
 bool gIdentifyDev = false;   // --identify
+bool gTrunkPanelDevOpen = false;   // --trunkopen
 
 // the per-frame work of a receiver: ingest, the mode's tick, scans, EPG, gain control, the video and subtitles (drawn or not)
 static void tickReceiver(App& a) {

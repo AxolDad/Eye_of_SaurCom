@@ -1,0 +1,136 @@
+{
+  "videos": [
+    {
+      "id": "01-overview",
+      "title": "Eye of ZorCom in two minutes",
+      "scenes": [
+        {"title": "Eye of ZorCom", "subtitle": "One program for every radio signal around you", "footer": "Free and open source - built on OnAir",
+         "voice": "Eye of ZorCom. One program for every radio signal around you. Here is a two minute tour."},
+        {"shot": "main_fm", "step": "RECEIVE", "caption": "142 modes on HackRF, RTL-SDR, Airspy, SDRplay, Pluto, LimeSDR and more",
+         "voice": "Plug in a HackRF, an RTL-SDR, an Airspy, SDRplay, Pluto or Lime SDR, and receive more than one hundred and forty modes, from FM radio and digital TV to aircraft, ships and satellites."},
+        {"shot": "main_dab", "step": "DECODE", "caption": "Digital broadcast radio: DAB+, DRM, HD Radio and more",
+         "voice": "Digital broadcast radio, like DAB plus, D R M and H D Radio, decodes right inside the program."},
+        {"shot": "adsb_map", "step": "MAP", "caption": "Aircraft, ships, APRS stations and sondes on one live map",
+         "voice": "Aircraft, ships, A P R S stations and weather balloons all land on one live map."},
+        {"shot": "cot_map", "step": "NEW: ATAK", "caption": "Cursor on Target: share tracks with ATAK and see your team on the map",
+         "voice": "New: Cursor on Target. Send those tracks to A TAK, WinTAK or a TAK server, and see your team's A TAK contacts on the same map."},
+        {"shot": "p25_follow", "step": "NEW: TRUNKING", "caption": "Follow trunked calls on P25, DMR Tier III and NXDN",
+         "voice": "New: follow trunked calls on P 25, D M R Tier three and N X D N, with talkgroup names, a call log and per-call recording."},
+        {"shot": "scanner", "step": "NEW: SCANNER", "caption": "One scanner for trunked systems and ordinary channels",
+         "voice": "And scan trunked systems and ordinary channels from one list."},
+        {"shot": "tx_mesh", "step": "NEW: TRANSMIT", "caption": "Transmit stays off until you agree once to operate within your legal authority",
+         "voice": "New: transmit. It stays off until you agree, once, to operate within your own legal authority. Then send Meshtastic and MeshCore messages, or any supported mode."},
+        {"shot": "webradio", "step": "NEW: AUDIO", "caption": "Internet radio, any sound output or virtual cable, Icecast streaming",
+         "voice": "New: internet radio, sound output to any device or virtual audio cable, and live streaming to an Icecast server."},
+        {"shot": "wifisense", "step": "NEW: WIFI SENSING", "caption": "RuView ESP32 boards: presence, motion, breathing and heart rate per room",
+         "voice": "New: WiFi sensing. RuView E S P 32 boards turn the WiFi in a room into a presence, motion, breathing and heart rate sensor."},
+        {"title": "Get Eye of ZorCom", "subtitle": "github.com/AxolDad/OnAir-SDR-Suite", "footer": "Transmit only within your own legal authority",
+         "voice": "Eye of ZorCom is free and open source. Get it on GitHub, at AxolDad, slash, OnAir SDR Suite."}
+      ]
+    },
+    {
+      "id": "02-getting-started",
+      "title": "Getting started",
+      "scenes": [
+        {"title": "Getting started", "subtitle": "Your first signal in four steps", "footer": "Eye of ZorCom how-to",
+         "voice": "Getting started with Eye of ZorCom. Your first signal, in four steps."},
+        {"shot": "main_fm", "step": "STEP 1", "caption": "Source: pick your radio, or the built-in test signal", "focus": [140, 120, 1.25],
+         "voice": "Step one. In the Source panel on the left, pick your radio. No radio yet? Choose the synthetic test signal: every mode has one."},
+        {"shot": "main_fm", "step": "STEP 2", "caption": "Mode: choose what to receive from the mode list", "focus": [140, 520, 1.25],
+         "voice": "Step two. Choose a mode from the list, or type in the search box, for example F M, A D S B or Meshtastic."},
+        {"shot": "main_fm", "step": "STEP 3", "caption": "Press the red button and set the frequency", "focus": [200, 60, 1.3],
+         "voice": "Step three. Press the big start button at the top left, and type or scroll to a frequency."},
+        {"shot": "main_dab", "step": "STEP 4", "caption": "Watch the spectrum, waterfall and decoded results", "focus": [900, 400, 1.08],
+         "voice": "Step four. The spectrum and waterfall show the signal, and the panels around them show what was decoded, here a DAB plus ensemble with its stations."},
+        {"shot": "adsb_map", "step": "TIP", "caption": "Tools > Map puts everything with a position on one map", "focus": [450, 300, 1.12],
+         "voice": "Tip: Tools, Map, shows everything that has a position, like aircraft from A D S B, on one live map."}
+      ]
+    },
+    {
+      "id": "03-trunking",
+      "title": "Trunked radio: follow calls and scan systems",
+      "scenes": [
+        {"title": "Trunked radio", "subtitle": "Follow calls on P25, DMR Tier III and NXDN, and scan whole systems", "footer": "Eye of ZorCom how-to",
+         "voice": "Trunked radio. How to follow calls on P 25, D M R Tier three and N X D N systems, and how to scan several systems at once."},
+        {"shot": "p25", "step": "STEP 1", "caption": "Tune to the system's control channel in the P25, DMR or NXDN mode", "focus": [520, 60, 1.15],
+         "voice": "Step one. Choose the P 25, D M R or N X D N mode, and tune to the system's control channel. The status line shows the site and talkgroups it hears."},
+        {"shot": "p25_trunking", "step": "STEP 2", "caption": "The Trunking view lists the site, neighbours and channel plan", "focus": [700, 300, 1.1],
+         "voice": "Step two. The Trunking view shows the site, its neighbours and the channel plan the control channel broadcasts."},
+        {"shot": "p25_follow", "step": "STEP 3", "caption": "Follow tab: tick Follow calls, then import your talkgroup list", "focus": [700, 300, 1.1],
+         "voice": "Step three. Open the Follow tab and tick Follow calls. Import a talkgroup list from Radio Reference as a C S V file to see names, set priorities and lock out talkgroups."},
+        {"shot": "dmr_follow", "step": "DMR / NXDN", "caption": "DMR and NXDN grants carry channel numbers: enter number = MHz pairs", "focus": [700, 600, 1.1],
+         "voice": "D M R Tier three and N X D N grants only carry channel numbers. Enter each channel's frequency once, as number equals megahertz pairs, and the follower takes the radio to every call."},
+        {"shot": "scanner", "step": "STEP 4", "caption": "Tools > Scanner: tick Trunked on a control channel entry", "focus": [480, 80, 1.3],
+         "voice": "Step four. In Tools, Scanner, add each system's control channel and tick Trunked. The scanner follows calls there, holds through each call, then moves on, so one list can mix several trunked systems with ordinary channels."},
+        {"title": "Good to know", "subtitle": "Encrypted calls are logged, never followed. Voice needs your own mbelib.", "footer": "Recordings are saved per call",
+         "voice": "Good to know: encrypted calls are logged but never followed, and voice needs your own m b e lib vocoder library. Calls can be recorded, one file per call."}
+      ]
+    },
+    {
+      "id": "04-atak",
+      "title": "ATAK and Cursor on Target",
+      "scenes": [
+        {"title": "ATAK and Cursor on Target", "subtitle": "Share what you receive with your team, and see your team on the map", "footer": "Eye of ZorCom how-to",
+         "voice": "A TAK and Cursor on Target. Share what you receive with your team, and see your team on your map."},
+        {"shot": "feeds", "step": "STEP 1", "caption": "Tools > Data feeds: tick the ATAK / TAK Cursor on Target feed", "focus": [200, 700, 1.25],
+         "voice": "Step one. Open Tools, Data feeds. Near the bottom, tick aircraft, ships, A P R S and sondes to A TAK. By default it multicasts to 239.2.3.1, port 6969, where A TAK and WinTAK listen. For a TAK server, enter its address and U D P input port."},
+        {"shot": "adsb_map", "step": "STEP 2", "caption": "Receive anything with a position: ADS-B, AIS, APRS, sondes", "focus": [450, 300, 1.1],
+         "voice": "Step two. Receive anything with a position, such as A D S B aircraft or A I S ships. Each one appears on the phones running A TAK, and goes stale on its own when it is no longer heard."},
+        {"shot": "cot_map", "step": "STEP 3", "caption": "Tick Show ATAK / TAK contacts on the map to see your team", "focus": [700, 120, 1.25],
+         "voice": "Step three. Tick show A TAK contacts on the map. Your team's positions, sent from A TAK, appear on the program's map with their call signs."},
+        {"title": "Works offline", "subtitle": "Plain UDP on your own network - no cloud, no account", "footer": "Cursor on Target 2.0 XML",
+         "voice": "Everything is plain U D P on your own network. No cloud and no account."}
+      ]
+    },
+    {
+      "id": "05-wifi-sensing",
+      "title": "WiFi sensing with RuView",
+      "scenes": [
+        {"title": "WiFi sensing", "subtitle": "Presence, motion, breathing and heart rate from the WiFi in a room", "footer": "Eye of ZorCom how-to - based on RuView (MIT)",
+         "voice": "WiFi sensing. People in a room change the WiFi channel between a small E S P 32 board and its access point. Eye of ZorCom turns that into presence, motion, breathing and heart rate."},
+        {"title": "Step 1: the nodes", "subtitle": "Flash ESP32 boards with RuView's CSI firmware, point them at this computer, UDP port 5005", "footer": "One node per room",
+         "voice": "Step one. Flash one E S P 32 board per room with RuView's C S I firmware, and set this computer's address as its target, U D P port 5005."},
+        {"shot": "wifisense", "step": "STEP 2", "caption": "Tools > WiFi sensing: tick Listen", "focus": [300, 40, 1.4],
+         "voice": "Step two. Open Tools, WiFi sensing, and tick Listen. Each node shows up as a row as soon as its frames arrive."},
+        {"shot": "wifisense", "step": "STEP 3", "caption": "Each room: occupied or empty, motion, breaths and heartbeats a minute", "focus": [300, 70, 1.6],
+         "voice": "Step three. Read each room: occupied or empty, how much movement there is, and, for a person sitting still, breaths and heartbeats a minute, with how sure the estimate is."},
+        {"title": "Good to know", "subtitle": "Estimates, not medical readings. Everything stays on your network.", "footer": "Breathing and heart rate need a still person",
+         "voice": "Good to know. These are estimates, not medical readings, and they need a person who is sitting still. Nothing leaves your network."}
+      ]
+    },
+    {
+      "id": "06-transmit-mesh",
+      "title": "Transmit and send mesh messages",
+      "scenes": [
+        {"title": "Transmit", "subtitle": "Off by default. On after you agree to operate within your legal authority.", "footer": "Eye of ZorCom how-to",
+         "voice": "Transmitting. It is off by default, and it stays off until you agree, once, to operate only within your own legal authority. After that there are no band, power or mode locks: you are responsible for what you send."},
+        {"shot": "tx_mesh", "step": "STEP 1", "caption": "Open the TX tab and pick what to send", "focus": [200, 300, 1.2],
+         "voice": "Step one. Open the T X tab at the top left, and pick what to send from the list, for example Meshtastic."},
+        {"shot": "tx_dry", "step": "STEP 2", "caption": "Test it first: Test (dry run, no RF) and the preview", "focus": [700, 150, 1.25],
+         "voice": "Step two. Try it with Test, dry run, first. Nothing goes on air, and the preview shows exactly what would be sent."},
+        {"shot": "tx_mesh", "step": "STEP 3", "caption": "Type your text: it goes out as a real Meshtastic or MeshCore message", "focus": [700, 200, 1.2],
+         "voice": "Step three. Type your text. It goes out as a real Meshtastic LongFast message, or on MeshCore's public channel, from a node named after your call sign."},
+        {"shot": "mesh_rx", "step": "STEP 4", "caption": "Check it on a receiver: the Mesh mode decodes it", "focus": [700, 700, 1.15],
+         "voice": "Step four. Check it with a second radio in the Mesh mode, which decodes Meshtastic and MeshCore packets and lists the nodes."},
+        {"title": "While on air", "subtitle": "A TX ON AIR badge shows in the top bar", "footer": "A transmit-capable radio: HackRF, PlutoSDR, LimeSDR, bladeRF, USRP",
+         "voice": "While you transmit, a T X on air badge stays in the top bar. Transmitting needs a radio that can send, such as a HackRF, Pluto, Lime SDR, blade RF or U S R P."}
+      ]
+    },
+    {
+      "id": "07-audio-radio",
+      "title": "Sound output, streaming and internet radio",
+      "scenes": [
+        {"title": "Sound out and internet radio", "subtitle": "Any device, virtual audio cables, Icecast streaming, radio stations worldwide", "footer": "Eye of ZorCom how-to",
+         "voice": "Sound output, streaming and internet radio."},
+        {"shot": "main_fm", "step": "STEP 1", "caption": "Source panel: pick the sound output device", "focus": [140, 220, 1.4],
+         "voice": "Step one. In the Source panel, pick the sound output. A virtual audio cable, such as VB Cable, BlackHole or a PipeWire sink, sends the sound to other programs like decoders."},
+        {"shot": "main_fm", "step": "STEP 2", "caption": "Stream audio: send the sound to an Icecast server as MP3", "focus": [140, 260, 1.4],
+         "voice": "Step two. Fill in your Icecast server, mount and password, and press Stream audio. The sound goes out as M P 3, and reconnects by itself if the server drops."},
+        {"shot": "webradio", "step": "STEP 3", "caption": "Tools > Internet radio: search the world's stations", "focus": [300, 60, 1.4],
+         "voice": "Step three. Open Tools, Internet radio, search by name or genre, and play a station through the same sound output, so recording and streaming work for it too."},
+        {"title": "Video out too", "subtitle": "FPV and analogue TV pictures re-stream as MPEG-TS over UDP", "footer": "Open the stream in VLC or OBS",
+         "voice": "Pictures too: F P V and analogue T V can be re-streamed as M P E G transport stream over U D P, for V L C or O B S."}
+      ]
+    }
+  ]
+}

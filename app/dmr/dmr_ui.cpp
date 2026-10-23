@@ -270,6 +270,7 @@ void tab(App& a) {
         if (ImGui::TreeNode("Install helper")) { appcodec::codecInstallHelper("ambe2"); ImGui::TreePop(); }
     }
     if (on && !t.cachInfo.empty() && t.cachInfo != "null") ImGui::TextDisabled("CACH: %s", t.cachInfo.c_str());
+    if (gTrunkPanelDevOpen) ImGui::SetNextItemOpen(true, ImGuiCond_Once);
     if (ImGui::TreeNode("Tier III trunking: follow calls")) { trunkFollowPanel(a); ImGui::TreePop(); }
     ImGui::Spacing();
     const float rest = ImGui::GetContentRegionAvail().y;

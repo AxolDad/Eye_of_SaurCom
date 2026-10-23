@@ -631,3 +631,5 @@ const ModeUi kP25Ui = {
     .summary = summary,
     .tick = tick,
 };
+
+void p25DevView(int v) { S.view = v; }   // dev: the sub-view the P25 tab starts on (screenshots)
