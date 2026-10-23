@@ -153,6 +153,8 @@ void tuneTo(App& a, const scanlist::Target& t) {
     S.trunkHere = t.trunk;
 }
 
+void stopScan(App& a);
+
 void closeHit(double now) { if (S.logging && !S.log.empty()) S.log.back().endT = now; }
 
 void tick(App& a) {
