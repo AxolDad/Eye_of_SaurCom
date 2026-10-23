@@ -1595,6 +1595,10 @@ if(DECT2_BUILD_TESTS)
       target_link_libraries(${m}tool PRIVATE dect2core)
     endif()
   endforeach()
+  # test_sarsat_rx reads tests/data/sarsat/epirbsignal_223.wav; __FILE__ is prefix-mapped to onair/..., so give it the source dir
+  if(TARGET test_sarsat_rx)
+    target_compile_definitions(test_sarsat_rx PRIVATE DECT2_SOURCE_DIR="${ONAIR_ROOT}")
+  endif()
   # the signal identifier: the whole matrix (every mode's test signal at 10 / 20 / 30 dB SNR, with and without the frequency known) is slow; the quick one
   # (20 dB, no frequency) runs with the rest (tests/specx/test_specx_idmatrix.cpp, docs/signal-id.md)
   if(TARGET test_specx_idmatrix)
