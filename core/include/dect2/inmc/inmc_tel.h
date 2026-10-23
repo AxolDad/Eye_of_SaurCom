@@ -8,14 +8,23 @@
 
 namespace dect2 {
 
-// One EGC message (SafetyNET or FleetNET), assembled from its packets.
+// One EGC message (SafetyNET or FleetNET), or a message to a ship (descriptor 0xAA), assembled from its packets.
 struct InmcMessage {
     uint16_t id = 0;             // message sequence number from the packet header
     uint8_t serviceCode = 0;     // service/address code byte (for example 0x31 NAVAREA/METAREA warning)
-    int kind = 0;                // 0 other or system, 1 SafetyNET, 2 FleetNET
+    int kind = 0;                // 0 other or system, 1 SafetyNET, 2 FleetNET, 3 message to a ship (0xAA)
     int priority = 0;            // 0 routine, 1 safety, 2 urgency, 3 distress
     std::string serviceText;     // the service code in words
-    std::string area;            // the address bytes after the first one, in hex (the area layout is not confirmed, so it is not decoded)
+    std::string area;            // the address bytes after the first one, in hex
+    // the area those bytes address (layouts as in Scytale-C, PacketDecoderGeoUtils.cs)
+    int areaKind = 0;            // 0 none, 1 NAVAREA/METAREA, 2 coastal area, 3 rectangle, 4 circle
+    std::string areaText;        // the area in words
+    int areaNo = 0;              // NAVAREA or coastal area number
+    double lat = 0, lon = 0;     // rectangle: south-west corner; circle: centre (degrees, south and west negative)
+    int extNorthNm = 0, extEastNm = 0;   // rectangle size
+    int radiusNm = 0;            // circle radius
+    int mesId = -1;              // message to a ship: its mobile number, from the announcement (0x81) of its channel; -1 when not seen
+    int logicalChannel = -1;     // message to a ship: the station's logical channel
     uint8_t addr0 = 0;           // first address byte
     int sat = -1, lesId = -1;    // addr0 read as satellite (2 bits) and LES (6 bits), as in every other packet. TENTATIVE: not confirmed for EGC packets
     std::string lesName;         // name for that guess ("" when the id is not in the table)
@@ -70,6 +79,27 @@ struct InmcNcsInfo {
     std::string frameTime;       // frame number times 8.64 s as hh:mm:ss.s
 };
 
+// One land earth station in the station list packet (0xAB).
+struct InmcStation {
+    int sat = -1, lesId = -1;
+    std::string region, lesName;
+    uint16_t services = 0;
+    std::string servicesText;
+    double downlinkMhz = 0;      // its TDM channel
+};
+
+// An announcement (0x81): a station tells a ship that a message follows on a logical channel.
+struct InmcAnnouncement {
+    int mesId = 0;
+    int sat = -1, lesId = -1;
+    std::string lesName;
+    double downlinkMhz = 0;
+    int logicalChannel = 0;
+    int presentation = 0;
+    int64_t rxUnix = 0;
+    std::string rxTime;
+};
+
 struct InmcTelemetry {
     // common prefix
     uint64_t seq = 0;            // grows with every report
@@ -99,6 +129,8 @@ struct InmcTelemetry {
     std::vector<InmcMessage> messages;   // newest first, at most 150, from all channels
     uint32_t messageCount = 0;           // messages seen since the start (can be above the list length)
     std::vector<InmcChannelInfo> channels;   // the channel tuned to first, then the ones found in the band that have a carrier lock
+    std::vector<InmcStation> stations;       // the last station list (0xAB)
+    std::vector<InmcAnnouncement> announcements;   // newest first, at most 50
 };
 
 inline std::string inmcSummary(const InmcTelemetry& t) {

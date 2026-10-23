@@ -137,6 +137,86 @@ std::string frameTimeText(uint32_t f) {
 
 std::string utcText(int64_t t) { return dect2::utcClockText(t); }
 
+double downlinkMhz(uint16_t ch) { return (ch - 8000) * 0.0025 + 1530.0; }
+uint16_t downlinkChannel(double mhz) { return (uint16_t)(std::lround((mhz - 1530.0) / 0.0025) + 8000); }
+
+std::string navAreaCoordinator(int a) {
+    static const char* c[22] = {"", "United Kingdom", "France", "Spain", "United States", "Brazil", "Argentina", "South Africa", "India",
+                                "Pakistan", "Australia", "Japan", "United States", "Russia", "New Zealand", "Chile", "Peru", "Canada",
+                                "Canada", "Norway", "Russia", "Russia"};
+    return a >= 1 && a <= 21 ? c[a] : "";
+}
+
+std::string romanNumeral(int n) {
+    static const struct { int v; const char* s; } t[] = {{1000, "M"}, {900, "CM"}, {500, "D"}, {400, "CD"}, {100, "C"}, {90, "XC"},
+                                                        {50, "L"}, {40, "XL"}, {10, "X"}, {9, "IX"}, {5, "V"}, {4, "IV"}, {1, "I"}};
+    std::string s;
+    for (auto& e : t) while (n >= e.v) { s += e.s; n -= e.v; }
+    return s;
+}
+
+bool looksBinary(const std::vector<uint8_t>& b) {
+    for (uint8_t x : b) {
+        const uint8_t c = x & 0x7F;
+        if (c == 0x01 || c == 0x03 || (c >= 0x05 && c <= 0x08) || c == 0x0B || c == 0x0C || (c >= 0x0E && c <= 0x1A) || (c >= 0x1C && c <= 0x1F) ||
+            c == '$')
+            return true;
+    }
+    return false;
+}
+
+// a point at a distance along a bearing from another (great circle, sphere of 6371.01 km), as Scytale-C's FindPointAtDistanceFrom
+static void pointAt(double lat, double lon, double bearing, double km, double& olat, double& olon) {
+    const double r = 6371.01, d = km / r, la = lat * M_PI / 180, lo = lon * M_PI / 180;
+    const double la2 = std::asin(std::sin(la) * std::cos(d) + std::cos(la) * std::sin(d) * std::cos(bearing));
+    const double lo2 = lo + std::atan2(std::sin(bearing) * std::sin(d) * std::cos(la), std::cos(d) - std::sin(la) * std::sin(la2));
+    olat = la2 * 180 / M_PI;
+    olon = lo2 * 180 / M_PI;
+}
+
+void decodeArea(int code, const std::vector<uint8_t>& a, InmcMessage& m) {
+    char b[200];
+    m.areaKind = 0;
+    m.areaText.clear();
+    switch (code) {
+    case 0x00: case 0x31: case 0x13: {
+        if (a.empty()) return;
+        m.areaNo = a[0];
+        m.areaKind = code == 0x13 ? 2 : 1;
+        const std::string who = navAreaCoordinator(m.areaNo);
+        snprintf(b, sizeof b, "%s %s%s%s", code == 0x13 ? "Coastal area" : "NAVAREA/METAREA", romanNumeral(m.areaNo).c_str(),
+                 who.empty() ? "" : ", ", who.c_str());
+        m.areaText = b;
+        return;
+    }
+    case 0x04: case 0x34: case 0x14: case 0x24: case 0x44: {
+        if (a.size() < 4) return;
+        // 1 bit south, 7 bits latitude; 8 bits longitude; 1 bit west, then 7 bits north and 8 bits east (rectangle) or 15 bits radius
+        m.lat = (a[0] & 0x7F) * ((a[0] & 0x80) ? -1 : 1);
+        m.lon = a[1] * ((a[2] & 0x80) ? -1 : 1);
+        const char* ns = m.lat < 0 ? "S" : "N";
+        const char* ew = m.lon < 0 ? "W" : "E";
+        if (code == 0x04 || code == 0x34) {
+            m.areaKind = 3;
+            m.extNorthNm = a[2] & 0x7F;
+            m.extEastNm = a[3];
+            double clat, clon, hlat, hlon;
+            pointAt(m.lat, m.lon, M_PI / 2, m.extEastNm / 2.0 * 1.852, hlat, hlon);
+            pointAt(hlat, hlon, 0, m.extNorthNm / 2.0 * 1.852, clat, clon);
+            snprintf(b, sizeof b, "Rectangle: south-west corner %.0f%s %.0f%s, %d nm north and %d nm east (centre %.2f, %.2f)",
+                     std::fabs(m.lat), ns, std::fabs(m.lon), ew, m.extNorthNm, m.extEastNm, clat, clon);
+        } else {
+            m.areaKind = 4;
+            m.radiusNm = (a[2] & 0x7F) << 8 | a[3];
+            snprintf(b, sizeof b, "Circle: centre %.0f%s %.0f%s, radius %d nm", std::fabs(m.lat), ns, std::fabs(m.lon), ew, m.radiusNm);
+        }
+        m.areaText = b;
+        return;
+    }
+    default: return;
+    }
+}
+
 // ITA2 tables as in the table of the open decoder (from the baudot project); 0x1F shifts to letters, 0x1B to figures
 std::string ita2ToText(const std::vector<uint8_t>& codes) {
     static const char ltrs[32] = {0, 'E', '\n', 'A', ' ', 'S', 'I', 'U', '\r', 'D', 'R', 'J', 'N', 'F', 'C', 'K',
@@ -236,6 +316,62 @@ std::vector<uint8_t> buildEgc(const EgcPacket& e) {
     return p;
 }
 
+std::vector<uint8_t> buildStationList(const std::vector<StationEntry>& s) {
+    const int len = 4 + 6 * (int)s.size() + 2;      // descriptor, length, a byte, count, stations, check bytes
+    std::vector<uint8_t> p((size_t)len, 0);
+    p[0] = 0xAB;
+    p[1] = (uint8_t)(len - 2);
+    p[2] = 0xBF;
+    p[3] = (uint8_t)s.size();
+    for (size_t i = 0; i < s.size(); i++) {
+        uint8_t* q = &p[4 + 6 * i];
+        q[0] = (uint8_t)((s[i].sat << 6) | (s[i].les & 63));
+        q[1] = 0xF8;
+        q[2] = (uint8_t)(s[i].services >> 8); q[3] = (uint8_t)s[i].services;
+        const uint16_t ch = downlinkChannel(s[i].downlinkMhz);
+        q[4] = (uint8_t)(ch >> 8); q[5] = (uint8_t)ch;
+    }
+    packetCheckSet(p.data(), len);
+    return p;
+}
+
+std::vector<uint8_t> buildAnnouncement(int mesId, int sat, int les, double mhz, int lcn, int pres) {
+    std::vector<uint8_t> p(19, 0);
+    p[0] = 0x81;
+    p[1] = 17;
+    p[2] = (uint8_t)(mesId >> 16); p[3] = (uint8_t)(mesId >> 8); p[4] = (uint8_t)mesId;
+    p[5] = (uint8_t)((sat << 6) | (les & 63));
+    const uint16_t ch = downlinkChannel(mhz);
+    p[6] = (uint8_t)(ch >> 8); p[7] = (uint8_t)ch;
+    p[9] = (uint8_t)lcn;
+    p[14] = (uint8_t)pres;
+    packetCheckSet(p.data(), 19);
+    return p;
+}
+
+std::vector<uint8_t> buildChannelClear(int mesId, int sat, int les, int lcn) {
+    std::vector<uint8_t> p(8, 0);
+    p[0] = 0x27;
+    p[1] = (uint8_t)(mesId >> 16); p[2] = (uint8_t)(mesId >> 8); p[3] = (uint8_t)mesId;
+    p[4] = (uint8_t)((sat << 6) | (les & 63));
+    p[5] = (uint8_t)lcn;
+    packetCheckSet(p.data(), 8);
+    return p;
+}
+
+std::vector<uint8_t> buildShipMessage(int sat, int les, int lcn, int packetNo, const std::vector<uint8_t>& payload) {
+    const int len = 5 + (int)payload.size() + 2;
+    std::vector<uint8_t> p((size_t)len, 0);
+    p[0] = 0xAA;
+    p[1] = (uint8_t)(len - 2);
+    p[2] = (uint8_t)((sat << 6) | (les & 63));
+    p[3] = (uint8_t)lcn;
+    p[4] = (uint8_t)packetNo;
+    std::copy(payload.begin(), payload.end(), p.begin() + 5);
+    packetCheckSet(p.data(), len);
+    return p;
+}
+
 // ---------------------------------------------------------------- parser
 static std::atomic<uint64_t> gOrder{0};      // shared by all parsers, so that messages of several channels sort by arrival
 
@@ -261,6 +397,8 @@ void FrameParser::reset() {
     packetsOk_ = packetsBad_ = 0;
     messageCount_ = frameNo_ = curFrame_ = 0;
     mfp_.clear(); mfpTotal_ = 0;
+    stations_.clear();
+    announcements_.clear();
 }
 
 static int packetLength(const uint8_t* f, int pos, int end) {
@@ -312,6 +450,43 @@ bool FrameParser::parseFrame(const uint8_t* f, int64_t rxUnix) {
             ncs_.signallingUplinkMhz = ((p[2] << 8 | p[3]) - 6000) * 0.0025 + 1626.5;
         } else if ((d == 0xB1 || d == 0xB2) && len >= 10) {
             egc(p, len, rxUnix);
+        } else if (d == 0xAA && len >= 8) {
+            shipMessage(p, len - 2, rxUnix);
+        } else if (d == 0xAB && len >= 6) {
+            const int n = p[3];
+            if (4 + 6 * n <= len - 2) {
+                stations_.clear();
+                for (int i = 0; i < n; i++) {
+                    const uint8_t* q = p + 4 + 6 * i;
+                    InmcStation s;
+                    s.sat = q[0] >> 6; s.lesId = q[0] & 63;
+                    s.region = satName(s.sat);
+                    s.lesName = lesName(s.sat, s.lesId);
+                    s.services = (uint16_t)(q[2] << 8 | q[3]);
+                    s.servicesText = servicesText(s.services);
+                    s.downlinkMhz = downlinkMhz((uint16_t)(q[4] << 8 | q[5]));
+                    stations_.push_back(s);
+                }
+            }
+        } else if (d == 0x81 && len >= 17) {
+            InmcAnnouncement an;
+            an.mesId = p[2] << 16 | p[3] << 8 | p[4];
+            an.sat = p[5] >> 6; an.lesId = p[5] & 63;
+            an.lesName = lesName(an.sat, an.lesId);
+            an.downlinkMhz = downlinkMhz((uint16_t)(p[6] << 8 | p[7]));
+            an.logicalChannel = p[9];
+            an.presentation = p[14];
+            an.rxUnix = rxUnix; an.rxTime = utcText(rxUnix);
+            announcements_.insert(announcements_.begin(), an);
+            if (announcements_.size() > 50) announcements_.pop_back();
+        } else if (d == 0x27 && len >= 8) {
+            // the station clears the logical channel: the message on it is complete
+            const int sat = p[4] >> 6, les = p[4] & 63, lcn = p[5];
+            for (auto& x : slots_)
+                if (x.msg.kind == 3 && x.msg.sat == sat && x.msg.lesId == les && x.msg.logicalChannel == lcn && !x.msg.complete) {
+                    x.msg.complete = true;
+                    x.msg.seen++;
+                }
         } else if (d == 0xBD && len >= 6) {
             // multiframe packet: the start of another packet, continued in 0xBE packets of this or the next frames
             const uint8_t inner = p[2];
@@ -325,6 +500,7 @@ bool FrameParser::parseFrame(const uint8_t* f, int64_t rxUnix) {
             if (mfp_.size() + 2 >= mfpTotal_) {
                 mfp_.resize(mfpTotal_, 0);      // the assembled packet has no check bytes of its own
                 if ((mfp_[0] == 0xB1 || mfp_[0] == 0xB2) && mfp_.size() >= 10) egc(mfp_.data(), (int)mfp_.size(), rxUnix);
+                else if (mfp_[0] == 0xAA && mfp_.size() >= 8) shipMessage(mfp_.data(), (int)mfp_.size() - 2, rxUnix);   // its last two bytes stand for the check bytes
                 mfp_.clear(); mfpTotal_ = 0;
             }
         }
@@ -344,14 +520,9 @@ void FrameParser::egc(const uint8_t* p, int len, int64_t rxUnix) {
     const int pno = p[6], pres = p[7];
     const int key = pno * 2 + (p[0] == 0xB2 ? 1 : 0);
     Slot* s = nullptr;
-    for (auto& x : slots_) if (x.msg.id == id && x.msg.serviceCode == svc) { s = &x; break; }
+    for (auto& x : slots_) if (x.msg.kind != 3 && x.msg.id == id && x.msg.serviceCode == svc) { s = &x; break; }
     if (!s) {
-        if (slots_.size() >= 150) {      // drop the oldest
-            auto it = std::min_element(slots_.begin(), slots_.end(), [](const Slot& a, const Slot& b) { return a.order < b.order; });
-            slots_.erase(it);
-        }
-        slots_.emplace_back();
-        s = &slots_.back();
+        s = newSlot();
         s->msg.id = id; s->msg.serviceCode = svc;
         s->msg.kind = serviceKind(svc);
         s->msg.serviceText = serviceName(svc);
@@ -370,6 +541,7 @@ void FrameParser::egc(const uint8_t* p, int len, int64_t rxUnix) {
     char hx[24];
     s->msg.area.clear();
     for (int i = 1; i < al; i++) { snprintf(hx, sizeof hx, "%02X", p[8 + i]); s->msg.area += hx; if (i + 1 < al) s->msg.area += ' '; }
+    decodeArea(svc, std::vector<uint8_t>(p + 9, p + 8 + al), s->msg);
     s->msg.sat = p[8] >> 6; s->msg.lesId = p[8] & 63;
     s->msg.lesName = lesName(s->msg.sat, s->msg.lesId);
     bool have = false;
@@ -380,10 +552,63 @@ void FrameParser::egc(const uint8_t* p, int len, int64_t rxUnix) {
     finish(*s);
 }
 
+FrameParser::Slot* FrameParser::newSlot() {
+    if (slots_.size() >= 150) {      // drop the oldest
+        auto it = std::min_element(slots_.begin(), slots_.end(), [](const Slot& a, const Slot& b) { return a.order < b.order; });
+        slots_.erase(it);
+    }
+    slots_.emplace_back();
+    return &slots_.back();
+}
+
+// A message to a ship (0xAA): station (satellite and LES), logical channel, packet number, then the text. n excludes the check bytes.
+// Packets of one logical channel are one message until the station clears the channel (0x27) or starts again at packet 1.
+void FrameParser::shipMessage(const uint8_t* p, int n, int64_t rxUnix) {
+    if (n < 6) return;
+    const int sat = p[2] >> 6, les = p[2] & 63, lcn = p[3], pno = p[4];
+    Slot* s = nullptr;
+    for (auto& x : slots_)
+        if (x.msg.kind == 3 && x.msg.sat == sat && x.msg.lesId == les && x.msg.logicalChannel == lcn && !x.msg.complete) { s = &x; break; }
+    if (s && pno == 1 && !s->parts.empty()) {
+        bool haveOne = false;
+        for (auto& q : s->parts) if (q.first == 2) haveOne = true;
+        if (haveOne) { s->msg.complete = true; s->msg.seen++; s = nullptr; }   // a new message on the channel: close the old one
+    }
+    if (!s) {
+        s = newSlot();
+        s->msg.kind = 3;
+        s->msg.sat = sat; s->msg.lesId = les; s->msg.logicalChannel = lcn;
+        s->msg.lesName = lesName(sat, les);
+        s->msg.frameNo = curFrame_;
+        s->msg.rxUnix = rxUnix; s->msg.rxTime = utcText(rxUnix);
+        s->msg.presentation = -1;
+        messageCount_++;
+        for (auto& an : announcements_)      // the newest announcement of this channel names the ship and the character set
+            if (an.sat == sat && an.lesId == les && an.logicalChannel == lcn) { s->msg.mesId = an.mesId; s->msg.presentation = an.presentation; break; }
+        char b[96];
+        if (s->msg.mesId >= 0) snprintf(b, sizeof b, "Message to ship %d, channel %d", s->msg.mesId, lcn);
+        else snprintf(b, sizeof b, "Message to a ship, channel %d", lcn);
+        s->msg.serviceText = b;
+        s->msg.id = (uint16_t)lcn;
+    }
+    s->order = ++gOrder;
+    const int key = pno * 2;
+    bool have = false;
+    for (auto& q : s->parts) if (q.first == key) { q.second.assign(p + 5, p + n); have = true; break; }
+    if (!have) s->parts.emplace_back(key, std::vector<uint8_t>(p + 5, p + n));
+    s->msg.packets = (int)s->parts.size();
+    finish(*s);
+}
+
 void FrameParser::finish(Slot& s) {
     std::sort(s.parts.begin(), s.parts.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
     std::vector<uint8_t> all;
     for (auto& q : s.parts) all.insert(all.end(), q.second.begin(), q.second.end());
+    if (s.msg.kind == 3) {       // no last-packet flag: complete when the channel is cleared (parseFrame) or a new message starts
+        const int pres = s.msg.presentation >= 0 ? s.msg.presentation : looksBinary(all) ? 7 : 0;
+        s.msg.text = decodeText(pres, all);
+        return;
+    }
     const std::string text = decodeText(s.msg.presentation, all);
     bool done = false;
     if (s.lastKey >= 0) {
@@ -412,6 +637,8 @@ void FrameParser::fill(InmcTelemetry& t) const {
         t.messages.back().order = sl.order;
     }
     trimMessages(t.messages, 150, 70000);
+    t.stations = stations_;
+    t.announcements = announcements_;
     t.dataValid = false;
     for (auto& s : slots_) if (s.msg.complete) t.dataValid = true;
 }

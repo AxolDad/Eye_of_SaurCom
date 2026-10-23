@@ -3,10 +3,13 @@
 //
 // Sources (facts only): packet descriptors, lengths, field positions, the check bytes, service and address codes, satellite and station
 // tables from the open decoder "inmarsatc" (inmarsatc_parser.cpp) and cross-checked against stdcdec (stdc_decode.c); the bulletin board
-// packet of the NCS carries the frame number (times 8.64 s) and the channel type. What is NOT confirmed against a specification:
-//  - the layout of the EGC address bytes (area numbers, positions): they are shown as hex, not decoded;
+// packet of the NCS carries the frame number (times 8.64 s) and the channel type. The EGC area layouts (NAVAREA, coastal area,
+// rectangle, circle), the station list (0xAB), the announcement (0x81), the logical channel clear (0x27) and the message to a ship
+// (0xAA) follow Scytale-C (GPL-3, PacketDecoderGeoUtils.cs and PacketDecoder*.cs). What is NOT confirmed against a specification:
 //  - the meaning of the first address byte (read here as satellite and station, like the other packets): marked tentative;
-//  - how the second EGC descriptor (0xB2) numbers its packets: parts are ordered by packet number, then 0xB1 before 0xB2.
+//  - how the second EGC descriptor (0xB2) numbers its packets: parts are ordered by packet number, then 0xB1 before 0xB2;
+//  - the character set of a message to a ship: the packet has no presentation; the announcement of its channel gives it, else the
+//    text is read as IA5 unless it holds control codes (Scytale-C's check), then as binary.
 #pragma once
 #include "inmc_code.h"
 #include "inmc_tel.h"
@@ -30,6 +33,13 @@ std::string ita2ToText(const std::vector<uint8_t>& codes);
 std::vector<uint8_t> textToIta2(const std::string& text);   // for the test signal
 std::string decodeText(int presentation, const std::vector<uint8_t>& bytes);
 std::string utcText(int64_t unixSec);
+double downlinkMhz(uint16_t channel);            // TDM channel number to MHz: (n - 8000) * 2.5 kHz + 1530 MHz
+uint16_t downlinkChannel(double mhz);
+std::string navAreaCoordinator(int area);        // the country that issues NAVAREA/METAREA warnings for the area ("" when unknown)
+std::string romanNumeral(int n);
+bool looksBinary(const std::vector<uint8_t>& b); // control codes that IA5 text does not use
+// Decodes the area of an EGC message from its service code and the address bytes after the first one; fills the area members.
+void decodeArea(int serviceCode, const std::vector<uint8_t>& area, InmcMessage& m);
 
 // ---- builders (each returns the packet with its check bytes) ----
 struct BulletinBoard {
@@ -61,6 +71,16 @@ struct EgcPacket {
 };
 std::vector<uint8_t> buildEgc(const EgcPacket& p);
 
+struct StationEntry {
+    int sat = 3, les = 2;
+    uint16_t services = 0xE001;
+    double downlinkMhz = 1537.70;
+};
+std::vector<uint8_t> buildStationList(const std::vector<StationEntry>& s);
+std::vector<uint8_t> buildAnnouncement(int mesId, int sat, int les, double downlinkMhz, int logicalChannel, int presentation);
+std::vector<uint8_t> buildChannelClear(int mesId, int sat, int les, int logicalChannel);
+std::vector<uint8_t> buildShipMessage(int sat, int les, int logicalChannel, int packetNo, const std::vector<uint8_t>& payload);
+
 // newest first (by InmcMessage::order), at most maxCount, and the text of older ones cut so that the report stays under about 100 kB
 void trimMessages(std::vector<InmcMessage>& v, size_t maxCount, size_t budget);
 
@@ -85,7 +105,11 @@ private:
         uint64_t order = 0;
     };
     void egc(const uint8_t* p, int len, int64_t rxUnix);
+    void shipMessage(const uint8_t* p, int len, int64_t rxUnix);
     void finish(Slot& s);
+    Slot* newSlot();
+    std::vector<InmcStation> stations_;
+    std::vector<InmcAnnouncement> announcements_;   // newest first
     InmcNcsInfo ncs_;
     std::vector<Slot> slots_;
     uint32_t pktOk_[256], pktBad_[256];
