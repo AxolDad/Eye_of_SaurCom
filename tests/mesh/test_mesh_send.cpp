@@ -1,6 +1,7 @@
 // Mesh send (makeMeshMessageSynth): your own text goes out as one real Meshtastic packet (default LongFast channel) or MeshCore Public
 // channel message, and the receiver decodes exactly that text, from the sender's name, with no CRC errors.
 #include "dect2/mesh/mesh_gen.h"
+#include "dect2/mesh/mesh_proto.h"
 #include "dect2/mesh/mesh_rx.h"
 #include <cstdio>
 #include <string>
@@ -19,6 +20,7 @@ static MeshTelemetry run(int protocols, const std::string& text, const std::stri
     if (!syn) return t;
     MeshReceiver rx;
     rx.configure(rate);
+    if (protocols == 2) rx.setTunedHz(meshcoreDefaults("EU").freqHz);   // sent on the frequency the transmitter is tuned to: MeshCore's channel
     rx.setSignalOffset(-meshTuning().tuneOffsetHz);
     std::vector<cf32> buf(65536);
     for (size_t done = 0; done < (size_t)(secs * rate); done += buf.size()) { syn->generate(buf.data(), buf.size()); rx.feed(buf.data(), buf.size()); }
