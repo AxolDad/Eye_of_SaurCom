@@ -27,28 +27,52 @@ mod heap {
         fn free(p: *mut u8);
     }
     pub struct Libc;
-    // malloc returns memory aligned for any fundamental type (16 bytes on the 64-bit targets); nothing here asks for more.
+    // malloc returns memory aligned for any fundamental type (16 bytes on the 64-bit targets). A larger alignment (std's own cache-padded
+    // types ask for 64 or 128 when this allocator serves a std program, e.g. the umbrella crate's tests) is over-allocated: the block
+    // malloc gave is kept in the word just before the aligned pointer.
+    const MALLOC_ALIGN: usize = 16;
+    unsafe fn alloc_big(l: Layout, zero: bool) -> *mut u8 {
+        let w = core::mem::size_of::<usize>();
+        let Some(n) = l.size().checked_add(l.align() + w) else { return core::ptr::null_mut() };
+        let raw = if zero { calloc(n, 1) } else { malloc(n) };
+        if raw.is_null() {
+            return raw;
+        }
+        let p = ((raw as usize + w + l.align() - 1) & !(l.align() - 1)) as *mut u8;
+        (p as *mut usize).sub(1).write_unaligned(raw as usize);
+        p
+    }
     unsafe impl GlobalAlloc for Libc {
         unsafe fn alloc(&self, l: Layout) -> *mut u8 {
-            if l.align() > 16 {
-                return core::ptr::null_mut();
+            if l.align() > MALLOC_ALIGN {
+                return alloc_big(l, false);
             }
             malloc(l.size())
         }
         unsafe fn alloc_zeroed(&self, l: Layout) -> *mut u8 {
-            if l.align() > 16 {
-                return core::ptr::null_mut();
+            if l.align() > MALLOC_ALIGN {
+                return alloc_big(l, true);
             }
             calloc(l.size(), 1)
         }
-        unsafe fn dealloc(&self, p: *mut u8, _l: Layout) {
-            free(p)
+        unsafe fn dealloc(&self, p: *mut u8, l: Layout) {
+            if l.align() > MALLOC_ALIGN {
+                free((p as *mut usize).sub(1).read_unaligned() as *mut u8);
+            } else {
+                free(p)
+            }
         }
         unsafe fn realloc(&self, p: *mut u8, l: Layout, n: usize) -> *mut u8 {
-            if l.align() > 16 {
-                return core::ptr::null_mut();
+            if l.align() <= MALLOC_ALIGN {
+                return realloc(p, n);
             }
-            realloc(p, n)
+            let Ok(nl) = Layout::from_size_align(n, l.align()) else { return core::ptr::null_mut() };
+            let q = alloc_big(nl, false);
+            if !q.is_null() {
+                core::ptr::copy_nonoverlapping(p, q, l.size().min(n));
+                self.dealloc(p, l);
+            }
+            q
         }
     }
     #[global_allocator]
