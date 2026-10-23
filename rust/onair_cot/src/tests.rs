@@ -107,6 +107,19 @@ fn refuses_bad_input_without_panicking() {
 }
 
 #[test]
+fn hostile_years_are_rejected_without_overflow() {
+    assert_eq!(parse_iso("2026-10-23T12:00:00Z"), Some(1_792_756_800_000));
+    for bad in ["9999999999999999-01-01T00:00:00Z", "12345-01-01T00:00:00Z", "0000-01-01T00:00:00Z", "999-01-01T00:00:00Z"] {
+        assert_eq!(parse_iso(bad), None, "{bad}");
+    }
+    let x = |stale: &str| format!("<event uid='a' type='b' time='2026-10-23T12:00:00Z' stale='{stale}'><point lat='1' lon='1'/></event>");
+    assert_eq!(decode(x("2026-10-23T12:00:00Z").as_bytes()).map(|r| r.stale_ms), Some(1_792_756_800_000));
+    for bad in ["9999999999999999-01-01T00:00:00Z", "12345-01-01T00:00:00Z"] {
+        assert_eq!(decode(x(bad).as_bytes()).map(|r| r.stale_ms), Some(0), "{bad}"); // no stale time, no panic
+    }
+}
+
+#[test]
 fn decodes_an_atak_style_event() {
     let x = b"<?xml version='1.0' encoding='UTF-8' standalone='yes'?><event version='2.0' uid='ANDROID-589520ccfcd20f01' type='a-f-G-U-C' time='2026-10-23T12:00:00.123Z' start='2026-10-23T12:00:00.123Z' stale='2026-10-23T12:06:00.123Z' how='h-e'><point lat='38.8977' lon='-77.0365' hae='17.5' ce='9999999.0' le='9999999.0'/><detail><takv os='34' version='4.10' device='PIXEL' platform='ATAK-CIV'/><contact endpoint='*:-1:stcp' callsign='ZOR-1'/><__group role='Team Member' name='Cyan'/></detail></event>";
     let r = decode(x).expect("decodes");

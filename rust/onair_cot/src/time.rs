@@ -45,11 +45,15 @@ pub fn parse_iso(s: &str) -> Option<i64> {
     let s = s.trim().strip_suffix('Z')?;
     let (date, clock) = s.split_once('T')?;
     let mut dp = date.splitn(3, '-');
-    let (y, mo, d) = (digits(dp.next()?)?, digits(dp.next()?)?, digits(dp.next()?)?);
+    let ys = dp.next()?;
+    if ys.len() != 4 {
+        return None; // a 4-digit year keeps the day arithmetic far from i64 overflow
+    }
+    let (y, mo, d) = (digits(ys)?, digits(dp.next()?)?, digits(dp.next()?)?);
     let (hms, frac) = clock.split_once('.').unwrap_or((clock, ""));
     let mut tp = hms.splitn(3, ':');
     let (h, mi, sec) = (digits(tp.next()?)?, digits(tp.next()?)?, digits(tp.next()?)?);
-    if !(1..=12).contains(&mo) || !(1..=31).contains(&d) || h > 23 || mi > 59 || sec > 60 {
+    if !(1..=9999).contains(&y) || !(1..=12).contains(&mo) || !(1..=31).contains(&d) || h > 23 || mi > 59 || sec > 60 {
         return None;
     }
     let mut milli = 0i64;

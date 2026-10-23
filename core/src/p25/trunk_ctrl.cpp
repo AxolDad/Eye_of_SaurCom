@@ -73,9 +73,7 @@ void Controller::onTsbkBad(double) { bad_++; }
 
 void Controller::onDmrCsbk(int opcode, int fid, const uint8_t data[8], double now) {
     Grant g;
-    good_++;
-    lastGood_ = now;
-    follower.onControlSeen(now);
+    onControlSeen(now);
     if (dmr.onCsbk(opcode, fid, data, now, g)) dispatch({g}, now);
 }
 

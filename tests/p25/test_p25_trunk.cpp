@@ -283,9 +283,30 @@ int main() {
         bool home = false;
         for (const Action& a : c.takeActions()) home |= a.kind == Action::Retune && std::fabs(a.freqHz - 451.5e6) < 1;
         CHECK(home && !c.log.records()[0].active, "back on the control channel after the call");
-        c.onNxdnAssignment(4, 4321, 9, 700, 0, 13.0);   // a private call on a channel missing from the table
-        CHECK(c.log.records().size() == 2 && !c.log.records()[1].group && !c.log.records()[1].followed, "unknown channel: logged, not followed");
-        CHECK(c.nxdn.grants() == 2, "nxdn grants counted");
+        // a call whose voice is heard on its channel stays followed past the hang time, and ends once the voice stops
+        c.onControlSeen(12.5);
+        c.onNxdnAssignment(1, 4321, 78, 513, 0, 12.6);
+        c.takeActions();
+        const uint64_t id = c.follower.audibleCall();
+        for (double t = 12.7; t < 20; t += 0.5) { c.onVoice(id, t); c.tick(t); }
+        CHECK(id && c.log.byId(id) && c.log.byId(id)->active, "voice keeps the hopped call");
+        for (double t = 20; t < 24; t += 0.5) c.tick(t);
+        CHECK(c.log.byId(id) && !c.log.byId(id)->active, "the call ends when its voice stops");
+        c.takeActions();
+        // another system (the scanner moves on): reset, then its first call returns to the new system's frequency, not the old one
+        c.follower.reset();
+        c.nxdn.setChannel(600, 452.0e6);
+        c.setCapture(451.8e6, 0);
+        c.onControlSeen(30);
+        c.onNxdnAssignment(1, 5, 6, 600, 0, 30.1);
+        c.takeActions();
+        for (double t = 30.5; t < 36; t += 0.5) c.tick(t);
+        bool homeNew = false, homeOld = false;
+        for (const Action& a : c.takeActions()) if (a.kind == Action::Retune) { homeNew |= std::fabs(a.freqHz - 451.8e6) < 1; homeOld |= std::fabs(a.freqHz - 451.5e6) < 1; }
+        CHECK(homeNew && !homeOld, "after a reset the follower goes home to the new system");
+        c.onNxdnAssignment(4, 4321, 9, 700, 0, 40.0);   // a private call on a channel missing from the table
+        CHECK(!c.log.records().back().group && !c.log.records().back().followed, "unknown channel: logged, not followed");
+        CHECK(c.nxdn.grants() == 4, "nxdn grants counted");
         Grant g;
         CHECK(!c.nxdn.onAssignment(1, 1, 2, 1024, 0, g) && !c.nxdn.onAssignment(1, 1, 2, -1, 0, g), "channel out of range refused");
     }

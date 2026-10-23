@@ -7,6 +7,7 @@
 #include "dect2/mesh/mesh_rx.h"
 #include <algorithm>
 #include <cmath>
+#include <ctime>
 #include <deque>
 #include <random>
 #include <string>
@@ -436,11 +437,22 @@ public:
         nextId_ = 0x30000000u | (h & 0x0fffffffu);
     }
     double sampleRate() const override { return rate_; }
+    // Cut text_ at a UTF-8 character boundary until the packet fits; false when not even one character does.
+    bool fit() {
+        while (packet(text_).empty()) {
+            if (text_.empty()) return false;
+            size_t i = text_.size() - 1;
+            while (i > 0 && ((unsigned char)text_[i] & 0xC0) == 0x80) i--;
+            text_.resize(i);
+        }
+        return true;
+    }
     void generate(cf32* out, size_t n) override {
         const double t0 = (double)pos_ / rate_, t1 = (double)(pos_ + n) / rate_;
         while (nextAt_ <= t1 + 1) {
-            const std::vector<uint8_t> bytes = meshcore_ ? meshcorePublicText(mc_, kUnix0 + (uint32_t)nextAt_, text_, {})
-                                                         : meshtasticTextEx(mt_, kBroadcast, nextId_++, 3, 3, text_, 0, false);
+            const std::vector<uint8_t> bytes = packet(text_);
+            if (bytes.empty()) { nextAt_ += 30; continue; }   // too large to send: no frame
+            nextId_++;
             lora::TxFrame f;
             f.p = p_;
             f.data = lora::encode(p_, bytes.data(), bytes.size());
@@ -457,6 +469,10 @@ public:
     }
 
 private:
+    std::vector<uint8_t> packet(const std::string& text) {
+        return meshcore_ ? meshcorePublicText(mc_, (uint32_t)time(nullptr), text, {})
+                         : meshtasticTextEx(mt_, kBroadcast, nextId_, 3, 3, text, 0, false);
+    }
     double rate_;
     SynthConfig cfg_;
     std::string text_;
@@ -474,7 +490,9 @@ private:
 
 std::unique_ptr<ModeSynth> makeMeshMessageSynth(const SynthConfig& cfg, double sampleRate, const std::string& text, const std::string& sender) {
     if (sampleRate <= 0 || text.empty()) return nullptr;
-    return std::make_unique<MeshMessageSynth>(cfg, sampleRate, text, sender);
+    auto syn = std::make_unique<MeshMessageSynth>(cfg, sampleRate, text, sender);
+    if (!syn->fit()) return nullptr;   // long text is cut at a character boundary to what one packet carries
+    return syn;
 }
 
 } // namespace dect2

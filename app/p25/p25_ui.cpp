@@ -38,7 +38,7 @@ State S;
 struct Trunk {
     dect2::trunk::Controller ctl;
     bool on = false, loaded = false, dirty = false;
-    uint64_t tsbkSeen = 0, csbkSeen = 0, nxdnSeen = 0;
+    uint64_t tsbkSeen = 0, csbkSeen = 0, nxdnSeen = 0, nxdnCac = 0;
     std::string dmrChannels;             // "LCN=MHz" pairs for Tier III (pref "trunkDmrChannels")
     std::string nxdnChannels;            // "channel=MHz" pairs for NXDN Type C (pref "trunkNxdnChannels")
     int forcedSel = 0;
@@ -278,7 +278,7 @@ template <class Set> int applyChannels(const std::string& text, int maxNumber, S
         char* end = nullptr;
         const long lcn = std::strtol(tok.c_str(), &end, 10);
         const double mhz = std::strtod(tok.c_str() + eq + 1, nullptr);
-        if (end != tok.c_str() + eq || lcn < 0 || lcn > maxNumber || !(mhz > 1 && mhz < 6000)) continue;
+        if (end == tok.c_str() || end != tok.c_str() + eq || lcn < 0 || lcn > maxNumber || !(mhz > 1 && mhz < 6000)) continue;
         set((int)lcn, mhz * 1e6);
         n++;
     }
@@ -301,6 +301,10 @@ void trunkTick(App& a) {
     using namespace dect2::trunk;
     const double now = nowSec();
     const dect2::P25Telemetry& t = a.rx.p25;
+    // a restarted receiver counts its messages from 1 again
+    if (!t.tsbks.empty() && t.tsbks.back().seq < T.tsbkSeen) T.tsbkSeen = 0;
+    if (!a.rx.dmr.csbks.empty() && a.rx.dmr.csbks.back().seq < T.csbkSeen) T.csbkSeen = 0;
+    if (!a.rx.nxdn.grants.empty() && a.rx.nxdn.grants.back().seq < T.nxdnSeen) T.nxdnSeen = 0;
     if (p25) for (const auto& r : t.tsbks) {
         if (r.seq <= T.tsbkSeen) continue;
         T.tsbkSeen = r.seq;
@@ -313,7 +317,9 @@ void trunkTick(App& a) {
         T.ctl.onDmrCsbk(r.opcode, r.fid, r.data, now);
     }
     if (nxdn) {
-        if (a.rx.nxdn.siteInfo.valid) T.ctl.onControlSeen(now);   // a Type C control channel is on air
+        // a Type C control channel is on air when new control channel (CAC) frames decode; site info alone is kept from earlier
+        if (a.rx.nxdn.cacOk < T.nxdnCac) T.nxdnCac = 0;
+        if (a.rx.nxdn.cacOk > T.nxdnCac) { T.nxdnCac = a.rx.nxdn.cacOk; T.ctl.onControlSeen(now); }
         for (const auto& g : a.rx.nxdn.grants) {
             if (g.seq <= T.nxdnSeen) continue;
             T.nxdnSeen = g.seq;
@@ -321,6 +327,14 @@ void trunkTick(App& a) {
         }
     }
     T.ctl.setCapture(radioCenterMhz(a) * 1e6, p25 && wideActive(a) ? t.inputRate : 0);   // DMR, NXDN: the radio retunes for each call
+    if (const uint64_t id = T.ctl.follower.audibleCall()) {   // on the call's channel: voice heard keeps the call (and the radio) there
+        const CallRecord* r = T.ctl.log.byId(id);
+        bool voice = false;
+        if (p25) voice = t.now.active && t.now.kind == 0;
+        else if (dmr) voice = r && r->slot >= 0 && r->slot < 2 && a.rx.dmr.slot[r->slot].active && a.rx.dmr.slot[r->slot].state == 1;
+        else voice = a.rx.nxdn.now.active;
+        if (voice && !(p25 && wideActive(a))) T.ctl.onVoice(id, now);
+    }
     T.ctl.tick(now);
     for (const Action& ac : T.ctl.takeActions()) {
         switch (ac.kind) {
@@ -576,12 +590,18 @@ void trunkFollowPanel(App& a) { followView(a); }
 
 // The scanner on a trunked system's entry: follow its calls while it is there. enter: a new system, so the site and the follower start
 // again (the call log and the talkgroups stay) and the new receiver's message counters are taken from the start.
-void trunkScanFollow(App&, bool on, bool enter) {
-    if (enter) {
+void trunkScanFollow(App& a, bool on, bool enter) {
+    static bool userOn = false, held = false;   // the user's own setting, given back when the scanner leaves trunked systems
+    if (on && !held) { userOn = T.on; held = true; }
+    if (enter) {   // a new system: what the receiver still holds from the last one is not this system's
         T.ctl.sys.clear();
         T.ctl.follower.reset();
-        T.tsbkSeen = T.csbkSeen = T.nxdnSeen = 0;
+        T.tsbkSeen = a.rx.p25.tsbks.empty() ? 0 : a.rx.p25.tsbks.back().seq;
+        T.csbkSeen = a.rx.dmr.csbks.empty() ? 0 : a.rx.dmr.csbks.back().seq;
+        T.nxdnSeen = a.rx.nxdn.grants.empty() ? 0 : a.rx.nxdn.grants.back().seq;
+        T.nxdnCac = a.rx.nxdn.cacOk;
     }
+    if (!on && held) { T.on = userOn; held = false; return; }
     T.on = on;
 }
 // A call the follower follows right now, and what it is ("talkgroup 77 Fire Dispatch"); false when none.

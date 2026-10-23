@@ -31,7 +31,7 @@ void Follower::reset() {
     lastCcSec_ = -1e9;
     missed_ = 0;
     noticed_.clear();
-    ccHz_ = 0; radioHz_ = 0; candIdx_ = 0;
+    ccHz_ = 0; radioHz_ = 0; homeHz_ = 0; candIdx_ = 0;
     cands_.clear();
 }
 
@@ -97,7 +97,10 @@ void Follower::goHome(double now) {
 void Follower::onControlSeen(double now) {
     lastCcSec_ = now;
     switch (state_) {
-    case FollowState::NoControl: setState(FollowState::ControlHold, now); break;
+    case FollowState::NoControl:
+        if (ccHz_ <= 0 && centerHz_ > 0) ccHz_ = centerHz_;   // DMR / NXDN name no control channel: the one the radio is on now
+        setState(FollowState::ControlHold, now);
+        break;
     case FollowState::Returning: setState(FollowState::ControlHold, now); break;
     case FollowState::Searching:
         if (radioHz_ > 0) ccHz_ = radioHz_;

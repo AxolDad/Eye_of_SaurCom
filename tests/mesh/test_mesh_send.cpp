@@ -28,6 +28,11 @@ static MeshTelemetry run(int protocols, const std::string& text, const std::stri
     return t;
 }
 
+static bool prefixHeard(const MeshTelemetry& t, const std::string& text) {
+    for (const auto& m : t.messages) if (!m.text.empty() && text.compare(0, m.text.size(), m.text) == 0) return true;
+    return false;
+}
+
 static bool heard(const MeshTelemetry& t, const std::string& text) {
     for (const auto& m : t.messages) if (m.text.find(text) != std::string::npos) return true;
     return false;
@@ -46,6 +51,14 @@ int main() {
 
     MeshTelemetry c = run(2, msg, "ZOR1 Base", 4);
     CHECK(heard(c, msg) && c.blocksBad == 0, "MeshCore Public channel: the text decodes (%zu messages)", c.messages.size());
+
+    // text too long for one packet is cut (not dropped): a non-empty prefix of it is sent
+    MeshTelemetry l1 = run(1, std::string(255, 'a'), "ZOR1 Base", 4);
+    CHECK(prefixHeard(l1, std::string(255, 'a')), "Meshtastic: 255 ASCII chars -> a prefix is heard (%zu messages)", l1.messages.size());
+    std::string two;
+    for (int i = 0; i < 200; i++) two += "\xC3\xA9";
+    MeshTelemetry l2 = run(1, two, "ZOR1 Base", 4);
+    CHECK(prefixHeard(l2, two) && l2.messages[0].text.size() % 2 == 0, "Meshtastic: 200 two-byte chars -> a whole-character prefix is heard (%zu messages)", l2.messages.size());
 
     CHECK(makeMeshMessageSynth(SynthConfig(), 2.4e6, "", "x") == nullptr, "no text: nothing (the demo scene is used instead)");
     if (fails) { printf("%d failures\n", fails); return 1; }
