@@ -30,6 +30,9 @@ int main() {
     std::string err;
     VideoStreamConfig bad; bad.port = 0;
     CHECK(!vs.start(bad, err) && !err.empty(), "port 0 refused");
+    VideoStreamConfig lowRate; lowRate.kbps = 100;
+    CHECK(!vs.start(lowRate, err) && !err.empty(), "kbit/s below 200 refused");
+    { VideoStreamer unused; VideoStreamConfig b2; b2.port = 70000; CHECK(!unused.start(b2, err), "port 70000 refused"); }   // destroyed after a refused start
     VideoStreamConfig c; c.host = "127.0.0.1"; c.port = ntohs(a.sin_port); c.kbps = 3000;
     CHECK(vs.start(c, err), "start: %s", err.c_str());
 

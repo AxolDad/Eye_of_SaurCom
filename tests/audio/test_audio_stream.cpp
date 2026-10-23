@@ -60,6 +60,9 @@ static void requestChecks() {
     CHECK(r.find("\r\nContent-Type: audio/mpeg\r\n") != std::string::npos && r.find("Ice-Audio-Info: bitrate=96") != std::string::npos, "MP3 and its bit rate");
     CHECK(r.find("\r\nX-Evil") == std::string::npos && r.find("Ice-Name: Eye  X-Evil: 1\r\n") != std::string::npos, "a line break cannot add a header");
     CHECK(r.size() > 4 && r.compare(r.size() - 4, 4, "\r\n\r\n") == 0, "headers end with a blank line");
+    c.mount = "/my radio";
+    const std::string sp = icecastRequest(c);
+    CHECK(sp.rfind("PUT /my%20radio HTTP/1.1\r\n", 0) == 0, "a space in the mount is percent-encoded: %s", sp.c_str());
     std::string why;
     CHECK(icecastAccepted("HTTP/1.1 200 OK", why) && icecastAccepted("HTTP/1.0 200 OK", why), "200 accepted");
     CHECK(!icecastAccepted("HTTP/1.1 401 Unauthorized", why) && why.find("password") != std::string::npos, "401: %s", why.c_str());

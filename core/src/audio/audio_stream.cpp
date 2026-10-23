@@ -5,7 +5,11 @@
 #include "../net/tcp_client.h"
 #include <algorithm>
 #include <chrono>
+#include <cctype>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -16,7 +20,15 @@ namespace {
 constexpr size_t kRingFrames = 1u << 17;   // 2.7 s at 48 kHz: rides over a short network stall
 constexpr int kRetryMs = 5000;
 int64_t nowMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
-std::string mountOf(const std::string& m) { return m.empty() || m[0] != '/' ? "/" + m : m; }
+// the mount as a request target: starts with '/', anything but unreserved characters and sub-delims is %XX (a space would end the target)
+std::string mountOf(const std::string& m) {
+    std::string r = m.empty() || m[0] != '/' ? "/" : "";
+    for (const unsigned char ch : m) {
+        if (std::isalnum(ch) || std::strchr("/-._~!$&'()*+,;=", ch)) { if (ch) r += (char)ch; }
+        else { char b[4]; std::snprintf(b, sizeof b, "%%%02X", ch); r += b; }
+    }
+    return r;
+}
 // header values: no line breaks (a name with a newline would add a header of its own)
 std::string oneLine(std::string s) { for (char& c : s) if (c == '\r' || c == '\n') c = ' '; return s; }
 } // namespace

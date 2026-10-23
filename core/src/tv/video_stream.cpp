@@ -39,6 +39,7 @@ struct VideoStreamer::Impl {
     SwsContext* sws = nullptr;
     AVFrame* yuv = nullptr;
     AVPacket* pkt = nullptr;
+    bool headerWritten = false;   // the trailer and the encoder flush only make sense after the header
     int w = 0, h = 0;
     int64_t pts = 0;
 
@@ -61,16 +62,19 @@ struct VideoStreamer::Impl {
     }
     void close() {
         if (oc) {
-            if (enc) {   // what the encoder still holds
-                avcodec_send_frame(enc, nullptr);
-                while (avcodec_receive_packet(enc, pkt) >= 0) { av_packet_rescale_ts(pkt, enc->time_base, vs->time_base); pkt->stream_index = 0; av_interleaved_write_frame(oc, pkt); }
+            if (headerWritten) {
+                if (enc && pkt) {   // what the encoder still holds
+                    avcodec_send_frame(enc, nullptr);
+                    while (avcodec_receive_packet(enc, pkt) >= 0) { av_packet_rescale_ts(pkt, enc->time_base, vs->time_base); pkt->stream_index = 0; av_interleaved_write_frame(oc, pkt); }
+                }
+                av_write_trailer(oc);
             }
-            av_write_trailer(oc);
             if (oc->pb) { avio_flush(oc->pb); av_freep(&oc->pb->buffer); avio_context_free(&oc->pb); }
             avformat_free_context(oc);
-            oc = nullptr;
+            oc = nullptr; vs = nullptr;
             sendDatagram();
         }
+        headerWritten = false;
         if (enc) avcodec_free_context(&enc);
         if (sws) { sws_freeContext(sws); sws = nullptr; }
         if (yuv) av_frame_free(&yuv);
@@ -82,6 +86,7 @@ struct VideoStreamer::Impl {
         const AVCodec* c = avcodec_find_encoder(AV_CODEC_ID_MPEG2VIDEO);
         if (!c) { err = "this FFmpeg has no MPEG-2 video encoder"; return false; }
         enc = avcodec_alloc_context3(c);
+        if (!enc) { err = "out of memory"; return false; }
         const int fps = f.fieldRate > 55 ? 30 : 25;   // a woven frame per two fields
         enc->width = f.width; enc->height = f.height;
         enc->time_base = AVRational{1, fps}; enc->framerate = AVRational{fps, 1};
@@ -91,16 +96,21 @@ struct VideoStreamer::Impl {
         if (avcodec_open2(enc, c, nullptr) < 0) { err = "the MPEG-2 encoder did not start"; close(); return false; }
         if (avformat_alloc_output_context2(&oc, nullptr, "mpegts", nullptr) < 0 || !oc) { err = "no MPEG-TS muxer"; close(); return false; }
         uint8_t* iob = (uint8_t*)av_malloc(kDatagram * 4);
+        if (!iob) { err = "out of memory"; close(); return false; }
         oc->pb = avio_alloc_context(iob, kDatagram * 4, 1, this, nullptr, &Impl::write, nullptr);
+        if (!oc->pb) { av_free(iob); err = "out of memory"; close(); return false; }
         vs = avformat_new_stream(oc, nullptr);
-        avcodec_parameters_from_context(vs->codecpar, enc);
+        if (!vs) { err = "no video stream in the transport stream"; close(); return false; }
+        if (avcodec_parameters_from_context(vs->codecpar, enc) < 0) { err = "out of memory"; close(); return false; }
         vs->time_base = enc->time_base;
         if (avformat_write_header(oc, nullptr) < 0) { err = "the transport stream could not start"; close(); return false; }
+        headerWritten = true;
         sws = sws_getContext(f.width, f.height, AV_PIX_FMT_RGBA, f.width, f.height, AV_PIX_FMT_YUV420P, SWS_BILINEAR, nullptr, nullptr, nullptr);
         yuv = av_frame_alloc();
-        yuv->format = AV_PIX_FMT_YUV420P; yuv->width = f.width; yuv->height = f.height;
         pkt = av_packet_alloc();
-        if (!sws || av_frame_get_buffer(yuv, 0) < 0 || !pkt) { err = "out of memory"; close(); return false; }
+        if (!sws || !yuv || !pkt) { err = "out of memory"; close(); return false; }
+        yuv->format = AV_PIX_FMT_YUV420P; yuv->width = f.width; yuv->height = f.height;
+        if (av_frame_get_buffer(yuv, 0) < 0) { err = "out of memory"; close(); return false; }
         w = f.width; h = f.height; pts = 0;
         return true;
     }
