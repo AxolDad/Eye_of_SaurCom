@@ -20,6 +20,7 @@ One program for radio and communications, grown from OnAir (GPL-3.0). New code i
 | 4 | Mesh send | Meshtastic and MeshCore text and position out through the SDR. | Mesh receive, frame generator, step 1 |
 | 5 | Trunking and scanning | Multi-system P25, DMR and NXDN trunking, talkgroup aliases, call recording, one scanner. sdrtrunk is the reference. | P25 follower, step 2 |
 | 6 | Internet radio and video out | Station directory and player; re-stream decoded TV and FPV video. | Step 2, TV player |
+| 7 | WiFi sensing (from RuView, MIT) | Presence, people count, breathing and heart rate, motion and falls from WiFi channel state information; approach chosen after mapping RuView's interfaces. | RuView, Wi-Fi decoder |
 
 ## Out of scope
 
