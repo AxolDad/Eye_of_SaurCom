@@ -75,7 +75,11 @@ std::vector<uint8_t> meshcoreGroupText(const uint8_t secret16[16], const MeshCor
     // BaseChatMesh::sendGroupMessage; keep the packet under 184 payload bytes (1 hash + 2 MAC + whole blocks)
     const size_t maxPlain = (184 - 3) / 16 * 16;
     plain.insert(plain.end(), line.begin(), line.end());
-    if (plain.size() > maxPlain) plain.resize(maxPlain);
+    if (plain.size() > maxPlain) {
+        size_t n = maxPlain;                               // cut on a UTF-8 character boundary: back over continuation bytes, drop the split lead byte
+        while (n > 5 && (plain[n] & 0xC0) == 0x80) n--;
+        plain.resize(n);
+    }
     uint8_t key32[32] = {};
     std::memcpy(key32, secret16, 16);
     const std::vector<uint8_t> ct = aesEcbEncrypt(key32, 16, plain.data(), plain.size());

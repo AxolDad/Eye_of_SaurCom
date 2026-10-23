@@ -59,6 +59,9 @@ int main() {
     for (int i = 0; i < 200; i++) two += "\xC3\xA9";
     MeshTelemetry l2 = run(1, two, "ZOR1 Base", 4);
     CHECK(prefixHeard(l2, two) && l2.messages[0].text.size() % 2 == 0, "Meshtastic: 200 two-byte chars -> a whole-character prefix is heard (%zu messages)", l2.messages.size());
+    MeshTelemetry l3 = run(2, two, "ZOR1 Base", 4);
+    CHECK(!l3.messages.empty() && !l3.messages[0].text.empty() && prefixHeard(l3, two) && l3.messages[0].text.size() % 2 == 0,
+          "MeshCore: 200 two-byte chars -> a whole-character prefix is heard (%zu messages)", l3.messages.size());
 
     CHECK(makeMeshMessageSynth(SynthConfig(), 2.4e6, "", "x") == nullptr, "no text: nothing (the demo scene is used instead)");
     if (fails) { printf("%d failures\n", fails); return 1; }
