@@ -83,7 +83,7 @@ struct TxService {
     int uepIndex = -1;                  // 0..63: UEP (short form, table 6 of EN 300 401) instead of EEP; bitrate must be the table's
 };
 struct TxConfig {
-    std::string ensembleLabel = "Eye of ZorCom DAB";
+    std::string ensembleLabel = "OnAir DAB";
     uint16_t eid = 0xCE15;
     std::vector<TxService> services;    // empty: defaultServices()
     double snrDb = 200, cfoHz = 0, sroPpm = 0;
@@ -106,10 +106,10 @@ struct TxConfig {
     // Labels as FIG 2 (UTF-8, in segments of at most 8 bytes) instead of FIG 1: the label strings may then hold any text
     bool utf8Labels = false;
 };
-// 1 "Eye of ZorCom Tones 1" DAB+ 48 kHz 1 kHz / 3 kHz, 48 kbit/s; 2 "Eye of ZorCom Tones 2" DAB+ 32 kHz 2 kHz / 500 Hz, 32 kbit/s; 3 "Eye of ZorCom Melody" DAB+ 48 kHz, 64 kbit/s;
-// 4 "Eye of ZorCom MP2" DAB 48 kHz 1.5 kHz / 750 Hz, 128 kbit/s (left out when libavcodec has no MP2 encoder)
+// 1 "OnAir Tones 1" DAB+ 48 kHz 1 kHz / 3 kHz, 48 kbit/s; 2 "OnAir Tones 2" DAB+ 32 kHz 2 kHz / 500 Hz, 32 kbit/s; 3 "OnAir Melody" DAB+ 48 kHz, 64 kbit/s;
+// 4 "OnAir MP2" DAB 48 kHz 1.5 kHz / 750 Hz, 128 kbit/s (left out when libavcodec has no MP2 encoder)
 std::vector<TxService> defaultServices();
-// 5 "Eye of ZorCom TV": a DMB television service (data service, 32-bit SId) of 408 kbit/s, EEP 3-A: colour bars with a square moving across, 176 x 144
+// 5 "OnAir TV": a DMB television service (data service, 32-bit SId) of 408 kbit/s, EEP 3-A: colour bars with a square moving across, 176 x 144
 // (QCIF) at 12.5 pictures per second in H.264, and AAC-LC 32 kHz stereo tones (1 kHz left, 500 Hz right). The app's test signal carries it
 // after the defaultServices().
 TxService dmbService();

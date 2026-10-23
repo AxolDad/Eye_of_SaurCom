@@ -173,7 +173,7 @@ bool kawsFromRequest(const TxRequest& r, KawsTxPlan& plan, std::string& err) {
         for (char& ch : c.to) ch = (char)std::toupper((unsigned char)ch);
         if (!callsignValid(c.to)) { err = "KAWS: the recipient is 1 to 9 characters of letters, digits, - / and ."; return false; }
         c.firstMessage = true;
-        c.text = r.text.empty() ? std::string("Eye of ZorCom KAWS test message") : r.text;
+        c.text = r.text.empty() ? std::string("OnAir KAWS test message") : r.text;
         if (c.text.size() > 100) { err = "KAWS: a chat message is at most 100 characters"; return false; }
         msg = encodeChat(c);
     } else if (plan.kind == 1) {

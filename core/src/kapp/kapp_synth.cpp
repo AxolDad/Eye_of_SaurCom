@@ -14,9 +14,9 @@ std::unique_ptr<ModeSynth> makeKappSynth(const SynthConfig& s, double sampleRate
     TxRequest r;
     r.modeId = "kapp";
     r.callsign = "ONAIR";
-    static const char* kText[3] = {"Eye of ZorCom KAPP test signal: message one. Selective-repeat packets, sent by the real transmitter.",
-                                   "Eye of ZorCom KAPP test signal: message two. A receiver that joins late gets the next one.",
-                                   "Eye of ZorCom KAPP test signal: message three, then the first again."};
+    static const char* kText[3] = {"OnAir KAPP test signal: message one. Selective-repeat packets, sent by the real transmitter.",
+                                   "OnAir KAPP test signal: message two. A receiver that joins late gets the next one.",
+                                   "OnAir KAPP test signal: message three, then the first again."};
     r.text = kText[pass % 3];
     r.opt["kapp.profile"] = profile;
     r.opt["kapp.repeat"] = 1;
