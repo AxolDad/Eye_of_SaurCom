@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Getting started</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #070a0e; }
+#root { position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: Inter, sans-serif; color: #e8eef5;
+        background: radial-gradient(ellipse at 30% 20%, #142233 0%, #070a0e 70%); }
+.full { position: absolute; inset: 0; }
+.frame { position: absolute; left: 210px; top: 36px; width: 1500px; height: 900px; overflow: hidden; border-radius: 14px;
+         box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(120,200,255,0.18); background: #000; }
+.zoom { position: absolute; inset: 0; }
+.zoom img { position: absolute; left: 0; top: 0; width: 1500px; height: 900px; }
+.hl { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.38), 0 0 24px rgba(255,176,32,0.7); }
+.hl2 { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 24px rgba(255,176,32,0.7); }
+.cap { position: absolute; left: 210px; right: 210px; bottom: 26px; height: 104px; display: flex; align-items: center; gap: 22px;
+       padding: 0 30px; border-radius: 14px; background: rgba(10,16,24,0.92); box-shadow: 0 0 0 1px rgba(120,200,255,0.2); }
+.step { flex: none; padding: 10px 18px; border-radius: 10px; background: #ffb020; color: #10161d; font-weight: 800; font-size: 26px; }
+.captext { font-size: 34px; font-weight: 600; line-height: 1.2; }
+.brand { position: absolute; right: 228px; top: 52px; padding: 8px 16px; border-radius: 9px; background: rgba(7,10,14,0.85);
+         color: #7fd0ff; font-weight: 700; font-size: 22px; letter-spacing: 0.04em; }
+.title { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 28px; }
+.eye { width: 170px; height: 170px; border-radius: 50%; border: 10px solid #7fd0ff; display: flex; align-items: center; justify-content: center;
+       box-shadow: 0 0 60px rgba(127,208,255,0.5); }
+.eye div { width: 62px; height: 62px; border-radius: 50%; background: #ffb020; box-shadow: 0 0 40px rgba(255,176,32,0.9); }
+.t1 { font-size: 104px; font-weight: 800; letter-spacing: -0.02em; }
+.t2 { font-size: 44px; font-weight: 500; color: #b9c7d6; max-width: 1500px; }
+.t3 { font-size: 34px; font-weight: 600; color: #ffb020; }
+</style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="02-getting-started" data-start="0" data-duration="46.731" data-width="1920" data-height="1080" data-fps="30">
+<div id="s0" class="clip full" data-start="0.000" data-duration="5.480" data-track-index="0">
+<div id="s0t" class="full title"><div class="eye"><div></div></div><div class="t1">Getting started</div><div class="t2">Your first signal in four steps</div><div class="t3">Eye of ZorCom how-to</div></div>
+</div>
+<audio id="s0a" class="clip" data-start="0.250" data-duration="4.580" data-track-index="1" data-volume="1" src="assets/vo/02-getting-started_0.wav"></audio>
+<div id="s1" class="clip full" data-start="5.480" data-duration="9.626" data-track-index="0">
+<div class="frame"><div id="s1z" class="zoom"><img src="assets/shots/main_fm.jpg" alt="" />
+<div id="s1b0" class="hl" style="left:4px;top:98px;width:292px;height:120px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s1c" class="cap"><div class="step">STEP 1</div><div class="captext">Source: pick your radio, or the built-in test signal</div></div>
+</div>
+<audio id="s1a" class="clip" data-start="5.730" data-duration="8.726" data-track-index="1" data-volume="1" src="assets/vo/02-getting-started_1.wav"></audio>
+<div id="s2" class="clip full" data-start="15.106" data-duration="7.953" data-track-index="0">
+<div class="frame"><div id="s2z" class="zoom"><img src="assets/shots/main_fm.jpg" alt="" />
+<div id="s2b0" class="hl" style="left:4px;top:512px;width:292px;height:330px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s2c" class="cap"><div class="step">STEP 2</div><div class="captext">Mode: choose what to receive from the mode list</div></div>
+</div>
+<audio id="s2a" class="clip" data-start="15.356" data-duration="7.053" data-track-index="1" data-volume="1" src="assets/vo/02-getting-started_2.wav"></audio>
+<div id="s3" class="clip full" data-start="23.060" data-duration="6.328" data-track-index="0">
+<div class="frame"><div id="s3z" class="zoom"><img src="assets/shots/main_fm.jpg" alt="" />
+<div id="s3b0" class="hl" style="left:4px;top:44px;width:330px;height:52px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s3c" class="cap"><div class="step">STEP 3</div><div class="captext">Press the red button and set the frequency</div></div>
+</div>
+<audio id="s3a" class="clip" data-start="23.310" data-duration="5.428" data-track-index="1" data-volume="1" src="assets/vo/02-getting-started_3.wav"></audio>
+<div id="s4" class="clip full" data-start="29.388" data-duration="9.765" data-track-index="0">
+<div class="frame"><div id="s4z" class="zoom"><img src="assets/shots/main_dab.jpg" alt="" />
+<div id="s4b0" class="hl" style="left:1170px;top:226px;width:320px;height:170px;opacity:0"></div>
+<div id="s4b1" class="hl2" style="left:306px;top:180px;width:780px;height:420px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s4c" class="cap"><div class="step">STEP 4</div><div class="captext">Watch the spectrum, waterfall and decoded results</div></div>
+</div>
+<audio id="s4a" class="clip" data-start="29.638" data-duration="8.865" data-track-index="1" data-volume="1" src="assets/vo/02-getting-started_4.wav"></audio>
+<div id="s5" class="clip full" data-start="39.153" data-duration="7.378" data-track-index="0">
+<div class="frame"><div id="s5z" class="zoom"><img src="assets/shots/adsb_map.jpg" alt="" />
+<div id="s5b0" class="hl" style="left:60px;top:60px;width:820px;height:600px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s5c" class="cap"><div class="step">TIP</div><div class="captext">Tools &gt; Map puts everything with a position on one map</div></div>
+</div>
+<audio id="s5a" class="clip" data-start="39.403" data-duration="6.478" data-track-index="1" data-volume="1" src="assets/vo/02-getting-started_5.wav"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s0", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 0.000);
+tl.fromTo("#s0t", {scale: 0.94}, {scale: 1, duration: 5.380, ease: "sine.out"}, 0.000);
+tl.fromTo("#s1", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 5.480);
+tl.fromTo("#s1z", {scale: 1, transformOrigin: "150px 158px"}, {scale: 1.25, duration: 9.526, ease: "sine.inOut"}, 5.480);
+tl.fromTo("#s1c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 5.730);
+tl.fromTo("#s1b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 6.380);
+tl.fromTo("#s2", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 15.106);
+tl.fromTo("#s2z", {scale: 1, transformOrigin: "150px 677px"}, {scale: 1.25, duration: 7.853, ease: "sine.inOut"}, 15.106);
+tl.fromTo("#s2c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 15.356);
+tl.fromTo("#s2b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 16.006);
+tl.fromTo("#s3", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 23.060);
+tl.fromTo("#s3z", {scale: 1, transformOrigin: "169px 70px"}, {scale: 1.3, duration: 6.228, ease: "sine.inOut"}, 23.060);
+tl.fromTo("#s3c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 23.310);
+tl.fromTo("#s3b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 23.960);
+tl.fromTo("#s4", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 29.388);
+tl.fromTo("#s4z", {scale: 1, transformOrigin: "1330px 311px"}, {scale: 1.08, duration: 9.665, ease: "sine.inOut"}, 29.388);
+tl.fromTo("#s4c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 29.638);
+tl.fromTo("#s4b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 30.288);
+tl.fromTo("#s4b1", {opacity: 0}, {opacity: 1, duration: 0.4}, 30.788);
+tl.fromTo("#s5", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 39.153);
+tl.fromTo("#s5z", {scale: 1, transformOrigin: "470px 360px"}, {scale: 1.12, duration: 7.278, ease: "sine.inOut"}, 39.153);
+tl.fromTo("#s5c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 39.403);
+tl.fromTo("#s5b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 40.053);
+      window.__timelines["02-getting-started"] = tl;
+    </script>
+  </body>
+</html>

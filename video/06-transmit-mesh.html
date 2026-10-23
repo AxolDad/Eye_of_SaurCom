@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Transmit and send mesh messages</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #070a0e; }
+#root { position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: Inter, sans-serif; color: #e8eef5;
+        background: radial-gradient(ellipse at 30% 20%, #142233 0%, #070a0e 70%); }
+.full { position: absolute; inset: 0; }
+.frame { position: absolute; left: 210px; top: 36px; width: 1500px; height: 900px; overflow: hidden; border-radius: 14px;
+         box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(120,200,255,0.18); background: #000; }
+.zoom { position: absolute; inset: 0; }
+.zoom img { position: absolute; left: 0; top: 0; width: 1500px; height: 900px; }
+.hl { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.38), 0 0 24px rgba(255,176,32,0.7); }
+.hl2 { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 24px rgba(255,176,32,0.7); }
+.cap { position: absolute; left: 210px; right: 210px; bottom: 26px; height: 104px; display: flex; align-items: center; gap: 22px;
+       padding: 0 30px; border-radius: 14px; background: rgba(10,16,24,0.92); box-shadow: 0 0 0 1px rgba(120,200,255,0.2); }
+.step { flex: none; padding: 10px 18px; border-radius: 10px; background: #ffb020; color: #10161d; font-weight: 800; font-size: 26px; }
+.captext { font-size: 34px; font-weight: 600; line-height: 1.2; }
+.brand { position: absolute; right: 228px; top: 52px; padding: 8px 16px; border-radius: 9px; background: rgba(7,10,14,0.85);
+         color: #7fd0ff; font-weight: 700; font-size: 22px; letter-spacing: 0.04em; }
+.title { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 28px; }
+.eye { width: 170px; height: 170px; border-radius: 50%; border: 10px solid #7fd0ff; display: flex; align-items: center; justify-content: center;
+       box-shadow: 0 0 60px rgba(127,208,255,0.5); }
+.eye div { width: 62px; height: 62px; border-radius: 50%; background: #ffb020; box-shadow: 0 0 40px rgba(255,176,32,0.9); }
+.t1 { font-size: 104px; font-weight: 800; letter-spacing: -0.02em; }
+.t2 { font-size: 44px; font-weight: 500; color: #b9c7d6; max-width: 1500px; }
+.t3 { font-size: 34px; font-weight: 600; color: #ffb020; }
+</style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="06-transmit-mesh" data-start="0" data-duration="61.767" data-width="1920" data-height="1080" data-fps="30">
+<div id="s0" class="clip full" data-start="0.000" data-duration="13.114" data-track-index="0">
+<div id="s0t" class="full title"><div class="eye"><div></div></div><div class="t1">Transmit</div><div class="t2">Off by default. On after you agree to operate within your legal authority.</div><div class="t3">Eye of ZorCom how-to</div></div>
+</div>
+<audio id="s0a" class="clip" data-start="0.250" data-duration="12.214" data-track-index="1" data-volume="1" src="assets/vo/06-transmit-mesh_0.wav"></audio>
+<div id="s1" class="clip full" data-start="13.114" data-duration="7.698" data-track-index="0">
+<div class="frame"><div id="s1z" class="zoom"><img src="assets/shots/tx_mesh.jpg" alt="" />
+<div id="s1b0" class="hl" style="left:30px;top:18px;width:60px;height:26px;opacity:0"></div>
+<div id="s1b1" class="hl2" style="left:0px;top:96px;width:300px;height:700px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s1c" class="cap"><div class="step">STEP 1</div><div class="captext">Open the TX tab and pick what to send</div></div>
+</div>
+<audio id="s1a" class="clip" data-start="13.364" data-duration="6.798" data-track-index="1" data-volume="1" src="assets/vo/06-transmit-mesh_1.wav"></audio>
+<div id="s2" class="clip full" data-start="20.812" data-duration="8.796" data-track-index="0">
+<div class="frame"><div id="s2z" class="zoom"><img src="assets/shots/tx_dry.jpg" alt="" />
+<div id="s2b0" class="hl" style="left:318px;top:170px;width:220px;height:28px;opacity:0"></div>
+<div id="s2b1" class="hl2" style="left:960px;top:110px;width:530px;height:490px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s2c" class="cap"><div class="step">STEP 2</div><div class="captext">Test it first: Test (dry run, no RF) and the preview</div></div>
+</div>
+<audio id="s2a" class="clip" data-start="21.062" data-duration="7.896" data-track-index="1" data-volume="1" src="assets/vo/06-transmit-mesh_2.wav"></audio>
+<div id="s3" class="clip full" data-start="29.608" data-duration="10.885" data-track-index="0">
+<div class="frame"><div id="s3z" class="zoom"><img src="assets/shots/tx_mesh.jpg" alt="" />
+<div id="s3b0" class="hl" style="left:318px;top:290px;width:640px;height:64px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s3c" class="cap"><div class="step">STEP 3</div><div class="captext">Type your text: it goes out as a real Meshtastic or MeshCore message</div></div>
+</div>
+<audio id="s3a" class="clip" data-start="29.858" data-duration="9.985" data-track-index="1" data-volume="1" src="assets/vo/06-transmit-mesh_3.wav"></audio>
+<div id="s4" class="clip full" data-start="40.493" data-duration="8.429" data-track-index="0">
+<div class="frame"><div id="s4z" class="zoom"><img src="assets/shots/mesh_rx.jpg" alt="" />
+<div id="s4b0" class="hl" style="left:306px;top:640px;width:560px;height:200px;opacity:0"></div>
+<div id="s4b1" class="hl2" style="left:1170px;top:96px;width:320px;height:74px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s4c" class="cap"><div class="step">STEP 4</div><div class="captext">Check it on a receiver: the Mesh mode decodes it</div></div>
+</div>
+<audio id="s4a" class="clip" data-start="40.743" data-duration="7.529" data-track-index="1" data-volume="1" src="assets/vo/06-transmit-mesh_4.wav"></audio>
+<div id="s5" class="clip full" data-start="48.923" data-duration="12.644" data-track-index="0">
+<div id="s5t" class="full title"><div class="eye"><div></div></div><div class="t1">While on air</div><div class="t2">A TX ON AIR badge shows in the top bar</div><div class="t3">A transmit-capable radio: HackRF, PlutoSDR, LimeSDR, bladeRF, USRP</div></div>
+</div>
+<audio id="s5a" class="clip" data-start="49.173" data-duration="11.744" data-track-index="1" data-volume="1" src="assets/vo/06-transmit-mesh_5.wav"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s0", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 0.000);
+tl.fromTo("#s0t", {scale: 0.94}, {scale: 1, duration: 13.014, ease: "sine.out"}, 0.000);
+tl.fromTo("#s1", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 13.114);
+tl.fromTo("#s1z", {scale: 1, transformOrigin: "60px 31px"}, {scale: 1.2, duration: 7.598, ease: "sine.inOut"}, 13.114);
+tl.fromTo("#s1c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 13.364);
+tl.fromTo("#s1b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 14.014);
+tl.fromTo("#s1b1", {opacity: 0}, {opacity: 1, duration: 0.4}, 14.514);
+tl.fromTo("#s2", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 20.812);
+tl.fromTo("#s2z", {scale: 1, transformOrigin: "428px 184px"}, {scale: 1.25, duration: 8.696, ease: "sine.inOut"}, 20.812);
+tl.fromTo("#s2c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 21.062);
+tl.fromTo("#s2b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 21.712);
+tl.fromTo("#s2b1", {opacity: 0}, {opacity: 1, duration: 0.4}, 22.212);
+tl.fromTo("#s3", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 29.608);
+tl.fromTo("#s3z", {scale: 1, transformOrigin: "638px 322px"}, {scale: 1.2, duration: 10.785, ease: "sine.inOut"}, 29.608);
+tl.fromTo("#s3c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 29.858);
+tl.fromTo("#s3b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 30.508);
+tl.fromTo("#s4", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 40.493);
+tl.fromTo("#s4z", {scale: 1, transformOrigin: "586px 740px"}, {scale: 1.15, duration: 8.329, ease: "sine.inOut"}, 40.493);
+tl.fromTo("#s4c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 40.743);
+tl.fromTo("#s4b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 41.393);
+tl.fromTo("#s4b1", {opacity: 0}, {opacity: 1, duration: 0.4}, 41.893);
+tl.fromTo("#s5", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 48.923);
+tl.fromTo("#s5t", {scale: 0.94}, {scale: 1, duration: 12.544, ease: "sine.out"}, 48.923);
+      window.__timelines["06-transmit-mesh"] = tl;
+    </script>
+  </body>
+</html>

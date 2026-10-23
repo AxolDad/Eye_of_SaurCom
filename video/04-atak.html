@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>ATAK and Cursor on Target</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #070a0e; }
+#root { position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: Inter, sans-serif; color: #e8eef5;
+        background: radial-gradient(ellipse at 30% 20%, #142233 0%, #070a0e 70%); }
+.full { position: absolute; inset: 0; }
+.frame { position: absolute; left: 210px; top: 36px; width: 1500px; height: 900px; overflow: hidden; border-radius: 14px;
+         box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(120,200,255,0.18); background: #000; }
+.zoom { position: absolute; inset: 0; }
+.zoom img { position: absolute; left: 0; top: 0; width: 1500px; height: 900px; }
+.hl { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.38), 0 0 24px rgba(255,176,32,0.7); }
+.hl2 { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 24px rgba(255,176,32,0.7); }
+.cap { position: absolute; left: 210px; right: 210px; bottom: 26px; height: 104px; display: flex; align-items: center; gap: 22px;
+       padding: 0 30px; border-radius: 14px; background: rgba(10,16,24,0.92); box-shadow: 0 0 0 1px rgba(120,200,255,0.2); }
+.step { flex: none; padding: 10px 18px; border-radius: 10px; background: #ffb020; color: #10161d; font-weight: 800; font-size: 26px; }
+.captext { font-size: 34px; font-weight: 600; line-height: 1.2; }
+.brand { position: absolute; right: 228px; top: 52px; padding: 8px 16px; border-radius: 9px; background: rgba(7,10,14,0.85);
+         color: #7fd0ff; font-weight: 700; font-size: 22px; letter-spacing: 0.04em; }
+.title { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 28px; }
+.eye { width: 170px; height: 170px; border-radius: 50%; border: 10px solid #7fd0ff; display: flex; align-items: center; justify-content: center;
+       box-shadow: 0 0 60px rgba(127,208,255,0.5); }
+.eye div { width: 62px; height: 62px; border-radius: 50%; background: #ffb020; box-shadow: 0 0 40px rgba(255,176,32,0.9); }
+.t1 { font-size: 104px; font-weight: 800; letter-spacing: -0.02em; }
+.t2 { font-size: 44px; font-weight: 500; color: #b9c7d6; max-width: 1500px; }
+.t3 { font-size: 34px; font-weight: 600; color: #ffb020; }
+</style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="04-atak" data-start="0" data-duration="57.541" data-width="1920" data-height="1080" data-fps="30">
+<div id="s0" class="clip full" data-start="0.000" data-duration="6.340" data-track-index="0">
+<div id="s0t" class="full title"><div class="eye"><div></div></div><div class="t1">ATAK and Cursor on Target</div><div class="t2">Share what you receive with your team, and see your team on the map</div><div class="t3">Eye of ZorCom how-to</div></div>
+</div>
+<audio id="s0a" class="clip" data-start="0.250" data-duration="5.440" data-track-index="1" data-volume="1" src="assets/vo/04-atak_0.wav"></audio>
+<div id="s1" class="clip full" data-start="6.340" data-duration="23.088" data-track-index="0">
+<div class="frame"><div id="s1z" class="zoom"><img src="assets/shots/feeds.jpg" alt="" />
+<div id="s1b0" class="hl" style="left:62px;top:800px;width:770px;height:62px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s1c" class="cap"><div class="step">STEP 1</div><div class="captext">Tools &gt; Data feeds: tick the ATAK / TAK Cursor on Target feed</div></div>
+</div>
+<audio id="s1a" class="clip" data-start="6.590" data-duration="22.188" data-track-index="1" data-volume="1" src="assets/vo/04-atak_1.wav"></audio>
+<div id="s2" class="clip full" data-start="29.428" data-duration="12.429" data-track-index="0">
+<div class="frame"><div id="s2z" class="zoom"><img src="assets/shots/adsb_map.jpg" alt="" />
+<div id="s2b0" class="hl" style="left:60px;top:60px;width:820px;height:600px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s2c" class="cap"><div class="step">STEP 2</div><div class="captext">Receive anything with a position: ADS-B, AIS, APRS, sondes</div></div>
+</div>
+<audio id="s2a" class="clip" data-start="29.678" data-duration="11.529" data-track-index="1" data-volume="1" src="assets/vo/04-atak_2.wav"></audio>
+<div id="s3" class="clip full" data-start="41.857" data-duration="10.084" data-track-index="0">
+<div class="frame"><div id="s3z" class="zoom"><img src="assets/shots/cot_map.jpg" alt="" />
+<div id="s3b0" class="hl" style="left:680px;top:224px;width:200px;height:28px;opacity:0"></div>
+<div id="s3b1" class="hl2" style="left:420px;top:350px;width:190px;height:70px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s3c" class="cap"><div class="step">STEP 3</div><div class="captext">Tick Show ATAK / TAK contacts on the map to see your team</div></div>
+</div>
+<audio id="s3a" class="clip" data-start="42.107" data-duration="9.184" data-track-index="1" data-volume="1" src="assets/vo/04-atak_3.wav"></audio>
+<div id="s4" class="clip full" data-start="51.941" data-duration="5.399" data-track-index="0">
+<div id="s4t" class="full title"><div class="eye"><div></div></div><div class="t1">Works offline</div><div class="t2">Plain UDP on your own network - no cloud, no account</div><div class="t3">Cursor on Target 2.0 XML</div></div>
+</div>
+<audio id="s4a" class="clip" data-start="52.191" data-duration="4.499" data-track-index="1" data-volume="1" src="assets/vo/04-atak_4.wav"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s0", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 0.000);
+tl.fromTo("#s0t", {scale: 0.94}, {scale: 1, duration: 6.240, ease: "sine.out"}, 0.000);
+tl.fromTo("#s1", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 6.340);
+tl.fromTo("#s1z", {scale: 1, transformOrigin: "447px 831px"}, {scale: 1.25, duration: 22.988, ease: "sine.inOut"}, 6.340);
+tl.fromTo("#s1c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 6.590);
+tl.fromTo("#s1b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 7.240);
+tl.fromTo("#s2", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 29.428);
+tl.fromTo("#s2z", {scale: 1, transformOrigin: "470px 360px"}, {scale: 1.1, duration: 12.329, ease: "sine.inOut"}, 29.428);
+tl.fromTo("#s2c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 29.678);
+tl.fromTo("#s2b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 30.328);
+tl.fromTo("#s3", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 41.857);
+tl.fromTo("#s3z", {scale: 1, transformOrigin: "780px 238px"}, {scale: 1.25, duration: 9.984, ease: "sine.inOut"}, 41.857);
+tl.fromTo("#s3c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 42.107);
+tl.fromTo("#s3b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 42.757);
+tl.fromTo("#s3b1", {opacity: 0}, {opacity: 1, duration: 0.4}, 43.257);
+tl.fromTo("#s4", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 51.941);
+tl.fromTo("#s4t", {scale: 0.94}, {scale: 1, duration: 5.299, ease: "sine.out"}, 51.941);
+      window.__timelines["04-atak"] = tl;
+    </script>
+  </body>
+</html>
