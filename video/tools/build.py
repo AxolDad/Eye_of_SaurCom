@@ -66,7 +66,7 @@ html, body { width: 1920px; height: 1080px; overflow: hidden; background: #070a0
 """
 
 
-def scene_html(i, sc, start, dur, vid):
+def scene_html(i, sc, start, dur, vid, vo):
     sid = f"s{i}"
     parts = [f'<div id="{sid}" class="clip full" data-start="{start:.3f}" data-duration="{dur:.3f}" data-track-index="0">']
     if sc.get("shot"):
@@ -84,7 +84,7 @@ def scene_html(i, sc, start, dur, vid):
                      f'<div class="t2">{html.escape(sc.get("subtitle", ""))}</div>'
                      f'<div class="t3">{html.escape(sc.get("footer", ""))}</div></div>')
     parts.append("</div>")
-    parts.append(f'<audio id="{sid}a" class="clip" data-start="{start + 0.25:.3f}" data-duration="{dur - 0.25:.3f}" data-track-index="1" '
+    parts.append(f'<audio id="{sid}a" class="clip" data-start="{start + 0.25:.3f}" data-duration="{vo:.3f}" data-track-index="1" '
                  f'data-volume="1" src="assets/vo/{vid}_{i}.wav"></audio>')
     return "\n".join(parts)
 
@@ -109,9 +109,9 @@ def build(video, render, redo_voice):
     t = 0.0
     scenes_h, scenes_j = [], []
     for i, sc in enumerate(video["scenes"]):
-        d = voice(sc["voice"], os.path.join(ROOT, "assets", "vo", f"{vid}_{i}.wav"), redo_voice) + PAUSE
-        d = max(d, sc.get("min", 0))
-        scenes_h.append(scene_html(i, sc, t, d, vid))
+        vo = voice(sc["voice"], os.path.join(ROOT, "assets", "vo", f"{vid}_{i}.wav"), redo_voice)
+        d = max(vo + PAUSE, sc.get("min", 0))
+        scenes_h.append(scene_html(i, sc, t, d, vid, vo))
         scenes_j.append(scene_js(i, sc, t, d))
         t += d
     total = round(t + 0.2, 3)
@@ -142,12 +142,30 @@ def build(video, render, redo_voice):
     print(f"{vid}: {len(video['scenes'])} scenes, {total:.1f} s")
     if render:
         os.makedirs(os.path.join(ROOT, "renders"), exist_ok=True)
+        raw = os.path.join("renders", "raw", f"{vid}.mp4")
+        os.makedirs(os.path.join(ROOT, "renders", "raw"), exist_ok=True)
+        subprocess.run(["npx", "-y", HF, "render", ".", "-c", os.path.basename(comp), "-o", raw, "-q", "standard", "-f", "30"], check=True, cwd=ROOT,
+                       stdout=subprocess.DEVNULL)
+        # the screens are mostly still: a higher CRF keeps the published file small without visible loss on text
         out = os.path.join(ROOT, "renders", f"{vid}.mp4")
-        subprocess.run(["npx", "-y", HF, "render", ROOT, "-c", comp, "-o", out, "-q", "standard", "-f", "30"], check=True, cwd=ROOT)
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", os.path.join(ROOT, raw), "-c:v", "libx264", "-preset", "slow", "-crf", "28",
+                        "-tune", "stillimage", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", out], check=True)
+        print(f"{vid}: {os.path.getsize(out) / 1e6:.1f} MB")
+
+
+INDEX = """<!doctype html>
+<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=1920, height=1080" />
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>html, body { margin: 0; width: 1920px; height: 1080px; background: #070a0e; }</style></head>
+<body><div id="root" data-composition-id="index" data-start="0" data-duration="1" data-width="1920" data-height="1080"></div>
+<script>window.__timelines["index"] = gsap.timeline({ paused: true });</script></body></html>
+"""
 
 
 def main():
     args = sys.argv[1:]
+    with open(os.path.join(ROOT, "index.html"), "w") as f:   # the project root composition the CLI expects; each video renders with -c
+        f.write(INDEX)
     render = "--no-render" not in args
     redo = "--revoice" in args
     want = [a for a in args if not a.startswith("--")]
