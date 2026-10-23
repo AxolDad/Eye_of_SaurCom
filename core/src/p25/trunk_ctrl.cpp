@@ -25,6 +25,22 @@ bool DmrModel::onCsbk(int opcode, int fid, const uint8_t d[8], double, Grant& g)
     return true;
 }
 
+void NxdnModel::setChannel(int ch, double hz) { if (hz > 0) ch_[ch] = hz; else ch_.erase(ch); }
+double NxdnModel::channelFreq(int ch) const { auto it = ch_.find(ch); return it == ch_.end() ? 0 : it->second; }
+
+bool NxdnModel::onAssignment(int callType, int src, int dst, int channel, int ccOption, Grant& g) {
+    if (channel < 0 || channel > 1023) return false;
+    g = Grant();
+    g.channel = channel;
+    g.tg = dst; g.src = src;
+    g.group = callType == 0 || callType == 1;
+    g.emergency = (ccOption & 0x80) != 0;
+    g.slot = -1;
+    g.freqHz = channelFreq(channel);
+    n_++;
+    return true;
+}
+
 Controller::Controller() {}
 
 void Controller::pushMsg(const std::string& s) {
@@ -61,6 +77,18 @@ void Controller::onDmrCsbk(int opcode, int fid, const uint8_t data[8], double no
     lastGood_ = now;
     follower.onControlSeen(now);
     if (dmr.onCsbk(opcode, fid, data, now, g)) dispatch({g}, now);
+}
+
+void Controller::onNxdnAssignment(int callType, int src, int dst, int channel, int ccOption, double now) {
+    Grant g;
+    onControlSeen(now);
+    if (nxdn.onAssignment(callType, src, dst, channel, ccOption, g)) dispatch({g}, now);
+}
+
+void Controller::onControlSeen(double now) {
+    good_++;
+    lastGood_ = now;
+    follower.onControlSeen(now);
 }
 
 void Controller::tick(double now) { follower.tick(now, log); }

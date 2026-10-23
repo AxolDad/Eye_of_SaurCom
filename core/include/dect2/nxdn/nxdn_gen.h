@@ -29,6 +29,7 @@ struct NxdnGenTx {
     bool noHeader = false;       // voice: start with the first superframe (a receiver joining late)
     bool noRelease = false;      // voice: the carrier just stops
     uint32_t location = 0x012345;
+    int grantChannel = -1;       // site: >= 0 makes every third CAC frame a VCALL_ASSGN of src -> dst on this channel (a trunked call)
 };
 
 struct NxdnGenConfig {

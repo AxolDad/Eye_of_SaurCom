@@ -268,6 +268,27 @@ int main() {
         c.onDmrCsbk(0x31, 0x10, d, 9.0);   // a manufacturer's
         CHECK(c.log.records().size() == 3, "manufacturer CSBK ignored");
     }
+    // ---- NXDN Type C (VCALL_ASSGN: channel number -> the user's channel table; the one radio leaves the control channel for the call)
+    {
+        Controller c;
+        c.nxdn.setChannel(513, 451.0125e6);
+        c.setCapture(451.5e6, 0);
+        c.onControlSeen(0.5);
+        c.onNxdnAssignment(1, 4321, 77, 513, 0x80, 1.0);
+        bool retuned = false;
+        for (const Action& a : c.takeActions()) retuned |= a.kind == Action::Retune && std::fabs(a.freqHz - 451.0125e6) < 1;
+        CHECK(retuned && c.log.records().size() == 1 && c.log.records()[0].tg == 77 && c.log.records()[0].src == 4321 && c.log.records()[0].group
+              && c.log.records()[0].emergency && !c.log.records()[0].dmr && c.log.records()[0].followed, "nxdn group grant followed");
+        for (double t = 1.5; t < 12; t += 0.5) c.tick(t);   // no voice heard on the channel: the call ends and the radio goes home
+        bool home = false;
+        for (const Action& a : c.takeActions()) home |= a.kind == Action::Retune && std::fabs(a.freqHz - 451.5e6) < 1;
+        CHECK(home && !c.log.records()[0].active, "back on the control channel after the call");
+        c.onNxdnAssignment(4, 4321, 9, 700, 0, 13.0);   // a private call on a channel missing from the table
+        CHECK(c.log.records().size() == 2 && !c.log.records()[1].group && !c.log.records()[1].followed, "unknown channel: logged, not followed");
+        CHECK(c.nxdn.grants() == 2, "nxdn grants counted");
+        Grant g;
+        CHECK(!c.nxdn.onAssignment(1, 1, 2, 1024, 0, g) && !c.nxdn.onAssignment(1, 1, 2, -1, 0, g), "channel out of range refused");
+    }
     // ---- malformed and random input
     {
         srand(7);

@@ -25,7 +25,7 @@ unsafe fn wr<'a, T>(p: *mut T, n: usize) -> &'a mut [T] {
 /// ABI version of this module's C interface; bump it when an exported signature changes.
 #[no_mangle]
 pub extern "C" fn onair_nxdn_version() -> u32 {
-    2
+    3
 }
 
 /// A layer 3 message as the C++ side sees it (`text` is `text_len` bytes, no terminator).
@@ -46,6 +46,8 @@ pub struct OnairNxdnMsg {
     pub channel: i32,
     pub text: [u8; 8],
     pub text_len: u32,
+    pub cc_option: i32,
+    pub timer: i32,
 }
 
 /// sizeof(OnairNxdnMsg) as Rust sees it; the C++ side checks it at start-up.
@@ -161,6 +163,8 @@ fn to_c(m: &Msg) -> OnairNxdnMsg {
         channel: m.channel,
         text: m.text,
         text_len: m.text_len as u32,
+        cc_option: m.cc_option,
+        timer: m.timer,
     }
 }
 fn from_c(m: &OnairNxdnMsg) -> Msg {
@@ -180,6 +184,8 @@ fn from_c(m: &OnairNxdnMsg) -> Msg {
         location: m.location,
         service: m.service,
         channel: m.channel,
+        cc_option: m.cc_option,
+        timer: m.timer,
     }
 }
 

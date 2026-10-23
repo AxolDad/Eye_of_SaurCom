@@ -902,8 +902,10 @@ bool txModeHighlighted(const ModeDef& m);
 void txTick(App& a);               // every frame: gives the radio back when a transmission ended; the on-screen TX indicator
 void txShutdown();                 // stops a running transmission (the radio goes quiet before it returns); the program's end
 bool txActive();
-void trunkFollowTick(App& a);    // the P25 / DMR Tier III trunking follower (app/p25/p25_ui.cpp)
+void trunkFollowTick(App& a);    // the P25 / DMR Tier III / NXDN Type C trunking follower (app/p25/p25_ui.cpp)
 void trunkFollowPanel(App& a);
+void trunkScanFollow(App& a, bool on, bool enter);   // the scanner on a trunked system's entry (app/p25/p25_ui.cpp)
+bool trunkCallNow(std::string* what);                // a followed call is running; what: its talkgroup and name
 void savePrefs(const App& a);
 int adcBitsFor(const DeviceInfo& d, double rateHz);
 void ingestSpectrum(App& a);

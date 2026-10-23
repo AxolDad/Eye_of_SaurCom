@@ -136,11 +136,13 @@ void siteView(App& a) {
     kvRow(a, "service", "0x%04X", s.service);
     kvRow(a, "channel", "0x%04X", s.channel);
     kvRow(a, "heard", "%s UTC", clock(s.wallTime).c_str());
+    if (ImGui::TreeNode("Type C trunking: follow calls")) { trunkFollowPanel(a); ImGui::TreePop(); }
 }
 
 // ---------------------------------------------------------------- hooks
 
 void tick(App& a) {
+    trunkFollowTick(a);   // Type C: the shared follower (app/p25/p25_ui.cpp)
     if (live(a)) appcodec::voiceCodecTick("ambe2");   // the user's codec plug-in (docs/CODECS.md), loaded whichever tab is shown
     if (!a.engine.running()) { S.wasRunning = false; return; }
     dect2::NxdnReceiver& r = a.engine.nxdn();

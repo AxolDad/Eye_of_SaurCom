@@ -142,6 +142,26 @@ int main() {
         }
         CHECK(scanlist::fromCsv("junk\n\n145.5,fm\r\n").size() == 1);
     }
+    {   // two trunked systems and a conventional channel: the target says which is trunked (the window then follows its calls), a call
+        // on system B holds the scan there through the call and its hang, then the scan goes on; the trunk column survives the CSV
+        Sim s;
+        Entry a = E(851.0125), b = E(460.5), c = E(146.52);
+        a.mode = "p25"; a.trunk = true; a.dwellSec = 8; b.mode = "nxdn"; b.trunk = true; b.dwellSec = 8;
+        s.m.list = {a, b, c};
+        std::vector<bool> trunkAt;
+        s.active = [](double mhz, double t) { return mhz == 460.5 && t > 10 && t < 20; };   // a followed call on system B
+        s.begin();
+        trunkAt.push_back(s.m.target().trunk);
+        s.run(9);
+        CHECK(s.m.target().mhz == 460.5 && s.m.target().trunk);   // A quiet for its 8 s dwell: on to B
+        s.run(12);
+        CHECK(s.m.target().mhz == 460.5 && s.m.state() != Machine::Dwell);   // held while B's call ran (and hanging after it)
+        s.run(5);
+        CHECK(s.m.target().mhz == 146.52 && !s.m.target().trunk);   // then the conventional channel
+        const std::vector<Entry> w = scanlist::fromCsv(scanlist::toCsv(s.m.list));
+        CHECK(w.size() == 3 && w[0].trunk && w[1].trunk && !w[2].trunk);
+        CHECK(!scanlist::fromCsv("145.5,fm,x,2,0,0\n")[0].trunk);   // a file without the column
+    }
     printf(gFail ? "scanner: %d failures\n" : "scanner: ok\n", gFail);
     return gFail ? 1 : 0;
 }

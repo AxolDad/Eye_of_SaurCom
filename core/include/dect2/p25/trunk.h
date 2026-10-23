@@ -243,6 +243,23 @@ private:
     uint64_t n_ = 0;
 };
 
+// ------------------------------------------------------------------------------------------------ NXDN
+
+// NXDN trunking (Type C): the control channel's voice channel assignments (VCALL_ASSGN, NXDN TS 1-D). They carry a 10-bit channel number;
+// what frequency a number means comes from the user's channel table (systems using direct frequency assignment are not followed).
+class NxdnModel {
+public:
+    void setChannel(int ch, double freqHz);
+    double channelFreq(int ch) const;
+    // callType: 0 broadcast, 1 group, 4 individual, 6 interconnect; ccOption bit 7 emergency
+    bool onAssignment(int callType, int src, int dst, int channel, int ccOption, Grant& out);
+    uint64_t grants() const { return n_; }
+
+private:
+    std::map<int, double> ch_;
+    uint64_t n_ = 0;
+};
+
 // ------------------------------------------------------------------------------------------------ controller
 
 struct ControllerStatus {
@@ -262,11 +279,14 @@ public:
     CallLog log;
     Follower follower;
     DmrModel dmr;
+    NxdnModel nxdn;
 
     // From the P25 receiver: a good TSBK (nac = the NID's), or a failed one (counts toward the success rate)
     void onTsbk(const p25::Tsbk& t, int nac, double nowSec);
     void onTsbkBad(double nowSec);
     void onDmrCsbk(int opcode, int fid, const uint8_t data[8], double nowSec);
+    void onNxdnAssignment(int callType, int src, int dst, int channel, int ccOption, double nowSec);
+    void onControlSeen(double nowSec);   // a good control channel message that is not a grant (keeps the follower's control lock)
     void setCapture(double centerHz, double spanHz) { follower.setCapture(centerHz, spanHz); }
     void tick(double nowSec);
     std::vector<Action> takeActions() { return follower.takeActions(); }

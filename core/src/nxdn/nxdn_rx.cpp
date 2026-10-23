@@ -404,6 +404,7 @@ struct NxdnReceiver::Impl {
         for (bool& o : sfOk) o = false;
     }
 
+    uint64_t grantSeq = 0;
     void onMsg(const nxdn::Msg& m, const Chain& c, int ran, bool fromSacch) {
         char b[200];
         switch (m.type) {
@@ -415,6 +416,15 @@ struct NxdnReceiver::Impl {
             }
             startCall(m.src, m.dst, m.callType, m.cipher, m.keyId, ran, c.baud, fromSacch);
             snprintf(b, sizeof b, "VCALL %s %d -> %d%s%s", nxdn::callTypeName(m.callType), m.src, m.dst, m.cipher ? ", encrypted" : "", fromSacch ? " (joined late)" : "");
+            event(b);
+            break;
+        }
+        case nxdn::kVcallAssgn: {
+            NxdnGrant g;
+            g.seq = ++grantSeq; g.src = m.src; g.dst = m.dst; g.callType = m.callType; g.option = m.option; g.channel = m.channel; g.ccOption = m.ccOption;
+            tel.grants.push_back(g);
+            if (tel.grants.size() > 64) tel.grants.erase(tel.grants.begin());
+            snprintf(b, sizeof b, "VCALL_ASSGN %s %d -> %d on channel %d%s", nxdn::callTypeName(m.callType), m.src, m.dst, m.channel, m.ccOption & 0x80 ? ", emergency" : "");
             event(b);
             break;
         }

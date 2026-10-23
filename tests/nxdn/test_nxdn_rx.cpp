@@ -93,6 +93,17 @@ int main() {
         // the voice frames: all of them when the channel is clean
         if (k.symErr == 0 && k.snr >= 30) CHECK(vok > 0 && (uint64_t)vok == t.voiceFrames, "%s: voice frames %d of %llu", k.name, vok, (unsigned long long)t.voiceFrames);
     }
+    // a Type C control channel granting a group call: the receiver reports the VCALL_ASSGN for the trunking follower
+    {
+        Case k{"control channel grant"}; k.snr = 20;
+        NxdnGenTx site; site.kind = NxdnGenTx::Site; site.baud = 4800; site.ran = 3; site.durSec = 3; site.location = 0x0A4C2B;
+        site.src = 4321; site.dst = 77; site.grantChannel = 513;
+        const NxdnTelemetry t = run(k, {site});
+        bool got = false;
+        for (const NxdnGrant& g : t.grants) got |= g.src == 4321 && g.dst == 77 && g.channel == 513 && g.callType == 1;
+        CHECK(got && t.siteInfo.valid, "%s: VCALL_ASSGN reported (%zu grants, site %d)", k.name, t.grants.size(), t.siteInfo.valid);
+        for (size_t i = 1; i < t.grants.size(); i++) CHECK(t.grants[i].seq > t.grants[i - 1].seq, "grant sequence increases");
+    }
     // noise only: nothing found
     {
         Case k{"noise only"}; k.snr = 40;
