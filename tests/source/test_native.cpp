@@ -448,7 +448,7 @@ static void radiosChecks(const char* dir, const char* ext) {
         src = makeSource(d1);
         e.clear();
         const bool ok0 = src->start(t, ring, e);
-        CHECK((!ok0 && has(e, "bladeRF 1 needs its FPGA image (hostedx40.rbf or hostedx115.rbf): download it from nuand.com and put it next to OnAir")) ||
+        CHECK((!ok0 && has(e, "bladeRF 1 needs its FPGA image (hostedx40.rbf or hostedx115.rbf): download it from nuand.com and put it next to Eye of ZorCom")) ||
               (ok0 && st("blade.fpgaLoaded") == 1),   // (an image installed on this machine is found too)
               "bladeRF 1 without an image: %s", e.c_str());
         if (ok0) src->stop();

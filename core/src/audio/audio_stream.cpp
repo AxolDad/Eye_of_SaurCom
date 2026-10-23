@@ -23,8 +23,11 @@ int64_t nowMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(s
 // the mount as a request target: starts with '/', anything but unreserved characters and sub-delims is %XX (a space would end the target)
 std::string mountOf(const std::string& m) {
     std::string r = m.empty() || m[0] != '/' ? "/" : "";
-    for (const unsigned char ch : m) {
-        if (std::isalnum(ch) || std::strchr("/-._~!$&'()*+,;=", ch)) { if (ch) r += (char)ch; }
+    for (size_t i = 0; i < m.size(); i++) {
+        const unsigned char ch = (unsigned char)m[i];
+        const bool escaped = ch == '%' && i + 2 < m.size() && std::isxdigit((unsigned char)m[i + 1]) && std::isxdigit((unsigned char)m[i + 2]);   // already encoded: kept
+        if (ch == 0) continue;
+        if ((ch < 0x80 && std::isalnum(ch)) || std::strchr("/-._~!$&'()*+,;=", ch) || escaped) r += (char)ch;
         else { char b[4]; std::snprintf(b, sizeof b, "%%%02X", ch); r += b; }
     }
     return r;

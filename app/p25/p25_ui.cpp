@@ -330,9 +330,11 @@ void trunkTick(App& a) {
     if (const uint64_t id = T.ctl.follower.audibleCall()) {   // on the call's channel: voice heard keeps the call (and the radio) there
         const CallRecord* r = T.ctl.log.byId(id);
         bool voice = false;
-        if (p25) voice = t.now.active && t.now.kind == 0;
-        else if (dmr) voice = r && r->slot >= 0 && r->slot < 2 && a.rx.dmr.slot[r->slot].active && a.rx.dmr.slot[r->slot].state == 1;
-        else voice = a.rx.nxdn.now.active;
+        // only this call's own voice counts: the channel may already carry another talkgroup's call (its grant was not heard here)
+        auto ours = [&](long long dst) { return r && (dst < 0 || dst == r->tg); };
+        if (p25) voice = t.now.active && t.now.kind == 0 && ours(t.now.dst);
+        else if (dmr) voice = r && r->slot >= 0 && r->slot < 2 && a.rx.dmr.slot[r->slot].active && a.rx.dmr.slot[r->slot].state == 1 && ours(a.rx.dmr.slot[r->slot].dst ? (long long)a.rx.dmr.slot[r->slot].dst : -1);   // 0: not decoded yet
+        else voice = a.rx.nxdn.now.active && a.rx.nxdn.now.kind == 0 && ours(a.rx.nxdn.now.dst);
         if (voice && !(p25 && wideActive(a))) T.ctl.onVoice(id, now);
     }
     T.ctl.tick(now);
@@ -601,7 +603,7 @@ void trunkScanFollow(App& a, bool on, bool enter) {
         T.nxdnSeen = a.rx.nxdn.grants.empty() ? 0 : a.rx.nxdn.grants.back().seq;
         T.nxdnCac = a.rx.nxdn.cacOk;
     }
-    if (!on && held) { T.on = userOn; held = false; return; }
+    if (!on && held) { if (T.on) T.on = userOn; held = false; return; }   // a user who switched it off meanwhile keeps it off
     T.on = on;
 }
 // A call the follower follows right now, and what it is ("talkgroup 77 Fire Dispatch"); false when none.

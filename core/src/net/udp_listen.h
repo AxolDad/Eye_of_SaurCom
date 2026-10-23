@@ -47,7 +47,8 @@ struct UdpListen {
                 sockaddr_in src{};
                 socklen_t sl = sizeof src;
                 const long long n = recvfrom(s_, (char*)buf.data(), (int)buf.size(), 0, (sockaddr*)&src, &sl);
-                if (n <= 0) {
+                if (n == 0) continue;   // an empty datagram
+                if (n < 0) {
                     if (!timedOut()) std::this_thread::sleep_for(std::chrono::milliseconds(50));   // a persistent error must not spin
                     continue;
                 }
@@ -58,6 +59,7 @@ struct UdpListen {
         });
     }
 
+    ~UdpListen() { stop(); }
     void stop() {
         quit_ = true;
         if (th_.joinable()) th_.join();
@@ -69,7 +71,7 @@ private:
     static bool timedOut() {
 #ifdef _WIN32
         const int e = WSAGetLastError();
-        return e == WSAETIMEDOUT || e == WSAEINTR;
+        return e == WSAETIMEDOUT || e == WSAEINTR || e == WSAEMSGSIZE;   // a datagram larger than the buffer is dropped, not an outage
 #else
         return errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR;
 #endif

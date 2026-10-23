@@ -63,6 +63,9 @@ static void requestChecks() {
     c.mount = "/my radio";
     const std::string sp = icecastRequest(c);
     CHECK(sp.rfind("PUT /my%20radio HTTP/1.1\r\n", 0) == 0, "a space in the mount is percent-encoded: %s", sp.c_str());
+    c.mount = "/a%20b%zz";
+    const std::string pe = icecastRequest(c);
+    CHECK(pe.rfind("PUT /a%20b%25zz HTTP/1.1\r\n", 0) == 0, "an already encoded mount is kept, a stray %% is encoded: %s", pe.c_str());
     std::string why;
     CHECK(icecastAccepted("HTTP/1.1 200 OK", why) && icecastAccepted("HTTP/1.0 200 OK", why), "200 accepted");
     CHECK(!icecastAccepted("HTTP/1.1 401 Unauthorized", why) && why.find("password") != std::string::npos, "401: %s", why.c_str());
