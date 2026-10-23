@@ -537,9 +537,9 @@
           "step": "STEP 4",
           "caption": "Check it on a receiver: the Mesh mode decodes it",
           "focus": [
-            586,
-            740,
-            1.15
+            1300,
+            470,
+            1.03
           ],
           "voice": "Step four. Check it with a second radio in the Mesh mode, which decodes Meshtastic and MeshCore packets and lists the nodes.",
           "boxes": [
@@ -550,10 +550,10 @@
               200
             ],
             [
-              1170,
-              96,
-              320,
-              74
+              1168,
+              140,
+              328,
+              96
             ]
           ]
         },

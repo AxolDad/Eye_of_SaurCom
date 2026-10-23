@@ -148,7 +148,7 @@ def build(video, render, redo_voice):
                        stdout=subprocess.DEVNULL)
         # the screens are mostly still: a higher CRF keeps the published file small without visible loss on text
         out = os.path.join(ROOT, "renders", f"{vid}.mp4")
-        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", os.path.join(ROOT, raw), "-c:v", "libx264", "-preset", "slow", "-crf", "28",
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", os.path.join(ROOT, raw), "-c:v", "libx264", "-preset", "slow", "-crf", "32",
                         "-tune", "stillimage", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", out], check=True)
         print(f"{vid}: {os.path.getsize(out) / 1e6:.1f} MB")
 
