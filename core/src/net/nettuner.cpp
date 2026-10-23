@@ -315,7 +315,7 @@ struct NetTuner::Impl {
             }
             reply(200, "application/json", j + "]");
         } else if (path == "/" || path == "/index.html") {
-            std::string h = "<!doctype html><meta charset=utf-8><title>OnAir</title><body style=\"font:15px monospace;background:#101214;color:#d0d4d6;padding:20px\"><h2>OnAir network tuner</h2>";
+            std::string h = "<!doctype html><meta charset=utf-8><title>Eye of ZorCom</title><body style=\"font:15px monospace;background:#101214;color:#d0d4d6;padding:20px\"><h2>Eye of ZorCom network tuner</h2>";
             h += "<p><a style=color:#7fb8cf href=\"/lineup.m3u" + keyQ + "\">lineup.m3u</a> &middot; <a style=color:#7fb8cf href=\"/guide.xml" + keyQ + "\">guide.xml</a></p>";
             if (svc.empty()) h += "<p>No channels yet: start the receiver and wait for a lock.</p>";
             for (auto* s : svc) h += "<p>" + xmlEscape(s->name) + " &mdash; <a style=color:#7fb8cf href=\"/stream/" + std::to_string(s->id) + keyQ + "\">stream</a> &middot; <a style=color:#7fb8cf href=\"/hls/" + std::to_string(s->id) + "/index.m3u8" + keyQ + "\">HLS</a></p>";

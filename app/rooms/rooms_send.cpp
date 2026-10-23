@@ -214,7 +214,7 @@ const char* failText(int f) {
         case roomsnet::Fail::Full: return tr("The live rooms server is full right now. Try again later.");
         case roomsnet::Fail::RateLimited: return tr("Too many rooms were started from here. Try again in a few minutes.");
         case roomsnet::Fail::Refused: return tr("The live rooms server refused the request.");
-        case roomsnet::Fail::BadReply: return tr("The live rooms server sent an answer OnAir does not understand.");
+        case roomsnet::Fail::BadReply: return tr("The live rooms server sent an answer Eye of ZorCom does not understand.");
         default: return tr("Could not create the room");
     }
 }
@@ -371,7 +371,7 @@ void roomsPopups(App& a) {
     if (ImGui::Button(tr("Go live"), ImVec2(160 * gUi, 0))) {
         {
             std::lock_guard<std::mutex> lk(gMu);
-            gTitle = title[0] ? title : "OnAir receiver";
+            gTitle = title[0] ? title : "Eye of ZorCom receiver";
             gShareText = share;
             curMode(a, gMode, gFreq);
             gAcc.clear();

@@ -43,3 +43,5 @@ onair_usb = { path = "../onair_usb" }
 onair_ring = { path = "../onair_ring" }
 onair_kris = { path = "../onair_kris" }
 onair_kaws = { path = "../onair_kaws" }
+onair_cot = { path = "../onair_cot" }
+onair_wifisense = { path = "../onair_wifisense" }

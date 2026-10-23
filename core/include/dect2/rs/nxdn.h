@@ -16,9 +16,10 @@ typedef struct OnairNxdnMsg {
     int32_t service, channel;
     uint8_t text[8];
     uint32_t text_len;
+    int32_t cc_option, timer;   // VCALL_ASSGN
 } OnairNxdnMsg;
 
-// ABI version of this module (2).
+// ABI version of this module (3).
 uint32_t onair_nxdn_version(void);
 size_t onair_nxdn_struct_size(void);
 

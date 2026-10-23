@@ -1,4 +1,4 @@
-// One registry of every voice codec OnAir knows, whether it is open or patented, and the plug-ins the app has loaded. A patented codec is never
+// One registry of every voice codec Eye of ZorCom knows, whether it is open or patented, and the plug-ins the app has loaded. A patented codec is never
 // shipped: the app loads onair-codec-<id> from the user's codecs folder (speech_codec.h) and hands the receivers a factory made here. Receivers
 // of the AMBE / IMBE family ask pluginVocoder() for a decoder and fall back to the user's own mbelib when there is none. See docs/CODECS.md.
 //

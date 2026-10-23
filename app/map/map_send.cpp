@@ -41,7 +41,7 @@ constexpr double kHeartbeatSec = 60.0;
 constexpr double kRetrySec = 8.0;
 constexpr int kFailPopupAfter = 3;
 constexpr size_t kMaxTracks = 250;
-// Max position age (seconds) before OnAir omits a fix from ingest (per kind / link).
+// Max position age (seconds) before Eye of ZorCom omits a fix from ingest (per kind / link).
 double maxIngestPosAgeSec(const char* kind, const std::string& src) {
     if (!kind || !*kind) return 300;
     const std::string s = src;
@@ -748,7 +748,7 @@ void consentPopup(App& a) {
     static bool shareMsgs = true;
     ImGui::Checkbox(tr("Also share interesting ACARS messages (text becomes public on the map)"), &shareMsgs);
     ImGui::Dummy(ImVec2(0, 4 * gUi));
-    ImGui::TextUnformatted(tr("OnAir asks this question at every start. \"No, do not ask again\" stops it until OnAir is updated."));
+    ImGui::TextUnformatted(tr("Eye of ZorCom asks this question at every start. \"No, do not ask again\" stops it until Eye of ZorCom is updated."));
     ImGui::PopTextWrapPos();
     ImGui::Dummy(ImVec2(0, 8 * gUi));
     const bool wasOn = s.mapSend && s.mapConsent;   // sending was already on from an earlier answer
@@ -765,7 +765,7 @@ void consentPopup(App& a) {
         stopSend(s);   // no connecting in this session; the question comes again at the next start
         ImGui::CloseCurrentPopup();
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Nothing is sent in this session. OnAir asks again the next time it starts."));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Nothing is sent in this session. Eye of ZorCom asks again the next time it starts."));
     ImGui::SameLine();
     if (ImGui::Button(tr("No, do not ask again"), ImVec2(190 * gUi, 0))) {
         stopSend(s);
@@ -774,7 +774,7 @@ void consentPopup(App& a) {
         savePrefs(s);
         ImGui::CloseCurrentPopup();
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Nothing is sent and this question is not shown again until OnAir is updated. You can still turn it on later in the Server menu."));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu."));
     ImGui::EndPopup();
 }
 
@@ -812,7 +812,7 @@ void txOffToast() {
 }
 
 // The first thing a new user sees: a question whether to take part in the public map, because few people find Server > Send data on their own.
-// It asks at every start, also after consent was given, until "No, do not ask again" is chosen; that lasts until the next update of OnAir
+// It asks at every start, also after consent was given, until "No, do not ask again" is chosen; that lasts until the next update of Eye of ZorCom
 // (another ONAIR_VERSION). "Not now" turns sending off for the session only. Never while transmitting.
 void startupQuestion(App& a) {
     static bool asked = false;

@@ -1,7 +1,7 @@
 // HD Radio Layer 1 receivers and modulators (see hdr_phy.h). The acquisition, synchronisation and deinterleaving are adapted from nrsc5
 // (GPL-3.0, github.com/theori-io/nrsc5): src/acquire.c (cyclic prefix correlation, filter taps, AM carrier tracking), src/sync.c (Costas
 // loops on the reference subcarriers, integer offset search, block sync, channel estimate, MER, AM training symbols) and src/decode.c
-// (interleavers). The demapping is soft decision for every constellation (nrsc5 uses hard decisions in AM), the modulators are OnAir's own.
+// (interleavers). The demapping is soft decision for every constellation (nrsc5 uses hard decisions in AM), the modulators are Eye of ZorCom's own.
 #include "dect2/hdr/hdr_phy.h"
 #include "dect2/dsp/fftutil.h"
 #include "dect2/hdr/hdr_fec.h"
@@ -714,7 +714,7 @@ struct AmRx::Impl {
             }
             slope = sxy / sx2;
             inc *= std::polar(1.0, -(double)slope);
-            // nrsc5 subtracts another 0.06 rad here; OnAir puts the carrier at exactly 0: then the analog audio cancels completely when the
+            // nrsc5 subtracts another 0.06 rad here; Eye of ZorCom puts the carrier at exactly 0: then the analog audio cancels completely when the
             // complementary lower subcarriers are added to the upper ones, and a digital part turned against the carrier only costs cos()
             // of that angle there (the training symbols take care of the phase of every column)
             phase *= std::polar(1.0, (double)(-sy / kBlk + slope * kBlk * fftcp / 2));

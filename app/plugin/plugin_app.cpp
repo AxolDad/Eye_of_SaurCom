@@ -160,7 +160,7 @@ bool permissionPrompt(const dp::Entry& e) {
         bool on = m & b;
         if (ImGui::Checkbox(trw(permLabel(b)), &on)) m = on ? (m | b) : (m & ~b);
     }
-    ImGui::TextDisabled("%s", tr("Permissions are what OnAir hands the plugin. A plugin running inside OnAir can still use the system itself: install plugins you trust, or run them in a helper process."));
+    ImGui::TextDisabled("%s", tr("Permissions are what Eye of ZorCom hands the plugin. A plugin running inside Eye of ZorCom can still use the system itself: install plugins you trust, or run them in a helper process."));
     std::string err;
     if (ImGui::Button(trw("Allow"))) P.mgr->setGranted(e.m.id, m, err);
     ImGui::SameLine();

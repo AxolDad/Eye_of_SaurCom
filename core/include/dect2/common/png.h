@@ -1,4 +1,4 @@
-// PNG decoding without any library, for the map tiles on systems where OnAir has no picture decoder of the system to call (Windows, Linux).
+// PNG decoding without any library, for the map tiles on systems where Eye of ZorCom has no picture decoder of the system to call (Windows, Linux).
 #pragma once
 #include <cstdint>
 #include <vector>

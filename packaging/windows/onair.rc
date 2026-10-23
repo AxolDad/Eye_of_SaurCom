@@ -8,8 +8,8 @@ BEGIN
   BEGIN
     BLOCK "040904B0"
     BEGIN
-      VALUE "FileDescription", "OnAir DVB-T2 / DVB-T / ATSC / DAB receiver"
-      VALUE "ProductName", "OnAir"
+      VALUE "FileDescription", "Eye of ZorCom radio and communications suite"
+      VALUE "ProductName", "Eye of ZorCom"
       VALUE "ProductVersion", "0.2.7"
       VALUE "LegalCopyright", "Code: GPL-3.0-or-later. OnAir name and logo (c) 2026 Kristijonas Adomaitis, all rights reserved; the logo is not covered by the GPL."
     END

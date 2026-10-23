@@ -194,7 +194,7 @@ void TimeMachine::saveLoop(std::shared_ptr<Ring> r, std::string path, uint64_t s
             const std::string::size_type s = path.find_last_of("/\\");
             i.dataFile = path.substr(s == std::string::npos ? 0 : s + 1);
             i.sampleCount = written;
-            i.description = "OnAir time machine: the samples around a trigger";
+            i.description = "Eye of ZorCom time machine: the samples around a trigger";
             FILE* m = fopen(dect2::u8file(b.string() + ".sigmf-meta").string().c_str(), "wb");
             if (m) { const std::string j = sigmfMetaJson(i); fwrite(j.data(), 1, j.size(), m); fclose(m); }
             std::error_code ec;

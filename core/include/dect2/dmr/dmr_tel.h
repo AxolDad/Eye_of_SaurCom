@@ -51,6 +51,13 @@ struct DmrSlot {
     uint64_t bursts = 0;
 };
 
+// One good CSBK, for the trunking follower (core/include/dect2/p25/trunk.h DmrModel): seq grows over resets, so a reader takes each once
+struct DmrCsbk {
+    uint64_t seq = 0;
+    int opcode = 0, fid = 0;
+    uint8_t data[8] = {};
+};
+
 struct DmrTelemetry {
     // ---- the part every mode has: the engine copies it into RxTelemetry; keep these members and what they mean
     uint64_t seq = 0;            // grows with every report and never restarts (not even after reset())
@@ -94,6 +101,7 @@ struct DmrTelemetry {
     std::vector<float> spectrumDb;   // power spectrum of the channel, 128 bins from -12 to +12 kHz, in dB relative to the strongest
     std::vector<DmrCall> callLog;    // oldest first, at most 100
     std::vector<DmrMessage> messages;   // oldest first, at most 16
+    std::vector<DmrCsbk> csbks;      // the last good CSBKs, oldest first, at most 64 (Tier III grants for the follower)
 };
 
 // One line for the command line and the log

@@ -60,9 +60,9 @@ struct UhdApi {
     bool ok = false;
     DynLib lib;
     UhdApi() {
-        // Windows: the UHD the user installed from Ettus (uhd.dll, on the PATH) first, the one OnAir ships (libuhd.dll) only without it. A B210
+        // Windows: the UHD the user installed from Ettus (uhd.dll, on the PATH) first, the one Eye of ZorCom ships (libuhd.dll) only without it. A B210
         // shows up only after UHD has loaded its firmware, from the images of its own version (UHD_IMAGES_DIR of the Ettus install): our libuhd
-        // first made a B210 that the Ettus UHD (and OnAir 0.2.0) saw disappear on a Windows 10 PC with UHD installed.
+        // first made a B210 that the Ettus UHD (and Eye of ZorCom 0.2.0) saw disappear on a Windows 10 PC with UHD installed.
         if (nativeDisabled() || !lib.open(libNames("uhd", {".4.8.0", ".4.7.0", ".4.6.0", ".4.5.0", ".4.4.0", ".4.3.0", ".4.2.0", ".4.1.0", ".4.0.0", ".3.15.0", ""}, {"uhd.dll", "libuhd.dll"}))) return;
         ok = lib.get(find, "uhd_usrp_find") && lib.get(strvec_make, "uhd_string_vector_make") && lib.get(strvec_free, "uhd_string_vector_free") &&
              lib.get(strvec_size, "uhd_string_vector_size") && lib.get(strvec_at, "uhd_string_vector_at") && lib.get(make, "uhd_usrp_make") &&
@@ -388,7 +388,7 @@ void listUsrp(std::vector<DeviceInfo>& out) {
             auto field = [&](const std::string& k) { const size_t p = args.find(k + "="); if (p == std::string::npos) return std::string(); const size_t e = args.find(',', p); return args.substr(p + k.size() + 1, e == std::string::npos ? std::string::npos : e - p - k.size() - 1); };
             std::string prod = field("product");
             if (prod.empty()) prod = field("type");
-            // One entry per receive input, so the user picks the one the antenna is on. The first is what OnAir used before: channel 0 with
+            // One entry per receive input, so the user picks the one the antenna is on. The first is what Eye of ZorCom used before: channel 0 with
             // UHD's default antenna. A B2xx has RX2 (UHD's default) and TX/RX on each channel (b200_impl), the B210 two channels (RF A, RF B).
             // Other models: their inputs are known once the radio has been started (opening a USRP loads its FPGA, too slow for a listing)
             struct Input { size_t ch; std::string antenna, label; };

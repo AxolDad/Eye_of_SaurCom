@@ -382,7 +382,7 @@ void listAirspyHf(std::vector<DeviceInfo>& out) {
                                     "Auto: on in the top 6 dB of the gain slider (the default).",
                                     {"auto", "off", "on"}, {"Auto (with the gain)", "Off", "On"}, "auto"),
                       choiceSetting("agc", "Radio AGC",
-                                    "The HF+'s own fast AGC in front of the converter, for strong or fading HF signals. Off: the gain slider (and OnAir's AGC)\n"
+                                    "The HF+'s own fast AGC in front of the converter, for strong or fading HF signals. Off: the gain slider (and Eye of ZorCom's AGC)\n"
                                     "set the attenuator (the default). Low / High: the AGC's threshold; the slider then has little effect.",
                                     {"off", "low", "high"}, {"Off", "On, low threshold", "On, high threshold"}, "off")};
         gHfKnown[sn[i]] = d;

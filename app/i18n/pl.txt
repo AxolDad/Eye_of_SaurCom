@@ -1,4 +1,4 @@
-# OnAir interface in Polish. One text per line: the English text as in the source, a tab, the translation.
+# Eye of ZorCom interface in Polish. One text per line: the English text as in the source, a tab, the translation.
 # \n is a line break. Keep the printf conversions (%s, %d, %.1f ...) in the same order. tests/app/test_i18n.cpp checks this file.
 #  menus, status words, common buttons
 1 kHz test tone	1 kHz test tone
@@ -33,7 +33,6 @@ Dial frequency the decoder should assume (the sound card is not tuned)	Częstotl
 DVB standard	DVB standard
 Empty: the demo 802.15.4 scene.	Empty: the demo 802.15.4 scene.
 Empty: the demo FLARM scene. This ID is not packed into the unpublished newer protocol.	Empty: the demo FLARM scene. This ID is not packed into the unpublished newer protocol.
-Empty: the demo LoRa / mesh scene.	Empty: the demo LoRa / mesh scene.
 Empty: the demo Mode S uplink scene.	Empty: the demo Mode S uplink scene.
 Empty: the demo VDES scene.	Empty: the demo VDES scene.
 File	Plik
@@ -59,7 +58,7 @@ MMSI	MMSI
 Mode	Tryb
 Morse identification, up to four letters.	Morse identification, up to four letters.
 NAVTEX sends the text (ZCZC / NNNN are added when missing). DSC (when that service is selected) uses the MMSI.	NAVTEX sends the text (ZCZC / NNNN are added when missing). DSC (when that service is selected) uses the MMSI.
-OnAir still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.	OnAir still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.
+Eye of ZorCom still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.	Eye of ZorCom still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.
 PAN / short address	PAN / short address
 Path	Path
 Payload text	Payload text
@@ -102,7 +101,7 @@ The microphone starts only when you press START TRANSMITTING.	The microphone sta
 The registration and free-text go on the air as an H1 / ACARS downlink. Empty: the demo traffic.	The registration and free-text go on the air as an H1 / ACARS downlink. Empty: the demo traffic.
 This frequency is outside what this radio is specified for	This frequency is outside what this radio is specified for
 this mode has no transmit generator	this mode has no transmit generator
-This vocoder cannot encode: OnAir loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.	This vocoder cannot encode: OnAir loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.
+This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.	This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.
 Timeslot	Timeslot
 To	To
 USB audio	Audio USB
@@ -196,7 +195,7 @@ Instrument palette	Paleta przyrządów
 Mono palette	Paleta mono
 Show in Discord	Pokaż w Discordzie
 Show the frequency	Pokaż częstotliwość
-Shows on your Discord profile that you are using OnAir, the mode and the frequency. Needs the Discord desktop app running.	Pokazuje w Twoim profilu Discord, że używasz OnAir, wraz z trybem i częstotliwością. Wymaga uruchomionej aplikacji Discord na komputerze.
+Shows on your Discord profile that you are using Eye of ZorCom, the mode and the frequency. Needs the Discord desktop app running.	Pokazuje w Twoim profilu Discord, że używasz Eye of ZorCom, wraz z trybem i częstotliwością. Wymaga uruchomionej aplikacji Discord na komputerze.
 Discord application ID not set in this build	W tej wersji nie ustawiono identyfikatora aplikacji Discord
 Passes	Przeloty
 Data feeds...	Strumienie danych...
@@ -254,7 +253,7 @@ no stations yet: run the scan	brak stacji: uruchom skanowanie
 no saved channels yet: run the scan	brak zapisanych kanałów: uruchom skanowanie
 Hz	Hz
 Frequency in MHz (%.3f to %.3f)	Częstotliwość w MHz (od %.3f do %.3f)
-OnAir crashed	OnAir uległ awarii
+Eye of ZorCom crashed	Eye of ZorCom uległ awarii
 no picture - press Esc	brak obrazu - naciśnij Esc
 no picture	brak obrazu
 Video	Wideo
@@ -517,7 +516,7 @@ Auto start at AOS, stop at LOS	Automatyczny start przy AOS, stop przy LOS
 Switches to the satellite's mode and starts the receiver at AOS (when it is stopped), and stops it at LOS	Przełącza na tryb satelity i uruchamia odbiornik przy AOS (gdy jest zatrzymany), a przy LOS go zatrzymuje
 Auto record IQ	Automatyczne nagrywanie IQ
 Records the radio's IQ during the pass, as Record IQ does (format from the Record IQ setting), into %s/recordings	Nagrywa IQ radia podczas przelotu, tak jak Nagraj IQ (format z ustawienia Nagraj IQ), do %s/recordings
-OnAir has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	OnAir nie ma do tego dekodera: automatyczny start otwiera Spectrum explorer, a automatyczne nagrywanie zachowuje IQ
+Eye of ZorCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	Eye of ZorCom nie ma do tego dekodera: automatyczny start otwiera Spectrum explorer, a automatyczne nagrywanie zachowuje IQ
 tracking%s	śledzenie%s
 , recording	, nagrywanie
 #  data feeds
@@ -553,9 +552,9 @@ Adds the frequency and mode the receiver is on now	Dodaje częstotliwość i try
 Clear lockouts	Wyczyść blokady
 Import CSV...	Importuj CSV...
 Export CSV...	Eksportuj CSV...
-Columns: frequency_mhz, mode, name, dwell_s, lockout, priority.\nmode is a mode id: fm, dab, airband, dmr, pocsag, ft8 ...	Kolumny: frequency_mhz, mode, name, dwell_s, lockout, priority.\nmode to identyfikator trybu: fm, dab, airband, dmr, pocsag, ft8 ...
+Columns: frequency_mhz, mode, name, dwell_s, lockout, priority, trunk.\nmode is a mode id: fm, dab, airband, dmr, pocsag, ft8 ...	Kolumny: frequency_mhz, mode, name, dwell_s, lockout, priority, trunk.\nmode to identyfikator trybu: fm, dab, airband, dmr, pocsag, ft8 ...
 imported %d entries%s	zaimportowano wpisów: %d%s
- (some with a mode OnAir does not know)	 (niektóre z trybem nieznanym OnAir)
+ (some with a mode Eye of ZorCom does not know)	 (niektóre z trybem nieznanym Eye of ZorCom)
 exported	wyeksportowano
 could not write	nie udało się zapisać
 start MHz	start MHz
@@ -622,11 +621,11 @@ Skip this version	Pomiń tę wersję
 Release page	Strona wydania
 Download page	Strona pobierania
 Checking and preparing the new version…	Sprawdzanie i przygotowywanie nowej wersji…
-Downloaded and checked. It is installed when you close OnAir.	Pobrano i sprawdzono. Zostanie zainstalowana po zamknięciu OnAir.
+Downloaded and checked. It is installed when you close Eye of ZorCom.	Pobrano i sprawdzono. Zostanie zainstalowana po zamknięciu Eye of ZorCom.
 Restart now and update	Uruchom ponownie i zaktualizuj
 Windows asks for permission to run the installer.	Windows poprosi o zgodę na uruchomienie instalatora.
 The system asks for your password to install the package.	System poprosi o hasło, aby zainstalować pakiet.
-This copy of OnAir cannot replace itself.	Ta kopia OnAir nie może sama się zastąpić.
+This copy of Eye of ZorCom cannot replace itself.	Ta kopia Eye of ZorCom nie może sama się zastąpić.
 The update to v%s did not install (setup exit code %d).	Aktualizacja do v%s nie została zainstalowana (kod wyjścia instalatora %d).
 Only github.com is contacted. Downloads are checked against the SHA-256 GitHub lists for the file.	Kontaktowany jest tylko github.com. Pobrane pliki są sprawdzane względem sumy SHA-256 podanej przez GitHub.
 checking…	sprawdzanie…
@@ -666,7 +665,7 @@ Add a receiver: another radio with its own mode	Dodaj odbiornik: kolejne radio z
 Add receiver	Dodaj odbiornik
 Added to a level in dBFS to give dBm for this radio: feed a known signal into the antenna port and set the difference. Used when the spectrum shows dBm (Spectrum button on the plot).	Dodawane do poziomu w dBFS, aby uzyskać dBm dla tego radia: podaj znany sygnał na gniazdo antenowe i ustaw różnicę. Używane, gdy widmo pokazuje dBm (przycisk Widmo na wykresie).
 Aircraft	Samoloty
-All set. OnAir will start here:	Wszystko gotowe. OnAir uruchomi się tutaj:
+All set. Eye of ZorCom will start here:	Wszystko gotowe. Eye of ZorCom uruchomi się tutaj:
 Allow remote control (frequency and gain)	Zezwól na zdalne sterowanie (częstotliwość i wzmocnienie)
 Amateur radio	Krótkofalarstwo
 An SDRplay RSP is plugged in, but the SDRplay Hardware API is not installed. Install it separately even if SDRconnect already works with the radio.	Podłączono SDRplay RSP, ale SDRplay Hardware API nie jest zainstalowane. Zainstaluj je osobno, nawet jeśli SDRconnect już działa z tym radiem.
@@ -674,7 +673,7 @@ Another program is using the HackRF	Inny program używa HackRF
 Australia and New Zealand	Australia i Nowa Zelandia
 Average	Średnia
 CPU load now: %.0f%% (100%% = one core)	Obciążenie CPU teraz: %.0f%% (100%% = jeden rdzeń)
-Calls and data are shown, but the voice is silent until you install the codec yourself. OnAir does not ship it (patents).	Rozmowy i dane są pokazywane, ale mowa milczy, dopóki sam nie zainstalujesz kodeka. OnAir go nie dołącza (patenty).
+Calls and data are shown, but the voice is silent until you install the codec yourself. Eye of ZorCom does not ship it (patents).	Rozmowy i dane są pokazywane, ale mowa milczy, dopóki sam nie zainstalujesz kodeka. Eye of ZorCom go nie dołącza (patenty).
 Cancel	Anuluj
 Carrier MHz	Nośna MHz
 Carriers in the span (click: listen and show; double click: tune to it)	Nośne w zakresie (klik: słuchaj i pokaż; podwójne kliknięcie: dostrój)
@@ -691,7 +690,7 @@ Choose a frequency inside the range shown in the message.	Wybierz częstotliwoś
 Choose the file again.	Wybierz plik ponownie.
 Close other programs that use the radio.	Zamknij inne programy używające radia.
 Close programs that hold the sound device exclusively.	Zamknij programy, które zajmują urządzenie dźwiękowe na wyłączność.
-Close the other program (a second OnAir, SDR software, hackrf_info).	Zamknij drugi program (drugi OnAir, oprogramowanie SDR, hackrf_info).
+Close the other program (a second Eye of ZorCom, SDR software, hackrf_info).	Zamknij drugi program (drugi Eye of ZorCom, oprogramowanie SDR, hackrf_info).
 Close this receiver: it stops and lets go of its radio	Zamknij ten odbiornik: zatrzymuje się i zwalnia swoje radio
 Colour map	Mapa kolorów
 Colours	Kolory
@@ -715,7 +714,7 @@ Files: audio and IQ	Pliki: dźwięk i IQ
 Fill under the line	Wypełnij pod linią
 Find "SDRplay API Service" and press Start (or Restart).	Znajdź „SDRplay API Service” i naciśnij Uruchom (lub Uruchom ponownie).
 Fix the address of the network radio (host:port).	Popraw adres radia sieciowego (host:port).
-Download OnAir again and unpack or install the whole package: the codec2 library belongs next to the program.	Pobierz OnAir ponownie i rozpakuj lub zainstaluj cały pakiet: biblioteka codec2 powinna leżeć obok programu.
+Download Eye of ZorCom again and unpack or install the whole package: the codec2 library belongs next to the program.	Pobierz Eye of ZorCom ponownie i rozpakuj lub zainstaluj cały pakiet: biblioteka codec2 powinna leżeć obok programu.
 Follow the steps in the full instructions to install the codec.	Postępuj według kroków z pełnej instrukcji, aby zainstalować kodek.
 For an RSP, install the SDRplay API first (sdrplay.com).	W przypadku RSP najpierw zainstaluj SDRplay API (sdrplay.com).
 Found %s (%s)	Znaleziono %s (%s)
@@ -728,13 +727,13 @@ How far the converter's oscillator runs fast (positive) or slow. The LO used is 
 How fast the max-hold line falls; 0: it stays until reset	Jak szybko opada linia max-hold; 0: zostaje do zresetowania
 How to fix	Jak naprawić
 Images	Obrazy
-Install OnAir's blacklist file (the .deb package does it), or run: sudo systemctl restart sdrplay	Zainstaluj plik blacklist OnAir (robi to pakiet .deb) lub uruchom: sudo systemctl restart sdrplay
+Install Eye of ZorCom's blacklist file (the .deb package does it), or run: sudo systemctl restart sdrplay	Zainstaluj plik blacklist Eye of ZorCom (robi to pakiet .deb) lub uruchom: sudo systemctl restart sdrplay
 Install the SDRplay API	Zainstaluj SDRplay API
 Install the SDRplay API from sdrplay.com if you have not.	Zainstaluj SDRplay API z sdrplay.com, jeśli jeszcze tego nie zrobiłeś.
 Install the WinUSB driver once with Zadig (zadig.akeo.ie): choose the radio, then the driver WinUSB, then Install.	Zainstaluj sterownik WinUSB jednorazowo za pomocą Zadig (zadig.akeo.ie): wybierz radio, potem sterownik WinUSB, potem Install.
 Install the udev rules (install-udev-rules.sh), then unplug and replug the radio.	Zainstaluj reguły udev (install-udev-rules.sh), a potem wyjmij i włóż radio ponownie.
-Install the udev rules: run install-udev-rules.sh from the OnAir folder (the .deb does it).	Zainstaluj reguły udev: uruchom install-udev-rules.sh z folderu OnAir (robi to .deb).
-Install the udev rules: run install-udev-rules.sh from the OnAir folder (the .deb package does it for you).	Zainstaluj reguły udev: uruchom install-udev-rules.sh z folderu OnAir (pakiet .deb robi to za Ciebie).
+Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb does it).	Zainstaluj reguły udev: uruchom install-udev-rules.sh z folderu Eye of ZorCom (robi to .deb).
+Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb package does it for you).	Zainstaluj reguły udev: uruchom install-udev-rules.sh z folderu Eye of ZorCom (pakiet .deb robi to za Ciebie).
 Intensity (dB)	Intensywność (dB)
 IoT, 2.4 GHz	IoT, 2.4 GHz
 IoT, sub-GHz	IoT, sub-GHz
@@ -768,13 +767,13 @@ No sound output	Brak wyjścia dźwięku
 North America	Ameryka Północna
 Not a locator or coordinates	To nie lokator ani współrzędne
 On Windows a HackRF needs its WinUSB driver once: install it with Zadig (zadig.akeo.ie).	W systemie Windows HackRF wymaga jednorazowo sterownika WinUSB: zainstaluj go za pomocą Zadig (zadig.akeo.ie).
-OnAir %s	OnAir %s
-OnAir cannot see a HackRF on the USB ports.	OnAir nie widzi HackRF na portach USB.
-OnAir could not open the speakers, so there will be no sound.	OnAir nie mógł otworzyć głośników, więc nie będzie dźwięku.
-OnAir could not use the rtl_tcp server, or the connection dropped.	OnAir nie mógł użyć serwera rtl_tcp lub połączenie zostało zerwane.
-OnAir found the SDRplay software, but its background service does not answer, so the RSP cannot be opened.	OnAir znalazł oprogramowanie SDRplay, ale jego usługa w tle nie odpowiada, więc nie można otworzyć RSP.
-OnAir lists a radio when the computer sees it. You can still try everything with the synthetic signal or an IQ file.	OnAir wyświetla radio, gdy komputer je widzi. Wszystko możesz nadal wypróbować na sygnale syntetycznym lub pliku IQ.
-OnAir needs SDRplay API 3.07 or a newer 3.x.	OnAir wymaga SDRplay API 3.07 lub nowszego 3.x.
+Eye of ZorCom %s	Eye of ZorCom %s
+Eye of ZorCom cannot see a HackRF on the USB ports.	Eye of ZorCom nie widzi HackRF na portach USB.
+Eye of ZorCom could not open the speakers, so there will be no sound.	Eye of ZorCom nie mógł otworzyć głośników, więc nie będzie dźwięku.
+Eye of ZorCom could not use the rtl_tcp server, or the connection dropped.	Eye of ZorCom nie mógł użyć serwera rtl_tcp lub połączenie zostało zerwane.
+Eye of ZorCom found the SDRplay software, but its background service does not answer, so the RSP cannot be opened.	Eye of ZorCom znalazł oprogramowanie SDRplay, ale jego usługa w tle nie odpowiada, więc nie można otworzyć RSP.
+Eye of ZorCom lists a radio when the computer sees it. You can still try everything with the synthetic signal or an IQ file.	Eye of ZorCom wyświetla radio, gdy komputer je widzi. Wszystko możesz nadal wypróbować na sygnale syntetycznym lub pliku IQ.
+Eye of ZorCom needs SDRplay API 3.07 or a newer 3.x.	Eye of ZorCom wymaga SDRplay API 3.07 lub nowszego 3.x.
 Only one program can use an rtl_tcp server at a time: close any other client.	Z serwera rtl_tcp może korzystać naraz tylko jeden program: zamknij innych klientów.
 Only one program can use the radio at a time.	Z radia może korzystać naraz tylko jeden program.
 Only one receiver plays its sound at a time: click to hear this one	Dźwięk gra naraz tylko jeden odbiornik: kliknij, aby słyszeć ten
@@ -787,7 +786,7 @@ Open the SDRplay API page	Otwórz stronę SDRplay API
 Open the device list	Otwórz listę urządzeń
 Optional: your position, as a Maidenhead locator (KO24pq) or coordinates (54.68, 25.28). It is kept on this computer and used for maps and satellite passes.	Opcjonalnie: Twoje położenie jako lokator Maidenhead (KO24pq) lub współrzędne (54.68, 25.28). Zostaje na tym komputerze i jest używane na mapach i do przelotów satelitów.
 Or choose another radio from the list.	Albo wybierz inne radio z listy.
-Or install OnAir's blacklist file (the .deb package does it).	Albo zainstaluj plik blacklist OnAir (robi to pakiet .deb).
+Or install Eye of ZorCom's blacklist file (the .deb package does it).	Albo zainstaluj plik blacklist Eye of ZorCom (robi to pakiet .deb).
 Or set the UHD_IMAGES_DIR variable to the folder with the images.	Albo ustaw zmienną UHD_IMAGES_DIR na folder z obrazami.
 Own accent colour	Własny kolor akcentu
 PSK Reporter	PSK Reporter
@@ -800,7 +799,7 @@ Plug the radio in, directly or through a powered hub.	Podłącz radio, bezpośre
 Press "Look again" in the ? help next to the sound.	Naciśnij „Szukaj ponownie” w pomocy ? obok dźwięku.
 Press the refresh button next to the radio list.	Naciśnij przycisk odświeżania obok listy radiów.
 Press the refresh button next to the source.	Naciśnij przycisk odświeżania obok źródła.
-Put the library in the OnAir codecs folder (button below).	Umieść bibliotekę w folderze kodeków OnAir (przycisk poniżej).
+Put the library in the Eye of ZorCom codecs folder (button below).	Umieść bibliotekę w folderze kodeków Eye of ZorCom (przycisk poniżej).
 Put the panels back to their automatic sizes (drag the bars between panels to resize them)	Przywróć panelom automatyczne rozmiary (przeciągnij paski między panelami, aby zmienić ich rozmiar)
 Radar chirps, HF	Radarowe chirpy, KF
 Radio settings (%d changed)###radioset	Ustawienia radia (zmienione: %d)###radioset
@@ -810,8 +809,8 @@ Reduce CPU when hidden	Zmniejsz obciążenie CPU, gdy okno jest ukryte
 Remote driver	Zdalny sterownik
 Reset	Resetuj
 Reset layout	Resetuj układ
-Restart OnAir (the installer starts SDRplay's background service).	Uruchom OnAir ponownie (instalator uruchamia usługę SDRplay w tle).
-Restart OnAir.	Uruchom OnAir ponownie.
+Restart Eye of ZorCom (the installer starts SDRplay's background service).	Uruchom Eye of ZorCom ponownie (instalator uruchamia usługę SDRplay w tle).
+Restart Eye of ZorCom.	Uruchom Eye of ZorCom ponownie.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Uruchom Maca ponownie lub wykonaj w Terminalu: sudo launchctl kickstart -k system/com.sdrplay.service
 Right-click the speaker icon, open Sound settings and pick an output device.	Kliknij prawym przyciskiem ikonę głośnika, otwórz ustawienia dźwięku i wybierz urządzenie wyjściowe.
 Run in a terminal: sudo systemctl restart sdrplay	Wykonaj w terminalu: sudo systemctl restart sdrplay
@@ -872,7 +871,7 @@ The radio's USB connection failed	Połączenie USB radia nie powiodło się
 The recording file is missing, moved or not readable.	Plik nagrania nie istnieje, został przeniesiony lub nie można go odczytać.
 The rtl_tcp address is not valid	Adres rtl_tcp jest nieprawidłowy
 The server has no radio	Serwer nie ma radia
-The text and data are shown, but speech needs the codec2 library. It comes with OnAir, so this copy is probably incomplete.	Tekst i dane są pokazywane, ale mowa wymaga biblioteki codec2. Jest dołączona do OnAir, więc ta kopia jest prawdopodobnie niekompletna.
+The text and data are shown, but speech needs the codec2 library. It comes with Eye of ZorCom, so this copy is probably incomplete.	Tekst i dane są pokazywane, ale mowa wymaga biblioteki codec2. Jest dołączona do Eye of ZorCom, więc ta kopia jest prawdopodobnie niekompletna.
 The voice codec (mbelib) is not installed	Kodek mowy (mbelib) nie jest zainstalowany
 This frequency is not reachable through the converter.	Ta częstotliwość nie jest osiągalna przez konwerter.
 This is a Linux problem. On this system, unplug the radio, plug it in again and press the refresh button.	To problem Linuksa. W tym systemie wyjmij radio, włóż je ponownie i naciśnij przycisk odświeżania.
@@ -905,7 +904,7 @@ Weather pictures, 1.7 GHz	Obrazy pogodowe, 1.7 GHz
 What do you want to receive? Tick anything that interests you.	Co chcesz odbierać? Zaznacz wszystko, co Cię interesuje.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Co dodać do poziomu w dBFS, aby uzyskać dBm dla tego radia (jego kalibracja: pokazuje ją znany sygnał podany na gniazdo antenowe). Także w ustawieniach radia.
 Where are you? This picks the right TV standard and FM band.	Gdzie jesteś? Na tej podstawie wybierany jest właściwy standard TV i pasmo FM.
-Which language do you want OnAir in?	W jakim języku ma być OnAir?
+Which language do you want Eye of ZorCom in?	W jakim języku ma być Eye of ZorCom?
 Which radio do you have?	Jakie masz radio?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Tryb możesz zmienić w dowolnej chwili, a tę konfigurację uruchomisz ponownie z Pomoc > Kreator konfiguracji.
 You can go on without one: the synthetic signal and IQ files work with no hardware.	Możesz kontynuować bez niego: sygnał syntetyczny i pliki IQ działają bez sprzętu.
@@ -950,7 +949,6 @@ GI	GI
 LNB	LNB
 LoRa, 433.175 MHz	LoRa, 433.175 MHz
 LoRa, 433.775 MHz	LoRa, 433.775 MHz
-ONAIR	ONAIR
 SNR	SNR
 SRO	SRO
 TR	TR
@@ -965,8 +963,8 @@ WSJT, 14.100 MHz	WSJT, 14.100 MHz
 %s, %llu spots sent in %llu packets, %llu duplicates skipped	%s, wysłano %llu spotów w %llu pakietach, pominięto %llu duplikatów
 offset %+.3f %+.3f	przesunięcie %+.3f %+.3f
 sigma %.3f per axis (%.0f%% of the half-distance to a neighbour)	sigma %.3f na oś (%.0f%% połowy odległości do sąsiada)
-A second OnAir (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. Without 'allow remote control' the clients cannot change the frequency or gain.	Drugi OnAir (Dodaj radio sieciowe, rtl_tcp), SDR# lub SDR++ łączy się z adresem tego komputera i portem. Próbki są wysyłane jako 8-bitowe IQ z częstotliwością, z jaką pracuje radio. Bez opcji „Zezwól na zdalne sterowanie” klienci nie mogą zmieniać częstotliwości ani wzmocnienia.
-Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'OnAir'. Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'.	Wysyła zdekodowane stacje FT8, FT4, FT2, WSPR, JS8Call, PSK31 i CW do pskreporter.info, aby pojawiły się na jego publicznej mapie i w statystykach. Raport zawiera: znak wywoławczy nadawcy, częstotliwość, SNR, tryb, jego lokator, jeśli wiadomość go zawiera, i czas odbioru; do tego Twój znak wywoławczy, lokator, opis anteny i „OnAir”. Raporty są grupowane i wysyłane co 5 minut; ta sama stacja na tym samym paśmie jest wysyłana raz na 10 minut. Nic nie jest wysyłane, dopóki nie zaznaczysz pola. Spoty są publiczne: używaj własnego, prawidłowego krótkofalarskiego znaku wywoławczego. CW i PSK31 są zgłaszane tylko wtedy, gdy tekst zawiera „DE znak”.
+A second Eye of ZorCom (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. Without 'allow remote control' the clients cannot change the frequency or gain.	Drugi Eye of ZorCom (Dodaj radio sieciowe, rtl_tcp), SDR# lub SDR++ łączy się z adresem tego komputera i portem. Próbki są wysyłane jako 8-bitowe IQ z częstotliwością, z jaką pracuje radio. Bez opcji „Zezwól na zdalne sterowanie” klienci nie mogą zmieniać częstotliwości ani wzmocnienia.
+Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'Eye of ZorCom'. Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'.	Wysyła zdekodowane stacje FT8, FT4, FT2, WSPR, JS8Call, PSK31 i CW do pskreporter.info, aby pojawiły się na jego publicznej mapie i w statystykach. Raport zawiera: znak wywoławczy nadawcy, częstotliwość, SNR, tryb, jego lokator, jeśli wiadomość go zawiera, i czas odbioru; do tego Twój znak wywoławczy, lokator, opis anteny i „Eye of ZorCom”. Raporty są grupowane i wysyłane co 5 minut; ta sama stacja na tym samym paśmie jest wysyłana raz na 10 minut. Nic nie jest wysyłane, dopóki nie zaznaczysz pola. Spoty są publiczne: używaj własnego, prawidłowego krótkofalarskiego znaku wywoławczego. CW i PSK31 są zgłaszane tylko wtedy, gdy tekst zawiera „DE znak”.
 BW	BW
 CH	CH
 Channel scan	Skanowanie kanałów
@@ -997,7 +995,7 @@ Nothing heard yet: the plot fills in as positions arrive.	Jeszcze nic nie usłys
 Pass of %s in %d:%02d (max %.0f deg)	Przelot %s za %d:%02d (maks. %.0f st.)
 Pass of %s in %d:%02d (max %.0f deg): the receiver starts by itself	Przelot %s za %d:%02d (maks. %.0f st.): odbiornik uruchomi się sam
 Plug the radio into a USB 3 port directly on the computer, not through a USB 2 hub.	Podłącz radio do portu USB 3 bezpośrednio w komputerze, nie przez hub USB 2.
-Put the file in OnAir's codecs folder (button below).	Umieść plik w folderze kodeków OnAir (przycisk poniżej).
+Put the file in Eye of ZorCom's codecs folder (button below).	Umieść plik w folderze kodeków Eye of ZorCom (przycisk poniżej).
 Range	Zasięg
 Record this pass	Nagraj ten przelot
 Rolling window: a sector's furthest position counts only for this long	Okno przesuwne: najdalsza pozycja sektora liczy się tylko przez ten czas
@@ -1007,7 +1005,7 @@ Set the receiver position first: ranges are measured from it.	Najpierw ustaw po�
 The RX888 MkII sends up to 256 MB per second. It needs a USB 3 (SuperSpeed) port and a USB 3 cable; on a USB 2 port it cannot stream.	RX888 MkII wysyła do 256 MB na sekundę. Wymaga portu USB 3 (SuperSpeed) i kabla USB 3; na porcie USB 2 nie może przesyłać strumienia.
 The RX888 is on a USB 2 port	RX888 jest podłączony do portu USB 2
 The RX888 needs its firmware file	RX888 potrzebuje swojego pliku firmware
-The RX888 MkII has no program of its own in its USB chip: OnAir loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official OnAir packages include this file; a copy built by hand may not.	RX888 MkII nie ma własnego programu w układzie USB: OnAir ładuje SDDC_FX3.img do RAM w trybie boot-loadera (nic nie jest flashowane do radia). Oficjalne pakiety OnAir zawierają ten plik; kopia zbudowana ręcznie może go nie mieć.
+The RX888 MkII has no program of its own in its USB chip: Eye of ZorCom loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official Eye of ZorCom packages include this file; a copy built by hand may not.	RX888 MkII nie ma własnego programu w układzie USB: Eye of ZorCom ładuje SDDC_FX3.img do RAM w trybie boot-loadera (nic nie jest flashowane do radia). Oficjalne pakiety Eye of ZorCom zawierają ten plik; kopia zbudowana ręcznie może go nie mieć.
 Use a USB 3 cable (the one that came with the radio).	Użyj kabla USB 3 (tego dołączonego do radia).
 armed: %s at %s	uzbrojono: %s o %s
 last downloaded %s	ostatnio pobrano %s
@@ -1044,9 +1042,8 @@ Frequency (MHz)	Częstotliwość (MHz)
 Repeat until stopped	Powtarzaj do zatrzymania
 seconds	sekund
 START TRANSMITTING	ROZPOCZNIJ NADAWANIE
-This radio has no transmit driver in OnAir.	To radio nie ma sterownika nadawania w OnAir.
+This radio has no transmit driver in Eye of ZorCom.	To radio nie ma sterownika nadawania w Eye of ZorCom.
 Before you transmit	Zanim zaczniesz nadawać
-Transmitting needs a licence or permission where you are. You are responsible for what you emit and for not interfering with others (including services that people rely on for safety). Connect an antenna, an attenuator or a dummy load to the radio before you start. OnAir does not limit the frequency or the power: the radio's own limits are the only ones.	Nadawanie wymaga licencji lub zezwolenia tam, gdzie jesteś. Odpowiadasz za to, co emitujesz, i za niezakłócanie innych (w tym usług, na których ludzie polegają dla bezpieczeństwa). Przed startem podłącz do radia antenę, tłumik lub sztuczne obciążenie. OnAir nie ogranicza ani częstotliwości, ani mocy: obowiązują tylko granice samego radia.
 I understand	Rozumiem
 TX VGA 0 to 47 dB; the +14 dB amplifier has its own switch	TX VGA od 0 do 47 dB; wzmacniacz +14 dB ma własny przełącznik
 the AD9361's TX attenuation shown as a gain: -89.75 dB (least power) to 0 dB (most)	tłumienie TX układu AD9361 pokazane jako wzmocnienie: od -89,75 dB (najmniejsza moc) do 0 dB (największa)
@@ -1064,7 +1061,7 @@ Bluetooth LE advertisements, JSON (UDP)	Reklamy Bluetooth LE, JSON (UDP)
 LoRa / LoRaWAN / Meshtastic, JSON (UDP)	LoRa / LoRaWAN / Meshtastic, JSON (UDP)
 JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent.	Linie JSON (jeden obiekt na linię), oprócz GNSS, które jest NMEA. Wyłączone, dopóki nie włączysz kanału. Wysyłane są tylko tryby, które już mają uporządkowane komunikaty.
 Support	Support
-Support OnAir on Ko-fi	Support OnAir on Ko-fi
+Support Eye of ZorCom on Ko-fi	Support Eye of ZorCom on Ko-fi
 Documentation	Dokumentacja
 Troubleshooting	Rozwiązywanie problemów
 Website	Strona internetowa
@@ -1096,14 +1093,14 @@ Bright numbers: preferred scanning channels (PSC), where FILS discovery is sent.
 start the receiver to see the channels	uruchom odbiornik, aby zobaczyć kanały
 # map server start-up question
 Keep sending positions	Dalej wysyłaj pozycje
-OnAir asks this question at every start. "No, do not ask again" stops it until OnAir is updated.	OnAir zadaje to pytanie przy każdym uruchomieniu. „Nie, nie pytaj ponownie” wyłącza je do następnej aktualizacji OnAir.
-Nothing is sent in this session. OnAir asks again the next time it starts.	W tej sesji nic nie jest wysyłane. OnAir zapyta ponownie przy następnym uruchomieniu.
-Nothing is sent and this question is not shown again until OnAir is updated. You can still turn it on later in the Server menu.	Nic nie jest wysyłane, a to pytanie nie pojawi się do następnej aktualizacji OnAir. Nadal możesz to włączyć później w menu Serwer.
+Eye of ZorCom asks this question at every start. "No, do not ask again" stops it until Eye of ZorCom is updated.	Eye of ZorCom zadaje to pytanie przy każdym uruchomieniu. „Nie, nie pytaj ponownie” wyłącza je do następnej aktualizacji Eye of ZorCom.
+Nothing is sent in this session. Eye of ZorCom asks again the next time it starts.	W tej sesji nic nie jest wysyłane. Eye of ZorCom zapyta ponownie przy następnym uruchomieniu.
+Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu.	Nic nie jest wysyłane, a to pytanie nie pojawi się do następnej aktualizacji Eye of ZorCom. Nadal możesz to włączyć później w menu Serwer.
 #  Wi-Fi HaLow
 (hidden)	(ukryta)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	Radio pracuje z %.1f Msps: kanały %d MHz wymagają co najmniej %.0f Msps (zalecane %.0f). Wybierz SZYBKOŚĆ na górnym pasku albo inną szerokość odbioru.
 At %.1f Msps channels up to %d MHz are read; 16 MHz channels need 16 Msps or more (20 recommended).	Przy %.1f Msps czytane są kanały do %d MHz; kanały 16 MHz wymagają 16 Msps lub więcej (zalecane 20).
-Receive only: OnAir never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon announces, shown for information. Sub-GHz Wi-Fi HaLow (802.11ah) is for low power sensors and cameras at long range; 1, 2, 4, 8 and 16 MHz channels. 1 and 2 MHz channels work from 2.4 Msps (an RTL-SDR), 4 MHz from 4 Msps, 8 MHz from 10 Msps, 16 MHz from 20 Msps.	Tylko odbiór: OnAir nigdy nie nadaje, nie odpytuje, nie dołącza do sieci ani nie odpowiada, i niczego nie odszyfrowuje. Typ zabezpieczeń to to, co ogłasza beacon, tylko informacyjnie. Wi-Fi HaLow (802.11ah) poniżej GHz służy czujnikom i kamerom o małym poborze mocy na duże odległości; kanały 1, 2, 4, 8 i 16 MHz. Kanały 1 i 2 MHz działają od 2,4 Msps (RTL-SDR), 4 MHz od 4 Msps, 8 MHz od 10 Msps, 16 MHz od 20 Msps.
+Receive only: Eye of ZorCom never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon announces, shown for information. Sub-GHz Wi-Fi HaLow (802.11ah) is for low power sensors and cameras at long range; 1, 2, 4, 8 and 16 MHz channels. 1 and 2 MHz channels work from 2.4 Msps (an RTL-SDR), 4 MHz from 4 Msps, 8 MHz from 10 Msps, 16 MHz from 20 Msps.	Tylko odbiór: Eye of ZorCom nigdy nie nadaje, nie odpytuje, nie dołącza do sieci ani nie odpowiada, i niczego nie odszyfrowuje. Typ zabezpieczeń to to, co ogłasza beacon, tylko informacyjnie. Wi-Fi HaLow (802.11ah) poniżej GHz służy czujnikom i kamerom o małym poborze mocy na duże odległości; kanały 1, 2, 4, 8 i 16 MHz. Kanały 1 i 2 MHz działają od 2,4 Msps (RTL-SDR), 4 MHz od 4 Msps, 8 MHz od 10 Msps, 16 MHz od 20 Msps.
 channel	kanał
 Filter	Filtr
 SSID, BSSID, vendor, security, country	SSID, BSSID, producent, zabezpieczenia, kraj
@@ -1129,7 +1126,7 @@ Security	Zabezpieczenia
 Beacon	Beacon
 Country	Kraj
 Last seen	Ostatnio widziana
-What the beacon announces, for information. OnAir does not decrypt or test anything.	To, co ogłasza beacon, tylko informacyjnie. OnAir niczego nie odszyfrowuje ani nie testuje.
+What the beacon announces, for information. Eye of ZorCom does not decrypt or test anything.	To, co ogłasza beacon, tylko informacyjnie. Eye of ZorCom niczego nie odszyfrowuje ani nie testuje.
 nothing heard yet	jeszcze nic nie słychać
 no network passes the filter	żadna sieć nie spełnia filtra
 start the receiver to see the frames	uruchom odbiornik, by zobaczyć ramki
@@ -1344,7 +1341,7 @@ Ham It Down: 1500 MHz down-converter for about 1.5 to 3 GHz (2.4 GHz, 2.3/3.4 GH
 Contrast	Kontrast
 Below 1 lifts the weak signals, above 1 darkens the noise (double click: 1)	Below 1 lifts the weak signals, above 1 darkens the noise (double click: 1)
 Credits and licences	Credits and licences
-OnAir is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.	OnAir is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.
+Eye of ZorCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.	Eye of ZorCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.
 Click a link to open it in your browser. The full notices and open licence points are in THIRD_PARTY.md.	Click a link to open it in your browser. The full notices and open licence points are in THIRD_PARTY.md.
 Project	Project
 Author	Author
@@ -1439,13 +1436,13 @@ HDC sound codec not installed (no sound; click ? for the steps)	Kodek dźwięku 
 sound: HD%d (HDC)	dźwięk: HD%d (HDC)
 sound: HD%d, waiting for audio	dźwięk: HD%d, czekam na dźwięk
 The HD Radio sound codec (HDC) is not installed	Kodek dźwięku HD Radio (HDC) nie jest zainstalowany
-The station, program data and pictures are shown, but HD Radio sound stays silent until you install the codec yourself. OnAir does not ship it (HDC is patented and owned by Xperi).	Stacja, dane programu i obrazy są pokazywane, ale dźwięk HD Radio pozostaje wyciszony, dopóki sam nie zainstalujesz kodeka. OnAir go nie dołącza (HDC jest opatentowany i należy do Xperi).
+The station, program data and pictures are shown, but HD Radio sound stays silent until you install the codec yourself. Eye of ZorCom does not ship it (HDC is patented and owned by Xperi).	Stacja, dane programu i obrazy są pokazywane, ale dźwięk HD Radio pozostaje wyciszony, dopóki sam nie zainstalujesz kodeka. Eye of ZorCom go nie dołącza (HDC jest opatentowany i należy do Xperi).
 Build the HDC-patched FAAD2 as the full instructions explain (it needs the open-source nrsc5 patch).	Zbuduj FAAD2 z poprawką HDC, jak opisuje pełna instrukcja (potrzebna jest otwarta poprawka z projektu nrsc5).
-Put the library (libfaad_hdc) in the OnAir codecs folder (button below).	Umieść bibliotekę (libfaad_hdc) w folderze kodeków OnAir (przycisk poniżej).
+Put the library (libfaad_hdc) in the Eye of ZorCom codecs folder (button below).	Umieść bibliotekę (libfaad_hdc) w folderze kodeków Eye of ZorCom (przycisk poniżej).
 The HD Radio sound library cannot be used	Biblioteki dźwięku HD Radio nie można użyć
-OnAir found a library for HDC, but it is not a FAAD2 build with the HDC patch that OnAir knows how to call, so it was left alone.	OnAir znalazł bibliotekę dla HDC, ale nie jest to wersja FAAD2 z poprawką HDC, którą OnAir potrafi wywołać, więc została pominięta.
+Eye of ZorCom found a library for HDC, but it is not a FAAD2 build with the HDC patch that Eye of ZorCom knows how to call, so it was left alone.	Eye of ZorCom znalazł bibliotekę dla HDC, ale nie jest to wersja FAAD2 z poprawką HDC, którą Eye of ZorCom potrafi wywołać, więc została pominięta.
 Build the library again from FAAD2 2.10 or 2.11 with the nrsc5 patch, as the full instructions explain.	Zbuduj bibliotekę ponownie z FAAD2 2.10 lub 2.11 z poprawką nrsc5, jak opisuje pełna instrukcja.
-Replace the file in the OnAir codecs folder (button below).	Zamień plik w folderze kodeków OnAir (przycisk poniżej).
+Replace the file in the Eye of ZorCom codecs folder (button below).	Zamień plik w folderze kodeków Eye of ZorCom (przycisk poniżej).
 # band plans (scan tab, TV channel list)
 Band plan	Plan pasm
 None (built-in ranges)	Brak (wbudowane zakresy)
@@ -1524,9 +1521,9 @@ WAV: 16-bit, large. FLAC: lossless, about half the size. MP3: small (needs libmp
 Saves only while there is sound (like a squelch): silence is cut out, with a short lead-in and tail	Zapisuje tylko gdy jest dźwięk (jak squelch): cisza jest wycinana, z krótkim początkiem i końcem
 One file per transmission: a new file starts after 3 s of silence	Jeden plik na transmisję: po 3 s ciszy zaczyna się nowy plik
 Keeps recording when the mode or the frequency changes. Off: the recording stops then.	Nagrywa dalej po zmianie trybu lub częstotliwości. Wyłączone: nagrywanie wtedy się zatrzymuje.
-The SoapyRemote module is missing from this installation of OnAir, so it cannot reach a remote radio. Reinstall OnAir, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	W tej instalacji OnAir brakuje modułu SoapyRemote, więc nie dociera do zdalnego radia. Zainstaluj OnAir ponownie, a jeśli się powtórzy, zgłoś to. Komputer z radiem musi uruchomić SoapySDRServer --bind.
-The SoapyRemote module is missing from this installation of OnAir, so it cannot reach a remote radio. Reinstall OnAir (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	W tej instalacji OnAir brakuje modułu SoapyRemote, więc nie dociera do zdalnego radia. Zainstaluj OnAir ponownie (lub uruchom brew install soapyremote), a jeśli się powtórzy, zgłoś to. Komputer z radiem musi uruchomić SoapySDRServer --bind.
-SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart OnAir. The radio's computer must run SoapySDRServer --bind.	To SoapySDR nie ma modułu klienta SoapyRemote, więc nie dociera do zdalnego radia. Zainstaluj go (Debian/Ubuntu: sudo apt install soapysdr-module-remote; inne systemy: github.com/pothosware/SoapyRemote) i uruchom OnAir ponownie. Komputer z radiem musi uruchomić SoapySDRServer --bind.
+The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	W tej instalacji Eye of ZorCom brakuje modułu SoapyRemote, więc nie dociera do zdalnego radia. Zainstaluj Eye of ZorCom ponownie, a jeśli się powtórzy, zgłoś to. Komputer z radiem musi uruchomić SoapySDRServer --bind.
+The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	W tej instalacji Eye of ZorCom brakuje modułu SoapyRemote, więc nie dociera do zdalnego radia. Zainstaluj Eye of ZorCom ponownie (lub uruchom brew install soapyremote), a jeśli się powtórzy, zgłoś to. Komputer z radiem musi uruchomić SoapySDRServer --bind.
+SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind.	To SoapySDR nie ma modułu klienta SoapyRemote, więc nie dociera do zdalnego radia. Zainstaluj go (Debian/Ubuntu: sudo apt install soapysdr-module-remote; inne systemy: github.com/pothosware/SoapyRemote) i uruchom Eye of ZorCom ponownie. Komputer z radiem musi uruchomić SoapySDRServer --bind.
 # frequency database
 %zu built in, %zu yours	%zu wbudowanych, %zu twoich
 Add entry...	Dodaj wpis...
@@ -1614,7 +1611,7 @@ Listeners:	Słuchacze:
 video	video
 audio	audio
 profile	profile
-Video: %s (OnAir cannot decode this video) — audio, subtitles and data still work	Video: %s (OnAir cannot decode this video) — audio, subtitles and data still work
+Video: %s (Eye of ZorCom cannot decode this video) — audio, subtitles and data still work	Video: %s (Eye of ZorCom cannot decode this video) — audio, subtitles and data still work
 Open in an external player	Open in an external player
 Save the transport stream to a file	Save the transport stream to a file
 Stream it as UDP to %s	Stream it as UDP to %s
@@ -1817,7 +1814,7 @@ Password	Hasło
 blank if the owner set none	puste, jeśli właściciel go nie ustawił
 Find KiwiSDR…	Znajdź KiwiSDR…
 pick a public receiver from the list	wybierz publiczny odbiornik z listy
-A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; OnAir takes its 12 kHz IQ stream. Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. The password is kept in OnAir's settings.	KiwiSDR to odbiornik w internecie obejmujący 0–30 MHz; OnAir pobiera jego strumień IQ 12 kHz. Odbiorniki publiczne mają niewiele miejsc dla użytkowników, a wiele kończy sesję po około 30 minutach: używaj jednego połączenia na odbiornik i rozłącz się, gdy skończysz. Hasło jest zapisane w ustawieniach OnAir.
+A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; Eye of ZorCom takes its 12 kHz IQ stream. Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. The password is kept in Eye of ZorCom's settings.	KiwiSDR to odbiornik w internecie obejmujący 0–30 MHz; Eye of ZorCom pobiera jego strumień IQ 12 kHz. Odbiorniki publiczne mają niewiele miejsc dla użytkowników, a wiele kończy sesję po około 30 minutach: używaj jednego połączenia na odbiornik i rozłącz się, gdy skończysz. Hasło jest zapisane w ustawieniach Eye of ZorCom.
 S-meter %.0f dBm%s	S-metr %.0f dBm%s
 , ADC overload	, przesterowanie ADC
 Find KiwiSDR	Znajdź KiwiSDR
@@ -1832,7 +1829,7 @@ Distance	Odległość
 offline	offline
 full	pełny
 Adds this receiver to the Network radios (it does not connect until you pick it as the radio).	Dodaje ten odbiornik do radiów sieciowych (nie łączy się, dopóki nie wybierzesz go jako radia).
-The downloaded list has no receivers OnAir can read.	Pobrana lista nie zawiera odbiorników, które OnAir potrafi odczytać.
+The downloaded list has no receivers Eye of ZorCom can read.	Pobrana lista nie zawiera odbiorników, które Eye of ZorCom potrafi odczytać.
 Could not download the list. Check the internet connection.	Nie udało się pobrać listy. Sprawdź połączenie z internetem.
 # live transcripts (docs/TRANSCRIBE.md)
 Transcribing speech: %s	Transkrypcja mowy: %s
@@ -1878,7 +1875,7 @@ How many processor threads the speech engine may use for one transmission. Fewer
 Keep transcripts (days)	Przechowuj transkrypcje (dni)
 Heard %llu, kept %llu, left out %llu (silence, noise, repeats), skipped %llu (too slow), speed %.2f x real time	Usłyszano %llu, zachowano %llu, pominięto %llu (cisza, szum, powtórzenia), pominięto %llu (za wolno), szybkość %.2f x czas rzeczywisty
 Download the speech model %s (%d MB)?	Pobrać model mowy %s (%d MB)?
-OnAir asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed.	OnAir prosi repozytorium modeli (huggingface.co) o ten jeden plik i niczego więcej nie wysyła. Plik jest sprawdzany ze stałą sumą kontrolną SHA-256 i usuwany, jeśli się nie zgadza. Model ma licencję MIT.
+Eye of ZorCom asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed.	Eye of ZorCom prosi repozytorium modeli (huggingface.co) o ten jeden plik i niczego więcej nie wysyła. Plik jest sprawdzany ze stałą sumą kontrolną SHA-256 i usuwany, jeśli się nie zgadza. Model ma licencję MIT.
 Download	Pobierz
 Delete all saved transcripts? This cannot be undone.	Usunąć wszystkie zapisane transkrypcje? Nie można tego cofnąć.
 Delete all	Usuń wszystko
@@ -2156,7 +2153,7 @@ Timeshift	Timeshift
 Play	Odtwórz
 behind live	za transmisją na żywo
 Live	Na żywo
-Recordings run only while OnAir is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only.	Nagrywanie działa tylko, gdy OnAir jest otwarty, a komputer nie śpi; uśpiony komputer niczego nie nagra. Usługi szyfrowane są zapisywane tak, jak docierają, bez odszyfrowania. Tylko do użytku osobistego.
+Recordings run only while Eye of ZorCom is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only.	Nagrywanie działa tylko, gdy Eye of ZorCom jest otwarty, a komputer nie śpi; uśpiony komputer niczego nie nagra. Usługi szyfrowane są zapisywane tak, jak docierają, bez odszyfrowania. Tylko do użytku osobistego.
 Scheduled	Zaplanowane
 recording	nagrywa
 conflict	konflikt
@@ -2199,7 +2196,7 @@ Last 24 hours (UTC), 15 minute cells, darker: fewer stations	Ostatnie 24 godziny
 # plugins (plugin/plugin_app.cpp, the PLUGINS group, View > Plugins)
 %s asks for these permissions:	%s prosi o te uprawnienia:
 A crash or a hang of the plugin then only ends its helper process. Takes effect the next time the plugin starts.	Awaria lub zawieszenie wtyczki kończy wtedy tylko jej proces pomocniczy. Działa od następnego uruchomienia wtyczki.
-Add decoders and actions without rebuilding OnAir: install, enable and set up plugins	Dodaj dekodery i akcje bez przebudowy OnAir: instaluj, włączaj i konfiguruj wtyczki
+Add decoders and actions without rebuilding Eye of ZorCom: install, enable and set up plugins	Dodaj dekodery i akcje bez przebudowy Eye of ZorCom: instaluj, włączaj i konfiguruj wtyczki
 Add-ons	Rozszerzenia
 Allow	Zezwól
 Asks for	Wymaga
@@ -2218,7 +2215,7 @@ No plugins installed. Use Install from file, or copy a plugin folder into the pl
 Not installed	Nie zainstalowano
 Open its folder	Otwórz jej folder
 PLUGINS	WTYCZKI
-Permissions are what OnAir hands the plugin. A plugin running inside OnAir can still use the system itself: install plugins you trust, or run them in a helper process.	Uprawnienia określają, co OnAir udostępnia wtyczce. Wtyczka działająca wewnątrz OnAir nadal może sama korzystać z systemu: instaluj tylko zaufane wtyczki albo uruchamiaj je w procesie pomocniczym.
+Permissions are what Eye of ZorCom hands the plugin. A plugin running inside Eye of ZorCom can still use the system itself: install plugins you trust, or run them in a helper process.	Uprawnienia określają, co Eye of ZorCom udostępnia wtyczce. Wtyczka działająca wewnątrz Eye of ZorCom nadal może sama korzystać z systemu: instaluj tylko zaufane wtyczki albo uruchamiaj je w procesie pomocniczym.
 Plugin idle	Wtyczka bezczynna
 Plugin log	Dziennik wtyczki
 Plugin modes run on receiver 1.	Tryby wtyczek działają na odbiorniku 1.
@@ -2296,7 +2293,7 @@ sky + spill K	niebo + spillover K
 , bursts (%.0f %% on)	, impulsy (%.0f %% aktywny)
 , every %.3g ms	, co %.3g ms
 , useful symbol %.4g us	, symbol użyteczny %.4g µs
-A score is the share of the evidence that holds; the percentages are calibrated on OnAir's own test signals, not on every real signal.	Wynik to część dowodów, które się zgadzają; procenty skalibrowano na własnych sygnałach testowych OnAir, a nie na każdym prawdziwym sygnale.
+A score is the share of the evidence that holds; the percentages are calibrated on Eye of ZorCom's own test signals, not on every real signal.	Wynik to część dowodów, które się zgadzają; procenty skalibrowano na własnych sygnałach testowych Eye of ZorCom, a nie na każdym prawdziwym sygnale.
 Add to memory	Dodaj do Memory
 Best guess	Najlepsze przypuszczenie
 Copy as text	Kopiuj jako tekst
@@ -2314,7 +2311,7 @@ Opened %s	Otwarto %s
 Perhaps %s (%.0f %%).	Może %s (%.0f %%).
 Signals in the view	Sygnały w widoku
 The frequency list has here:	Lista częstotliwości zawiera tu:
-What is this? Click a signal, or drag across it, and OnAir says what it is and how sure it is. Key I. Shift+drag does it without the tool.	Co to jest? Kliknij sygnał lub przeciągnij po nim, a OnAir powie, co to jest i jak jest tego pewny. Klawisz I. Shift+przeciąganie działa także bez narzędzia.
+What is this? Click a signal, or drag across it, and Eye of ZorCom says what it is and how sure it is. Key I. Shift+drag does it without the tool.	Co to jest? Kliknij sygnał lub przeciągnij po nim, a Eye of ZorCom powie, co to jest i jak jest tego pewny. Klawisz I. Shift+przeciąganie działa także bez narzędzia.
 Why?	Dlaczego?
 Identify selected	Zidentyfikuj zaznaczony
 Tune the radio to the selected signal and say what it is (needs the receiver in a mode whose sample rate covers it)	Strojenie radia na zaznaczony sygnał i podanie, co to jest (odbiornik musi pracować w trybie, którego częstotliwość próbkowania go obejmuje)
@@ -2479,7 +2476,7 @@ The live rooms server did not answer in time.	Serwer pokoi na żywo nie odpowied
 The live rooms server is full right now. Try again later.	Serwer pokoi na żywo jest teraz pełny. Spróbuj ponownie później.
 Too many rooms were started from here. Try again in a few minutes.	Z tego miejsca uruchomiono zbyt wiele pokoi. Spróbuj ponownie za kilka minut.
 The live rooms server refused the request.	Serwer pokoi na żywo odrzucił żądanie.
-The live rooms server sent an answer OnAir does not understand.	Serwer pokoi na żywo wysłał odpowiedź, której OnAir nie rozumie.
+The live rooms server sent an answer Eye of ZorCom does not understand.	Serwer pokoi na żywo wysłał odpowiedź, której Eye of ZorCom nie rozumie.
 Checking the live rooms server...	Sprawdzanie serwera pokoi na żywo...
 Check the live rooms server again	Sprawdź serwer pokoi na żywo ponownie
 Live rooms: while you are live, anyone with the room link can watch this receiver's waterfall, the mode and the frequency you are tuned to, and chat with each other. The room list on the web also shows its title. Nothing is sent before you press Go live, and nothing is stored after the room ends. Your location, your name and the audio are never sent.	Pokoje na żywo: dopóki transmitujesz, każdy z linkiem do pokoju może oglądać wodospad tego odbiornika, tryb i ustawioną częstotliwość oraz czatować z innymi. Lista pokoi w sieci pokazuje też jego tytuł. Nic nie jest wysyłane przed naciśnięciem Rozpocznij transmisję i nic nie jest przechowywane po zakończeniu pokoju. Twoja lokalizacja, imię i dźwięk nigdy nie są wysyłane.
@@ -2676,7 +2673,7 @@ One per line: a call sign. Without an SSID (LY1ABC) every SSID matches; with one
 One per line: a frequency in MHz (162.025), with a unit (162025 kHz) or a range (144-146). Anything decoded on it counts.	Jedna w wierszu: częstotliwość w MHz (162.025), z jednostką (162025 kHz) lub zakres (144-146). Liczy się wszystko, co na niej zdekodowano.
 One per line: a word or a phrase (not case sensitive). A trailing * matches word starts (fire*). Searched in pager, ACARS, APRS and other decoded text.	Jedna w wierszu: słowo lub fraza (bez rozróżniania wielkości liter). * na końcu pasuje do początków słów (fire*). Szukane w wiadomościach pagerów, ACARS, APRS i innych zdekodowanych tekstach.
 New list...	Nowa lista...
-Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. OnAir tells you when something on it is heard.	Utwórz listę po lewej: samoloty, statki, znaki APRS, częstotliwości lub słowa. OnAir powiadomi, gdy coś z niej zostanie odebrane.
+Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. Eye of ZorCom tells you when something on it is heard.	Utwórz listę po lewej: samoloty, statki, znaki APRS, częstotliwości lub słowa. Eye of ZorCom powiadomi, gdy coś z niej zostanie odebrane.
 On	Wł.
 Tolerance (kHz)	Tolerancja (kHz)
 entries	wpisów
@@ -3428,7 +3425,7 @@ start the receiver to see the codes	uruchom odbiornik, aby zobaczyć kody
 Squawk and altitude, 1090 MHz	Squawk i wysokość, 1090 MHz
 Mode A is the squawk, Mode C the altitude in 100 ft steps. A reply does not say which of the two it is: a code shows as A/C until it can only be a squawk or is matched to a Mode S aircraft by its squawk or its altitude.	Tryb A to squawk, tryb C to wysokość w krokach co 100 ft. Odpowiedź nie mówi, którym z nich jest: kod widnieje jako A/C, dopóki może być tylko squawkiem lub dopóki nie zostanie powiązany z samolotem Mode S po squawku albo wysokości.
 # BLE tracker detector
-Receive only: item trackers are recognised from their public advertisements. OnAir never connects to one, sends to one or reads its owner's data. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.	Tylko odbiór: trackery przedmiotów są rozpoznawane po publicznych ogłoszeniach. OnAir nigdy się z nimi nie łączy, nic do nich nie wysyła i nie czyta danych właściciela. Identyfikatory zostają w pamięci przez 30 minut od ostatniego odbioru, są pokazywane tylko jako dwa ostatnie bajty adresu i nigdy nie są zapisywane.
+Receive only: item trackers are recognised from their public advertisements. Eye of ZorCom never connects to one, sends to one or reads its owner's data. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.	Tylko odbiór: trackery przedmiotów są rozpoznawane po publicznych ogłoszeniach. Eye of ZorCom nigdy się z nimi nie łączy, nic do nich nie wysyła i nie czyta danych właściciela. Identyfikatory zostają w pamięci przez 30 minut od ostatniego odbioru, są pokazywane tylko jako dwa ostatnie bajty adresu i nigdy nie są zapisywane.
 your own	twój
 following you	śledzi cię
 separated from its owner	oddzielony od właściciela

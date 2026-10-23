@@ -4,7 +4,7 @@
 !endif
 !include "MUI2.nsh"
 !include "x64.nsh"
-Name "OnAir"
+Name "Eye of ZorCom"
 OutFile "${OUTFILE}"
 InstallDir "$PROGRAMFILES64\OnAir"
 InstallDirRegKey HKLM "Software\OnAir" "Install_Dir"
@@ -19,7 +19,7 @@ RequestExecutionLevel admin
 !insertmacro MUI_PAGE_INSTFILES
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION StartOnAir
-!define MUI_FINISHPAGE_RUN_TEXT "Start OnAir"
+!define MUI_FINISHPAGE_RUN_TEXT "Start Eye of ZorCom"
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
@@ -65,7 +65,7 @@ Section "OnAir"
     RMDir /r "$INSTDIR\licenses"
   File /r "${SRC}${SEP}*.*"
   WriteRegStr HKLM "Software\OnAir" "Install_Dir" "$INSTDIR"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\OnAir" "DisplayName" "OnAir"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\OnAir" "DisplayName" "Eye of ZorCom"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\OnAir" "DisplayVersion" "${VERSION}"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\OnAir" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKLM "${UNINST}" "Publisher" "OnAir project"

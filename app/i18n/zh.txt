@@ -1,4 +1,4 @@
-# OnAir interface in Simplified Chinese. One text per line: the English text as in the source, a tab, the translation.
+# Eye of ZorCom interface in Simplified Chinese. One text per line: the English text as in the source, a tab, the translation.
 # \n is a line break. Keep the printf conversions (%s, %d, %.1f ...) in the same order. tests/app/test_i18n.cpp checks this file.
 #  menus, status words, common buttons
 %.1f dB	%.1f dB
@@ -38,7 +38,6 @@ Dial frequency the decoder should assume (the sound card is not tuned)	解码器
 DVB standard	DVB standard
 Empty: the demo 802.15.4 scene.	Empty: the demo 802.15.4 scene.
 Empty: the demo FLARM scene. This ID is not packed into the unpublished newer protocol.	Empty: the demo FLARM scene. This ID is not packed into the unpublished newer protocol.
-Empty: the demo LoRa / mesh scene.	Empty: the demo LoRa / mesh scene.
 Empty: the demo Mode S uplink scene.	Empty: the demo Mode S uplink scene.
 Empty: the demo VDES scene.	Empty: the demo VDES scene.
 File	文件
@@ -109,7 +108,7 @@ The file bytes go out as a HamDRM object with this callsign. Empty file: the tes
 The microphone starts only when you press START TRANSMITTING.	The microphone starts only when you press START TRANSMITTING.
 The registration and free-text go on the air as an H1 / ACARS downlink. Empty: the demo traffic.	The registration and free-text go on the air as an H1 / ACARS downlink. Empty: the demo traffic.
 this mode has no transmit generator	this mode has no transmit generator
-This vocoder cannot encode: OnAir loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.	This vocoder cannot encode: OnAir loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.
+This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.	This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.
 Timeslot	Timeslot
 To	To
 USB audio	USB 音频
@@ -203,7 +202,7 @@ Instrument palette	仪器配色
 Mono palette	单色配色
 Show in Discord	在 Discord 中显示
 Show the frequency	显示频率
-Shows on your Discord profile that you are using OnAir, the mode and the frequency. Needs the Discord desktop app running.	在你的 Discord 资料中显示正在使用 OnAir，以及模式和频率。需要运行 Discord 桌面应用。
+Shows on your Discord profile that you are using Eye of ZorCom, the mode and the frequency. Needs the Discord desktop app running.	在你的 Discord 资料中显示正在使用 Eye of ZorCom，以及模式和频率。需要运行 Discord 桌面应用。
 Discord application ID not set in this build	此版本未设置 Discord 应用 ID
 Passes	过境
 Data feeds...	数据推送...
@@ -261,7 +260,7 @@ no stations yet: run the scan	还没有电台：请先扫描
 no saved channels yet: run the scan	还没有保存的频道：请先扫描
 Hz	Hz
 Frequency in MHz (%.3f to %.3f)	频率，单位 MHz（%.3f 至 %.3f）
-OnAir crashed	OnAir 崩溃了
+Eye of ZorCom crashed	Eye of ZorCom 崩溃了
 no picture - press Esc	无画面 - 按 Esc
 no picture	无画面
 Video	视频
@@ -524,7 +523,7 @@ Auto start at AOS, stop at LOS	入境时自动开始，出境时停止
 Switches to the satellite's mode and starts the receiver at AOS (when it is stopped), and stops it at LOS	切换到该卫星的模式，在入境时启动接收机（若已停止），出境时停止
 Auto record IQ	自动录制 IQ
 Records the radio's IQ during the pass, as Record IQ does (format from the Record IQ setting), into %s/recordings	过境期间录制设备的 IQ，与“录制 IQ”相同（格式取自该设置），保存到 %s/recordings
-OnAir has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	OnAir 没有对应的解码器：自动开始会打开 Spectrum explorer，自动录制会保存 IQ
+Eye of ZorCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	Eye of ZorCom 没有对应的解码器：自动开始会打开 Spectrum explorer，自动录制会保存 IQ
 tracking%s	跟踪中%s
 , recording	，录制中
 #  data feeds
@@ -560,9 +559,9 @@ Adds the frequency and mode the receiver is on now	添加接收机当前的频�
 Clear lockouts	清除屏蔽
 Import CSV...	导入 CSV...
 Export CSV...	导出 CSV...
-Columns: frequency_mhz, mode, name, dwell_s, lockout, priority.\nmode is a mode id: fm, dab, airband, dmr, pocsag, ft8 ...	列：frequency_mhz, mode, name, dwell_s, lockout, priority。\nmode 是模式 ID：fm, dab, airband, dmr, pocsag, ft8 ...
+Columns: frequency_mhz, mode, name, dwell_s, lockout, priority, trunk.\nmode is a mode id: fm, dab, airband, dmr, pocsag, ft8 ...	列：frequency_mhz, mode, name, dwell_s, lockout, priority, trunk。\nmode 是模式 ID：fm, dab, airband, dmr, pocsag, ft8 ...
 imported %d entries%s	已导入 %d 条%s
- (some with a mode OnAir does not know)	（部分条目的模式 OnAir 不认识）
+ (some with a mode Eye of ZorCom does not know)	（部分条目的模式 Eye of ZorCom 不认识）
 exported	已导出
 could not write	无法写入
 start MHz	起始 MHz
@@ -629,11 +628,11 @@ Skip this version	跳过此版本
 Release page	发布页面
 Download page	下载页面
 Checking and preparing the new version…	正在校验并准备新版本…
-Downloaded and checked. It is installed when you close OnAir.	已下载并校验。关闭 OnAir 时将安装。
+Downloaded and checked. It is installed when you close Eye of ZorCom.	已下载并校验。关闭 Eye of ZorCom 时将安装。
 Restart now and update	立即重启并更新
 Windows asks for permission to run the installer.	Windows 会请求运行安装程序的权限。
 The system asks for your password to install the package.	系统会要求输入密码以安装软件包。
-This copy of OnAir cannot replace itself.	此 OnAir 副本无法自行替换。
+This copy of Eye of ZorCom cannot replace itself.	此 Eye of ZorCom 副本无法自行替换。
 The update to v%s did not install (setup exit code %d).	更新到 v%s 未能安装（安装程序退出代码 %d）。
 Only github.com is contacted. Downloads are checked against the SHA-256 GitHub lists for the file.	只连接 github.com。下载文件会按 GitHub 给出的 SHA-256 校验。
 checking…	检查中…
@@ -673,7 +672,7 @@ Add a receiver: another radio with its own mode	添加接收器：另一台使�
 Add receiver	添加接收器
 Added to a level in dBFS to give dBm for this radio: feed a known signal into the antenna port and set the difference. Used when the spectrum shows dBm (Spectrum button on the plot).	加到 dBFS 电平上，得到这台电台的 dBm：向天线口输入已知信号并设置差值。频谱以 dBm 显示时使用（图上的“频谱”按钮）。
 Aircraft	飞机
-All set. OnAir will start here:	设置完成。OnAir 将从这里开始：
+All set. Eye of ZorCom will start here:	设置完成。Eye of ZorCom 将从这里开始：
 Allow remote control (frequency and gain)	允许远程控制（频率和增益）
 Amateur radio	业余无线电
 An SDRplay RSP is plugged in, but the SDRplay Hardware API is not installed. Install it separately even if SDRconnect already works with the radio.	已连接 SDRplay RSP，但未安装 SDRplay Hardware API。即使 SDRconnect 已能使用该电台，也请单独安装它。
@@ -681,7 +680,7 @@ Another program is using the HackRF	另一个程序正在使用 HackRF
 Australia and New Zealand	澳大利亚和新西兰
 Average	平均
 CPU load now: %.0f%% (100%% = one core)	当前 CPU 负载：%.0f%%（100%% = 一个核心）
-Calls and data are shown, but the voice is silent until you install the codec yourself. OnAir does not ship it (patents).	会显示通话和数据，但在您自行安装编解码器之前语音是静音的。OnAir 不附带它（专利原因）。
+Calls and data are shown, but the voice is silent until you install the codec yourself. Eye of ZorCom does not ship it (patents).	会显示通话和数据，但在您自行安装编解码器之前语音是静音的。Eye of ZorCom 不附带它（专利原因）。
 Cancel	取消
 Carrier MHz	载波 MHz
 Carriers in the span (click: listen and show; double click: tune to it)	范围内的载波（单击：收听并显示；双击：调谐到它）
@@ -698,7 +697,7 @@ Choose a frequency inside the range shown in the message.	请选择消息中所�
 Choose the file again.	请重新选择文件。
 Close other programs that use the radio.	请关闭其他使用这台电台的程序。
 Close programs that hold the sound device exclusively.	请关闭独占声音设备的程序。
-Close the other program (a second OnAir, SDR software, hackrf_info).	请关闭另一个程序（第二个 OnAir、SDR 软件、hackrf_info）。
+Close the other program (a second Eye of ZorCom, SDR software, hackrf_info).	请关闭另一个程序（第二个 Eye of ZorCom、SDR 软件、hackrf_info）。
 Close this receiver: it stops and lets go of its radio	关闭此接收器：它会停止并释放其电台
 Colour map	色图
 Colours	颜色
@@ -722,7 +721,7 @@ Files: audio and IQ	文件：音频和 IQ
 Fill under the line	填充曲线下方
 Find "SDRplay API Service" and press Start (or Restart).	找到“SDRplay API Service”，点击启动（或重新启动）。
 Fix the address of the network radio (host:port).	请修正网络电台的地址（主机:端口）。
-Download OnAir again and unpack or install the whole package: the codec2 library belongs next to the program.	请重新下载 OnAir，并解压或安装完整的软件包：codec2 库就在程序旁边。
+Download Eye of ZorCom again and unpack or install the whole package: the codec2 library belongs next to the program.	请重新下载 Eye of ZorCom，并解压或安装完整的软件包：codec2 库就在程序旁边。
 Follow the steps in the full instructions to install the codec.	请按完整说明中的步骤安装编解码器。
 For an RSP, install the SDRplay API first (sdrplay.com).	使用 RSP 时，请先安装 SDRplay API（sdrplay.com）。
 Found %s (%s)	找到 %s（%s）
@@ -735,13 +734,13 @@ How far the converter's oscillator runs fast (positive) or slow. The LO used is 
 How fast the max-hold line falls; 0: it stays until reset	最大保持线的下降速度；0：保持到重置
 How to fix	解决方法
 Images	图像
-Install OnAir's blacklist file (the .deb package does it), or run: sudo systemctl restart sdrplay	安装 OnAir 的黑名单文件（.deb 包会自动安装），或运行：sudo systemctl restart sdrplay
+Install Eye of ZorCom's blacklist file (the .deb package does it), or run: sudo systemctl restart sdrplay	安装 Eye of ZorCom 的黑名单文件（.deb 包会自动安装），或运行：sudo systemctl restart sdrplay
 Install the SDRplay API	安装 SDRplay API
 Install the SDRplay API from sdrplay.com if you have not.	如果尚未安装，请从 sdrplay.com 安装 SDRplay API。
 Install the WinUSB driver once with Zadig (zadig.akeo.ie): choose the radio, then the driver WinUSB, then Install.	用 Zadig（zadig.akeo.ie）一次性安装 WinUSB 驱动：选择电台，再选择驱动 WinUSB，然后点击安装。
 Install the udev rules (install-udev-rules.sh), then unplug and replug the radio.	安装 udev 规则（install-udev-rules.sh），然后拔下并重新插入电台。
-Install the udev rules: run install-udev-rules.sh from the OnAir folder (the .deb does it).	安装 udev 规则：运行 OnAir 文件夹中的 install-udev-rules.sh（.deb 包会自动完成）。
-Install the udev rules: run install-udev-rules.sh from the OnAir folder (the .deb package does it for you).	安装 udev 规则：运行 OnAir 文件夹中的 install-udev-rules.sh（.deb 包会为您完成）。
+Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb does it).	安装 udev 规则：运行 Eye of ZorCom 文件夹中的 install-udev-rules.sh（.deb 包会自动完成）。
+Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb package does it for you).	安装 udev 规则：运行 Eye of ZorCom 文件夹中的 install-udev-rules.sh（.deb 包会为您完成）。
 Intensity (dB)	强度 (dB)
 IoT, 2.4 GHz	物联网，2.4 GHz
 IoT, sub-GHz	物联网，sub-GHz
@@ -775,13 +774,13 @@ No sound output	没有声音输出
 North America	北美
 Not a locator or coordinates	不是网格定位符或坐标
 On Windows a HackRF needs its WinUSB driver once: install it with Zadig (zadig.akeo.ie).	在 Windows 上，HackRF 需要一次性安装 WinUSB 驱动：请用 Zadig（zadig.akeo.ie）安装。
-OnAir %s	OnAir %s
-OnAir cannot see a HackRF on the USB ports.	OnAir 在 USB 端口上看不到 HackRF。
-OnAir could not open the speakers, so there will be no sound.	OnAir 无法打开扬声器，因此不会有声音。
-OnAir could not use the rtl_tcp server, or the connection dropped.	OnAir 无法使用 rtl_tcp 服务器，或连接已断开。
-OnAir found the SDRplay software, but its background service does not answer, so the RSP cannot be opened.	OnAir 找到了 SDRplay 软件，但其后台服务没有响应，因此无法打开 RSP。
-OnAir lists a radio when the computer sees it. You can still try everything with the synthetic signal or an IQ file.	电脑识别到电台后，OnAir 就会列出它。您仍可使用合成信号或 IQ 文件体验所有功能。
-OnAir needs SDRplay API 3.07 or a newer 3.x.	OnAir 需要 SDRplay API 3.07 或更新的 3.x 版本。
+Eye of ZorCom %s	Eye of ZorCom %s
+Eye of ZorCom cannot see a HackRF on the USB ports.	Eye of ZorCom 在 USB 端口上看不到 HackRF。
+Eye of ZorCom could not open the speakers, so there will be no sound.	Eye of ZorCom 无法打开扬声器，因此不会有声音。
+Eye of ZorCom could not use the rtl_tcp server, or the connection dropped.	Eye of ZorCom 无法使用 rtl_tcp 服务器，或连接已断开。
+Eye of ZorCom found the SDRplay software, but its background service does not answer, so the RSP cannot be opened.	Eye of ZorCom 找到了 SDRplay 软件，但其后台服务没有响应，因此无法打开 RSP。
+Eye of ZorCom lists a radio when the computer sees it. You can still try everything with the synthetic signal or an IQ file.	电脑识别到电台后，Eye of ZorCom 就会列出它。您仍可使用合成信号或 IQ 文件体验所有功能。
+Eye of ZorCom needs SDRplay API 3.07 or a newer 3.x.	Eye of ZorCom 需要 SDRplay API 3.07 或更新的 3.x 版本。
 Only one program can use an rtl_tcp server at a time: close any other client.	同一时间只有一个程序能使用 rtl_tcp 服务器：请关闭其他客户端。
 Only one program can use the radio at a time.	同一时间只有一个程序能使用这台电台。
 Only one receiver plays its sound at a time: click to hear this one	同一时间只有一个接收器播放声音：点击以收听此接收器
@@ -794,7 +793,7 @@ Open the SDRplay API page	打开 SDRplay API 页面
 Open the device list	打开设备列表
 Optional: your position, as a Maidenhead locator (KO24pq) or coordinates (54.68, 25.28). It is kept on this computer and used for maps and satellite passes.	可选：您的位置，梅登黑德网格定位符（KO24pq）或坐标（54.68, 25.28）。它仅保存在这台电脑上，用于地图和卫星过境。
 Or choose another radio from the list.	或从列表中选择另一台电台。
-Or install OnAir's blacklist file (the .deb package does it).	或安装 OnAir 的黑名单文件（.deb 包会自动安装）。
+Or install Eye of ZorCom's blacklist file (the .deb package does it).	或安装 Eye of ZorCom 的黑名单文件（.deb 包会自动安装）。
 Or set the UHD_IMAGES_DIR variable to the folder with the images.	或将变量 UHD_IMAGES_DIR 设置为存放镜像的文件夹。
 Own accent colour	自定义强调色
 PSK Reporter	PSK Reporter
@@ -807,7 +806,7 @@ Plug the radio in, directly or through a powered hub.	请插入电台，直接�
 Press "Look again" in the ? help next to the sound.	在声音旁边的 ? 帮助中点击“重新查找”。
 Press the refresh button next to the radio list.	点击电台列表旁边的刷新按钮。
 Press the refresh button next to the source.	点击信号源旁边的刷新按钮。
-Put the library in the OnAir codecs folder (button below).	把库文件放入 OnAir 编解码器文件夹（下方按钮）。
+Put the library in the Eye of ZorCom codecs folder (button below).	把库文件放入 Eye of ZorCom 编解码器文件夹（下方按钮）。
 Put the panels back to their automatic sizes (drag the bars between panels to resize them)	将面板恢复为自动大小（拖动面板之间的分隔条可调整大小）
 Radar chirps, HF	雷达啁啾，短波
 Radio settings (%d changed)###radioset	电台设置（已更改 %d 项）###radioset
@@ -817,8 +816,8 @@ Reduce CPU when hidden	隐藏时降低 CPU 占用
 Remote driver	远程驱动
 Reset	重置
 Reset layout	重置布局
-Restart OnAir (the installer starts SDRplay's background service).	重启 OnAir（安装程序会启动 SDRplay 的后台服务）。
-Restart OnAir.	重启 OnAir。
+Restart Eye of ZorCom (the installer starts SDRplay's background service).	重启 Eye of ZorCom（安装程序会启动 SDRplay 的后台服务）。
+Restart Eye of ZorCom.	重启 Eye of ZorCom。
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	重启 Mac，或在终端中运行：sudo launchctl kickstart -k system/com.sdrplay.service
 Right-click the speaker icon, open Sound settings and pick an output device.	右键单击扬声器图标，打开声音设置并选择输出设备。
 Run in a terminal: sudo systemctl restart sdrplay	在终端中运行：sudo systemctl restart sdrplay
@@ -866,7 +865,7 @@ The USRP software is installed, but the firmware images it loads are missing.	�
 The address of the network radio must look like host:port, for example 192.168.1.20:1234.	网络电台的地址必须形如 主机:端口，例如 192.168.1.20:1234。
 The file could not be opened	无法打开该文件
 The firmware inside the HackRF is older than the software talking to it.	HackRF 内的固件比与其通信的软件旧。
-OnAir still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.	OnAir 仍会向电台请求该频率,但电台或其驱动程序可能无法达到该频率,信号也可能很弱或没有。
+Eye of ZorCom still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.	Eye of ZorCom 仍会向电台请求该频率,但电台或其驱动程序可能无法达到该频率,信号也可能很弱或没有。
 The most receivers are open	已打开的接收器数量达到上限
 The network radio (rtl_tcp) does not answer	网络电台 (rtl_tcp) 没有响应
 The picture holds the last %.0f s.	画面保留最近 %.0f 秒。
@@ -880,7 +879,7 @@ The radio's USB connection failed	电台的 USB 连接失败
 The recording file is missing, moved or not readable.	录音文件缺失、已被移动或无法读取。
 The rtl_tcp address is not valid	rtl_tcp 地址无效
 The server has no radio	服务器没有电台
-The text and data are shown, but speech needs the codec2 library. It comes with OnAir, so this copy is probably incomplete.	文字和数据会显示，但语音需要 codec2 库。它随 OnAir 一起提供，因此这份副本可能不完整。
+The text and data are shown, but speech needs the codec2 library. It comes with Eye of ZorCom, so this copy is probably incomplete.	文字和数据会显示，但语音需要 codec2 库。它随 Eye of ZorCom 一起提供，因此这份副本可能不完整。
 The voice codec (mbelib) is not installed	未安装语音编解码器 (mbelib)
 This frequency is not reachable through the converter.	通过该变频器无法到达此频率。
 This is a Linux problem. On this system, unplug the radio, plug it in again and press the refresh button.	这是 Linux 的问题。请在此系统上拔下电台，重新插入，然后点击刷新按钮。
@@ -914,7 +913,7 @@ Weather pictures, 1.7 GHz	气象图像，1.7 GHz
 What do you want to receive? Tick anything that interests you.	您想接收什么？勾选您感兴趣的任何内容。
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	要加到 dBFS 电平上才能得到这台电台 dBm 的数值（即其校准值：向天线口输入已知信号即可得出）。也可在电台设置中修改。
 Where are you? This picks the right TV standard and FM band.	您在哪里？这将选择合适的电视标准和 FM 频段。
-Which language do you want OnAir in?	您希望使用哪种语言的 OnAir？
+Which language do you want Eye of ZorCom in?	您希望使用哪种语言的 Eye of ZorCom？
 Which radio do you have?	您有哪种电台？
 You can change the mode any time, and run this setup again from Help > Setup wizard.	您可以随时更改模式，也可以从“帮助 > 设置向导”重新运行此设置。
 You can go on without one: the synthetic signal and IQ files work with no hardware.	没有电台也可以继续：合成信号和 IQ 文件无需硬件即可使用。
@@ -959,7 +958,6 @@ GI	GI
 LNB	LNB
 LoRa, 433.175 MHz	LoRa, 433.175 MHz
 LoRa, 433.775 MHz	LoRa, 433.775 MHz
-ONAIR	ONAIR
 SNR	SNR
 SRO	SRO
 TR	TR
@@ -974,17 +972,17 @@ WSJT, 14.100 MHz	WSJT, 14.100 MHz
 %s, %llu spots sent in %llu packets, %llu duplicates skipped	%s，已在 %llu 个数据包中发送 %llu 个 spot，跳过 %llu 个重复项
 offset %+.3f %+.3f	偏移 %+.3f %+.3f
 sigma %.3f per axis (%.0f%% of the half-distance to a neighbour)	每轴 sigma %.3f（相邻点半距离的 %.0f%%）
-A second OnAir (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. Without 'allow remote control' the clients cannot change the frequency or gain.	第二个 OnAir（添加网络电台，rtl_tcp）、SDR# 或 SDR++ 可连接到这台计算机的地址和端口。采样以 8 位 IQ 格式按电台运行的速率发送。未勾选“允许远程控制”时，客户端无法更改频率或增益。
-Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'OnAir'. Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'.	将您解码的 FT8、FT4、FT2、WSPR、JS8Call、PSK31 和 CW 电台发送到 pskreporter.info，使其显示在该网站的公开地图和统计中。一条报告包含：发送方呼号、频率、SNR、模式、消息中的网格定位（如有）以及接收时间；同时附带您的呼号、网格定位、天线说明和“OnAir”。报告会批量处理并每 5 分钟发送一次；同一波段上的同一电台每 10 分钟只发送一次。勾选复选框之前不会发送任何内容。Spot 是公开的：请使用您自己的有效业余无线电呼号。CW 和 PSK31 仅在文本中包含“DE 呼号”时才会上报。
+A second Eye of ZorCom (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. Without 'allow remote control' the clients cannot change the frequency or gain.	第二个 Eye of ZorCom（添加网络电台，rtl_tcp）、SDR# 或 SDR++ 可连接到这台计算机的地址和端口。采样以 8 位 IQ 格式按电台运行的速率发送。未勾选“允许远程控制”时，客户端无法更改频率或增益。
+Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'Eye of ZorCom'. Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'.	将您解码的 FT8、FT4、FT2、WSPR、JS8Call、PSK31 和 CW 电台发送到 pskreporter.info，使其显示在该网站的公开地图和统计中。一条报告包含：发送方呼号、频率、SNR、模式、消息中的网格定位（如有）以及接收时间；同时附带您的呼号、网格定位、天线说明和“Eye of ZorCom”。报告会批量处理并每 5 分钟发送一次；同一波段上的同一电台每 10 分钟只发送一次。勾选复选框之前不会发送任何内容。Spot 是公开的：请使用您自己的有效业余无线电呼号。CW 和 PSK31 仅在文本中包含“DE 呼号”时才会上报。
 BW	BW
 CH	CH
 Channel scan	频道扫描
 FM	FM
 # RX888 MkII
 The RX888 needs its firmware file	RX888 需要它的固件文件
-The RX888 MkII has no program of its own in its USB chip: OnAir loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official OnAir packages include this file; a copy built by hand may not.	RX888 MkII 的 USB 芯片本身没有程序：OnAir 在引导加载模式下将 SDDC_FX3.img 载入 RAM（不会刷写到电台）。官方 OnAir 安装包包含此文件；自行编译的副本可能没有。
+The RX888 MkII has no program of its own in its USB chip: Eye of ZorCom loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official Eye of ZorCom packages include this file; a copy built by hand may not.	RX888 MkII 的 USB 芯片本身没有程序：Eye of ZorCom 在引导加载模式下将 SDDC_FX3.img 载入 RAM（不会刷写到电台）。官方 Eye of ZorCom 安装包包含此文件；自行编译的副本可能没有。
 Download SDDC_FX3.img from the Releases page of the SDDC_Driver project (button below).	请从 SDDC_Driver 项目的 Releases 页面下载 SDDC_FX3.img（下方按钮）。
-Put the file in OnAir's codecs folder (button below).	把文件放入 OnAir 编解码器文件夹（下方按钮）。
+Put the file in Eye of ZorCom's codecs folder (button below).	把文件放入 Eye of ZorCom 编解码器文件夹（下方按钮）。
 The RX888 is on a USB 2 port	RX888 连接在 USB 2 端口上
 The RX888 MkII sends up to 256 MB per second. It needs a USB 3 (SuperSpeed) port and a USB 3 cable; on a USB 2 port it cannot stream.	RX888 MkII 每秒最多发送 256 MB 数据。它需要 USB 3（SuperSpeed）端口和 USB 3 数据线；在 USB 2 端口上无法传输数据流。
 Plug the radio into a USB 3 port directly on the computer, not through a USB 2 hub.	请把电台直接插到电脑的 USB 3 端口上，不要通过 USB 2 集线器。
@@ -1044,9 +1042,8 @@ Frequency (MHz)	频率 (MHz)
 Repeat until stopped	重复直到停止
 seconds	秒
 START TRANSMITTING	开始发射
-This radio has no transmit driver in OnAir.	此无线电在 OnAir 中没有发射驱动。
+This radio has no transmit driver in Eye of ZorCom.	此无线电在 Eye of ZorCom 中没有发射驱动。
 Before you transmit	发射之前
-Transmitting needs a licence or permission where you are. You are responsible for what you emit and for not interfering with others (including services that people rely on for safety). Connect an antenna, an attenuator or a dummy load to the radio before you start. OnAir does not limit the frequency or the power: the radio's own limits are the only ones.	在您所在的地方发射需要许可证或许可。您对所发射的内容以及不干扰他人（包括人们依赖其保障安全的服务）负责。开始前请将天线、衰减器或假负载连接到无线电。OnAir 不限制频率或功率：只有无线电自身的限制。
 I understand	我已了解
 TX VGA 0 to 47 dB; the +14 dB amplifier has its own switch	TX VGA 0 至 47 dB；+14 dB 放大器有独立开关
 the AD9361's TX attenuation shown as a gain: -89.75 dB (least power) to 0 dB (most)	AD9361 的发射衰减以增益显示：-89.75 dB（最小功率）至 0 dB（最大）
@@ -1064,7 +1061,7 @@ Bluetooth LE advertisements, JSON (UDP)	蓝牙 LE 广播，JSON（UDP）
 LoRa / LoRaWAN / Meshtastic, JSON (UDP)	LoRa / LoRaWAN / Meshtastic，JSON（UDP）
 JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent.	JSON 行（每行一个对象）；GNSS 除外，用 NMEA。默认关闭，直到打开某个输出。只发送已有结构化消息的模式。
 Support	Support
-Support OnAir on Ko-fi	Support OnAir on Ko-fi
+Support Eye of ZorCom on Ko-fi	Support Eye of ZorCom on Ko-fi
 Documentation	文档
 Troubleshooting	故障排除
 Website	网站
@@ -1096,14 +1093,14 @@ Bright numbers: preferred scanning channels (PSC), where FILS discovery is sent.
 start the receiver to see the channels	启动接收机以查看信道
 # map server start-up question
 Keep sending positions	继续发送位置
-OnAir asks this question at every start. "No, do not ask again" stops it until OnAir is updated.	OnAir 每次启动都会提出这个问题。选择“不，不再询问”后，在 OnAir 更新之前不会再显示。
-Nothing is sent in this session. OnAir asks again the next time it starts.	本次会话不发送任何内容。下次启动时 OnAir 会再次询问。
-Nothing is sent and this question is not shown again until OnAir is updated. You can still turn it on later in the Server menu.	不发送任何内容，在 OnAir 更新之前不再显示此问题。之后仍可在“服务器”菜单中开启。
+Eye of ZorCom asks this question at every start. "No, do not ask again" stops it until Eye of ZorCom is updated.	Eye of ZorCom 每次启动都会提出这个问题。选择“不，不再询问”后，在 Eye of ZorCom 更新之前不会再显示。
+Nothing is sent in this session. Eye of ZorCom asks again the next time it starts.	本次会话不发送任何内容。下次启动时 Eye of ZorCom 会再次询问。
+Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu.	不发送任何内容，在 Eye of ZorCom 更新之前不再显示此问题。之后仍可在“服务器”菜单中开启。
 #  Wi-Fi HaLow
 (hidden)	(隐藏)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	无线电正以 %.1f Msps 运行:%d MHz 信道至少需要 %.0f Msps(推荐 %.0f)。请在顶部栏选择采样率,或选择其他接收带宽。
 At %.1f Msps channels up to %d MHz are read; 16 MHz channels need 16 Msps or more (20 recommended).	在 %.1f Msps 下可读取不超过 %d MHz 的信道;16 MHz 信道需要 16 Msps 或更高(推荐 20)。
-Receive only: OnAir never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon announces, shown for information. Sub-GHz Wi-Fi HaLow (802.11ah) is for low power sensors and cameras at long range; 1, 2, 4, 8 and 16 MHz channels. 1 and 2 MHz channels work from 2.4 Msps (an RTL-SDR), 4 MHz from 4 Msps, 8 MHz from 10 Msps, 16 MHz from 20 Msps.	仅接收:OnAir 绝不发射、探测、加入或应答任何网络,也不解密任何内容。安全类型只是信标所宣告的内容,仅供参考。亚 GHz 的 Wi-Fi HaLow (802.11ah) 用于低功耗、远距离的传感器和摄像头;信道宽度 1、2、4、8 和 16 MHz。1 和 2 MHz 信道从 2.4 Msps(RTL-SDR)起可用,4 MHz 从 4 Msps 起,8 MHz 从 10 Msps 起,16 MHz 从 20 Msps 起。
+Receive only: Eye of ZorCom never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon announces, shown for information. Sub-GHz Wi-Fi HaLow (802.11ah) is for low power sensors and cameras at long range; 1, 2, 4, 8 and 16 MHz channels. 1 and 2 MHz channels work from 2.4 Msps (an RTL-SDR), 4 MHz from 4 Msps, 8 MHz from 10 Msps, 16 MHz from 20 Msps.	仅接收:Eye of ZorCom 绝不发射、探测、加入或应答任何网络,也不解密任何内容。安全类型只是信标所宣告的内容,仅供参考。亚 GHz 的 Wi-Fi HaLow (802.11ah) 用于低功耗、远距离的传感器和摄像头;信道宽度 1、2、4、8 和 16 MHz。1 和 2 MHz 信道从 2.4 Msps(RTL-SDR)起可用,4 MHz 从 4 Msps 起,8 MHz 从 10 Msps 起,16 MHz 从 20 Msps 起。
 channel	信道
 Filter	过滤
 SSID, BSSID, vendor, security, country	SSID、BSSID、厂商、安全类型、国家
@@ -1129,7 +1126,7 @@ Security	安全
 Beacon	信标
 Country	国家
 Last seen	最近一次
-What the beacon announces, for information. OnAir does not decrypt or test anything.	信标所宣告的内容,仅供参考。OnAir 不解密也不测试任何内容。
+What the beacon announces, for information. Eye of ZorCom does not decrypt or test anything.	信标所宣告的内容,仅供参考。Eye of ZorCom 不解密也不测试任何内容。
 nothing heard yet	尚未收到任何内容
 no network passes the filter	没有网络符合过滤条件
 start the receiver to see the frames	启动接收机以查看帧
@@ -1344,7 +1341,7 @@ Ham It Down: 1500 MHz down-converter for about 1.5 to 3 GHz (2.4 GHz, 2.3/3.4 GH
 Contrast	对比度
 Below 1 lifts the weak signals, above 1 darkens the noise (double click: 1)	Below 1 lifts the weak signals, above 1 darkens the noise (double click: 1)
 Credits and licences	Credits and licences
-OnAir is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.	OnAir is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.
+Eye of ZorCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.	Eye of ZorCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.
 Click a link to open it in your browser. The full notices and open licence points are in THIRD_PARTY.md.	Click a link to open it in your browser. The full notices and open licence points are in THIRD_PARTY.md.
 Project	Project
 Author	Author
@@ -1439,13 +1436,13 @@ HDC sound codec not installed (no sound; click ? for the steps)	未安装 HDC �
 sound: HD%d (HDC)	声音:HD%d (HDC)
 sound: HD%d, waiting for audio	声音:HD%d,等待音频
 The HD Radio sound codec (HDC) is not installed	未安装 HD Radio 声音编解码器 (HDC)
-The station, program data and pictures are shown, but HD Radio sound stays silent until you install the codec yourself. OnAir does not ship it (HDC is patented and owned by Xperi).	电台、节目数据和图片都会显示,但在您自己安装编解码器之前,HD Radio 的声音保持静音。OnAir 不包含它 (HDC 受专利保护,归 Xperi 所有)。
+The station, program data and pictures are shown, but HD Radio sound stays silent until you install the codec yourself. Eye of ZorCom does not ship it (HDC is patented and owned by Xperi).	电台、节目数据和图片都会显示,但在您自己安装编解码器之前,HD Radio 的声音保持静音。Eye of ZorCom 不包含它 (HDC 受专利保护,归 Xperi 所有)。
 Build the HDC-patched FAAD2 as the full instructions explain (it needs the open-source nrsc5 patch).	请按完整说明编译带 HDC 补丁的 FAAD2 (需要 nrsc5 的开源补丁)。
-Put the library (libfaad_hdc) in the OnAir codecs folder (button below).	把库 (libfaad_hdc) 放进 OnAir 的编解码器文件夹 (下方按钮)。
+Put the library (libfaad_hdc) in the Eye of ZorCom codecs folder (button below).	把库 (libfaad_hdc) 放进 Eye of ZorCom 的编解码器文件夹 (下方按钮)。
 The HD Radio sound library cannot be used	无法使用 HD Radio 声音库
-OnAir found a library for HDC, but it is not a FAAD2 build with the HDC patch that OnAir knows how to call, so it was left alone.	OnAir 找到了一个 HDC 库,但它不是带有 OnAir 能调用的 HDC 补丁的 FAAD2 版本,因此没有使用。
+Eye of ZorCom found a library for HDC, but it is not a FAAD2 build with the HDC patch that Eye of ZorCom knows how to call, so it was left alone.	Eye of ZorCom 找到了一个 HDC 库,但它不是带有 Eye of ZorCom 能调用的 HDC 补丁的 FAAD2 版本,因此没有使用。
 Build the library again from FAAD2 2.10 or 2.11 with the nrsc5 patch, as the full instructions explain.	请按完整说明,用 FAAD2 2.10 或 2.11 加 nrsc5 补丁重新编译该库。
-Replace the file in the OnAir codecs folder (button below).	替换 OnAir 编解码器文件夹中的文件 (下方按钮)。
+Replace the file in the Eye of ZorCom codecs folder (button below).	替换 Eye of ZorCom 编解码器文件夹中的文件 (下方按钮)。
 # band plans (scan tab, TV channel list)
 Band plan	频段规划
 None (built-in ranges)	无（内置范围）
@@ -1524,9 +1521,9 @@ WAV: 16-bit, large. FLAC: lossless, about half the size. MP3: small (needs libmp
 Saves only while there is sound (like a squelch): silence is cut out, with a short lead-in and tail	仅在有声音时保存（类似静噪）：静音被剪掉，保留很短的前导和尾部
 One file per transmission: a new file starts after 3 s of silence	每次发射一个文件：静音 3 秒后开始新文件
 Keeps recording when the mode or the frequency changes. Off: the recording stops then.	模式或频率改变时继续录制。关闭：此时停止录制。
-The SoapyRemote module is missing from this installation of OnAir, so it cannot reach a remote radio. Reinstall OnAir, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	此 OnAir 安装缺少 SoapyRemote 模块,因此无法连接远程电台。请重新安装 OnAir。如再次出现,请反馈。电台所在的电脑必须运行 SoapySDRServer --bind。
-The SoapyRemote module is missing from this installation of OnAir, so it cannot reach a remote radio. Reinstall OnAir (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	此 OnAir 安装缺少 SoapyRemote 模块,因此无法连接远程电台。请重新安装 OnAir(或运行 brew install soapyremote)。如再次出现,请反馈。电台所在的电脑必须运行 SoapySDRServer --bind。
-SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart OnAir. The radio's computer must run SoapySDRServer --bind.	此 SoapySDR 没有 SoapyRemote 客户端模块,因此无法连接远程电台。请安装(Debian/Ubuntu:sudo apt install soapysdr-module-remote;其他系统:github.com/pothosware/SoapyRemote),然后重启 OnAir。电台所在的电脑必须运行 SoapySDRServer --bind。
+The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	此 Eye of ZorCom 安装缺少 SoapyRemote 模块,因此无法连接远程电台。请重新安装 Eye of ZorCom。如再次出现,请反馈。电台所在的电脑必须运行 SoapySDRServer --bind。
+The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	此 Eye of ZorCom 安装缺少 SoapyRemote 模块,因此无法连接远程电台。请重新安装 Eye of ZorCom(或运行 brew install soapyremote)。如再次出现,请反馈。电台所在的电脑必须运行 SoapySDRServer --bind。
+SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind.	此 SoapySDR 没有 SoapyRemote 客户端模块,因此无法连接远程电台。请安装(Debian/Ubuntu:sudo apt install soapysdr-module-remote;其他系统:github.com/pothosware/SoapyRemote),然后重启 Eye of ZorCom。电台所在的电脑必须运行 SoapySDRServer --bind。
 # frequency database
 %zu built in, %zu yours	内置 %zu 条,自己的 %zu 条
 Add entry...	添加条目...
@@ -1614,7 +1611,7 @@ Listeners:	听众:
 video	video
 audio	audio
 profile	profile
-Video: %s (OnAir cannot decode this video) — audio, subtitles and data still work	Video: %s (OnAir cannot decode this video) — audio, subtitles and data still work
+Video: %s (Eye of ZorCom cannot decode this video) — audio, subtitles and data still work	Video: %s (Eye of ZorCom cannot decode this video) — audio, subtitles and data still work
 Open in an external player	Open in an external player
 Save the transport stream to a file	Save the transport stream to a file
 Stream it as UDP to %s	Stream it as UDP to %s
@@ -1817,7 +1814,7 @@ Password	密码
 blank if the owner set none	如果所有者没有设置则留空
 Find KiwiSDR…	查找 KiwiSDR…
 pick a public receiver from the list	从列表中选择公共接收机
-A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; OnAir takes its 12 kHz IQ stream. Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. The password is kept in OnAir's settings.	KiwiSDR 是互联网上的接收机，覆盖 0 到 30 MHz；OnAir 使用它的 12 kHz IQ 流。公共接收机的用户名额很少，许多会在约 30 分钟后结束会话：每台接收机只用一个连接，用完请断开。密码保存在 OnAir 的设置中。
+A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; Eye of ZorCom takes its 12 kHz IQ stream. Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. The password is kept in Eye of ZorCom's settings.	KiwiSDR 是互联网上的接收机，覆盖 0 到 30 MHz；Eye of ZorCom 使用它的 12 kHz IQ 流。公共接收机的用户名额很少，许多会在约 30 分钟后结束会话：每台接收机只用一个连接，用完请断开。密码保存在 Eye of ZorCom 的设置中。
 S-meter %.0f dBm%s	S 表 %.0f dBm%s
 , ADC overload	，ADC 过载
 Find KiwiSDR	查找 KiwiSDR
@@ -1832,7 +1829,7 @@ Distance	距离
 offline	离线
 full	已满
 Adds this receiver to the Network radios (it does not connect until you pick it as the radio).	把此接收机添加到网络电台（在你把它选为电台之前不会连接）。
-The downloaded list has no receivers OnAir can read.	下载的列表中没有 OnAir 能读取的接收机。
+The downloaded list has no receivers Eye of ZorCom can read.	下载的列表中没有 Eye of ZorCom 能读取的接收机。
 Could not download the list. Check the internet connection.	无法下载列表。请检查网络连接。
 # live transcripts (docs/TRANSCRIBE.md)
 Transcribing speech: %s	正在转录语音：%s
@@ -1878,7 +1875,7 @@ How many processor threads the speech engine may use for one transmission. Fewer
 Keep transcripts (days)	转录保留天数
 Heard %llu, kept %llu, left out %llu (silence, noise, repeats), skipped %llu (too slow), speed %.2f x real time	听到 %llu，保留 %llu，丢弃 %llu（静音、噪声、重复），跳过 %llu（太慢），速度 %.2f x 实时
 Download the speech model %s (%d MB)?	下载语音模型 %s（%d MB）？
-OnAir asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed.	OnAir 只向模型仓库（huggingface.co）请求这一个文件，不发送其他任何内容。文件会用固定的 SHA-256 校验和检查，不匹配则丢弃。该模型采用 MIT 许可证。
+Eye of ZorCom asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed.	Eye of ZorCom 只向模型仓库（huggingface.co）请求这一个文件，不发送其他任何内容。文件会用固定的 SHA-256 校验和检查，不匹配则丢弃。该模型采用 MIT 许可证。
 Download	下载
 Delete all saved transcripts? This cannot be undone.	删除所有已保存的转录？此操作无法撤销。
 Delete all	全部删除
@@ -2156,7 +2153,7 @@ Timeshift	时移
 Play	播放
 behind live	落后于直播
 Live	直播
-Recordings run only while OnAir is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only.	录制仅在OnAir打开且电脑未休眠时进行；休眠的电脑不会录制任何内容。加密的服务按接收原样录制，不会被解密。仅供个人使用。
+Recordings run only while Eye of ZorCom is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only.	录制仅在Eye of ZorCom打开且电脑未休眠时进行；休眠的电脑不会录制任何内容。加密的服务按接收原样录制，不会被解密。仅供个人使用。
 Scheduled	已计划
 recording	录制中
 conflict	冲突
@@ -2199,7 +2196,7 @@ Last 24 hours (UTC), 15 minute cells, darker: fewer stations	最近 24 小时(UT
 # plugins (plugin/plugin_app.cpp, the PLUGINS group, View > Plugins)
 %s asks for these permissions:	%s 请求以下权限:
 A crash or a hang of the plugin then only ends its helper process. Takes effect the next time the plugin starts.	插件崩溃或卡死时只会结束它的辅助进程。下次启动插件时生效。
-Add decoders and actions without rebuilding OnAir: install, enable and set up plugins	无需重新编译 OnAir 即可添加解码器和动作:安装、启用并设置插件
+Add decoders and actions without rebuilding Eye of ZorCom: install, enable and set up plugins	无需重新编译 Eye of ZorCom 即可添加解码器和动作:安装、启用并设置插件
 Add-ons	扩展
 Allow	允许
 Asks for	请求
@@ -2218,7 +2215,7 @@ No plugins installed. Use Install from file, or copy a plugin folder into the pl
 Not installed	未安装
 Open its folder	打开其文件夹
 PLUGINS	插件
-Permissions are what OnAir hands the plugin. A plugin running inside OnAir can still use the system itself: install plugins you trust, or run them in a helper process.	权限决定 OnAir 向插件提供什么。运行在 OnAir 内部的插件仍可自行使用系统:请只安装可信的插件,或让它们在辅助进程中运行。
+Permissions are what Eye of ZorCom hands the plugin. A plugin running inside Eye of ZorCom can still use the system itself: install plugins you trust, or run them in a helper process.	权限决定 Eye of ZorCom 向插件提供什么。运行在 Eye of ZorCom 内部的插件仍可自行使用系统:请只安装可信的插件,或让它们在辅助进程中运行。
 Plugin idle	插件空闲
 Plugin log	插件日志
 Plugin modes run on receiver 1.	插件模式在接收器 1 上运行。
@@ -2296,7 +2293,7 @@ sky + spill K	天空 + 溢出 K
 , bursts (%.0f %% on)	, 突发 (开启 %.0f %%)
 , every %.3g ms	, 每 %.3g 毫秒
 , useful symbol %.4g us	, 有效符号 %.4g µs
-A score is the share of the evidence that holds; the percentages are calibrated on OnAir's own test signals, not on every real signal.	得分是成立的依据所占的比例;百分比是用 OnAir 自带的测试信号校准的,并未在所有真实信号上验证。
+A score is the share of the evidence that holds; the percentages are calibrated on Eye of ZorCom's own test signals, not on every real signal.	得分是成立的依据所占的比例;百分比是用 Eye of ZorCom 自带的测试信号校准的,并未在所有真实信号上验证。
 Add to memory	添加到 Memory
 Best guess	最佳判断
 Copy as text	复制为文本
@@ -2314,7 +2311,7 @@ Opened %s	已打开 %s
 Perhaps %s (%.0f %%).	也许是 %s (%.0f %%)。
 Signals in the view	视图中的信号
 The frequency list has here:	频率列表在此处有:
-What is this? Click a signal, or drag across it, and OnAir says what it is and how sure it is. Key I. Shift+drag does it without the tool.	这是什么?点击信号或在其上拖动,OnAir 会告诉你它是什么以及有多大把握。快捷键 I。按住 Shift 拖动无需启用该工具。
+What is this? Click a signal, or drag across it, and Eye of ZorCom says what it is and how sure it is. Key I. Shift+drag does it without the tool.	这是什么?点击信号或在其上拖动,Eye of ZorCom 会告诉你它是什么以及有多大把握。快捷键 I。按住 Shift 拖动无需启用该工具。
 Why?	为什么?
 Identify selected	识别所选
 Tune the radio to the selected signal and say what it is (needs the receiver in a mode whose sample rate covers it)	将无线电调谐到所选信号并说明它是什么(接收器须处于采样率能覆盖该信号的模式)
@@ -2479,7 +2476,7 @@ The live rooms server did not answer in time.	直播房间服务器未能及时�
 The live rooms server is full right now. Try again later.	直播房间服务器目前已满，请稍后再试。
 Too many rooms were started from here. Try again in a few minutes.	此处启动的房间过多，请几分钟后再试。
 The live rooms server refused the request.	直播房间服务器拒绝了该请求。
-The live rooms server sent an answer OnAir does not understand.	直播房间服务器返回了 OnAir 无法理解的响应。
+The live rooms server sent an answer Eye of ZorCom does not understand.	直播房间服务器返回了 Eye of ZorCom 无法理解的响应。
 Checking the live rooms server...	正在检查直播房间服务器...
 Check the live rooms server again	重新检查直播房间服务器
 Live rooms: while you are live, anyone with the room link can watch this receiver's waterfall, the mode and the frequency you are tuned to, and chat with each other. The room list on the web also shows its title. Nothing is sent before you press Go live, and nothing is stored after the room ends. Your location, your name and the audio are never sent.	直播房间：直播期间，任何拥有房间链接的人都可以查看此接收机的瀑布图、模式和调谐频率，并相互聊天。网页上的房间列表也会显示其标题。在您点击“开始直播”之前不会发送任何内容，房间结束后也不会保存任何内容。您的位置、姓名和音频绝不会被发送。
@@ -2676,7 +2673,7 @@ One per line: a call sign. Without an SSID (LY1ABC) every SSID matches; with one
 One per line: a frequency in MHz (162.025), with a unit (162025 kHz) or a range (144-146). Anything decoded on it counts.	每行一项: 以 MHz 为单位的频率 (162.025)、带单位 (162025 kHz) 或范围 (144-146)。在该频率上解码的任何内容都会计入。
 One per line: a word or a phrase (not case sensitive). A trailing * matches word starts (fire*). Searched in pager, ACARS, APRS and other decoded text.	每行一项: 一个词或短语 (不区分大小写)。末尾的 * 匹配词首 (fire*)。在寻呼机、ACARS、APRS 及其他解码文本中搜索。
 New list...	新建列表...
-Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. OnAir tells you when something on it is heard.	在左侧创建列表: 飞机、船舶、APRS 呼号、频率或词语。收到列表中的内容时，OnAir 会通知你。
+Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. Eye of ZorCom tells you when something on it is heard.	在左侧创建列表: 飞机、船舶、APRS 呼号、频率或词语。收到列表中的内容时，Eye of ZorCom 会通知你。
 On	启用
 Tolerance (kHz)	容差 (kHz)
 entries	项
@@ -3428,7 +3425,7 @@ start the receiver to see the codes	启动接收机以查看代码
 Squawk and altitude, 1090 MHz	应答机编码与高度，1090 MHz
 Mode A is the squawk, Mode C the altitude in 100 ft steps. A reply does not say which of the two it is: a code shows as A/C until it can only be a squawk or is matched to a Mode S aircraft by its squawk or its altitude.	A 模式是应答机编码（squawk），C 模式是以 100 英尺为步进的高度。应答本身不会说明是哪一种：代码显示为 A/C，直到它只可能是应答机编码，或按编码或高度与某架 Mode S 飞机匹配。
 # BLE tracker detector
-Receive only: item trackers are recognised from their public advertisements. OnAir never connects to one, sends to one or reads its owner's data. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.	仅接收：物品追踪器通过其公开广播被识别。OnAir 从不连接追踪器、不向其发送任何内容，也不读取其所有者的数据。标识符在最后一次收到后仅在内存中保留 30 分钟，只显示地址的最后两个字节，且从不保存。
+Receive only: item trackers are recognised from their public advertisements. Eye of ZorCom never connects to one, sends to one or reads its owner's data. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.	仅接收：物品追踪器通过其公开广播被识别。Eye of ZorCom 从不连接追踪器、不向其发送任何内容，也不读取其所有者的数据。标识符在最后一次收到后仅在内存中保留 30 分钟，只显示地址的最后两个字节，且从不保存。
 your own	你自己的
 following you	正在跟踪你
 separated from its owner	已与主人分离

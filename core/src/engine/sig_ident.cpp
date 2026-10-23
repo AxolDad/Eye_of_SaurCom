@@ -1173,7 +1173,7 @@ std::string toText(const Result& r) {
         t += b;
         if (i == 0) for (const std::string& e : c.evidence) t += "     " + e + "\n";
     }
-    t += "Identified by OnAir (classical DSP, calibrated on its own test signals; not verified on every real signal).\n";
+    t += "Identified by Eye of ZorCom (classical DSP, calibrated on its own test signals; not verified on every real signal).\n";
     return t;
 }
 

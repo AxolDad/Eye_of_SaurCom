@@ -1,6 +1,6 @@
 // TETRA speech traffic channel (TCH/S) channel coding, written from the public ETSI EN 300 395-2 V1.3.1 (2005-01), clause 5.5 (normal speech
 // traffic channel, two speech frames per time slot) and the table 4 / table 5 bit orders. CHANNEL coding only: the 137 bit speech frames that come
-// out are handed to the user-installed speech codec plug-in (codec/speech_codec.h); no speech codec is part of OnAir.
+// out are handed to the user-installed speech codec plug-in (codec/speech_codec.h); no speech codec is part of Eye of ZorCom.
 //
 // Receive chain (the reverse of clause 5): type-5 bits -> descrambling with the cell's colour code (tetra_voice.cpp) -> type-4 bits ->
 // block deinterleaving (5.5.3, transposition of the (24,18) matrix) -> type-3 bits -> depuncturing (5.4.3.2, rate 2/3 for class 1, 8/18 for class 2)

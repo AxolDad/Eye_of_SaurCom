@@ -150,7 +150,7 @@ std::vector<std::string> recTags(const App& a, double hz) {
     char t[96];
     snprintf(t, sizeof t, "TITLE=%.4f MHz %s", hz / 1e6, dect2::generalDemodName(S.demod));
     (void)a;
-    return {t, std::string("DATE=") + ts, "COMMENT=Recorded with OnAir"};
+    return {t, std::string("DATE=") + ts, "COMMENT=Recorded with Eye of ZorCom"};
 }
 
 void startRecording(App& a) {
@@ -322,7 +322,7 @@ void controls(App& a) {
     ImGui::BeginDisabled(!dect2::GeneralReceiver::mp3Available());
     if (ImGui::Checkbox("MP3", &S.mp3)) { plat::prefs().setB("genMp3", S.mp3); a.engine.general().setRecordMp3(S.mp3); }
     ImGui::EndDisabled();
-    tip(dect2::GeneralReceiver::mp3Available() ? "Save recordings as MP3 (64 kbit/s mono, small files); wins over FLAC" : "MP3 needs the LAME library (libmp3lame): install it (brew install lame, apt install libmp3lame0, or put libmp3lame.dll next to OnAir). OnAir does not ship it.");
+    tip(dect2::GeneralReceiver::mp3Available() ? "Save recordings as MP3 (64 kbit/s mono, small files); wins over FLAC" : "MP3 needs the LAME library (libmp3lame): install it (brew install lame, apt install libmp3lame0, or put libmp3lame.dll next to Eye of ZorCom). Eye of ZorCom does not ship it.");
     {   // one file per transmission, for the voice modes
         ImGui::SameLine(0, 8 * gUi);
         if (ImGui::Checkbox("One file per transmission", &S.txRec)) {

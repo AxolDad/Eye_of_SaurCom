@@ -126,7 +126,7 @@ bool validId(const std::string& id) {
 } // namespace
 
 std::string speechCodecNotice() {
-    return "Legal notice. OnAir does not include, download or distribute this speech codec. You install it yourself, and you are "
+    return "Legal notice. Eye of ZorCom does not include, download or distribute this speech codec. You install it yourself, and you are "
            "responsible for it: for following the laws where you live on receiving and listening to radio transmissions, and for the "
            "licence and patent terms of the codec. Install only a codec you are allowed to use.";
 }
@@ -156,7 +156,7 @@ CodecLookup loadSpeechCodec(const std::string& id, const std::string& folder, bo
     std::error_code ec;
     if (!std::filesystem::is_regular_file(path, ec)) {
         r.status = CodecStatus::NotInstalled;
-        r.message = "Codec not installed: this mode needs the " + id + " speech codec. OnAir does not include it. Install it yourself "
+        r.message = "Codec not installed: this mode needs the " + id + " speech codec. Eye of ZorCom does not include it. Install it yourself "
                     "(see " + std::string(kDocUrl) + ") and put the plug-in file " + file + " in " + folder + ".";
         return r;
     }

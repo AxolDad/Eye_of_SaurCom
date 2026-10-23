@@ -102,7 +102,7 @@ bool installCsv(const std::string& apFile, const std::string& frFile, std::strin
     const std::string tmp = dirPath() + "/airports.tsv.part", dst = dirPath() + "/airports.tsv";
     {
         std::ofstream o(fs::u8path(tmp), std::ios::binary);
-        o << "# Imported by OnAir from OurAirports (public domain). airports.csv sha256 " << h1 << "  airport-frequencies.csv sha256 " << h2 << "\n" << db->toTsv();
+        o << "# Imported by Eye of ZorCom from OurAirports (public domain). airports.csv sha256 " << h1 << "  airport-frequencies.csv sha256 " << h2 << "\n" << db->toTsv();
         if (!o) { msg = "cannot write " + dst; return false; }
     }
     fs::rename(fs::u8path(tmp), fs::u8path(dst), ec);
@@ -123,8 +123,8 @@ void startDownload() {
         const std::string a = d + "/airports.csv", f = d + "/airport-frequencies.csv";
         std::string msg;
         std::unique_ptr<dect2::AirportDb> db;
-        bool ok = plat::fetchUrl("https://davidmegginson.github.io/ourairports-data/airports.csv", a, "OnAir") &&
-                  plat::fetchUrl("https://davidmegginson.github.io/ourairports-data/airport-frequencies.csv", f, "OnAir");
+        bool ok = plat::fetchUrl("https://davidmegginson.github.io/ourairports-data/airports.csv", a, "EyeOfZorCom") &&
+                  plat::fetchUrl("https://davidmegginson.github.io/ourairports-data/airport-frequencies.csv", f, "EyeOfZorCom");
         if (!ok) msg = "the download did not work (offline, or too slow): download the two files yourself and use Import CSV";
         else ok = installCsv(a, f, msg, db);
         fs::remove(fs::u8path(a), ec); fs::remove(fs::u8path(f), ec); fs::remove(fs::u8path(d), ec);

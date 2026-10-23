@@ -250,19 +250,65 @@ int main() {
         const std::string csv = c.log.exportCsv(&c.tgs);
         CHECK(csv.find("\"Fire, Disp\"") != std::string::npos && csv.find("851.20625") != std::string::npos && csv.find(",555,") != std::string::npos, "log csv: %s", csv.c_str());
     }
-    // ---- DMR Tier III grants (layout under test is the simplified one documented in docs/trunking.md)
+    // ---- DMR Tier III grants (TS 102 361-4: PV_GRANT 0x30, TV_GRANT 0x31, BTV_GRANT 0x32; channel 12 bits, timeslot, late entry, emergency, offset)
     {
         Controller c;
         c.dmr.setChannel(3, 450.125e6);
         c.setCapture(450.1e6, 1e6);
-        uint8_t d[8] = {0x00, 0x03, 0x00, 0x00, 0x64, 0x00, 0x00, 0x2A};
-        c.onDmrCsbk(0x30, 0, d, 1.0);
-        CHECK(c.log.records().size() == 1 && c.log.records()[0].dmr && c.log.records()[0].tg == 100 && c.log.records()[0].src == 42 && c.log.records()[0].followed, "dmr grant");
-        d[0] = 0x40; d[4] = 0x65;   // privacy, another talkgroup
-        c.onDmrCsbk(0x30, 0, d, 5.0);
-        CHECK(c.log.records().size() == 2 && c.log.records()[1].encrypted && !c.log.records()[1].followed, "dmr privacy not followed");
-        c.onDmrCsbk(0x30, 0x10, d, 6.0);   // a manufacturer's
-        CHECK(c.log.records().size() == 2, "manufacturer CSBK ignored");
+        uint8_t d[8] = {0x00, 0x30, 0x00, 0x00, 0x64, 0x00, 0x00, 0x2A};   // channel 3, slot 0, talkgroup 100, source 42
+        c.onDmrCsbk(0x31, 0, d, 1.0);
+        CHECK(c.log.records().size() == 1 && c.log.records()[0].dmr && c.log.records()[0].group && c.log.records()[0].tg == 100 && c.log.records()[0].src == 42
+              && c.log.records()[0].followed && std::fabs(c.log.records()[0].freqHz - 450.125e6) < 1, "dmr talkgroup grant");
+        d[1] = 0x38 | 0x02; d[4] = 0x65;   // slot 1, emergency, talkgroup 101
+        c.onDmrCsbk(0x31, 0, d, 5.0);
+        CHECK(c.log.records().size() == 2 && c.log.records()[1].tg == 101 && c.log.records()[1].slot == 1 && c.log.records()[1].emergency, "dmr slot and emergency");
+        d[4] = 0x66;
+        c.onDmrCsbk(0x30, 0, d, 8.0);   // a private call
+        CHECK(c.log.records().size() == 3 && !c.log.records()[2].group, "dmr private grant");
+        c.onDmrCsbk(0x31, 0x10, d, 9.0);   // a manufacturer's
+        CHECK(c.log.records().size() == 3, "manufacturer CSBK ignored");
+    }
+    // ---- NXDN Type C (VCALL_ASSGN: channel number -> the user's channel table; the one radio leaves the control channel for the call)
+    {
+        Controller c;
+        c.nxdn.setChannel(513, 451.0125e6);
+        c.setCapture(451.5e6, 0);
+        c.onControlSeen(0.5);
+        c.onNxdnAssignment(1, 4321, 77, 513, 0x80, 1.0);
+        bool retuned = false;
+        for (const Action& a : c.takeActions()) retuned |= a.kind == Action::Retune && std::fabs(a.freqHz - 451.0125e6) < 1;
+        CHECK(retuned && c.log.records().size() == 1 && c.log.records()[0].tg == 77 && c.log.records()[0].src == 4321 && c.log.records()[0].group
+              && c.log.records()[0].emergency && !c.log.records()[0].dmr && c.log.records()[0].followed, "nxdn group grant followed");
+        for (double t = 1.5; t < 12; t += 0.5) c.tick(t);   // no voice heard on the channel: the call ends and the radio goes home
+        bool home = false;
+        for (const Action& a : c.takeActions()) home |= a.kind == Action::Retune && std::fabs(a.freqHz - 451.5e6) < 1;
+        CHECK(home && !c.log.records()[0].active, "back on the control channel after the call");
+        // a call whose voice is heard on its channel stays followed past the hang time, and ends once the voice stops
+        c.onControlSeen(12.5);
+        c.onNxdnAssignment(1, 4321, 78, 513, 0, 12.6);
+        c.takeActions();
+        const uint64_t id = c.follower.audibleCall();
+        for (double t = 12.7; t < 20; t += 0.5) { c.onVoice(id, t); c.tick(t); }
+        CHECK(id && c.log.byId(id) && c.log.byId(id)->active, "voice keeps the hopped call");
+        for (double t = 20; t < 24; t += 0.5) c.tick(t);
+        CHECK(c.log.byId(id) && !c.log.byId(id)->active, "the call ends when its voice stops");
+        c.takeActions();
+        // another system (the scanner moves on): reset, then its first call returns to the new system's frequency, not the old one
+        c.follower.reset();
+        c.nxdn.setChannel(600, 452.0e6);
+        c.setCapture(451.8e6, 0);
+        c.onControlSeen(30);
+        c.onNxdnAssignment(1, 5, 6, 600, 0, 30.1);
+        c.takeActions();
+        for (double t = 30.5; t < 36; t += 0.5) c.tick(t);
+        bool homeNew = false, homeOld = false;
+        for (const Action& a : c.takeActions()) if (a.kind == Action::Retune) { homeNew |= std::fabs(a.freqHz - 451.8e6) < 1; homeOld |= std::fabs(a.freqHz - 451.5e6) < 1; }
+        CHECK(homeNew && !homeOld, "after a reset the follower goes home to the new system");
+        c.onNxdnAssignment(4, 4321, 9, 700, 0, 40.0);   // a private call on a channel missing from the table
+        CHECK(!c.log.records().back().group && !c.log.records().back().followed, "unknown channel: logged, not followed");
+        CHECK(c.nxdn.grants() == 4, "nxdn grants counted");
+        Grant g;
+        CHECK(!c.nxdn.onAssignment(1, 1, 2, 1024, 0, g) && !c.nxdn.onAssignment(1, 1, 2, -1, 0, g), "channel out of range refused");
     }
     // ---- malformed and random input
     {

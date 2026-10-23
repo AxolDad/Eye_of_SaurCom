@@ -459,7 +459,7 @@ void drawDemod(App& a) {
     if (!r.audio.empty()) {
         if (!s.playing) { if (ImGui::Button("Listen")) { s.playing = true; s.playPos = 0; if (s.aud) s.aud->flush(); } }
         else if (ImGui::Button("Stop")) stopAudio();
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Play the demodulated audio through OnAir's audio output (volume and mute are the app's)");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Play the demodulated audio through Eye of ZorCom's audio output (volume and mute are the app's)");
         ImGui::SameLine(0, 8 * gUi);
         ImGui::SetNextItemWidth(90 * gUi);
         ImGui::SliderFloat("##wbvol", &a.volume, 0.f, 1.f, "vol %.2f");

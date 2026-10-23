@@ -1,6 +1,8 @@
 <p align="center"><img src="packaging/icons/onair_1024.png" width="140" alt="OnAir logo"></p>
 
-<h1 align="center">OnAir</h1>
+<h1 align="center">Eye of ZorCom</h1>
+
+<p align="center"><i>One program for radio and communications. A fork of <a href="https://github.com/adswill/OnAir">OnAir</a> by its authors (GPL-3.0), growing towards transmit, trunking, streaming, ATAK and mesh messaging. The plan: <a href="docs/superpowers/specs/2026-10-23-eye-of-zorcom-design.md">design</a>.</i></p>
 
 <p align="center"><b>Receive TV, radio, aircraft, ships, satellites, two-way radio, pagers, time signals and more: 142 modes with one software-defined radio.</b><br>
 Free and open source, for macOS, Windows, Linux and Android.</p>
@@ -55,7 +57,7 @@ Free and open source, for macOS, Windows, Linux and Android.</p>
 
 OnAir turns a low-cost SDR (a HackRF, an RTL-SDR, an Airspy and many other radios) into a receiver for most of what is on the air. Plug in an antenna, pick a mode, and watch what happens inside: the spectrum, the sync, the error correction and the decoded data. It is built for people who want a receiver that is both easy to use and honest about what is happening inside it.
 
-OnAir is a receiver first. It can also send test signals through a transmit-capable radio into a dummy load or a shielded setup (off by default, behind a licence notice, see [Transmit](#transmit)).
+It receives and transmits. Transmit is off by default and turns on once you agree to transmit only within your own legal authority; after that nothing limits the frequency, the power or the mode (see [Transmit](#transmit)).
 
 > [!TIP]
 > New here? Press **Tour** in the app: a little TV walks you through OnAir with a built-in demo signal, so you can explore everything before you buy a radio.
@@ -171,7 +173,7 @@ KAAL, KAPP and KAFT can write an IQ file you can open in SDR++ or OnAir without 
 - **Scroll to tune:** the wheel (or a trackpad) steps the frequency field digit by digit.
 - **Share my radio:** an rtl_tcp server for the radio OnAir is running.
 - **More radios:** Fobos SDR, RX888 MkII (native USB 3 driver), RFNM, Red Pitaya, Pluto+ Ethernet, SpyServer, SDR++ server, Hermes Lite 2.
-- **Transmit** of test signals into a dummy load, with the modes offered listed in [docs/TRANSMIT.md](docs/TRANSMIT.md).
+- **Transmit** of every mode that has a signal generator, listed in [docs/TRANSMIT.md](docs/TRANSMIT.md).
 - **New modes** since 0.2.5: Tone decoders (CTCSS, DCS, DTMF, selcall), Wi-SUN FAN, e-Czas (Polish time service on 225 kHz), UAT 978 MHz, VDL Mode 4, TETRAPOL, Elektro-L, LBJ (Chinese railway warnings), COSPAS-SARSAT 406 MHz beacons, Wireless M-Bus, Z-Wave, MT63, FSQ, IFKP, meteor scatter, DECT, ANT+ sensors, NB-IoT and 5G NR cells, MAC, DVB-C, MeshCom, Q65 and the other WSJT modes, and more (120 modes in all).
 - **Interface:** Light and High contrast themes, an accent colour, colour maps and scroll-back for the spectrum, a General receiver with up to 4 channels and MP3 / FLAC recording, a one-button **Record audio** in the Source panel (next to Record IQ) that saves the sound you hear in any mode to WAV, FLAC or MP3 (optionally only while there is sound, one file per transmission), **Monitor audio** (Source panel): hear the tuned channel of any mode, also the decoders that have no sound of their own, as USB / LSB / narrow FM / AM, on a chosen output device, a second device (a virtual audio cable for fldigi, WSJT-X, multimon-ng) or a local TCP stream (off by default, 127.0.0.1 only unless you allow other computers; see docs/AUDIO.md), a "Save bug report" zip, translations (German, French, Spanish, Chinese, Lithuanian, Hungarian, Japanese, Polish, Dutch, Portuguese, Italian, Russian).
 - **Docker image** that shows the OnAir GUI in a browser, published with each release.
@@ -495,11 +497,11 @@ Add them from the source list: **Add network radio…**, choose the type, type i
 
 ## Transmit
 
-OnAir is a receiver first, but it can also send the signal of a mode through a radio that can transmit (a HackRF, for example) into a dummy load or a shielded setup, to test receivers.
+Eye of ZorCom sends the signal of a mode through a radio that can transmit (a HackRF, for example). Transmit is off until you agree, once, that you will transmit only within your own legal authority (a licence or permission where you are).
 
 - **Needs a radio that can transmit.** A receive-only radio (RTL-SDR, Airspy and so on) cannot be used.
-- **A one-time notice** appears the first time you start a transmission and has to be accepted with "I understand".
-- **No frequency or power limits are applied by OnAir.** The frequency and the gain you enter go to the radio as typed. You are responsible for staying within the law where you are: transmitting needs a licence on most frequencies, and a radio without a filter or an antenna can disturb others.
+- **A one-time agreement** appears the first time you start a transmission: "I understand" turns transmit on, Cancel leaves it off. While a radio transmits, **TX ON AIR** shows in the top bar of every view.
+- **No frequency, power or mode limits.** The frequency and the gain you enter go to the radio as typed. You are responsible for staying within the law where you are: transmitting needs a licence on most frequencies, and a radio without a filter or an antenna can disturb others.
 - **A guided panel.** Switch RX / TX at the top left: a status header with one Start / Stop button (Space starts and stops, Esc stops), then three steps: **1 Signal** (a searchable, grouped list), **2 Settings** (radio, frequency with the radio's range as a hint, output level, the signal's own options, and a **Test (dry run, no RF)** switch that runs the generator into nothing and shows the spectrum) and **3 Preview and send** (live spectrum, peak / RMS meters, clipping lamp, sample rate, occupied bandwidth, **STOP ALL**). It can pop out into its own window. A soft limiter keeps the generated signal inside the converter's range; it is not a power limit.
 - **Every mode with a signal generator can be sent.** OnAir refuses no mode; only a mode without a generator says "this mode has no transmit generator".
 

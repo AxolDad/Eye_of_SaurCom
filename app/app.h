@@ -1,8 +1,8 @@
-// Shared declarations of the OnAir window: the application state, small helpers and the panels that draw the interface.
+// Shared declarations of the Eye of ZorCom window: the application state, small helpers and the panels that draw the interface.
 // The panels live in widgets.cpp, app_state.cpp, toolbar*.cpp, plots.cpp, analysis_tabs.cpp, tv.cpp, scan_outputs.cpp,
 // antenna.cpp, dab_ui.cpp, wizard.cpp; main.cpp has the window loop.
 #pragma once
-// OnAir — digital TV receiver (DVB-T2, DVB-T, ATSC) for macOS. Phase 0 shell: sources, spectrum, waterfall, status, log.
+// Eye of ZorCom — digital TV receiver (DVB-T2, DVB-T, ATSC) for macOS. Phase 0 shell: sources, spectrum, waterfall, status, log.
 #ifdef _WIN32
 #include <direct.h>
 #endif
@@ -415,6 +415,8 @@ struct App {
     std::string mapStationId;                     // client id for /ingest, generated once
     std::string mapServer;                        // empty: https://map.on-air.dev (a local worker URL for developers)
     bool feedsOpen = false;   // View > Data feeds: the window (feeds_ui.cpp)
+    bool webRadioOpen = false;   // View > Internet radio (web_radio_ui.cpp)
+    bool wifiSenseOpen = false;  // View > WiFi sensing (wifisense_ui.cpp)
     bool watchlistOpen = false;    // View > Watchlists: alerts when listed aircraft, ships, call signs, frequencies or words are heard (watchlist_ui.cpp)
     bool msgdbOpen = false;        // View > Messages: the decoded-message database (msgdb_ui.cpp)
     bool protolabOpen = false;     // View > Protocol lab: reverse-engineering workbench for unknown signals (protolab_ui.cpp)
@@ -773,7 +775,7 @@ void lamp(const char* label, int state /*0 grey 1 green 2 amber 3 red*/, int ico
 std::string lossText(const SampleLoss& l);
 ImVec4 lossColour(const SampleLoss& l, ImVec4 normal = ImVec4(0.93f, 0.95f, 0.97f, 1));
 void lossTooltip(const SampleLoss& l);
-// The "?" button next to the sound of a mode whose voice needs a codec OnAir does not ship (codec_help.cpp, docs/CODECS.md): found or not,
+// The "?" button next to the sound of a mode whose voice needs a codec Eye of ZorCom does not ship (codec_help.cpp, docs/CODECS.md): found or not,
 // what it is, how to install it here, where to put it, a link to the full page and "Look again"
 enum class CodecHelp { Codec2, DmrAmbe, Hdc, Dra, AeroAmbe, IridiumAmbe, DstarAmbe, NxdnAmbe, DpmrAmbe, P25Imbe, Avs, DraTv, Ac4 };
 void codecHelpButton(CodecHelp c, const char* label = "?");   // label: the button's text ("?" by default)
@@ -876,6 +878,11 @@ void pluginManagerWindow(App& a);  // View > Plugins
 void automationWindow(App& a);   // automation_ui.cpp: the Automations window (View > Automations) and, every frame, the engine's actions that touch the receiver
 extern std::string gAutomationShotPath;   // automation_sink.cpp: a screenshot of the program's own window is saved here after the next frame (then cleared)
 void feedsWindow(App& a);          // feeds_ui.cpp: the "Data feeds" window (View > Data feeds)
+void webRadioWindow(App& a);       // web_radio_ui.cpp: internet radio stations (View > Internet radio)
+void wifiSenseWindow(App& a);      // wifisense_ui.cpp: presence and vital signs from ESP32 CSI nodes (View > WiFi sensing)
+namespace dect2 { struct AtvFrame; }
+void videoOutPush(std::shared_ptr<const dect2::AtvFrame> f);   // video_out_ui.cpp: the analog picture to the network stream
+void videoOutButton();
 void rotatorWindow(App& a);        // rotator_ui.cpp: GS-232 rotator connect / status
 void rotatorTick(App& a);          // rotator_ui.cpp: signal-peak azimuth calibration sweep
 void rotatorLoadPrefs();           // rotator_ui.cpp: prefs and optional auto-connect
@@ -895,6 +902,10 @@ bool txModeHighlighted(const ModeDef& m);
 void txTick(App& a);               // every frame: gives the radio back when a transmission ended; the on-screen TX indicator
 void txShutdown();                 // stops a running transmission (the radio goes quiet before it returns); the program's end
 bool txActive();
+void trunkFollowTick(App& a);    // the P25 / DMR Tier III / NXDN Type C trunking follower (app/p25/p25_ui.cpp)
+void trunkFollowPanel(App& a);
+void trunkScanFollow(App& a, bool on, bool enter);   // the scanner on a trunked system's entry (app/p25/p25_ui.cpp)
+bool trunkCallNow(std::string* what);                // a followed call is running; what: its talkgroup and name
 void savePrefs(const App& a);
 int adcBitsFor(const DeviceInfo& d, double rateHz);
 void ingestSpectrum(App& a);
@@ -1077,7 +1088,7 @@ void updateTick(App& a);
 void updateButton(App& a);
 void supportButton();
 std::string modeCreditsLine(const char* modeName);   // "\n\nCredits: a, b" for a mode's tooltip, empty when nobody is credited for it (credits_ui.cpp)
-void creditsWindow(App& a);   // Help, Credits and licences: the projects OnAir uses (app/panels/credits_ui.cpp)
+void creditsWindow(App& a);   // Help, Credits and licences: the projects Eye of ZorCom uses (app/panels/credits_ui.cpp)
 void clearAllButton(App& a);   // top bar, next to the version: empties every decoded list, after an "are you sure"
 void marineFaxClearUi();     // marine_ui.cpp: empties the weather fax picture on screen and in the saved copy (engine side: MarineReceiver::clearFax)
 bool updateOnExit(App& a);

@@ -16,7 +16,7 @@ namespace enginetest {
 constexpr double kFastPace = 4.0;
 
 // Seconds of signal the engine's analysis thread has processed since the engine was created (the engine's own diagnostics; the counter is not
-// atomic, a torn read of a double does not happen on the machines OnAir runs on)
+// atomic, a torn read of a double does not happen on the machines Eye of ZorCom runs on)
 inline double signalSecs(const Engine& e) {
     double rx = 0, sig = 0;
     sscanf(e.loadProfile().c_str(), "analysis thread: receiver %lf s for %lf s of signal", &rx, &sig);

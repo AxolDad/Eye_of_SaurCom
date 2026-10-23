@@ -1,9 +1,9 @@
-// HD Radio sound: HDC through the user's own patched FAAD2 ("libfaad_hdc"), loaded at run time. HDC is a patented codec of Xperi and OnAir
+// HD Radio sound: HDC through the user's own patched FAAD2 ("libfaad_hdc"), loaded at run time. HDC is a patented codec of Xperi and Eye of ZorCom
 // ships none of it, no codec source either (docs/CODECS.md, "HD Radio sound"); without the library the station, program data and pictures
 // still work and the audio packets are only counted.
 //
-// hdc*: finding the library (like mbelib: DECT2_FAAD_HDC_PATH, the OnAir codecs folders, the system's places), checking that it is a FAAD2 whose
-// frame info layout OnAir knows, and "Look again".
+// hdc*: finding the library (like mbelib: DECT2_FAAD_HDC_PATH, the Eye of ZorCom codecs folders, the system's places), checking that it is a FAAD2 whose
+// frame info layout Eye of ZorCom knows, and "Look again".
 // HdcDecoder: one decoder state (one program), packet in, 16-bit stereo 44.1 kHz out.
 // HdcAudio: everything between the Layer 2 audio packets and the speakers: the per-program packet buffers, the decoders, silence for lost
 // packets, 44.1 kHz to 48 kHz, the sound device.
@@ -20,7 +20,7 @@ namespace dect2 { namespace hdr {
 
 bool hdcAvailable(std::string* path = nullptr, std::string* problem = nullptr);   // found and usable; else `problem` says why not ("" = no file found)
 bool hdcRescan();                                                                // look again (the "Look again" button); true when usable
-std::vector<std::string> hdcFileNames();                                         // the names OnAir looks for, no folder
+std::vector<std::string> hdcFileNames();                                         // the names Eye of ZorCom looks for, no folder
 std::vector<std::string> hdcCandidatePaths();                                    // every path tried, in order
 
 constexpr int kHdcFrameSamples = 2048;                      // samples per channel in one HDC audio packet (46.4 ms at 44.1 kHz)

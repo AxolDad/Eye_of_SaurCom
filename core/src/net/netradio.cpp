@@ -114,7 +114,7 @@ bool soapyRemoteModuleAvailable() {
 #endif
 }
 
-// What is missing and what to do about it, for the platform OnAir runs on (0 Windows, 1 macOS, 2 Linux and others; -1 = this one).
+// What is missing and what to do about it, for the platform Eye of ZorCom runs on (0 Windows, 1 macOS, 2 Linux and others; -1 = this one).
 // Windows and macOS packages carry the module themselves, so there it means a damaged installation, not something to install.
 const char* soapyRemoteModuleHelpFor(int platform) {
     if (platform < 0) {
@@ -127,13 +127,13 @@ const char* soapyRemoteModuleHelpFor(int platform) {
 #endif
     }
     if (platform == 0)
-        return "The SoapyRemote module is missing from this installation of OnAir, so it cannot reach a remote radio. Reinstall OnAir, and please report it if it happens again. "
+        return "The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. "
                "The radio's computer must run SoapySDRServer --bind.";
     if (platform == 1)
-        return "The SoapyRemote module is missing from this installation of OnAir, so it cannot reach a remote radio. Reinstall OnAir (or run brew install soapyremote), and please report it if it happens again. "
+        return "The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. "
                "The radio's computer must run SoapySDRServer --bind.";
     return "SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; "
-           "other systems: github.com/pothosware/SoapyRemote), then restart OnAir. The radio's computer must run SoapySDRServer --bind.";
+           "other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind.";
 }
 
 const char* soapyRemoteModuleHelp() { return soapyRemoteModuleHelpFor(-1); }
@@ -209,7 +209,7 @@ std::string soapyRemoteFailureHelp(const std::string& args) {
         if (it != gOffered.end()) all = it->second.all;
     }
     if (!soapyRemoteModuleAvailable()) return soapyRemoteModuleHelp();
-    std::string s = "The SoapyRemote server " + key + " did not give OnAir a radio. ";
+    std::string s = "The SoapyRemote server " + key + " did not give Eye of ZorCom a radio. ";
     if (all.empty()) return s + "It lists no radios: check that SoapySDRServer runs there and that the radio's SoapySDR module (for example mirisdr or sdrplay) is installed on that computer, then pick the radio, or type its driver in the Remote driver box.";
     std::string pick;
     for (const auto& d : all) if (lower(d.driver) != "audio") { pick = d.driver; break; }
@@ -309,7 +309,7 @@ bool probeNetRadio(const NetRadio& r, int timeoutMs, std::string& err) {
     if (r.type == NetRadio::SoapyArgs) {   // nothing to reach by TCP: the driver opens it when started
         if (r.remote.empty()) { err = "type the device string, e.g. type=uhd,addr=10.0.0.55"; return false; }
 #ifndef DECT2_HAVE_SOAPY
-        err = "this build of OnAir has no SoapySDR"; return false;
+        err = "this build of Eye of ZorCom has no SoapySDR"; return false;
 #else
         return true;
 #endif
@@ -317,7 +317,7 @@ bool probeNetRadio(const NetRadio& r, int timeoutMs, std::string& err) {
     const std::string host = cleanHost(r.host);
     if (host.empty()) { err = "type the radio's address"; return false; }
 #ifndef DECT2_HAVE_SOAPY
-    if (r.type == NetRadio::SoapyRemote) { err = "this build of OnAir has no SoapySDR, which SoapyRemote needs"; return false; }
+    if (r.type == NetRadio::SoapyRemote) { err = "this build of Eye of ZorCom has no SoapySDR, which SoapyRemote needs"; return false; }
 #endif
     if (r.type == NetRadio::SoapyRemote && !soapyRemoteModuleAvailable()) { err = soapyRemoteModuleHelp(); return false; }
     if (r.type == NetRadio::SpyServer) return native::spyServerProbe(host, netRadioPort(r), timeoutMs, err);   // HELLO, then its DEVICE_INFO

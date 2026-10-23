@@ -11,7 +11,7 @@
 
 namespace dect2 {
 
-// One AVLC frame that passed its check sequence, decoded as far as OnAir reads it.
+// One AVLC frame that passed its check sequence, decoded as far as Eye of ZorCom reads it.
 struct Vdl2Message {
     uint64_t serial = 0;         // grows by one per message, never restarts
     double timeSec = 0;          // signal seconds at the start of the burst

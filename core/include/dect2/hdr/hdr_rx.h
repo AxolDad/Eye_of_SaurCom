@@ -1,6 +1,6 @@
 // HD Radio (NRSC-5, USA): the digital sidebands of hybrid FM (MP1, MP3) and AM (MA1) stations, and all-digital AM (MA3). Decodes everything but the sound: station
 // information (SIS), the program list, program service data (ID3), the station information guide and the large objects (pictures).
-// The audio is HDC, a patented codec that OnAir does not ship: its packets are counted, and played when the user has installed a patched
+// The audio is HDC, a patented codec that Eye of ZorCom does not ship: its packets are counted, and played when the user has installed a patched
 // FAAD2 (hdr_hdc.h, docs/CODECS.md).
 // FM or AM is found by itself: both receivers search until one of them has block sync. Below 500 ksps only AM is searched for (an AM
 // station is 30 kHz wide: the HF radios' slower rates, such as an Airspy HF+ at 912 or 768 ksps, are plenty).

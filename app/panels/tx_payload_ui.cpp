@@ -135,7 +135,7 @@ void tvFilePanel(TxUi& s, const TxModeSpec& mode, bool running) {
     (void)running;
     const std::string id = mode.id ? mode.id : "";
     fileRow(s, tr("MPEG-TS / video file"), tr("Browse…##ts"));
-    ImGui::TextDisabled("%s", tr("Your .ts / .m2ts is sent as-is (service names come from that file). Other video is remuxed when FFmpeg can. Empty: OnAir encodes a test card with the names below."));
+    ImGui::TextDisabled("%s", tr("Your .ts / .m2ts is sent as-is (service names come from that file). Other video is remuxed when FFmpeg can. Empty: Eye of ZorCom encodes a test card with the names below."));
     muxIdentity(s);
     if (!s.fileNote.empty()) ImGui::TextWrapped("%s", s.fileNote.c_str());
     if (id == "atsc3") ImGui::TextDisabled("%s", tr("ATSC 3.0 uses a ROUTE / fMP4 demo; a custom MPEG-TS is not the payload path."));
@@ -541,7 +541,7 @@ void payloadPanel(TxUi& s, const TxModeSpec& mode, bool running) {
         break;
     case TxPayloadKind::Mesh:
         if (ImGui::InputText(tr("Text"), s.text, sizeof s.text)) saveStr("tx.text", s.text);
-        ImGui::TextDisabled("%s", tr("Empty: the demo LoRa / mesh scene."));
+        ImGui::TextDisabled("%s", tr("Sent as a real message from your callsign's node: Meshtastic on the default LongFast channel (MeshCore alone: its Public channel). Empty: the demo mesh scene."));
         analogNfmBox(s, running);
         break;
     case TxPayloadKind::Kaal:

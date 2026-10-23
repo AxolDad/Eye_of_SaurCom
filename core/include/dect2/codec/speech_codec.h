@@ -1,4 +1,4 @@
-// User-installed speech codecs for the voice modes (TETRA voice now, Iridium voice later). OnAir ships no speech codec: a codec is a
+// User-installed speech codecs for the voice modes (TETRA voice now, Iridium voice later). Eye of ZorCom ships no speech codec: a codec is a
 // plug-in file the user puts in the codecs folder under the app data folder, and it is loaded only after the user has accepted the legal
 // notice. See docs/CODECS.md. Nothing here knows any particular codec.
 //

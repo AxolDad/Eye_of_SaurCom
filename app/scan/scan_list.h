@@ -16,11 +16,13 @@ struct Entry {
     double dwellSec = 2;       // how long it listens for activity
     bool lockout = false;      // skipped
     bool priority = false;     // checked every Machine::prioritySec seconds
+    bool trunk = false;        // a trunked system's control channel (P25, DMR Tier III, NXDN Type C): the scanner follows its calls, and
+                               // activity is a call being followed, not the carrier a control channel always has
 };
 
 struct Band { double startMhz = 118, stopMhz = 137, stepKhz = 25; std::string mode = "airband"; double dwellSec = 2; };
 
-struct Target { double mhz = 0; std::string mode, name; double dwellSec = 2; int entry = -1; bool priority = false; };   // entry: index in the list, -1 a band step
+struct Target { double mhz = 0; std::string mode, name; double dwellSec = 2; int entry = -1; bool priority = false; bool trunk = false; };   // entry: index in the list, -1 a band step
 
 class Machine {
 public:
@@ -112,15 +114,15 @@ private:
         resume_ = comeBack ? pos_ : -1;
         lastPrio_ = now;
         const Entry& e = list[prioIndex()];
-        cur_ = {e.mhz, e.mode, e.name, e.dwellSec, prioIndex(), true};
+        cur_ = {e.mhz, e.mode, e.name, e.dwellSec, prioIndex(), true, e.trunk};
         return tuned(now);
     }
     bool advanceTo(int i, double now) {
         if (i == -1) return false;
         if (i == -2) return goPriority(now, false);
         pos_ = i;
-        if (useBand) cur_ = {bandMhz(i), band.mode, "", band.dwellSec, -1, false};
-        else { const Entry& e = list[i]; cur_ = {e.mhz, e.mode, e.name, e.dwellSec, i, false}; }
+        if (useBand) cur_ = {bandMhz(i), band.mode, "", band.dwellSec, -1, false, false};
+        else { const Entry& e = list[i]; cur_ = {e.mhz, e.mode, e.name, e.dwellSec, i, false, e.trunk}; }
         return tuned(now);
     }
     bool tuned(double now) { st_ = Dwell; tunedAt_ = now; readyAt_ = -1; return true; }
@@ -134,7 +136,8 @@ private:
     }
 };
 
-// CSV: frequency_mhz,mode,name,dwell_s,lockout,priority (a header line, names in quotes when they hold a comma or a quote)
+// CSV: frequency_mhz,mode,name,dwell_s,lockout,priority,trunk (a header line, names in quotes when they hold a comma or a quote; files
+// without the trunk column read as conventional channels)
 inline std::string csvField(const std::string& s) {
     if (s.find_first_of(",\"\n") == std::string::npos) return s;
     std::string o = "\"";
@@ -142,12 +145,12 @@ inline std::string csvField(const std::string& s) {
     return o + "\"";
 }
 inline std::string toCsv(const std::vector<Entry>& v) {
-    std::string o = "frequency_mhz,mode,name,dwell_s,lockout,priority\n";
+    std::string o = "frequency_mhz,mode,name,dwell_s,lockout,priority,trunk\n";
     char b[64];
     for (const Entry& e : v) {
         snprintf(b, sizeof b, "%.6f,", e.mhz); o += b;
         o += csvField(e.mode) + "," + csvField(e.name) + ",";
-        snprintf(b, sizeof b, "%.2f,%d,%d\n", e.dwellSec, e.lockout ? 1 : 0, e.priority ? 1 : 0); o += b;
+        snprintf(b, sizeof b, "%.2f,%d,%d,%d\n", e.dwellSec, e.lockout ? 1 : 0, e.priority ? 1 : 0, e.trunk ? 1 : 0); o += b;
     }
     return o;
 }
@@ -181,6 +184,7 @@ inline std::vector<Entry> fromCsv(const std::string& text) {
         if (f.size() > 3) { const double d = atof(f[3].c_str()); if (d > 0) x.dwellSec = d; }
         if (f.size() > 4) x.lockout = atoi(f[4].c_str()) != 0;
         if (f.size() > 5) x.priority = atoi(f[5].c_str()) != 0;
+        if (f.size() > 6) x.trunk = atoi(f[6].c_str()) != 0;
         v.push_back(x);
     }
     return v;

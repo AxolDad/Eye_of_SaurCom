@@ -1,4 +1,4 @@
-// The HamDRM test picture: a 64x48 JPEG (a colour gradient, a chequer pattern and a white bar), made for OnAir.
+// The HamDRM test picture: a 64x48 JPEG (a colour gradient, a chequer pattern and a white bar), made for Eye of ZorCom.
 #include "dect2/hfdig/hfdig_hamdrm.h"
 
 namespace dect2 {

@@ -75,6 +75,10 @@ void nxdnTxSymbols(const NxdnGenTx& tx, std::vector<int8_t>& sym) {
             nxdn::Msg s;
             s.type = f % 2 ? nxdn::kSrvInfo : nxdn::kSiteInfo;
             s.location = tx.location; s.channel = 0x0101; s.service = 0x3C00;
+            if (tx.grantChannel >= 0 && f % 3 == 2) {
+                s = nxdn::Msg();
+                s.type = nxdn::kVcallAssgn; s.callType = tx.callType; s.src = tx.src; s.dst = tx.dst; s.channel = tx.grantChannel; s.timer = 4;
+            }
             uint8_t info[155] = {};
             info[0] = 0; info[1] = 0;
             for (int i = 0; i < 6; i++) info[2 + i] = (uint8_t)((tx.ran >> (5 - i)) & 1);

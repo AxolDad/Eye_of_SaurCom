@@ -104,7 +104,7 @@ struct Feeds::Impl {
 
     static bool isServer(int id) { return id == kFeedSbs || id == kFeedBeast || id == kFeedKiss; }
     static bool isUdp(int id) {
-        return id == kFeedAis || id == kFeedAcars || id == kFeedVdl2 || id == kFeedGnss || id == kFeedBle || id == kFeedLora;
+        return id == kFeedAis || id == kFeedAcars || id == kFeedVdl2 || id == kFeedGnss || id == kFeedBle || id == kFeedLora || id == kFeedCot;
     }
     void udpTarget(int id, std::string& host, int& port) const {
         host = "127.0.0.1"; port = 0;
@@ -114,6 +114,7 @@ struct Feeds::Impl {
         else if (id == kFeedGnss) { host = live.gnssHost; port = live.gnssPort; }
         else if (id == kFeedBle) { host = live.bleHost; port = live.blePort; }
         else if (id == kFeedLora) { host = live.loraHost; port = live.loraPort; }
+        else if (id == kFeedCot) { host = live.cotHost; port = live.cotPort; }
     }
     int serverPort(int id) const { return id == kFeedSbs ? live.sbsPort : id == kFeedBeast ? live.beastPort : live.kissPort; }
 
@@ -472,6 +473,15 @@ void Feeds::ble(const std::string& mac, const std::string& name, float rssi) {
 void Feeds::lora(const char* kind, const std::string& hex, float snrDb, double freqHz, int sf, const std::string& extra) {
     if (!wantLora()) return;
     push(kFeedLora, feedfmt::loraJson(kind ? kind : "lora", hex, snrDb, freqHz, sf, extra) + "\n");
+}
+
+void Feeds::cot(const std::vector<MapMarker>& markers, int64_t wallMs) {
+    if (!wantCot()) return;
+    for (const MapMarker& m : markers) {
+        // 2 minutes on the other end's map unless it is heard again (the caller sends every few seconds)
+        std::string ev = feedfmt::cotEvent(m, wallMs - (int64_t)(m.ageSec * 1000), 120);
+        if (!ev.empty()) push(kFeedCot, std::move(ev));
+    }
 }
 
 } // namespace dect2

@@ -65,7 +65,7 @@ size_t dscAddFixes(std::vector<DscFix>& all, const std::vector<DscCall>& calls, 
 }
 
 std::string dscKml(const std::vector<DscFix>& fixes, const ShipDb& db) {
-    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n<Document>\n<name>OnAir DSC</name>\n";
+    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n<Document>\n<name>Eye of ZorCom DSC</name>\n";
     char b[96];
     std::map<std::string, std::vector<const DscFix*>> by;
     for (const DscFix& f : fixes) by[f.mmsi].push_back(&f);

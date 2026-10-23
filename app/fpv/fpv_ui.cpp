@@ -178,6 +178,7 @@ void pullFrame(App& a) {
     auto f = a.engine.fpv().frame(S.frameSeq);
     if (!f || f->width <= 0 || f->height <= 0 || f->rgba.size() < (size_t)f->width * f->height * 4) return;
     S.frame = f; S.frameDirty = true;
+    videoOutPush(f);
     if (S.rec && ImGui::GetTime() - S.recLast >= 0.2) {   // up to 5 pictures a second as numbered PNG files
         char n[40]; snprintf(n, sizeof n, "/%05d.png", S.recN++);
         const std::string p = S.recDir + n;
@@ -272,12 +273,14 @@ void videoView(App& a) {
         ImGui::PopFont();
         if (shown != cap && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", cap.c_str());
     }
-    ImGui::SameLine(std::max(ImGui::GetCursorPosX() + 20 * gUi, W - 250 * gUi));
+    ImGui::SameLine(std::max(ImGui::GetCursorPosX() + 20 * gUi, W - 330 * gUi));
     if (pillButton(tr("Snapshot"), false)) snapshot(a);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Saves the picture as a PNG file into <data folder>/fpv/."));
     ImGui::SameLine(0, 4 * gUi);
     if (pillButton(S.rec ? tr("Stop") : tr("Record"), S.rec)) toggleRecord(a);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Records up to 5 pictures a second as numbered PNG files into a new folder in <data folder>/fpv/."));
+    ImGui::SameLine(0, 4 * gUi);
+    videoOutButton();
     const float rest = ImGui::GetContentRegionAvail().y - (S.note.empty() ? 0 : ImGui::GetTextLineHeightWithSpacing());
     const bool side = W - rest * 4.f / 3.f > 260 * gUi;
     if (side) {

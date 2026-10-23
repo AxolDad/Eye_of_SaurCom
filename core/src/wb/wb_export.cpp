@@ -100,7 +100,7 @@ bool exportSelection(const Source& s, uint64_t t0, uint64_t t1, double f0, doubl
     fclose(f);
     if (fmt == ExSigmf) {
         char d[200];
-        snprintf(d, sizeof d, "OnAir signal workbench: %s, %.3f s from %.3f s%s", s.name().c_str(), (double)total / rate, (double)t0 / s.rate(), band ? ", one band moved to baseband" : "");
+        snprintf(d, sizeof d, "Eye of ZorCom signal workbench: %s, %.3f s from %.3f s%s", s.name().c_str(), (double)total / rate, (double)t0 / s.rate(), band ? ", one band moved to baseband" : "");
         if (!writeSigmfMeta(base + ".sigmf-meta", FileFormat::CF32, false, rate, centre, 0, d, err)) return false;
     }
     return true;

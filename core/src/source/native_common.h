@@ -174,10 +174,10 @@ inline std::vector<std::string> libNames(const char* stem, std::initializer_list
     std::vector<std::string> v;
 #if defined(_WIN32)
     // The copies shipped in the program's folder first, by full path: a bare name would let Windows hand over another program's copy of the
-    // same library from the PATH (SDR#, PothosSDR and others install their own rtlsdr.dll / airspy.dll), and that may not work with OnAir.
+    // same library from the PATH (SDR#, PothosSDR and others install their own rtlsdr.dll / airspy.dll), and that may not work with Eye of ZorCom.
     // Then the folders of the vendor installers (PothosSDR, which also carries LimeSuite.dll, UHD, and the LimeSuite installer), each only if it exists; by full
     // path, so that the libraries such a DLL needs in turn are found in its own folder (tryOpen loads it with LOAD_WITH_ALTERED_SEARCH_PATH).
-    // Bare names only after that, for radios whose library is not shipped with OnAir and that the user installed (libiio puts its DLL in System32).
+    // Bare names only after that, for radios whose library is not shipped with Eye of ZorCom and that the user installed (libiio puts its DLL in System32).
     {
         char path[MAX_PATH * 2] = {0};
         if (GetModuleFileNameA(nullptr, path, (DWORD)sizeof path - 1)) {
@@ -240,10 +240,10 @@ inline std::vector<std::string> libNames(const char* stem, std::initializer_list
 
 // ------------------------------------------------------------------ voice and audio codecs the user installs (docs/CODECS.md)
 
-// The OnAir "codecs" folders, where a user can put a codec library that OnAir does not ship: next to the program (macOS: next to OnAir.app,
+// The Eye of ZorCom "codecs" folders, where a user can put a codec library that Eye of ZorCom does not ship: next to the program (macOS: next to OnAir.app,
 // and Contents/MacOS/codecs inside it) and in the user data folder (%LOCALAPPDATA%\OnAir\codecs, ~/Library/Application Support/OnAir/codecs,
 // $XDG_DATA_HOME/onair/codecs or ~/.local/share/onair/codecs). Each ends with the path separator.
-// Between the two come the places the libraries SHIPPED with OnAir are in (codec2, built from third_party/codec2): the program's own folder,
+// Between the two come the places the libraries SHIPPED with Eye of ZorCom are in (codec2, built from third_party/codec2): the program's own folder,
 // on macOS Contents/Frameworks and Contents/Resources of the app, on Linux ../lib/onair and ../lib of the program (the .deb and the portable
 // package). The user data folder stays last: it is where the "Open codecs folder" button goes.
 inline std::vector<std::string> codecFolders() {
@@ -296,7 +296,7 @@ inline std::vector<std::string> codecFolders() {
     return v;
 }
 
-// The file names OnAir accepts for the two codec libraries (docs/CODECS.md), per platform. Linux also takes any lib<stem>.so.<version>.
+// The file names Eye of ZorCom accepts for the two codec libraries (docs/CODECS.md), per platform. Linux also takes any lib<stem>.so.<version>.
 #define DECT2_MBE_STEM "mbe"
 #define DECT2_MBE_SO {".1.3", ".1"}
 #define DECT2_MBE_WIN {"mbelib.dll", "libmbe.dll", "libmbe-1.dll", "mbe.dll"}
@@ -322,7 +322,7 @@ inline std::vector<std::string> codecFileNames(const char* stem, std::initialize
     return v;
 }
 
-// A codec library: the copies in the OnAir codecs folders first (any of the usual file names), then the system's places (libNames)
+// A codec library: the copies in the Eye of ZorCom codecs folders first (any of the usual file names), then the system's places (libNames)
 inline std::vector<std::string> codecLibNames(const char* stem, std::initializer_list<const char*> soVersions, std::initializer_list<const char*> winNames) {
     std::vector<std::string> v;
     const std::vector<std::string> dirs = codecFolders();
@@ -378,7 +378,7 @@ inline const char* usbErrorMeaning(int code, bool windows = kOnWindows) {
     case -3:
         if (windows) return "Windows refused access: another program has the radio open, or the radio does not have the WinUSB driver.";
 #ifdef __linux__
-        return "This user has no permission to open the radio: OnAir's udev rules are not installed.";
+        return "This user has no permission to open the radio: Eye of ZorCom's udev rules are not installed.";
 #else
         return "Access was refused: another program may be using the radio.";
 #endif
@@ -658,7 +658,7 @@ void kiwiSetBackoffForTest(int minMs, int maxMs);
 bool tciParseCommands(const std::string& text, std::vector<std::pair<std::string, std::vector<std::string>>>& out);
 bool nrspParseMessage(const std::string& json, std::map<std::string, std::string>& out);
 std::string nrspMessage(const char* event, const std::string& prop, const std::string& value);
-// One control of the server's menu (SmGui's draw list), as OnAir reads it
+// One control of the server's menu (SmGui's draw list), as Eye of ZorCom reads it
 struct SdrppWidget {
     enum Kind { Combo, Checkbox, Radio, SliderInt, SliderFloat, InputInt, Text } kind = Text;
     std::string id;                      // the ImGui label the server knows it by ("Bias T##_airspy_Airspy Source"); UI_ACTION names it
@@ -669,7 +669,7 @@ struct SdrppWidget {
     double value = 0, minV = 0, maxV = 0, step = 0;   // the sliders and InputInt
     bool disabled = false;               // greyed out in the server's menu
 };
-// The gain as OnAir drives it: one gain slider, or the LNA / mixer / VGA stages moved together (indices into the menu). The gain range is
+// The gain as Eye of ZorCom drives it: one gain slider, or the LNA / mixer / VGA stages moved together (indices into the menu). The gain range is
 // the slider's own scale, or the sum of the stages' ranges.
 struct SdrppGainPlan { std::vector<int> sliders; double lo = 0, hi = 0, span = 0; bool drivable = false; };
 // The pieces without a socket (unit test): the menu from the bytes of a GET_UI answer (false: not a draw list), a rate text ("2.5MHz")

@@ -143,9 +143,9 @@ static std::string adifMode(const std::string& m) {
 }
 
 std::string toAdif(const Table& t) {
-    std::string o = "OnAir logbook export\n";
+    std::string o = "Eye of ZorCom logbook export\n";
     adifField(o, "ADIF_VER", "3.1.4");
-    adifField(o, "PROGRAMID", "OnAir");
+    adifField(o, "PROGRAMID", "Eye of ZorCom");
     o += "<EOH>\n";
     const int cCall = colOf(t, {"call", "callsign", "call_sign"}), cGrid = colOf(t, {"grid", "locator", "gridsquare"}), cBand = colOf(t, {"band"}),
               cMode = colOf(t, {"mode"}), cRst = colOf(t, {"rst", "rst_rcvd", "rst_sent", "snr", "snr_db"}),
@@ -216,7 +216,7 @@ static std::vector<Pt> points(const Table& t) {
 }
 
 std::string toKml(const Table& t) {
-    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n<Document>\n<name>OnAir</name>\n";
+    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n<Document>\n<name>Eye of ZorCom</name>\n";
     for (const Pt& p : points(t)) {
         o += "<Placemark><name>" + xmlEsc(p.name) + "</name>";
         if (!p.desc.empty()) o += "<description>" + xmlEsc(p.desc) + "</description>";

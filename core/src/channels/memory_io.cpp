@@ -83,7 +83,7 @@ bool entryFrom(const Value& e, Memory& m, std::string& why) {
 }
 
 // SDR++ Frequency Manager: {"lists":{"<list>":{"bookmarks":{"<name>":{"frequency":Hz,"bandwidth":Hz,"mode":n}}}}}. The mode number is that of
-// SDR++'s own demodulators, which OnAir's modes do not map to one-to-one, so only the frequency, bandwidth, name and list are taken over.
+// SDR++'s own demodulators, which Eye of ZorCom's modes do not map to one-to-one, so only the frequency, bandwidth, name and list are taken over.
 size_t fromSdrpp(const Value& root, std::vector<Memory>& out, MemoryLoadReport& rep) {
     const Value* lists = root.get("lists");
     if (!lists || lists->kind != Value::Obj) return 0;

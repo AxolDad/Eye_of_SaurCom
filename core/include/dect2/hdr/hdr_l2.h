@@ -1,7 +1,7 @@
 // HD Radio (NRSC-5) Layer 2 and above, without the audio codec: the transfer frame header (PCI), the audio PDU headers and their packet
 // locators, the HDLC-framed AAS packets (program service data, the station information guide, large objects), the fixed data
 // subchannels, and the station information service (SIS) of the PIDS channel. The audio packets themselves are HDC, a patented codec
-// that OnAir does not ship: they are counted and measured, and handed to HdcAudio (hdr_hdc.h) for the user's own library to play.
+// that Eye of ZorCom does not ship: they are counted and measured, and handed to HdcAudio (hdr_hdc.h) for the user's own library to play.
 //
 // The decoder follows nrsc5 (GPL-3.0, github.com/theori-io/nrsc5: src/frame.c, src/pids.c, src/output.c); the encoder, used by the test
 // signal, builds exactly what that decoder reads.

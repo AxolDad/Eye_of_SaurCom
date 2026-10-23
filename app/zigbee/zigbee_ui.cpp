@@ -77,7 +77,7 @@ bool passes(const dect2::ZbDevice& d) {
 
 void receiveNote() {
     ImGui::PushTextWrapPos(0);
-    ImGui::TextDisabled("Receive only: OnAir never transmits, joins or answers a network. Encrypted payloads are not decrypted (the network key is not obtainable here); "
+    ImGui::TextDisabled("Receive only: Eye of ZorCom never transmits, joins or answers a network. Encrypted payloads are not decrypted (the network key is not obtainable here); "
                         "only frames sent in the clear are shown in full: beacons, MAC commands, headers and the few unencrypted messages. Needs a fast radio "
                         "(4 Msps or more, 2.4 GHz: not an RTL-SDR).");
     ImGui::PopTextWrapPos();

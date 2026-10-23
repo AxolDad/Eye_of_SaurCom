@@ -1,4 +1,4 @@
-// Codec 2 through libcodec2, loaded at run time: the one shipped with OnAir, or one the user installed (see m17_codec2.h); only the few functions of codec2.h (release 1.2) that are needed.
+// Codec 2 through libcodec2, loaded at run time: the one shipped with Eye of ZorCom, or one the user installed (see m17_codec2.h); only the few functions of codec2.h (release 1.2) that are needed.
 #include "dect2/m17/m17_codec2.h"
 #include "../source/native_common.h"
 #include <cstdlib>
@@ -46,11 +46,11 @@ bool m17Codec2Available(std::string* path) {
 
 const char* m17Codec2InstallHint() {
 #if defined(__APPLE__)
-    return "This copy of OnAir came without its codec2 library: download the OnAir disk image again, or install it with Homebrew: brew install codec2";
+    return "This copy of Eye of ZorCom came without its codec2 library: download the Eye of ZorCom disk image again, or install it with Homebrew: brew install codec2";
 #elif defined(_WIN32)
-    return "This copy of OnAir came without libcodec2.dll: unpack the whole OnAir zip again (it belongs next to OnAir.exe), or install OnAir with its setup program.";
+    return "This copy of Eye of ZorCom came without libcodec2.dll: unpack the whole Eye of ZorCom zip again (it belongs next to OnAir.exe), or install Eye of ZorCom with its setup program.";
 #else
-    return "This copy of OnAir came without its codec2 library: install the OnAir package again, or install your distribution's codec2 package (libcodec2).";
+    return "This copy of Eye of ZorCom came without its codec2 library: install the Eye of ZorCom package again, or install your distribution's codec2 package (libcodec2).";
 #endif
 }
 

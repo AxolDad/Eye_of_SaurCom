@@ -84,7 +84,7 @@ struct PlayerStats {
     double concealedAudioSec = 0;
     uint64_t repairEvents = 0, repairedFrames = 0;   // damaged pictures replaced by generated ones
     std::string concealBackend;          // how missing pictures are made: "Apple ML" or "motion search"
-    // what of the service the FFmpeg in OnAir cannot show or play (AVS+ / AVS2 / AVS3 video, DRA sound; docs/CODECS.md), one sentence, else empty
+    // what of the service the FFmpeg in Eye of ZorCom cannot show or play (AVS+ / AVS2 / AVS3 video, DRA sound; docs/CODECS.md), one sentence, else empty
     std::string videoNote, audioNote;
     int videoStreamType = -1;   // PMT stream_type of the video (0x42 AVS family, 0xD2 AVS2, 0xD4 AVS3), -1 unknown
     int avsProfile = -1;        // profile_id of the AVS sequence header (0x20 JiZhun, 0x48 Guangdian = AVS+), -1 not seen yet
@@ -100,7 +100,7 @@ std::string avsVideoNote(const std::string& codec, bool haveDecoder, int profile
 std::string avsFamilyName(int streamType, int profile);
 // true when FFmpeg's cavs decoder cannot decode it whatever the build (AVS+ and other non-JiZhun AVS1 profiles); AVS2/AVS3 depend on the build (false here)
 bool avsNeverDecodable(int streamType, int profile);
-// The plain sentence for the service list and the player: "Video: AVS+ (OnAir cannot decode this video) - audio, subtitles and data still work"
+// The plain sentence for the service list and the player: "Video: AVS+ (Eye of ZorCom cannot decode this video) - audio, subtitles and data still work"
 // (also for an AVS2/AVS3 or AVS stream whose decoder is missing: pass haveDecoder). Empty when the video can be decoded.
 std::string avsServiceMessage(int streamType, int profile, bool haveDecoder);
 extern const char* const kDraAudioNote;   // a service whose sound is DRA only

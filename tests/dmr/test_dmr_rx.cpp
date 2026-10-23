@@ -123,6 +123,13 @@ int main(int argc, char** argv) {
         CHECK(t.slotsLocked == 2, "%d slots locked", t.slotsLocked);
         CHECK(t.blocksOk > 100 && t.blocksBad == 0, "FEC blocks ok %llu bad %llu", (unsigned long long)t.blocksOk, (unsigned long long)t.blocksBad);
         CHECK(t.idleOk > 10, "idle bursts verified %llu", (unsigned long long)t.idleOk);
+        {   // the good CSBKs reach the telemetry for the Tier III follower, each with a new sequence number
+            bool rising = !t.csbks.empty();
+            for (size_t i = 1; i < t.csbks.size(); i++) rising &= t.csbks[i].seq > t.csbks[i - 1].seq;
+            bool known = true;
+            for (const DmrCsbk& k : t.csbks) known &= k.opcode == 0x3D || k.opcode == 0x04 || k.opcode == 0x38;
+            CHECK(rising && known && t.csbks.size() <= 64, "CSBKs for the follower: %zu, rising %d, opcodes from the scene %d", t.csbks.size(), (int)rising, (int)known);
+        }
         CHECK(t.syncCount[0] > 10 && t.syncCount[1] > 10 && t.syncCount[2] == 0 && t.syncCount[3] == 0 && t.syncCount[4] == 0 && t.syncCount[5] == 0 && t.syncCount[6] == 0,
               "sync counts BS voice %llu data %llu, others %llu %llu %llu", (unsigned long long)t.syncCount[0], (unsigned long long)t.syncCount[1], (unsigned long long)t.syncCount[2],
               (unsigned long long)t.syncCount[3], (unsigned long long)t.syncCount[5]);

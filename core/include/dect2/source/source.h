@@ -87,7 +87,7 @@ inline double radioPpm(const TuneSettings& s) { const double p = radioNumber(s, 
 // fast by ppm tunes every frequency that much too high
 inline double ppmCorrectedHz(double hz, double ppm) { return ppm == 0 ? hz : hz / (1.0 + ppm * 1e-6); }
 
-// OnAir never refuses a frequency: it asks the driver as requested. Outside what a radio is specified for (DeviceInfo::minFreqHz..maxFreqHz, 0 = not
+// Eye of ZorCom never refuses a frequency: it asks the driver as requested. Outside what a radio is specified for (DeviceInfo::minFreqHz..maxFreqHz, 0 = not
 // known) it adds this plain-words note to the start/retune message (a warning, not an error); whatever the driver itself refuses stays an error.
 inline std::string freqSpecNote(const char* radio, double hz, double lo, double hi) {
     if (lo <= 0 && hi <= 0) return "";
@@ -137,10 +137,10 @@ struct DeviceInfo {
     // above what is asked for (rate_choice.h).
     std::vector<std::pair<double, double>> rateRanges;
     double gainMinDb = 0, gainMaxDb = 0;
-    double minFreqHz = 0, maxFreqHz = 0;   // the range the radio is SPECIFIED for (0 = unknown): information and a note only, OnAir asks the driver for any frequency
+    double minFreqHz = 0, maxFreqHz = 0;   // the range the radio is SPECIFIED for (0 = unknown): information and a note only, Eye of ZorCom asks the driver for any frequency
     bool hasBiasTee = false;               // the radio and its library can power the antenna input (TuneSettings::biasTee)
-    // Transmit (TxSink below). canTransmit: OnAir has a transmit path for this radio (HackRF, PlutoSDR, SoapySDR radios that have a TX channel);
-    // every other radio is receive-only here. The ranges are the radio's own TX scale (0 = not known until the radio has been opened); OnAir
+    // Transmit (TxSink below). canTransmit: Eye of ZorCom has a transmit path for this radio (HackRF, PlutoSDR, SoapySDR radios that have a TX channel);
+    // every other radio is receive-only here. The ranges are the radio's own TX scale (0 = not known until the radio has been opened); Eye of ZorCom
     // adds no limit of its own to the frequency or the level. txFullDuplex: the radio can receive while it transmits, through the same open
     // handle (native PlutoSDR; incompatible shared clock/filter settings are refused by the driver).
     bool canTransmit = false;
@@ -168,7 +168,7 @@ public:
 };
 
 // ---- transmit ---------------------------------------------------------------------------------------------------------------------------
-// What a transmission asks of the radio. No limit is applied by OnAir: the frequency goes to the driver as given (a hertz-sized value, a
+// What a transmission asks of the radio. No limit is applied by Eye of ZorCom: the frequency goes to the driver as given (a hertz-sized value, a
 // terahertz one) plus offsetHz, the gain is the radio's own TX gain in dB clamped only to the scale the radio itself reports.
 struct TxTune {
     double centerHz = 0;         // the frequency the operator means; sinks do not add offsetHz into this

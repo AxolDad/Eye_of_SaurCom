@@ -41,7 +41,7 @@ std::deque<uint64_t> queue;
 std::thread worker;
 std::atomic<bool> stopping{false};
 bool started = false, inited = false;
-// Two folders of tiles: those kept until the user deletes them, and this session's, deleted when OnAir closes. New tiles go to the first
+// Two folders of tiles: those kept until the user deletes them, and this session's, deleted when Eye of ZorCom closes. New tiles go to the first
 // while keepNew is set. Both are read.
 std::string kept, temp;
 std::atomic<bool> keepNew{true};
@@ -638,8 +638,8 @@ void tilesMenu(ImVec4 buttonColour) {
     const bool keep = keepNew;
     if (ImGui::RadioButton("Keep them on this computer", keep) && !keep) { moveTree(temp, kept); setKeep(true); countedAt = -1e9; }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Tiles stay until you delete them here, so the map also works offline where you have looked before.\nSwitching to this keeps the tiles of this session too.");
-    if (ImGui::RadioButton("Delete them when OnAir closes", !keep) && keep) setKeep(false);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("New tiles go to a temporary folder that is emptied when OnAir closes.\nTiles kept before stay (and are still used) until you delete them below.");
+    if (ImGui::RadioButton("Delete them when Eye of ZorCom closes", !keep) && keep) setKeep(false);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("New tiles go to a temporary folder that is emptied when Eye of ZorCom closes.\nTiles kept before stay (and are still used) until you delete them below.");
     ImGui::Spacing();
     const long nk = uk.files(), nt = ut.files();
     if (nk + nt == 0) ImGui::TextDisabled("No tiles downloaded yet.");
@@ -761,7 +761,7 @@ void tileControls(const char* privacy, bool fullBtn) {
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Fetch map tiles from the OpenStreetMap tile server (tile.openstreetmap.org) and %s.\nOnly tile numbers are sent%s%s. "
                           "Switch off to work offline: the map then shows the tiles already downloaded, or a plain grid.\nThis switch and the tiles menu are the same on every map.",
-                          keepNew ? "keep them on this computer until you delete them (the tiles menu)" : "keep them only until OnAir closes (the tiles menu)",
+                          keepNew ? "keep them on this computer until you delete them (the tiles menu)" : "keep them only until Eye of ZorCom closes (the tiles menu)",
                           privacy ? ", " : "", privacy ? privacy : "");
     if (canFull) {
         ImGui::SameLine(0, 6 * gUi);

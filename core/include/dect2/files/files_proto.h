@@ -21,7 +21,7 @@ std::vector<std::string> splitList(const std::string& s, char sep);
 
 // ---------------------------------------------------------------- SigMF
 struct SigmfMeta {
-    int status = 0;                 // 0 ok, 1 not a valid SigMF meta file, 2 no "global" object, 3 no string core:datatype, 4 data type OnAir cannot play (see datatype)
+    int status = 0;                 // 0 ok, 1 not a valid SigMF meta file, 2 no "global" object, 3 no string core:datatype, 4 data type Eye of ZorCom cannot play (see datatype)
     int format = 0;                 // 0 CS8, 1 CU8, 2 CF32, 3 CI16, 4 CU16 (the order of FileFormat)
     bool bigEndian = false;
     int annotations = 0;

@@ -1,4 +1,4 @@
-// AMBE (D-STAR voice) through the user's own mbelib, loaded at run time: AMBE is patented and OnAir does not ship it (docs/CODECS.md).
+// AMBE (D-STAR voice) through the user's own mbelib, loaded at run time: AMBE is patented and Eye of ZorCom does not ship it (docs/CODECS.md).
 // Without the library the D-STAR receiver still shows the calls, the slow data and the positions, only without sound.
 #pragma once
 #include <cstdint>

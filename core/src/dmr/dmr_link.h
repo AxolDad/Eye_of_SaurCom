@@ -138,6 +138,7 @@ private:
     double centre_ = 0;                             // where the channel is believed to be (setCentre): the acceptance limit is around it
     std::function<void(const std::string&)> log_;
     DmrTelemetry tel_;                              // counters and logs accumulate here
+    uint64_t csbkSeq_ = 0;                          // DmrCsbk::seq (kept over reset())
     std::vector<float> eye_;
     int cc_ = -1;
     int linkFamily_ = -1;

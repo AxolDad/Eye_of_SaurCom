@@ -71,3 +71,24 @@ fn message_round_trips() {
     assert!(!msg::parse(&bits[..70], &mut p));
     assert_eq!(p.typ, msg::SD_DATA);
 }
+
+#[test]
+fn voice_channel_assignment_layout() {
+    // msg::VCALL_ASSGN written out by hand (TS 1-D): type 0x04, CC option 0x80 (emergency), group call 1 with option 0, source 1234,
+    // talkgroup 20, call timer 5, channel 321
+    let fields: [(u32, u32); 8] = [(0x04, 8), (0x80, 8), (1, 3), (0, 5), (1234, 16), (20, 16), (5, 6), (321, 10)];
+    let mut bits = std::vec::Vec::new();
+    for (v, w) in fields {
+        for i in (0..w).rev() {
+            bits.push(((v >> i) & 1) as u8);
+        }
+    }
+    let mut m = msg::Msg::default();
+    assert!(msg::parse(&bits, &mut m));
+    assert_eq!((m.typ, m.cc_option, m.call_type, m.src, m.dst, m.timer, m.channel), (msg::VCALL_ASSGN, 0x80, 1, 1234, 20, 5, 321));
+    let mut out = [0u8; 80];
+    assert_eq!(msg::build(&m, &mut out), 72);
+    assert_eq!(&out[..72], &bits[..]);
+    assert!(!msg::parse(&bits[..71], &mut m), "short body refused");
+    assert_eq!(msg::msg_name(msg::VCALL_ASSGN), "VCALL_ASSGN\0");
+}

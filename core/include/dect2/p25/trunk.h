@@ -225,20 +225,38 @@ private:
 // ------------------------------------------------------------------------------------------------ DMR Tier III
 
 // The Tier III channel grants as CSBKs (ETSI TS 102 361-4). The opcode numbers are kept in one table; see docs/trunking.md for what is verified.
-struct DmrOpcodes { int aloha = 0x19, tvGrant = 0x30, pvGrant = 0x31, btvGrant = 0x32; };
+struct DmrOpcodes { int aloha = 0x19, pvGrant = 0x30, tvGrant = 0x31, btvGrant = 0x32; };   // PV_GRANT 48, TV_GRANT 49, BTV_GRANT 50
 struct DmrLcn { int lcn = 0; double freqHz = 0; };
 class DmrModel {
 public:
     void setOpcodes(const DmrOpcodes& o) { ops_ = o; }
     void setChannel(int lcn, double freqHz);    // the user's logical channel table (the grants carry channel numbers only)
     double lcnFreq(int lcn) const;
-    // csbk: opcode, feature ID, 8 data bytes. The grant layout used: logical channel (12 bits, bits 0-11) + slot (bit 12), then 24-bit target and 24-bit source.
+    // csbk: opcode, feature ID, 8 data bytes, most significant bit first: physical channel number (12 bits), timeslot (1), late entry (1),
+    // emergency (1), offset (1), then the 24-bit target and the 24-bit source (TS 102 361-4 channel grant layout).
     bool onCsbk(int opcode, int fid, const uint8_t data[8], double nowSec, Grant& out);
     uint64_t grants() const { return n_; }
 
 private:
     DmrOpcodes ops_;
     std::map<int, double> lcn_;
+    uint64_t n_ = 0;
+};
+
+// ------------------------------------------------------------------------------------------------ NXDN
+
+// NXDN trunking (Type C): the control channel's voice channel assignments (VCALL_ASSGN, NXDN TS 1-D). They carry a 10-bit channel number;
+// what frequency a number means comes from the user's channel table (systems using direct frequency assignment are not followed).
+class NxdnModel {
+public:
+    void setChannel(int ch, double freqHz);
+    double channelFreq(int ch) const;
+    // callType: 0 broadcast, 1 group, 4 individual, 6 interconnect; ccOption bit 7 emergency
+    bool onAssignment(int callType, int src, int dst, int channel, int ccOption, Grant& out);
+    uint64_t grants() const { return n_; }
+
+private:
+    std::map<int, double> ch_;
     uint64_t n_ = 0;
 };
 
@@ -261,11 +279,14 @@ public:
     CallLog log;
     Follower follower;
     DmrModel dmr;
+    NxdnModel nxdn;
 
     // From the P25 receiver: a good TSBK (nac = the NID's), or a failed one (counts toward the success rate)
     void onTsbk(const p25::Tsbk& t, int nac, double nowSec);
     void onTsbkBad(double nowSec);
     void onDmrCsbk(int opcode, int fid, const uint8_t data[8], double nowSec);
+    void onNxdnAssignment(int callType, int src, int dst, int channel, int ccOption, double nowSec);
+    void onControlSeen(double nowSec);   // a good control channel message that is not a grant (keeps the follower's control lock)
     void setCapture(double centerHz, double spanHz) { follower.setCapture(centerHz, spanHz); }
     void tick(double nowSec);
     std::vector<Action> takeActions() { return follower.takeActions(); }

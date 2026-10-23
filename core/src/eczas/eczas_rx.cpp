@@ -1,4 +1,4 @@
-// PCSK225 demod + frame assembly, ported from main.c of sp5wwp/e-Czas (https://github.com/sp5wwp/e-Czas, GPL-3.0; OnAir is GPL-3.0 too, THIRD_PARTY.md).
+// PCSK225 demod + frame assembly, ported from main.c of sp5wwp/e-Czas (https://github.com/sp5wwp/e-Czas, GPL-3.0; Eye of ZorCom is GPL-3.0 too, THIRD_PARTY.md).
 // Input is the int16 symbol stream at 500 Hz: the phase change over each 20 ms bit (the first version took it from an FM discriminator).
 #include "dect2/eczas/eczas_rx.h"
 #include <algorithm>

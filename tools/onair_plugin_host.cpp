@@ -6,7 +6,7 @@
 
 int main(int argc, char** argv) {
     if (argc != 3 || strcmp(argv[1], "--plugin-host") != 0) {
-        fprintf(stderr, "onair-plugin-host is started by OnAir for out-of-process plugins.\n");
+        fprintf(stderr, "onair-plugin-host is started by Eye of ZorCom for out-of-process plugins.\n");
         return 64;
     }
     return dect2::plugin::helperMain(argv[2], 0, 3);

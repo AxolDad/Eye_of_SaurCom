@@ -3,6 +3,7 @@
 #include "../app.h"
 #include "../adsb/adsb_map.h"
 #include "dect2/geo/maidenhead.h"
+#include "dect2/net/cot_rx.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -21,7 +22,7 @@ struct State {
     char coordBuf[96] = "", locBuf[16] = "";
     std::string msg;              // why the typed text was not understood
     // layers: shown or not (saved), the data they read (refreshed once a second; kept when the mode is not running), what was clicked
-    bool layerOn[dect2::LayerCount + 1] = {true, true, true, true, true, true, true};   // the last one: the receiver
+    bool layerOn[dect2::LayerCount + 1] = {true, true, true, true, true, true, true, true};   // the last one: the receiver
     double refreshedAt = -1e9;
     dect2::AdsbTelemetry adsb; dect2::AisTelemetry ais; dect2::PacketTelemetry packet; dect2::SondeTelemetry sonde; dect2::CellTelemetry cell;
     std::vector<dect2::MapMarker> markers;
@@ -39,10 +40,10 @@ void load() {
     for (int i = 0; i <= dect2::LayerCount; i++) { char k[24]; snprintf(k, sizeof k, "mapLayer%d", i); S.layerOn[i] = plat::prefs().getB(k, true); }
 }
 
-const char* const kLayerName[] = {"ADS-B aircraft", "AIS ships", "APRS stations", "Radiosondes", "Satellites", "Cell towers", "Receiver"};
+const char* const kLayerName[] = {"ADS-B aircraft", "AIS ships", "APRS stations", "Radiosondes", "Satellites", "Cell towers", "ATAK / TAK contacts", "Receiver"};
 ImU32 layerColour(int l, int alpha = 255) {
-    static const ImU32 c[] = {IM_COL32(255, 200, 60, 255), IM_COL32(80, 170, 255, 255), IM_COL32(120, 230, 120, 255), IM_COL32(255, 120, 200, 255), IM_COL32(200, 160, 255, 255), IM_COL32(240, 240, 240, 255), IM_COL32(110, 210, 230, 255)};
-    const ImU32 v = c[std::max(0, std::min(6, l))];
+    static const ImU32 c[] = {IM_COL32(255, 200, 60, 255), IM_COL32(80, 170, 255, 255), IM_COL32(120, 230, 120, 255), IM_COL32(255, 120, 200, 255), IM_COL32(200, 160, 255, 255), IM_COL32(240, 240, 240, 255), IM_COL32(255, 150, 60, 255), IM_COL32(110, 210, 230, 255)};
+    const ImU32 v = c[std::max(0, std::min((int)dect2::LayerCount, l))];
     return (v & 0x00FFFFFF) | ((ImU32)alpha << 24);
 }
 
@@ -59,6 +60,7 @@ void refresh(App& a) {
     S.markers.clear();
     auto add = [](std::vector<dect2::MapMarker> v) { for (auto& m : v) S.markers.push_back(std::move(m)); };
     add(dect2::markersFromAdsb(S.adsb)); add(dect2::markersFromAis(S.ais)); add(dect2::markersFromAprs(S.packet)); add(dect2::markersFromSonde(S.sonde));
+    add(dect2::CotListener::get().markers((int64_t)std::time(nullptr) * 1000));
     S.towers.clear();
     cellMapTowers(S.cell, S.towers);
     S.sats.clear();
@@ -155,7 +157,7 @@ void infoPopup() {
     const dect2::MapMarker* mk = nullptr;
     for (const auto& m : S.markers) if (m.layer == S.selLayer && m.id == S.selId) mk = &m;
     if (mk) {
-        const char* kind = S.selLayer == dect2::LayerAdsb ? "ICAO" : S.selLayer == dect2::LayerAis ? "MMSI" : S.selLayer == dect2::LayerAprs ? "callsign" : "serial";
+        const char* kind = S.selLayer == dect2::LayerAdsb ? "ICAO" : S.selLayer == dect2::LayerAis ? "MMSI" : S.selLayer == dect2::LayerAprs ? "callsign" : S.selLayer == dect2::LayerCot ? "uid" : "serial";
         ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(layerColour(mk->layer)), "%s", mk->label.c_str());
         ImGui::TextDisabled("%s %s, %s", kind, mk->id.c_str(), kLayerName[mk->layer]);
         ImGui::Text("%.5f, %.5f  (%s)", mk->lat, mk->lon, dect2::toMaidenhead(mk->lat, mk->lon, 6).c_str());

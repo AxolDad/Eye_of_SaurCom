@@ -73,7 +73,7 @@ void tab(App& a) {
     ImGui::PushTextWrapPos(0);
     ImGui::TextDisabled("KAFT is amateur file transfer in 200 kHz, 500 kHz or 1 MHz: ten profiles from BPSK 1/4 to 1024-QAM 9/10, frames of LDPC blocks each with a CRC-32, "
                         "a session (OPEN, data, FINISH) and a hash check of the whole file. This receiver only listens: it sends no reply, so a sender that waits for ACKs "
-                        "cannot finish through it; the OnAir transmitter sends one-way and repeats the file, so a late start or a lost block is made up on a later pass. "
+                        "cannot finish through it; the Eye of ZorCom transmitter sends one-way and repeats the file, so a late start or a lost block is made up on a later pass. "
                         "A file is kept only when its hash matches. To transmit, switch to TX and pick KAFT.");
     ImGui::PopTextWrapPos();
     ImGui::Spacing();
@@ -208,7 +208,7 @@ void kaftPanel(TxUi& s, bool running) {
     ImGui::TextWrapped("%s", "KAFT: file transfer in a 200 kHz, 500 kHz or 1 MHz channel. The file goes out one-way: OPEN, the data frames, FINISH, and again for each pass; "
                               "no reply is waited for, so the profile is fixed and the whole file is sent several times (a receiver that missed blocks gets them on the next pass; one that has the file ignores the repeat). "
                               "The file is sent as it is (no compression codec is built in). Empty callsign sends the demo identity ONAIR; no file sends a short demo text file. "
-                              "OnAir sets no limit on the frequency or the power.");
+                              "Eye of ZorCom sets no limit on the frequency or the power.");
     ImGui::BeginDisabled(running);
     ImGui::SetNextItemWidth(160 * gUi);
     if (ImGui::InputText("Callsign (6 characters at most)", s.callsign, sizeof s.callsign, ImGuiInputTextFlags_CharsUppercase)) clampText(s.callsign, 6);

@@ -36,6 +36,12 @@ struct NxdnSite {
     int64_t wallTime = 0;
 };
 
+// A voice channel assignment heard on a control channel (VCALL_ASSGN): what a trunking follower acts on
+struct NxdnGrant {
+    uint64_t seq = 0;            // increasing, so a follower takes each one once
+    int src = 0, dst = 0, callType = 1, option = 0, channel = 0, ccOption = 0;
+};
+
 struct NxdnTelemetry {
     uint64_t seq = 0;
     int state = 0;               // 0 searching, 1 frames seen recently, 2 a call on air
@@ -60,6 +66,7 @@ struct NxdnTelemetry {
     NxdnCall now;
     std::vector<NxdnCall> log;   // newest first, at most kNxdnLogMax: voice calls, status and short data
     std::vector<std::string> events;   // newest first: decoded control messages as text
+    std::vector<NxdnGrant> grants;     // the last channel assignments, oldest first, at most 64
 };
 
 constexpr size_t kNxdnLogMax = 300;

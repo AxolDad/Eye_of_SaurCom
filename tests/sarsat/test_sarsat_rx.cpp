@@ -97,8 +97,12 @@ int main() {
         countFound(run(cfg, rate, seconds * 2), "14 dB");
     }
     {   // a real recording (issue #223): I/Q wav at 37.5 kHz, carrier near +1.44 kHz, moved to the tuning offset at 256 kHz
+#ifdef DECT2_SOURCE_DIR   // __FILE__ is prefix-mapped (-ffile-prefix-map), so use the source dir from CMake
+        std::string path = std::string(DECT2_SOURCE_DIR) + "/tests/data/sarsat/epirbsignal_223.wav";
+#else
         std::string path = __FILE__;
         path = path.substr(0, path.rfind("tests/")) + "tests/data/sarsat/epirbsignal_223.wav";
+#endif
         FILE* f = fopen(path.c_str(), "rb");
         CHECK(f != nullptr, "cannot open %s", path.c_str());
         if (f) {

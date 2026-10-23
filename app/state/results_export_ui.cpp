@@ -9,7 +9,7 @@
 
 namespace resexp {
 
-static const double kStart = (double)std::time(nullptr);   // when OnAir started: the "since start" cut
+static const double kStart = (double)std::time(nullptr);   // when Eye of ZorCom started: the "since start" cut
 
 bool saveButton(const Table& t, const char* kind, std::string& note, const char* id) {
     static int fmt = 0, scope = 1;   // Fmt order below; scope 0 = since start, 1 = all

@@ -168,7 +168,7 @@ void codecInstallHelper(const char* id) {
     if (ImGui::Button("Build steps")) dect2::openUrl("https://github.com/adswill/OnAir/blob/main/docs/CODECS.md#speech-codec-plug-ins-voice-modes");
     ImGui::SameLine();
     if (ImGui::Button("Rescan for plug-in")) speechCodecRescan(id);
-    ImGui::TextDisabled("Upstream mbelib project page: https://github.com/lwvmobile/mbelib. OnAir downloads nothing for you.");
+    ImGui::TextDisabled("Upstream mbelib project page: https://github.com/lwvmobile/mbelib. Eye of ZorCom downloads nothing for you.");
 }
 
 void voiceCodecsWindow(App& a) {
@@ -177,7 +177,7 @@ void voiceCodecsWindow(App& a) {
     if (!ImGui::Begin("Voice codecs", &a.voiceCodecsOpen)) { ImGui::End(); return; }
     for (const char* id : {"ambe2", "ambe", "imbe"}) voiceCodecTick(id);
     ImGui::PushTextWrapPos(0);
-    ImGui::TextUnformatted("OnAir never ships a patented voice codec. Patented codecs are loaded at run time from a plug-in (or library) that you install yourself in the codecs folder; open codecs need nothing. Encrypted calls are never decoded. Check the patent and radio rules where you live.");
+    ImGui::TextUnformatted("Eye of ZorCom never ships a patented voice codec. Patented codecs are loaded at run time from a plug-in (or library) that you install yourself in the codecs folder; open codecs need nothing. Encrypted calls are never decoded. Check the patent and radio rules where you live.");
     ImGui::PopTextWrapPos();
     ImGui::Spacing();
     const std::string folder = codecsFolder();
@@ -198,7 +198,7 @@ void voiceCodecsWindow(App& a) {
                 std::string p, v;
                 if (std::string(ci.name) == "Codec 2") {
                     if (dect2::hfdigFreedvLibrary(&p, &v)) ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.6f, 1), "loaded: %s", p.c_str());
-                    else ImGui::TextColored(ImVec4(0.95f, 0.75f, 0.3f, 1), "libcodec2 missing: reinstall OnAir");
+                    else ImGui::TextColored(ImVec4(0.95f, 0.75f, 0.3f, 1), "libcodec2 missing: reinstall Eye of ZorCom");
                 } else ImGui::TextUnformatted(ci.note);
             } else if (ci.kind == cd::CodecKind::Unsupported) {
                 ImGui::TextWrapped("%s", ci.note);

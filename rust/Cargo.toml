@@ -4,7 +4,7 @@ members = [
     "onair_common", "onair_proto", "onair",
     "onair_adsb", "onair_acars", "onair_same", "onair_pager", "onair_ax25", "onair_dmr", "onair_p25", "onair_nxdn",
     "onair_dstar", "onair_tetra", "onair_vdl2", "onair_hfdl", "onair_mesh", "onair_wisun", "onair_uat",
-    "onair_ts", "onair_dvbsi", "onair_dab", "onair_drm", "onair_files", "onair_net", "onair_engine", "onair_fec", "onair_usb", "onair_ring", "onair_kris", "onair_kaws",
+    "onair_ts", "onair_dvbsi", "onair_dab", "onair_drm", "onair_files", "onair_net", "onair_engine", "onair_fec", "onair_usb", "onair_ring", "onair_kris", "onair_kaws", "onair_cot", "onair_wifisense",
 ]
 
 [workspace.package]

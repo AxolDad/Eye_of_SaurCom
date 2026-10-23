@@ -432,7 +432,12 @@ void toolbarParts(App& a, int mask, bool vertical) {
     bool running = a.engine.running();
     bool retune = false;
     ImGui::AlignTextToFramePadding();
-    if (!a.newUi) { ImGui::TextColored(pal::accent(), "%s", tr("ONAIR")); ImGui::SameLine(0, 16 * gUi); }
+    if (!a.newUi) { ImGui::TextColored(pal::accent(), "%s", "ZORCOM"); ImGui::SameLine(0, 16 * gUi); }
+    if ((mask & TbFreq) && txActive()) {   // while transmitting, from every view
+        ImGui::TextColored(pal::badRed(), "%s", tr("TX ON AIR"));
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The radio is transmitting. Stop it in the Transmit panel."));
+        ImGui::SameLine(0, 12 * gUi);
+    }
     if (mask & TbSource) toolbarSource(a, vertical, running);
 
 

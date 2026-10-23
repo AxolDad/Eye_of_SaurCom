@@ -127,5 +127,6 @@ int main() {
         A::ambeFrame(bits, fa);
         for (auto& row : fa) for (char c : row) dig.add(c);
     }
-    return golden::check("nxdn_proto_rs", dig, 0x461c5b4739445ed7ull, !it);
+    // 0x461c5b4739445ed7 until VCALL_ASSGN (0x04) was added; with its build, parse and name arms disabled the run gives that value again
+    return golden::check("nxdn_proto_rs", dig, 0xc59f47671f1d6f96ull, !it);
 }

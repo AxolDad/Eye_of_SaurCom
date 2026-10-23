@@ -36,6 +36,7 @@ struct State {
     int addMode = -1;                // mode of a new entry (kModes index; -1: the current mode)
     bool fromMemory = false;         // the list is the scan-flagged memories (scannerLoadList): never saved over the user's own list, which waits in userList
     std::vector<Entry> userList;
+    bool trunkHere = false;          // the scanner is on a trunked system's entry and has the follower on
 };
 State S;
 
@@ -148,7 +149,11 @@ void tuneTo(App& a, const scanlist::Target& t) {
     }
     S.rxSeq0 = a.rx.seq; S.specSeq0 = a.spec.seq; S.haveBlocks0 = false;
     S.logging = false;
+    if (t.trunk || S.trunkHere) trunkScanFollow(a, t.trunk, t.trunk);   // on for a trunked system (fresh), off again when leaving one
+    S.trunkHere = t.trunk;
 }
+
+void stopScan(App& a);
 
 void closeHit(double now) { if (S.logging && !S.log.empty()) S.log.back().endT = now; }
 
@@ -174,7 +179,12 @@ void tick(App& a) {
         else snprintf(b, sizeof b, "%s", tr("signal only"));
         S.what = b;
     }
-    const bool active = S.level >= S.thrDb || d.valid;
+    bool active = S.level >= S.thrDb || d.valid;
+    if (S.m.target().trunk) {   // a control channel always has a carrier: what counts is a call being followed (the follower may hop to it and back)
+        std::string call;
+        active = trunkCallNow(&call);
+        S.what = active ? call : std::string(d.valid ? tr("control channel, no call") : tr("no control channel"));
+    }
     const Machine::State before = S.m.state();
     bool retune = S.m.tick(now, ready, active);
     if (S.m.hitStarted()) {
@@ -193,7 +203,13 @@ void tick(App& a) {
         h.endT = now;
     }
     if (retune) { closeHit(now); tuneTo(a, S.m.target()); }
-    else if (!S.m.running()) { closeHit(now); S.msg = tr("nothing left to scan"); }
+    else if (!S.m.running()) { stopScan(a); S.msg = tr("nothing left to scan"); }
+}
+
+void stopScan(App& a) {
+    S.m.stop();
+    closeHit(glfwGetTime());
+    if (S.trunkHere) { trunkScanFollow(a, false, false); S.trunkHere = false; }
 }
 
 void startScan(App& a) {
@@ -207,7 +223,7 @@ void listTable(App& a) {
     const bool run = S.m.running();
     int del = -1;
     const ImGuiTableFlags tf = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit;
-    if (ImGui::BeginTable("##scanlist", 7, tf, ImVec2(0, 190 * gUi))) {
+    if (ImGui::BeginTable("##scanlist", 8, tf, ImVec2(0, 190 * gUi))) {
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableSetupColumn(tr("MHz"), 0, 110 * gUi);
         ImGui::TableSetupColumn(tr("Mode"), 0, 150 * gUi);
@@ -215,6 +231,7 @@ void listTable(App& a) {
         ImGui::TableSetupColumn(tr("Dwell s"), 0, 60 * gUi);
         ImGui::TableSetupColumn(tr("Priority"), 0, 56 * gUi);
         ImGui::TableSetupColumn(tr("Lockout"), 0, 56 * gUi);
+        ImGui::TableSetupColumn(tr("Trunked"), 0, 60 * gUi);
         ImGui::TableSetupColumn(tr(""), 0, 24 * gUi);
         ImGui::TableHeadersRow();
         for (int i = 0; i < (int)S.m.list.size(); i++) {
@@ -236,6 +253,9 @@ void listTable(App& a) {
             if (ImGui::IsItemHovered()) ImGui::SetTooltip(tr("Checked every %.0f s, also while another channel holds (one priority entry)"), S.m.prioritySec);
             ImGui::TableNextColumn();
             if (ImGui::Checkbox("##l", &e.lockout)) S.dirty = true;
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("##t", &e.trunk)) { if (e.trunk && e.dwellSec < 8) e.dwellSec = 8; S.dirty = true; }
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("A trunked system's control channel (P25, DMR Tier III or NXDN Type C): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time"));
             ImGui::TableNextColumn();
             ImGui::BeginDisabled(run);
             if (ImGui::SmallButton("x")) del = i;
@@ -259,11 +279,11 @@ void listTable(App& a) {
             int unknown = 0;
             for (const Entry& e : v) if (modeIndex(e.mode) < 0) unknown++;
             S.m.list.insert(S.m.list.end(), v.begin(), v.end()); S.dirty = true;
-            char b[120]; snprintf(b, sizeof b, tr("imported %d entries%s"), (int)v.size(), unknown ? tr(" (some with a mode OnAir does not know)") : "");
+            char b[120]; snprintf(b, sizeof b, tr("imported %d entries%s"), (int)v.size(), unknown ? tr(" (some with a mode Eye of ZorCom does not know)") : "");
             S.msg = b;
         }
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Columns: frequency_mhz, mode, name, dwell_s, lockout, priority.\nmode is a mode id: fm, dab, airband, dmr, pocsag, ft8 ..."));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Columns: frequency_mhz, mode, name, dwell_s, lockout, priority, trunk.\nmode is a mode id: fm, dab, airband, dmr, pocsag, ft8 ..."));
     ImGui::SameLine();
     if (ImGui::Button(tr("Export CSV..."))) {
         const std::string p = saveFileDialog("scanlist.csv");
@@ -349,7 +369,7 @@ void scannerPanel(App& a) {
         ImGui::EndDisabled();
     }
     {   // controls
-        if (ImGui::Button(tr(run ? "Stop scan" : "Start scan"))) { if (run) { S.m.stop(); closeHit(glfwGetTime()); } else startScan(a); }
+        if (ImGui::Button(tr(run ? "Stop scan" : "Start scan"))) { if (run) stopScan(a); else startScan(a); }
         ImGui::SameLine();
         ImGui::BeginDisabled(!run);
         if (ImGui::Button(tr("Skip"))) { closeHit(glfwGetTime()); if (S.m.skip(glfwGetTime())) tuneTo(a, S.m.target()); }
@@ -397,7 +417,7 @@ int scanModeIndex(const std::string& key) { return modeIndex(key); }
 
 void scannerLoadList(App& a, const std::vector<ScanSeed>& list) {
     load();
-    if (S.m.running()) { S.m.stop(); closeHit(glfwGetTime()); }
+    if (S.m.running()) stopScan(a);
     if (!S.fromMemory) S.userList = S.m.list;
     S.fromMemory = true;
     S.m.list.clear();

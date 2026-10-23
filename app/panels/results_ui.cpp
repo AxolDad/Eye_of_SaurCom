@@ -105,6 +105,6 @@ bool resultsClearButton(const char* id) {
     char b[64];
     snprintf(b, sizeof b, "Clear##res%s", id);
     const bool pressed = ImGui::SmallButton(b);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Empty the decoded lists of this mode. They are kept until then: through changes of mode,\nretunes and restarts of the receiver, and from one run of OnAir to the next.");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Empty the decoded lists of this mode. They are kept until then: through changes of mode,\nretunes and restarts of the receiver, and from one run of Eye of ZorCom to the next.");
     return pressed;
 }

@@ -38,7 +38,9 @@ State S;
 struct Trunk {
     dect2::trunk::Controller ctl;
     bool on = false, loaded = false, dirty = false;
-    uint64_t tsbkSeen = 0;
+    uint64_t tsbkSeen = 0, csbkSeen = 0, nxdnSeen = 0, nxdnCac = 0;
+    std::string dmrChannels;             // "LCN=MHz" pairs for Tier III (pref "trunkDmrChannels")
+    std::string nxdnChannels;            // "channel=MHz" pairs for NXDN Type C (pref "trunkNxdnChannels")
     int forcedSel = 0;
     uint64_t recCall = 0;
     std::string status;
@@ -64,6 +66,8 @@ void tgSave(const std::string& path) {
 }
 
 bool live(const App& a) { return a.rx.standard == 51; }   // the engine reports its standard code minus one
+bool liveDmr(const App& a) { return a.rx.standard == 10; }   // DMR: Tier III grants come as CSBKs
+bool liveNxdn(const App& a) { return a.rx.standard == 39; }  // NXDN: Type C grants come as VCALL_ASSGN on the control channel
 
 std::string clock(int64_t t) {
     if (t <= 0) return "-";
@@ -106,7 +110,7 @@ void voiceLine() {
     ImGui::SameLine(0, 10 * gUi);
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("OnAir only receives. It shows what P25 radios send in the clear: talkgroups, unit IDs, the trunking system and,\n"
+        ImGui::SetTooltip("Eye of ZorCom only receives. It shows what P25 radios send in the clear: talkgroups, unit IDs, the trunking system and,\n"
                           "with your own mbelib, clear voice. Encrypted calls are only reported as encrypted; nothing is decrypted.\n"
                           "Listening to radio services is regulated in many countries: follow the rules where you live.");
 }
@@ -228,15 +232,17 @@ void talkgroupView(App& a) {
     if (!live(a)) { ImGui::TextDisabled("%s", a.engine.running() ? "starting" : "stopped"); return; }
     const auto& tg = a.rx.p25.talkgroups;
     if (tg.empty()) { ImGui::TextDisabled("no talkgroups heard yet"); return; }
-    if (!ImGui::BeginTable("##p25tg", 7, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV, ImVec2(0, ImGui::GetContentRegionAvail().y))) return;
+    if (!ImGui::BeginTable("##p25tg", 8, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV, ImVec2(0, ImGui::GetContentRegionAvail().y))) return;
     ImGui::TableSetupScrollFreeze(0, 1);
-    ImGui::TableSetupColumn("Talkgroup"); ImGui::TableSetupColumn("Grants"); ImGui::TableSetupColumn("Calls"); ImGui::TableSetupColumn("Last unit");
+    ImGui::TableSetupColumn("Talkgroup"); ImGui::TableSetupColumn("Name"); ImGui::TableSetupColumn("Grants"); ImGui::TableSetupColumn("Calls"); ImGui::TableSetupColumn("Last unit");
     ImGui::TableSetupColumn("Last channel"); ImGui::TableSetupColumn("Last heard"); ImGui::TableSetupColumn("Notes", ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableHeadersRow();
     for (const auto& g : tg) {
         ImGui::TableNextRow();
         const ImVec4 c = g.active ? pal::okGreen() : ImGui::GetStyleColorVec4(ImGuiCol_Text);
         ImGui::TableNextColumn(); ImGui::PushFont(a.mono, 0); ImGui::TextColored(c, "%d", g.tg); ImGui::PopFont();
+        ImGui::TableNextColumn();   // the name from the follower's talkgroup list (Follow tab: Import CSV or edit there)
+        if (const dect2::trunk::TgEntry* e = T.ctl.tgs.find(g.tg)) ImGui::TextUnformatted(e->alpha.c_str());
         ImGui::TableNextColumn(); ImGui::Text("%u", g.grants);
         ImGui::TableNextColumn(); ImGui::Text("%u", g.calls);
         ImGui::TableNextColumn(); ImGui::TextUnformatted(dect2::p25Id(g.lastSrc).c_str());
@@ -260,19 +266,77 @@ void messageView(App& a) {
 
 // ---------------------------------------------------------------- hooks
 
+// "number=MHz" pairs (spaces, commas or new lines between them) into a channel table; the number of channels read
+template <class Set> int applyChannels(const std::string& text, int maxNumber, Set set) {
+    std::string tok, norm = text;
+    int n = 0;
+    for (char& c : norm) if (c == ',' || c == ';' || c == '\n' || c == '\t') c = ' ';
+    std::istringstream words(norm);
+    while (words >> tok) {
+        const size_t eq = tok.find('=');
+        if (eq == std::string::npos) continue;
+        char* end = nullptr;
+        const long lcn = std::strtol(tok.c_str(), &end, 10);
+        const double mhz = std::strtod(tok.c_str() + eq + 1, nullptr);
+        if (end == tok.c_str() || end != tok.c_str() + eq || lcn < 0 || lcn > maxNumber || !(mhz > 1 && mhz < 6000)) continue;
+        set((int)lcn, mhz * 1e6);
+        n++;
+    }
+    return n;
+}
+int applyDmrChannels(const std::string& text) { return applyChannels(text, 4095, [](int n, double hz) { T.ctl.dmr.setChannel(n, hz); }); }
+int applyNxdnChannels(const std::string& text) { return applyChannels(text, 1023, [](int n, double hz) { T.ctl.nxdn.setChannel(n, hz); }); }
+
 void trunkTick(App& a) {
-    if (!T.loaded) { T.loaded = true; if (std::filesystem::exists(std::filesystem::u8path(tgFile()))) tgLoad(tgFile(), false); }
-    if (!T.on || !live(a)) return;
+    if (!T.loaded) {
+        T.loaded = true;
+        if (std::filesystem::exists(std::filesystem::u8path(tgFile()))) tgLoad(tgFile(), false);
+        T.dmrChannels = plat::prefs().getS("trunkDmrChannels", "");
+        applyDmrChannels(T.dmrChannels);
+        T.nxdnChannels = plat::prefs().getS("trunkNxdnChannels", "");
+        applyNxdnChannels(T.nxdnChannels);
+    }
+    const bool p25 = live(a), dmr = liveDmr(a), nxdn = liveNxdn(a);
+    if (!T.on || !(p25 || dmr || nxdn)) return;
     using namespace dect2::trunk;
     const double now = nowSec();
     const dect2::P25Telemetry& t = a.rx.p25;
-    for (const auto& r : t.tsbks) {
+    // a restarted receiver counts its messages from 1 again
+    if (!t.tsbks.empty() && t.tsbks.back().seq < T.tsbkSeen) T.tsbkSeen = 0;
+    if (!a.rx.dmr.csbks.empty() && a.rx.dmr.csbks.back().seq < T.csbkSeen) T.csbkSeen = 0;
+    if (!a.rx.nxdn.grants.empty() && a.rx.nxdn.grants.back().seq < T.nxdnSeen) T.nxdnSeen = 0;
+    if (p25) for (const auto& r : t.tsbks) {
         if (r.seq <= T.tsbkSeen) continue;
         T.tsbkSeen = r.seq;
         dect2::p25::Tsbk k; k.opcode = r.opcode; k.mfid = r.mfid; k.args = r.args;
         T.ctl.onTsbk(k, r.nac, now);
     }
-    T.ctl.setCapture(radioCenterMhz(a) * 1e6, wideActive(a) ? t.inputRate : 0);
+    if (dmr) for (const auto& r : a.rx.dmr.csbks) {
+        if (r.seq <= T.csbkSeen) continue;
+        T.csbkSeen = r.seq;
+        T.ctl.onDmrCsbk(r.opcode, r.fid, r.data, now);
+    }
+    if (nxdn) {
+        // a Type C control channel is on air when new control channel (CAC) frames decode; site info alone is kept from earlier
+        if (a.rx.nxdn.cacOk < T.nxdnCac) T.nxdnCac = 0;
+        if (a.rx.nxdn.cacOk > T.nxdnCac) { T.nxdnCac = a.rx.nxdn.cacOk; T.ctl.onControlSeen(now); }
+        for (const auto& g : a.rx.nxdn.grants) {
+            if (g.seq <= T.nxdnSeen) continue;
+            T.nxdnSeen = g.seq;
+            T.ctl.onNxdnAssignment(g.callType, g.src, g.dst, g.channel, g.ccOption, now);
+        }
+    }
+    T.ctl.setCapture(radioCenterMhz(a) * 1e6, p25 && wideActive(a) ? t.inputRate : 0);   // DMR, NXDN: the radio retunes for each call
+    if (const uint64_t id = T.ctl.follower.audibleCall()) {   // on the call's channel: voice heard keeps the call (and the radio) there
+        const CallRecord* r = T.ctl.log.byId(id);
+        bool voice = false;
+        // only this call's own voice counts: the channel may already carry another talkgroup's call (its grant was not heard here)
+        auto ours = [&](long long dst) { return r && (dst < 0 || dst == r->tg); };
+        if (p25) voice = t.now.active && t.now.kind == 0 && ours(t.now.dst);
+        else if (dmr) voice = r && r->slot >= 0 && r->slot < 2 && a.rx.dmr.slot[r->slot].active && a.rx.dmr.slot[r->slot].state == 1 && ours(a.rx.dmr.slot[r->slot].dst ? (long long)a.rx.dmr.slot[r->slot].dst : -1);   // 0: not decoded yet
+        else voice = a.rx.nxdn.now.active && a.rx.nxdn.now.kind == 0 && ours(a.rx.nxdn.now.dst);
+        if (voice && !(p25 && wideActive(a))) T.ctl.onVoice(id, now);
+    }
     T.ctl.tick(now);
     for (const Action& ac : T.ctl.takeActions()) {
         switch (ac.kind) {
@@ -280,7 +344,7 @@ void trunkTick(App& a) {
         case Action::Notice: T.ctl.messages.push_back(ac.text); break;
         case Action::RecordStart: {
             dect2::AudioRecorder& rec = dect2::AudioRecorder::instance();
-            if (!dect2::p25ImbeAvailable() || rec.active()) break;   // no vocoder: there is no sound to save
+            if ((p25 && !dect2::p25ImbeAvailable()) || rec.active()) break;   // no vocoder: there is no sound to save
             dect2::AudioRecOptions o; o.gated = true;
             char nm[96]; time_t tt = time(nullptr); struct tm g;
 #ifdef _WIN32
@@ -321,8 +385,35 @@ void followView(App& a) {
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Follows the voice grants of a P25 control channel. Inside a wide capture every channel is decoded and the sound moves to the call you should hear;\n"
                           "outside it the one radio leaves the control channel for the call and comes back. Encrypted calls are logged as encrypted and never followed.\n"
+                          "DMR Tier III and NXDN Type C grants are followed the same way, with your channel table.\n"
                           "Sound needs your own mbelib; the talkgroups and the call log work without it. See docs/trunking.md.");
-    if (!T.on) { ImGui::TextDisabled("%s", live(a) ? "off: the control channel is only decoded, nothing is followed" : "start the receiver first"); }
+    if (!T.on) { ImGui::TextDisabled("%s", live(a) || liveDmr(a) || liveNxdn(a) ? "off: the control channel is only decoded, nothing is followed" : "start the receiver first"); }
+    if (liveDmr(a)) {
+        ImGui::TextDisabled("DMR Tier III: the grants give channel numbers; enter each channel's frequency (LCN=MHz, e.g. 1=451.0125 2=451.0375)");
+        char b[512]; snprintf(b, sizeof b, "%s", T.dmrChannels.c_str());
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::InputText("##dmrlcn", b, sizeof b)) T.dmrChannels = b;
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+            T.ctl.dmr = dect2::trunk::DmrModel();
+            const int n = applyDmrChannels(T.dmrChannels);
+            plat::prefs().setS("trunkDmrChannels", T.dmrChannels);
+            T.status = std::to_string(n) + " DMR channels set";
+        }
+        ImGui::TextDisabled("%llu Tier III grants seen", (unsigned long long)T.ctl.dmr.grants());
+    }
+    if (liveNxdn(a)) {
+        ImGui::TextDisabled("NXDN Type C: the grants give channel numbers; enter each channel's frequency (channel=MHz, e.g. 1=451.0125 2=451.0250)");
+        char b[512]; snprintf(b, sizeof b, "%s", T.nxdnChannels.c_str());
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::InputText("##nxdnch", b, sizeof b)) T.nxdnChannels = b;
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+            T.ctl.nxdn = dect2::trunk::NxdnModel();
+            const int n = applyNxdnChannels(T.nxdnChannels);
+            plat::prefs().setS("trunkNxdnChannels", T.nxdnChannels);
+            T.status = std::to_string(n) + " NXDN channels set";
+        }
+        ImGui::TextDisabled("%llu NXDN channel assignments seen", (unsigned long long)T.ctl.nxdn.grants());
+    }
     const double now = nowSec();
     const ControllerStatus st = T.ctl.status(now);
     kvRow(a, "state", "%s%s", followStateName(st.state), st.controlLocked ? "" : " (no control channel message lately)");
@@ -494,6 +585,39 @@ void summary(const App& a, std::string& l1, std::string& l2) {
 }
 
 } // namespace
+
+// The trunking follower is shared by P25, DMR Tier III and NXDN Type C: the DMR and NXDN tabs tick it and shows the same panel (talkgroups, now talking, call log).
+void trunkFollowTick(App& a) { trunkTick(a); }
+void trunkFollowPanel(App& a) { followView(a); }
+
+// The scanner on a trunked system's entry: follow its calls while it is there. enter: a new system, so the site and the follower start
+// again (the call log and the talkgroups stay) and the new receiver's message counters are taken from the start.
+void trunkScanFollow(App& a, bool on, bool enter) {
+    static bool userOn = false, held = false;   // the user's own setting, given back when the scanner leaves trunked systems
+    if (on && !held) { userOn = T.on; held = true; }
+    if (enter) {   // a new system: what the receiver still holds from the last one is not this system's
+        T.ctl.sys.clear();
+        T.ctl.follower.reset();
+        T.tsbkSeen = a.rx.p25.tsbks.empty() ? 0 : a.rx.p25.tsbks.back().seq;
+        T.csbkSeen = a.rx.dmr.csbks.empty() ? 0 : a.rx.dmr.csbks.back().seq;
+        T.nxdnSeen = a.rx.nxdn.grants.empty() ? 0 : a.rx.nxdn.grants.back().seq;
+        T.nxdnCac = a.rx.nxdn.cacOk;
+    }
+    if (!on && held) { if (T.on) T.on = userOn; held = false; return; }   // a user who switched it off meanwhile keeps it off
+    T.on = on;
+}
+// A call the follower follows right now, and what it is ("talkgroup 77 Fire Dispatch"); false when none.
+bool trunkCallNow(std::string* what) {
+    for (const dect2::trunk::CallRecord* r : T.ctl.nowTalking()) {
+        if (!r->followed) continue;
+        if (what) {
+            const dect2::trunk::TgEntry* e = r->group ? T.ctl.tgs.find(r->tg) : nullptr;
+            *what = std::string(r->group ? "talkgroup " : "unit ") + std::to_string(r->tg) + (e && !e->alpha.empty() ? " " + e->alpha : "");
+        }
+        return true;
+    }
+    return false;
+}
 
 extern const ModeUi kP25Ui;
 const ModeUi kP25Ui = {

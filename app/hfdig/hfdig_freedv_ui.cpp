@@ -9,13 +9,13 @@ namespace {
 
 const char* const kChoices[] = {"Automatic", "700D", "700E", "1600", "RADE"};
 
-const char* installHint() {   // codec2 ships with OnAir: it is missing only from an incomplete copy
+const char* installHint() {   // codec2 ships with Eye of ZorCom: it is missing only from an incomplete copy
 #if defined(__APPLE__)
-    return "codec2 comes inside OnAir.app: download the OnAir disk image again, or install it with Homebrew: brew install codec2";
+    return "codec2 comes inside OnAir.app: download the Eye of ZorCom disk image again, or install it with Homebrew: brew install codec2";
 #elif defined(_WIN32)
-    return "codec2 comes with OnAir as libcodec2.dll next to OnAir.exe: unpack the whole OnAir zip again (do not copy OnAir.exe alone).";
+    return "codec2 comes with Eye of ZorCom as libcodec2.dll next to OnAir.exe: unpack the whole Eye of ZorCom zip again (do not copy OnAir.exe alone).";
 #else
-    return "codec2 comes with the OnAir package: install it again, or install your distribution's codec2 package (libcodec2).";
+    return "codec2 comes with the Eye of ZorCom package: install it again, or install your distribution's codec2 package (libcodec2).";
 #endif
 }
 
@@ -37,7 +37,7 @@ void hfdigFreedvTab(App& a, const dect2::HfdigTelemetry& t) {
     codecHelpButton(CodecHelp::Codec2);
     if (!found) {
         ImGui::PushTextWrapPos(0);
-        ImGui::TextDisabled("codec2 library not found: FreeDV needs it to decode. It normally comes with OnAir. Press ? to see what to do.");
+        ImGui::TextDisabled("codec2 library not found: FreeDV needs it to decode. It normally comes with Eye of ZorCom. Press ? to see what to do.");
         ImGui::TextDisabled("%s", installHint());
         ImGui::PopTextWrapPos();
     }
@@ -54,7 +54,7 @@ void hfdigFreedvTab(App& a, const dect2::HfdigTelemetry& t) {
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Automatic listens for FreeDV 700D, 700E and 1600 at the same time. RADE is a separate library (librade), not codec2.");
     if (choice == 4) {
         ImGui::PushTextWrapPos(0);
-        ImGui::TextDisabled("RADE is not in codec2 1.2. It needs librade (freedv/rade_c) plus FARGAN model files. 700D / 700E / 1600 still decode with the codec2 that ships with OnAir.");
+        ImGui::TextDisabled("RADE is not in codec2 1.2. It needs librade (freedv/rade_c) plus FARGAN model files. 700D / 700E / 1600 still decode with the codec2 that ships with Eye of ZorCom.");
         ImGui::PopTextWrapPos();
     }
     if (!found) return;

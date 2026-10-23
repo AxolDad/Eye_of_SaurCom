@@ -3,6 +3,8 @@
 
 /// VCALL: voice call set-up.
 pub const VCALL: i32 = 0x01;
+/// VCALL_ASSGN: voice channel assignment (control channel, outbound): the grant a trunking follower acts on.
+pub const VCALL_ASSGN: i32 = 0x04;
 /// TX_REL: transmission release.
 pub const TX_REL: i32 = 0x08;
 /// IDLE.
@@ -49,8 +51,12 @@ pub struct Msg {
     pub location: u32,
     /// Service information bits.
     pub service: i32,
-    /// Channel (SITE_INFO).
+    /// Channel (SITE_INFO; VCALL_ASSGN: the 10-bit channel number).
     pub channel: i32,
+    /// VCALL_ASSGN: call control option (8 bits; bit 7 emergency, bit 6 priority paging).
+    pub cc_option: i32,
+    /// VCALL_ASSGN: call timer (6 bits).
+    pub timer: i32,
 }
 
 impl Default for Msg {
@@ -71,6 +77,8 @@ impl Default for Msg {
             location: 0,
             service: 0,
             channel: 0,
+            cc_option: 0,
+            timer: 0,
         }
     }
 }
@@ -143,6 +151,15 @@ pub fn build(m: &Msg, bits: &mut [u8]) -> usize {
                 w.put(if i < m.text_len { m.text[i] as u32 } else { 0 }, 8);
             }
         }
+        VCALL_ASSGN => {
+            w.put(m.cc_option as u32, 8);
+            w.put(m.call_type as u32, 3);
+            w.put(m.option as u32, 5);
+            w.put(m.src as u32, 16);
+            w.put(m.dst as u32, 16);
+            w.put(m.timer as u32, 6);
+            w.put(m.channel as u32, 10);
+        }
         SITE_INFO => {
             w.put(m.location, 24);
             w.put(m.channel as u32, 16);
@@ -208,6 +225,20 @@ pub fn parse(bits: &[u8], m: &mut Msg) -> bool {
                 }
             }
         }
+        VCALL_ASSGN => {
+            // TS 1-D: CC option, call type and option, source, destination, call timer, then the channel number (channel-number access;
+            // a DFA system puts the frequency numbers in the following octets instead, which this does not read)
+            if n < 72 {
+                return false;
+            }
+            m.cc_option = r.get(8) as i32;
+            m.call_type = r.get(3) as i32;
+            m.option = r.get(5) as i32;
+            m.src = r.get(16) as i32;
+            m.dst = r.get(16) as i32;
+            m.timer = r.get(6) as i32;
+            m.channel = r.get(10) as i32;
+        }
         SITE_INFO => {
             if n < 64 {
                 return false;
@@ -233,6 +264,7 @@ pub fn msg_name(t: i32) -> &'static str {
     match t {
         VCALL => "VCALL\0",
         TX_REL => "TX_REL\0",
+        VCALL_ASSGN => "VCALL_ASSGN\0",
         IDLE => "IDLE\0",
         SITE_INFO => "SITE_INFO\0",
         SRV_INFO => "SRV_INFO\0",

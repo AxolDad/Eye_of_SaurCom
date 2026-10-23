@@ -33,7 +33,7 @@ extern "C" {
 
 namespace dect2 {
 
-// ---- the AVS family and DRA (docs/CODECS.md): OnAir ships no codec of its own, it says what its FFmpeg cannot decode
+// ---- the AVS family and DRA (docs/CODECS.md): Eye of ZorCom ships no codec of its own, it says what its FFmpeg cannot decode
 const char* const kDraAudioNote = "DRA audio: no decoder available";
 
 int avsProfileId(const uint8_t* p, size_t n) {
@@ -70,7 +70,7 @@ std::string avsServiceMessage(int streamType, int profile, bool haveDecoder) {
     if (fam.empty()) return std::string();
     if (streamType == 0x42 && !avsNeverDecodable(streamType, profile) && haveDecoder) return std::string();
     if ((streamType == 0xD2 || streamType == 0xD4) && haveDecoder) return std::string();
-    return "Video: " + fam + " (OnAir cannot decode this video) \xE2\x80\x94 audio, subtitles and data still work";
+    return "Video: " + fam + " (Eye of ZorCom cannot decode this video) \xE2\x80\x94 audio, subtitles and data still work";
 }
 
 using Clock = std::chrono::steady_clock;

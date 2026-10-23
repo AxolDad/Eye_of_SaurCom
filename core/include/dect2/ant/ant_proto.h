@@ -1,5 +1,5 @@
 // ANT / ANT+ air frames and the public ANT+ device profiles (heart rate, bike speed and cadence, bike power, stride-based speed and
-// distance, environment). Receive only: OnAir never transmits, pairs or acknowledges.
+// distance, environment). Receive only: Eye of ZorCom never transmits, pairs or acknowledges.
 //
 // The air format is Nordic ShockBurst, as sniffed with SDRs (the format is not published by Garmin; two independent reverse-engineering
 // efforts agree): 1 Mbit/s GFSK, about 160 kHz deviation, bytes most significant bit first:

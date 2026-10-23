@@ -124,8 +124,8 @@ bool parseManifest(const std::string& text, Manifest& out, std::string& err, con
     if (!root.get("abi_version")) { err = "missing \"abi_version\""; return false; }
     if (!numField(root, "abi_version", abi, 1, 1000000, err)) return false;
     out.abi = (uint32_t)abi;
-    if (out.abi != kAbiVersion) { err = "built for plugin ABI " + std::to_string(out.abi) + ", this OnAir speaks ABI " + std::to_string(kAbiVersion); return false; }
-    if (!hostVersion.empty() && !out.minOnAir.empty() && compareVersions(hostVersion, out.minOnAir) < 0) { err = "needs OnAir " + out.minOnAir + " or newer (this is " + hostVersion + ")"; return false; }
+    if (out.abi != kAbiVersion) { err = "built for plugin ABI " + std::to_string(out.abi) + ", this Eye of ZorCom speaks ABI " + std::to_string(kAbiVersion); return false; }
+    if (!hostVersion.empty() && !out.minOnAir.empty() && compareVersions(hostVersion, out.minOnAir) < 0) { err = "needs Eye of ZorCom " + out.minOnAir + " or newer (this is " + hostVersion + ")"; return false; }
 
     if (const aj::Value* lib = root.get("library")) {
         if (lib->type == aj::Value::Str) out.libMac = out.libLinux = out.libWindows = lib->s;   // one name for all (unusual, but allowed)

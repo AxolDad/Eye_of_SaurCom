@@ -38,7 +38,8 @@ bool mirrorEnabled(const MirrorConfig& c);
 // characters, is longer than 400 characters, or when `url` is not one of the project's own GitHub addresses (the mirror is never asked for
 // anything else).
 std::string mirrorUrl(const std::string& tmpl, const std::string& url, bool allowHttp = false);
-bool isOfficialUrl(const std::string& url);   // api.github.com/repos/adswill/OnAir/... or github.com/adswill/OnAir/releases/...
+inline constexpr const char* kUpdateRepo = "AxolDad/OnAir-SDR-Suite";   // owner/name of the GitHub repository whose releases are the updates
+bool isOfficialUrl(const std::string& url);   // api.github.com/repos/<kUpdateRepo>/... or github.com/<kUpdateRepo>/releases/...
 // The checksum of `name` in the text of a SHA256SUMS file ("<64 hex>  name" per line, also "*name"); "" if absent.
 std::string checksumFor(const std::string& sums, const std::string& name);
 

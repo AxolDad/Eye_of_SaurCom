@@ -23,6 +23,7 @@ bool live(const App& a) { return a.rx.standard == 10; }
 const ImVec4 kDim(0.62f, 0.65f, 0.68f, 1);
 
 void tick(App& a) {
+    trunkFollowTick(a);   // Tier III: the shared follower (app/p25/p25_ui.cpp)
     const bool run = a.engine.running();
     if (live(a)) appcodec::voiceCodecTick("ambe2");   // the user's codec plug-in, loaded whichever tab is shown
     if (run) {
@@ -269,6 +270,7 @@ void tab(App& a) {
         if (ImGui::TreeNode("Install helper")) { appcodec::codecInstallHelper("ambe2"); ImGui::TreePop(); }
     }
     if (on && !t.cachInfo.empty() && t.cachInfo != "null") ImGui::TextDisabled("CACH: %s", t.cachInfo.c_str());
+    if (ImGui::TreeNode("Tier III trunking: follow calls")) { trunkFollowPanel(a); ImGui::TreePop(); }
     ImGui::Spacing();
     const float rest = ImGui::GetContentRegionAvail().y;
     const float lh = ImGui::GetTextLineHeightWithSpacing();

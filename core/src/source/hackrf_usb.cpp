@@ -336,7 +336,7 @@ private:
     void finish() {
         stopping_ = true;
         if (dev_.h) dev_.out(kSetTransceiverMode, 0, 0);   // stop sending samples
-        if (dev_.h && bias_) dev_.out(kAntennaEnable, 0, 0);   // antenna power never stays on after OnAir stops using the radio
+        if (dev_.h && bias_) dev_.out(kAntennaEnable, 0, 0);   // antenna power never stays on after Eye of ZorCom stops using the radio
         bias_ = false;
         for (auto* t : xfers_) if (t) libusb_cancel_transfer(t);   // fails harmlessly for transfers that already ended
         if (events_.joinable()) events_.join();
@@ -570,7 +570,7 @@ std::vector<DeviceInfo> listUsbHackrfDevices(std::string& err) {
         const std::string tail = info.serial.size() > 8 ? info.serial.substr(info.serial.size() - 8) : info.serial;
         info.name = info.board + (tail.empty() ? std::string() : " (" + tail + ")");
         info.settings = {ppmSetting(0.1)};   // amplifier and antenna power have their own controls
-        info.canTransmit = true;             // OnAir's own USB driver has a transmit path (see UsbHackrfTx); the libhackrf fallback has none
+        info.canTransmit = true;             // Eye of ZorCom's own USB driver has a transmit path (see UsbHackrfTx); the libhackrf fallback has none
         info.txChannels = 1;                 // one SMA output
         info.txMinRateHz = 2e6; info.txMaxRateHz = 20e6;
         info.txGainMinDb = 0; info.txGainMaxDb = 47;

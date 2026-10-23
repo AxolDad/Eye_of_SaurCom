@@ -65,7 +65,7 @@ constexpr double kHfBelowHz = 49.5e6;               // below this the HF inputs 
 constexpr double kHfMinHz = 0.1e6;                  // the HF inputs are transformer coupled
 constexpr double kGainMaxDb = 95;                   // LNA 33 dB + VGA 62 dB
 constexpr double kLnaDb[4] = {0, 0, 16, 33};
-// The library scales the 14-bit samples as if they were 16-bit: full scale arrives as 0.25. OnAir's level displays and AGC count 1.0 as full scale.
+// The library scales the 14-bit samples as if they were 16-bit: full scale arrives as 0.25. Eye of ZorCom's level displays and AGC count 1.0 as full scale.
 constexpr float kScale = 4.f;
 // what the library uses when the radio could not be asked (hardware rev. 2 and 3)
 const double kDefaultRates[] = {8e6, 10e6, 12.5e6, 16e6, 20e6, 25e6, 32e6, 40e6, 50e6};
@@ -127,7 +127,7 @@ std::vector<RadioSetting> fobosSettings(bool clock) {
         ppmSetting(0.01),
         choiceSetting("hf", "HF input (below 50 MHz)",
                       "The tuner starts at 50 MHz. Below that the radio samples one of its two HF inputs directly (0.1 MHz to half the\n"
-                      "converter's rate, 25 MHz at 50 Msps), and OnAir shifts and filters the wanted part.\n"
+                      "converter's rate, 25 MHz at 50 Msps), and Eye of ZorCom shifts and filters the wanted part.\n"
                       "HF1 / HF2: the connector the HF antenna is on. Off: the RF input only.",
                       {"hf1", "hf2", "off"}, {"HF1", "HF2", "Off"}, "hf1"),
         choiceSetting("hfadc", "HF converter rate",

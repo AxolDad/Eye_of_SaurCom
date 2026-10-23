@@ -37,15 +37,15 @@ bool loadLibrary(const std::string& path, const Manifest& m, Lib& out, std::stri
         if (!h) { const char* e = dlerror(); err = std::string("cannot load the library: ") + (e ? e : "unknown error"); return false; }
         auto fn = (onair_plugin_entry_fn)dlsym(h, "onair_plugin_entry");
 #endif
-        if (!fn) { err = "the library has no onair_plugin_entry (not an OnAir plugin)"; return false; }
+        if (!fn) { err = "the library has no onair_plugin_entry (not an Eye of ZorCom plugin)"; return false; }
         lib.handle = h;
         lib.vt = fn(ONAIR_PLUGIN_ABI_VERSION);
         gLibs[path] = lib;
     }
     const OnAirPluginVTable* v = lib.vt;
-    if (!v) { err = "the plugin refused this OnAir (entry returned nothing)"; return false; }
+    if (!v) { err = "the plugin refused this Eye of ZorCom (entry returned nothing)"; return false; }
     if (v->struct_size < offsetof(OnAirPluginVTable, process_iq)) { err = "plugin table is too small"; return false; }
-    if (v->abi_version != ONAIR_PLUGIN_ABI_VERSION) { err = "the library was built for plugin ABI " + std::to_string(v->abi_version) + ", this OnAir speaks " + std::to_string(ONAIR_PLUGIN_ABI_VERSION); return false; }
+    if (v->abi_version != ONAIR_PLUGIN_ABI_VERSION) { err = "the library was built for plugin ABI " + std::to_string(v->abi_version) + ", this Eye of ZorCom speaks " + std::to_string(ONAIR_PLUGIN_ABI_VERSION); return false; }
     if (!v->id || m.id != v->id) { err = "the library's id does not match manifest.json"; return false; }
     if (!v->create || !v->destroy) { err = "the plugin has no create / destroy"; return false; }
     if (m.kind == "action" && !((v->caps & ONAIR_CAP_EVENTS) && inVt(v, offsetof(OnAirPluginVTable, on_event), sizeof(void*)) && v->on_event)) { err = "an action plugin must implement on_event"; return false; }

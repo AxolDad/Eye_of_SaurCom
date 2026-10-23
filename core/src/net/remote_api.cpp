@@ -225,7 +225,7 @@ struct RemoteApiServer::Impl {
             return;
         }
         if (p == "/api/v1" || p == "/api/v1/") {
-            getOnly([] { return std::string("{\"name\":\"OnAir remote API\",\"version\":1,\"endpoints\":[\"GET /api/v1/status\",\"GET /api/v1/devices\",\"GET /api/v1/modes\",\"GET /api/v1/telemetry\","
+            getOnly([] { return std::string("{\"name\":\"Eye of ZorCom remote API\",\"version\":1,\"endpoints\":[\"GET /api/v1/status\",\"GET /api/v1/devices\",\"GET /api/v1/modes\",\"GET /api/v1/telemetry\","
                                             "\"GET /api/v1/spectrum?bins=N\",\"GET /api/v1/rotator\",\"GET /api/v1/ws\",\"POST /api/v1/start\",\"POST /api/v1/stop\",\"POST /api/v1/mode\",\"POST /api/v1/frequency\","
                                             "\"POST /api/v1/samplerate\",\"POST /api/v1/gain\",\"POST /api/v1/rotator/goto\",\"POST /api/v1/rotator/stop\",\"POST /api/v1/rotator/park\"]}"); });
             return;

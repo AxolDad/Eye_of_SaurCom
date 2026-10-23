@@ -1,5 +1,5 @@
 // BFO audio (~1 kHz tone with PCSK225) to 500 Hz discriminator PCM: the whole-file filter chain of sp5wwp/e-Czas (https://github.com/sp5wwp/e-Czas, GPL-3.0;
-// OnAir is GPL-3.0 too, THIRD_PARTY.md), kept for the offline decoder and the tests. The app uses the streaming front end of eczas_live.cpp.
+// Eye of ZorCom is GPL-3.0 too, THIRD_PARTY.md), kept for the offline decoder and the tests. The app uses the streaming front end of eczas_live.cpp.
 #include "dect2/eczas/eczas_rx.h"
 #include "dect2/dsp/fftutil.h"
 #include "eczas_taps.h"

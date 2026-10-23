@@ -466,7 +466,7 @@ std::string Db::exportAs(const Filter& f, const std::string& format) const {
         o += rows.empty() ? "]\n" : "\n]\n";
     } else if (fmt == "adif") {
         auto tag = [&](const char* n, const std::string& v) { if (!v.empty()) o += "<" + std::string(n) + ":" + std::to_string(v.size()) + ">" + v + " "; };
-        o = "OnAir message database export\n<ADIF_VER:5>3.1.4 <PROGRAMID:5>OnAir <EOH>\n";
+        o = "Eye of ZorCom message database export\n<ADIF_VER:5>3.1.4 <PROGRAMID:11>EyeOfZorCom <EOH>\n";
         for (const Record& r : rows) {
             if (r.type.rfind("aprs", 0) != 0 || !looksLikeCall(r.ident)) continue;   // amateur call signs only: APRS stations
             time_t s = (time_t)std::floor(r.time);

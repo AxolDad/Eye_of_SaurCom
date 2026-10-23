@@ -629,7 +629,7 @@ std::unique_ptr<IqSource> makeSource(const DeviceInfo& d) {
     }
 }
 
-// The transmit path of a radio: HackRF (OnAir's own USB driver), the PlutoSDR (libiio) and SoapySDR radios with a transmit channel;
+// The transmit path of a radio: HackRF (Eye of ZorCom's own USB driver), the PlutoSDR (libiio) and SoapySDR radios with a transmit channel;
 // nullptr for every other radio, files and the test signal.
 #ifdef DECT2_HAVE_SOAPY
 std::unique_ptr<TxSink> makeSoapyTxSink(const DeviceInfo& d);

@@ -1,5 +1,5 @@
-// "Share my radio": an rtl_tcp-compatible server inside OnAir. Whatever the engine reads from its radio goes out as unsigned 8-bit IQ to every
-// client that connects (a second OnAir through its rtl_tcp network radio, SDR#, SDR++, GQRX, ...). Off until the user starts it. By default only
+// "Share my radio": an rtl_tcp-compatible server inside Eye of ZorCom. Whatever the engine reads from its radio goes out as unsigned 8-bit IQ to every
+// client that connects (a second Eye of ZorCom through its rtl_tcp network radio, SDR#, SDR++, GQRX, ...). Off until the user starts it. By default only
 // this computer can connect; "LAN" opens it to the network. The clients' frequency / gain commands are only handed on when allowControl is set.
 // The server streams the samples at the rate the radio runs at; a client's sample-rate command is accepted and ignored.
 #pragma once

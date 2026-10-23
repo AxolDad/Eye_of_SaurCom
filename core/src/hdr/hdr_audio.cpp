@@ -1,7 +1,7 @@
 // From HDC audio packets to sound (see hdr_hdc.h). The packet buffering follows the way nrsc5 (GPL-3.0, github.com/theori-io/nrsc5, src/output.c
 // and src/frame.c) plays a stream: every program has a ring of 64 packet slots indexed by the packet sequence number, each PDU header says
 // where the play position stands (align), and the play position moves on by one slot per 46.4 ms of signal. A slot that is empty or has a bad
-// CRC is silence and restarts the decoder, since HDC frames depend on the one before. The code here is OnAir's own.
+// CRC is silence and restarts the decoder, since HDC frames depend on the one before. The code here is Eye of ZorCom's own.
 #include "dect2/hdr/hdr_hdc.h"
 #include "dect2/audio/audioout.h"
 #include "dect2/dsp/resampler.h"

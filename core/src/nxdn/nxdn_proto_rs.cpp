@@ -48,6 +48,7 @@ int buildMsg(const Msg& m, uint8_t* bits, int maxBits) {
     memset(&c, 0, sizeof c);
     c.type = m.type; c.call_type = m.callType; c.option = m.option; c.src = m.src; c.dst = m.dst; c.cipher = m.cipher; c.key_id = m.keyId;
     c.status = m.status; c.block = m.block; c.blocks = m.blocks; c.location = m.location; c.service = m.service; c.channel = m.channel;
+    c.cc_option = m.ccOption; c.timer = m.timer;
     c.text_len = (uint32_t)(m.text.size() < 8 ? m.text.size() : 8);
     memcpy(c.text, m.text.data(), c.text_len);
     return (int)onair_nxdn_build_msg(&c, bits, sz(maxBits));
@@ -59,6 +60,7 @@ bool parseMsg(const uint8_t* bits, int nBits, Msg& m) {
     m = Msg();
     m.type = c.type; m.callType = c.call_type; m.option = c.option; m.src = c.src; m.dst = c.dst; m.cipher = c.cipher; m.keyId = c.key_id;
     m.status = c.status; m.block = c.block; m.blocks = c.blocks; m.location = c.location; m.service = c.service; m.channel = c.channel;
+    m.ccOption = c.cc_option; m.timer = c.timer;
     m.text.assign((const char*)c.text, c.text_len);
     return ok;
 }

@@ -29,9 +29,15 @@
 #pragma once
 #include "dect2/engine/mode_synth.h"
 #include <memory>
+#include <string>
 
 namespace dect2 {
 
 std::unique_ptr<ModeSynth> makeMeshSynth(const SynthConfig& cfg, double sampleRate);
+// Your own message instead of the scene: one Meshtastic text on the region's default LongFast channel (broadcast, hop limit 3, the
+// firmware's default key), or with modeOpt[0] == 2 (MeshCore only) one message on MeshCore's Public channel. Placed where the scene puts
+// that network (at -tuneOffsetHz), without noise; sent 0.3 s after the start and again every 30 s with a new packet id while on air.
+// `sender` names the node (its long name; the node number comes from it, so the same name is the same node every time).
+std::unique_ptr<ModeSynth> makeMeshMessageSynth(const SynthConfig& cfg, double sampleRate, const std::string& text, const std::string& sender);
 
 } // namespace dect2

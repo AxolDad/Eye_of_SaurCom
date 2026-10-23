@@ -1,6 +1,6 @@
 // HD Radio channel coding (see hdr_fec.h). Adapted from nrsc5 (GPL-3.0, github.com/theori-io/nrsc5): the scrambler, the code polynomials,
 // the puncture patterns and the interleaver equations come from src/decode.c, the check sums from src/frame.c and src/pids.c. The Viterbi
-// decoder and the Reed-Solomon code are OnAir's own.
+// decoder and the Reed-Solomon code are Eye of ZorCom's own.
 #include "dect2/hdr/hdr_fec.h"
 #include <algorithm>
 #include <cstring>

@@ -6,7 +6,7 @@
 // mirrored spectrum is accepted), and a frame counts when its FICH checks (Golay words and CRC-16). The next frame is looked for 100 ms
 // later. Callsigns and slow data come from the DCH units that pass their CRC-16.
 //
-// Voice: no speech codec is in OnAir. The voice sub-frames go to a user-installed codec plug-in (codec id "ysf", dect2/codec/speech_codec.h)
+// Voice: no speech codec is in Eye of ZorCom. The voice sub-frames go to a user-installed codec plug-in (codec id "ysf", dect2/codec/speech_codec.h)
 // when one is set with setSpeechCodec(); the frame is handed over as it was sent (V/D mode 1: 9 bytes = the 72 channel bits, V/D mode 2:
 // 7 bytes = the 49 voice bits after the majority vote, voice FR: 18 bytes = the 144 channel bits). Without a codec everything else is shown
 // and there is no sound. Nothing is encrypted in this system and nothing is decrypted here.

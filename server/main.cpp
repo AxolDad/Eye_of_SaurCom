@@ -1,4 +1,4 @@
-// onair-server: OnAir without a window. The radio is attached to this computer (a Raspberry Pi, a Linux box, a Windows PC with no screen); it is
+// onair-server: Eye of ZorCom without a window. The radio is attached to this computer (a Raspberry Pi, a Linux box, a Windows PC with no screen); it is
 // controlled from a web browser (the page this program serves) or by any program that speaks the remote-control API (docs/headless-server.md).
 // No cloud and no relay: the browser connects straight to this program. Access from other computers needs a token; TLS is optional.
 #include "dect2/common/platform.h"
@@ -22,7 +22,7 @@ static std::atomic<bool> gQuit{false};
 static void onSignal(int) { gQuit = true; }
 
 static void usage() {
-    printf("onair-server %s: OnAir with no window, controlled from a web browser or the remote-control API\n\n"
+    printf("onair-server %s: Eye of ZorCom with no window, controlled from a web browser or the remote-control API\n\n"
            "  onair-server [--config FILE] [options]\n\n"
            "  --config FILE      settings file (default %s)\n"
            "  --port N           web / API port (default 8765)\n"
@@ -34,7 +34,7 @@ static void usage() {
            "  --mode ID          receiver mode, e.g. fm, dab, t2, adsb, dvbs (see /api/v1/modes)\n"
            "  --freq MHZ         tuning frequency\n"
            "  --autostart        start the receiver at once and keep it running (comes back when the radio is replugged)\n"
-           "  --share-rtltcp [PORT]   also share the raw samples as an rtl_tcp server (default port 1234) for SDR++, SDR# or another OnAir; no access control: trusted networks only\n"
+           "  --share-rtltcp [PORT]   also share the raw samples as an rtl_tcp server (default port 1234) for SDR++, SDR# or another Eye of ZorCom; no access control: trusted networks only\n"
            "  --version, --help\n\n"
            "Settings file: plain key=value lines (see docs/headless-server.md).\n",
            ONAIR_SERVER_VERSION, defaultConfigPath().c_str());

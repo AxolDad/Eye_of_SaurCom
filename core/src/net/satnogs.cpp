@@ -94,9 +94,9 @@ std::string text(const J& o, const char* k) { const J* v = o.get(k); return v &&
 std::string lower(std::string s) { for (char& c : s) c = (char)std::tolower((unsigned char)c); return s; }
 bool has(const std::string& hay, const char* needle) { return hay.find(needle) != std::string::npos; }
 
-// SatNOGS mode name -> OnAir mode family. One table, first match wins, patterns are lower case substrings of the SatNOGS name.
+// SatNOGS mode name -> Eye of ZorCom mode family. One table, first match wins, patterns are lower case substrings of the SatNOGS name.
 // The families are those of app/ui/mode_table.cpp: 5 FM, 24 APRS (AFSK), 34 CW, 41 Spectrum explorer (no decoder: APT is listened to
-// and recorded as IQ, as the pass planner does), 59 Meteor-M LRPT, 61 CubeSat telemetry (BPSK / GMSK / FSK / MSK frames). 0 = no mode in OnAir.
+// and recorded as IQ, as the pass planner does), 59 Meteor-M LRPT, 61 CubeSat telemetry (BPSK / GMSK / FSK / MSK frames). 0 = no mode in Eye of ZorCom.
 struct ModeMap { const char* pattern; int family; };
 const ModeMap kModeMap[] = {
     {"lrpt", 59},
