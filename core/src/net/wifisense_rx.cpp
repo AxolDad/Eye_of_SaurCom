@@ -1,17 +1,20 @@
 // WiFi sensing in (wifisense_rx.h): one UDP socket, one thread, one Rust sensor per ESP32 node.
 #include "dect2/net/wifisense_rx.h"
-#include "dect2/common/thread_name.h"
-#include "netcompat.h"
-#include "tcp_client.h"
+#include "dect2/common/rs_abi.h"
+#include "udp_listen.h"
 #include <chrono>
 #include <map>
 #include <mutex>
-#include <thread>
 
 namespace dect2 {
 
 namespace {
 constexpr size_t kMaxNodes = 64;   // RuView meshes are a handful of nodes; ids are one byte anyway
+constexpr int64_t kNodeIdleMs = 60 * 1000;   // a full table gives a slot to a newcomer once a node has been silent this long
+
+struct AbiCheck {
+    AbiCheck() { rsAbiCheck("onair_wifisense", {onair_wifisense_struct_size()}, {sizeof(OnairWifiSense)}); }
+} abiCheck;
 
 int64_t wallMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(); }
 
@@ -25,9 +28,7 @@ struct Entry {
 struct WifiSenseListener::Impl {
     mutable std::mutex mu;
     std::map<int, Entry> nodes;
-    sock_t s = kBadSock;
-    std::thread th;
-    std::atomic<bool> quit{false};
+    UdpListen udp;
 };
 
 WifiSenseListener& WifiSenseListener::get() { static WifiSenseListener l; return l; }
@@ -40,7 +41,12 @@ bool WifiSenseListener::take(const uint8_t* d, size_t n, int64_t nowMs, const st
     std::lock_guard<std::mutex> lk(impl_->mu);
     auto it = impl_->nodes.find(id);
     if (it == impl_->nodes.end()) {
-        if (impl_->nodes.size() >= kMaxNodes) return true;
+        if (impl_->nodes.size() >= kMaxNodes) {   // full: drop the node silent for longest if it is idle, else ignore the newcomer
+            auto old = impl_->nodes.begin();
+            for (auto o = old; o != impl_->nodes.end(); ++o) if (o->second.node.heardMs < old->second.node.heardMs) old = o;
+            if (nowMs - old->second.node.heardMs <= kNodeIdleMs) return true;
+            impl_->nodes.erase(old);
+        }
         Entry e;
         e.sensor.reset(onair_wifisense_new(kFramesPerSec));
         it = impl_->nodes.emplace(id, std::move(e)).first;
@@ -66,39 +72,16 @@ void WifiSenseListener::clear() {
 }
 
 void WifiSenseListener::stop() {
-    impl_->quit = true;
-    if (impl_->th.joinable()) impl_->th.join();
-    if (impl_->s != kBadSock) { sockClose(impl_->s); impl_->s = kBadSock; }
+    impl_->udp.stop();
     running_ = false;
 }
 
 bool WifiSenseListener::start(int port, std::string& err) {
     stop();
-    netInit();
-    if (onair_wifisense_struct_size() != sizeof(OnairWifiSense)) { err = "WiFi sensing library mismatch"; return false; }
-    if (port <= 0 || port > 65535) { err = "port out of range"; return false; }
-    sock_t s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (s == kBadSock) { err = "no UDP socket"; return false; }
-    sockaddr_in a{};
-    a.sin_family = AF_INET; a.sin_port = htons((uint16_t)port); a.sin_addr.s_addr = htonl(INADDR_ANY);
-    if (bind(s, (const sockaddr*)&a, sizeof a) != 0) { sockClose(s); err = "cannot listen on UDP port " + std::to_string(port); return false; }
-    sockRecvTimeout(s, 300);   // so stop() is noticed
-    impl_->s = s;
-    impl_->quit = false;
+    if (!impl_->udp.open("", port, false, err)) return false;
     running_ = true;
-    impl_->th = std::thread([this] {
-        setThreadName("wifisense-rx");
-        std::vector<uint8_t> buf(4096);   // the largest frame: 20 + 4 antennas x 256 subcarriers x 2
-        while (!impl_->quit) {
-            sockaddr_in src{};
-            socklen_t sl = sizeof src;
-            const long long n = recvfrom(impl_->s, (char*)buf.data(), (int)buf.size(), 0, (sockaddr*)&src, &sl);
-            if (n <= 0) continue;
-            char ip[INET_ADDRSTRLEN] = {};
-            inet_ntop(AF_INET, &src.sin_addr, ip, sizeof ip);
-            take(buf.data(), (size_t)n, wallMs(), ip);
-        }
-    });
+    // the largest frame: 20 + 4 antennas x 256 subcarriers x 2
+    impl_->udp.run("wifisense-rx", 4096, [this](const uint8_t* d, size_t n, const std::string& from) { take(d, n, wallMs(), from); });
     return true;
 }
 

@@ -1,21 +1,23 @@
 // Cursor on Target in (cot_rx.h): one UDP socket, one thread, the contacts by uid until they are stale.
 #include "dect2/net/cot_rx.h"
-#include "dect2/common/thread_name.h"
+#include "dect2/common/rs_abi.h"
 #include "dect2/rs/cot.h"
-#include "netcompat.h"
-#include "tcp_client.h"
+#include "udp_listen.h"
 #include <chrono>
 #include <cmath>
 #include <cstring>
 #include <map>
 #include <mutex>
-#include <thread>
 
 namespace dect2 {
 
 namespace {
 constexpr int64_t kNoStaleMs = 5 * 60 * 1000;   // an event without a stale time
 constexpr size_t kMaxContacts = 5000;           // a flood cannot grow the table without end
+
+struct AbiCheck {
+    AbiCheck() { rsAbiCheck("onair_cot", {onair_cot_struct_size()}, {sizeof(OnairCotEvent)}); }
+} abiCheck;
 
 int64_t wallMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(); }
 
@@ -29,9 +31,7 @@ struct Contact {
 struct CotListener::Impl {
     mutable std::mutex mu;
     std::map<std::string, Contact> contacts;
-    sock_t s = kBadSock;
-    std::thread th;
-    std::atomic<bool> quit{false};
+    UdpListen udp;
 };
 
 CotListener& CotListener::get() { static CotListener l; return l; }
@@ -78,41 +78,15 @@ std::vector<MapMarker> CotListener::markers(int64_t nowMs) const {
 }
 
 void CotListener::stop() {
-    impl_->quit = true;
-    if (impl_->th.joinable()) impl_->th.join();
-    if (impl_->s != kBadSock) { sockClose(impl_->s); impl_->s = kBadSock; }
+    impl_->udp.stop();
     running_ = false;
 }
 
 bool CotListener::start(const std::string& group, int port, std::string& err) {
     stop();
-    netInit();
-    if (port <= 0 || port > 65535) { err = "port out of range"; return false; }
-    sock_t s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (s == kBadSock) { err = "no UDP socket"; return false; }
-    const int one = 1;
-    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char*)&one, sizeof one);   // ATAK or another listener may share the port
-    sockaddr_in a{};
-    a.sin_family = AF_INET; a.sin_port = htons((uint16_t)port); a.sin_addr.s_addr = htonl(INADDR_ANY);
-    if (bind(s, (const sockaddr*)&a, sizeof a) != 0) { sockClose(s); err = "cannot listen on UDP port " + std::to_string(port); return false; }
-    in_addr g{};
-    if (!group.empty() && inet_pton(AF_INET, group.c_str(), &g) == 1 && (ntohl(g.s_addr) >> 28) == 0xE) {   // 224.0.0.0/4: join it
-        ip_mreq mr{};
-        mr.imr_multiaddr = g; mr.imr_interface.s_addr = htonl(INADDR_ANY);
-        if (setsockopt(s, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)&mr, sizeof mr) != 0) { sockClose(s); err = "cannot join " + group; return false; }
-    }
-    sockRecvTimeout(s, 300);   // so stop() is noticed
-    impl_->s = s;
-    impl_->quit = false;
+    if (!impl_->udp.open(group, port, true, err)) return false;   // ATAK or another listener may share the port
     running_ = true;
-    impl_->th = std::thread([this] {
-        setThreadName("cot-rx");
-        std::vector<uint8_t> buf(65536);
-        while (!impl_->quit) {
-            const long long n = sockRecv(impl_->s, buf.data(), buf.size());
-            if (n > 0) take(buf.data(), (size_t)n, wallMs());
-        }
-    });
+    impl_->udp.run("cot-rx", 65536, [this](const uint8_t* d, size_t n, const std::string&) { take(d, n, wallMs()); });
     return true;
 }
 

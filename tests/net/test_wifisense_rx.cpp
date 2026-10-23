@@ -69,6 +69,17 @@ int main() {
     L.clear();
     CHECK(L.nodes().empty(), "cleared");
 
+    // 64 node slots: a 65th is refused while all are fresh, and takes the place of the longest silent one after 60 s
+    for (int id = 0; id < 64; id++) { auto fr = frame((uint8_t)id, 1, 60); L.take(fr.data(), fr.size(), t0 + id); }
+    auto n65 = frame(100, 1, 60);
+    L.take(n65.data(), n65.size(), t0 + 30000);
+    v = L.nodes();
+    CHECK(v.size() == 64 && !find(v, 100) && find(v, 0), "full table, fresh nodes: newcomer ignored (%zu)", v.size());
+    L.take(n65.data(), n65.size(), t0 + 61000);
+    v = L.nodes();
+    CHECK(v.size() == 64 && find(v, 100) && !find(v, 0) && find(v, 1), "stale oldest node replaced by the newcomer (%zu)", v.size());
+    L.clear();
+
     // a real socket on the loopback
     std::string err;
     const int port = 48000 + (int)(std::chrono::steady_clock::now().time_since_epoch().count() % 1000);
