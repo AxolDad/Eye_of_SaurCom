@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>WiFi sensing with RuView</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #070a0e; }
+#root { position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: Inter, sans-serif; color: #e8eef5;
+        background: radial-gradient(ellipse at 30% 20%, #142233 0%, #070a0e 70%); }
+.full { position: absolute; inset: 0; }
+.frame { position: absolute; left: 210px; top: 36px; width: 1500px; height: 900px; overflow: hidden; border-radius: 14px;
+         box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(120,200,255,0.18); background: #000; }
+.zoom { position: absolute; inset: 0; }
+.zoom img { position: absolute; left: 0; top: 0; width: 1500px; height: 900px; }
+.hl { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.38), 0 0 24px rgba(255,176,32,0.7); }
+.hl2 { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 24px rgba(255,176,32,0.7); }
+.cap { position: absolute; left: 210px; right: 210px; bottom: 26px; height: 104px; display: flex; align-items: center; gap: 22px;
+       padding: 0 30px; border-radius: 14px; background: rgba(10,16,24,0.92); box-shadow: 0 0 0 1px rgba(120,200,255,0.2); }
+.step { flex: none; padding: 10px 18px; border-radius: 10px; background: #ffb020; color: #10161d; font-weight: 800; font-size: 26px; }
+.captext { font-size: 34px; font-weight: 600; line-height: 1.2; }
+.brand { position: absolute; right: 228px; top: 52px; padding: 8px 16px; border-radius: 9px; background: rgba(7,10,14,0.85);
+         color: #7fd0ff; font-weight: 700; font-size: 22px; letter-spacing: 0.04em; }
+.title { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 28px; }
+.eye { width: 170px; height: 170px; border-radius: 50%; border: 10px solid #7fd0ff; display: flex; align-items: center; justify-content: center;
+       box-shadow: 0 0 60px rgba(127,208,255,0.5); }
+.eye div { width: 62px; height: 62px; border-radius: 50%; background: #ffb020; box-shadow: 0 0 40px rgba(255,176,32,0.9); }
+.t1 { font-size: 104px; font-weight: 800; letter-spacing: -0.02em; }
+.t2 { font-size: 44px; font-weight: 500; color: #b9c7d6; max-width: 1500px; }
+.t3 { font-size: 34px; font-weight: 600; color: #ffb020; }
+</style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="05-wifi-sensing" data-start="0" data-duration="52.246" data-width="1920" data-height="1080" data-fps="30">
+<div id="s0" class="clip full" data-start="0.000" data-duration="12.186" data-track-index="0">
+<div id="s0t" class="full title"><div class="eye"><div></div></div><div class="t1">WiFi sensing</div><div class="t2">Presence, motion, breathing and heart rate from the WiFi in a room</div><div class="t3">Eye of ZorCom how-to - based on RuView (MIT)</div></div>
+</div>
+<audio id="s0a" class="clip" data-start="0.250" data-duration="11.286" data-track-index="1" data-volume="1" src="assets/vo/05-wifi-sensing_0.wav"></audio>
+<div id="s1" class="clip full" data-start="12.186" data-duration="11.123" data-track-index="0">
+<div id="s1t" class="full title"><div class="eye"><div></div></div><div class="t1">Step 1: the nodes</div><div class="t2">Flash ESP32 boards with RuView&#x27;s CSI firmware, point them at this computer, UDP port 5005</div><div class="t3">One node per room</div></div>
+</div>
+<audio id="s1a" class="clip" data-start="12.436" data-duration="10.223" data-track-index="1" data-volume="1" src="assets/vo/05-wifi-sensing_1.wav"></audio>
+<div id="s2" class="clip full" data-start="23.309" data-duration="8.343" data-track-index="0">
+<div class="frame"><div id="s2z" class="zoom"><img src="assets/shots/wifisense.jpg" alt="" />
+<div id="s2b0" class="hl" style="left:62px;top:96px;width:150px;height:26px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s2c" class="cap"><div class="step">STEP 2</div><div class="captext">Tools &gt; WiFi sensing: tick Listen</div></div>
+</div>
+<audio id="s2a" class="clip" data-start="23.559" data-duration="7.443" data-track-index="1" data-volume="1" src="assets/vo/05-wifi-sensing_2.wav"></audio>
+<div id="s3" class="clip full" data-start="31.651" data-duration="12.098" data-track-index="0">
+<div class="frame"><div id="s3z" class="zoom"><img src="assets/shots/wifisense.jpg" alt="" />
+<div id="s3b0" class="hl" style="left:62px;top:120px;width:640px;height:84px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s3c" class="cap"><div class="step">STEP 3</div><div class="captext">Each room: occupied or empty, motion, breaths and heartbeats a minute</div></div>
+</div>
+<audio id="s3a" class="clip" data-start="31.901" data-duration="11.198" data-track-index="1" data-volume="1" src="assets/vo/05-wifi-sensing_3.wav"></audio>
+<div id="s4" class="clip full" data-start="43.749" data-duration="8.296" data-track-index="0">
+<div id="s4t" class="full title"><div class="eye"><div></div></div><div class="t1">Good to know</div><div class="t2">Estimates, not medical readings. Everything stays on your network.</div><div class="t3">Breathing and heart rate need a still person</div></div>
+</div>
+<audio id="s4a" class="clip" data-start="43.999" data-duration="7.396" data-track-index="1" data-volume="1" src="assets/vo/05-wifi-sensing_4.wav"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s0", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 0.000);
+tl.fromTo("#s0t", {scale: 0.94}, {scale: 1, duration: 12.086, ease: "sine.out"}, 0.000);
+tl.fromTo("#s1", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 12.186);
+tl.fromTo("#s1t", {scale: 0.94}, {scale: 1, duration: 11.023, ease: "sine.out"}, 12.186);
+tl.fromTo("#s2", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 23.309);
+tl.fromTo("#s2z", {scale: 1, transformOrigin: "137px 109px"}, {scale: 1.4, duration: 8.243, ease: "sine.inOut"}, 23.309);
+tl.fromTo("#s2c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 23.559);
+tl.fromTo("#s2b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 24.209);
+tl.fromTo("#s3", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 31.651);
+tl.fromTo("#s3z", {scale: 1, transformOrigin: "382px 162px"}, {scale: 1.6, duration: 11.998, ease: "sine.inOut"}, 31.651);
+tl.fromTo("#s3c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 31.901);
+tl.fromTo("#s3b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 32.551);
+tl.fromTo("#s4", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 43.749);
+tl.fromTo("#s4t", {scale: 0.94}, {scale: 1, duration: 8.196, ease: "sine.out"}, 43.749);
+      window.__timelines["05-wifi-sensing"] = tl;
+    </script>
+  </body>
+</html>
