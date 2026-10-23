@@ -280,7 +280,7 @@ static void nativeRobustChecks(const std::string& dir, const char* ext, const st
         CHECK(hints.size() == (root0 ? 2u : 3u), "%zu hints", hints.size());
         bool hack = false, tv = false, miri = false;
         for (const auto& s : hints) {
-            if (s.find("HackRF is plugged in but this user may not open it: install OnAir's udev rules") == 0) hack = true;
+            if (s.find("HackRF is plugged in but this user may not open it: install Eye of ZorCom's udev rules") == 0) hack = true;
             if (s.find("The Linux TV driver dvb_usb_rtl28xxu holds the RTL-SDR: run sudo modprobe -r dvb_usb_rtl28xxu") == 0) tv = true;
             if (s.find("The Linux driver msi2500 holds the SDRplay RSP") == 0) miri = true;
         }

@@ -11,6 +11,7 @@ How to read the "How" column: **vendored** means the source is in this repositor
 | Name | Author | Licence | Where used | How | What it needs / status |
 |---|---|---|---|---|---|
 | Dear ImGui | Omar Cornut and contributors | MIT | app/ and third_party/imgui (user interface) | vendored, compiled in | Keep the copyright notice and licence text (third_party/imgui/LICENSE.txt, reproduced in THIRD_PARTY.md). GPL-3 compatible. |
+| RuView (wifi-densepose-vitals) | rUv and contributors | MIT | rust/onair_wifisense (breathing and heart rate from WiFi CSI; the ESP32 CSI frame format) | algorithms ported to Rust, compiled in | Keep the notice: "Copyright (c) 2024 rUv", MIT, https://github.com/ruvnet/RuView (credited in rust/onair_wifisense/src/vitals.rs). GPL-3 compatible. The ESP32 firmware is RuView's own and is not shipped. |
 | stb_truetype, stb_rect_pack, stb_textedit | Sean Barrett and contributors | MIT or public domain | third_party/imgui/imstb_*.h (fonts and text input) | vendored, compiled in | Notice kept in the file headers. GPL-3 compatible. |
 | Inter (fonts) | The Inter Project Authors (Rasmus Andersson) | SIL OFL 1.1 | third_party/fonts, app/ui/typography.cpp (interface text; Regular, Medium and SemiBold, subset) | bundled, embedded (compressed) in the program | OFL text must accompany the fonts: LICENSES/OFL-1.1.txt and third_party/fonts/README.md (copyright line kept). No Reserved Font Name. GPL-3 compatible for bundling. |
 | JetBrains Mono (fonts) | The JetBrains Mono Project Authors | SIL OFL 1.1 | third_party/fonts, app/ui/typography.cpp (numbers and the frequency readout; Regular and Bold, subset) | bundled, embedded (compressed) in the program | OFL text must accompany the fonts: LICENSES/OFL-1.1.txt and third_party/fonts/README.md (copyright line kept). No Reserved Font Name. GPL-3 compatible for bundling. |
@@ -150,6 +151,20 @@ Nothing found is GPL-2.0-only code or a non-commercial licence inside the OnAir 
 The MIT License (MIT)
 
 Copyright (c) 2014-2025 Omar Cornut
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+### RuView (MIT)
+
+```
+MIT License
+
+Copyright (c) 2024 rUv
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

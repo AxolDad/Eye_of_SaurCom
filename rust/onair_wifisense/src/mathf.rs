@@ -1,4 +1,7 @@
 //! Math functions for the `no_std` crate: the C library in the library build, the std methods under `cargo test`.
+pub use w::*;
+pub const PI: f64 = core::f64::consts::PI;
+pub fn round(x: f64) -> f64 { floor(x + 0.5) }
 #[cfg(not(test))]
 #[allow(unsafe_code)]
 mod c {
@@ -32,6 +35,3 @@ mod w {
     pub fn floor(x: f64) -> f64 { x.floor() }
     pub fn ceil(x: f64) -> f64 { x.ceil() }
 }
-pub use w::*;
-pub const PI: f64 = core::f64::consts::PI;
-pub fn round(x: f64) -> f64 { floor(x + 0.5) }

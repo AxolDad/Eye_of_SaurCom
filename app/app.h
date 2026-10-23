@@ -416,6 +416,7 @@ struct App {
     std::string mapServer;                        // empty: https://map.on-air.dev (a local worker URL for developers)
     bool feedsOpen = false;   // View > Data feeds: the window (feeds_ui.cpp)
     bool webRadioOpen = false;   // View > Internet radio (web_radio_ui.cpp)
+    bool wifiSenseOpen = false;  // View > WiFi sensing (wifisense_ui.cpp)
     bool watchlistOpen = false;    // View > Watchlists: alerts when listed aircraft, ships, call signs, frequencies or words are heard (watchlist_ui.cpp)
     bool msgdbOpen = false;        // View > Messages: the decoded-message database (msgdb_ui.cpp)
     bool protolabOpen = false;     // View > Protocol lab: reverse-engineering workbench for unknown signals (protolab_ui.cpp)
@@ -878,6 +879,7 @@ void automationWindow(App& a);   // automation_ui.cpp: the Automations window (V
 extern std::string gAutomationShotPath;   // automation_sink.cpp: a screenshot of the program's own window is saved here after the next frame (then cleared)
 void feedsWindow(App& a);          // feeds_ui.cpp: the "Data feeds" window (View > Data feeds)
 void webRadioWindow(App& a);       // web_radio_ui.cpp: internet radio stations (View > Internet radio)
+void wifiSenseWindow(App& a);      // wifisense_ui.cpp: presence and vital signs from ESP32 CSI nodes (View > WiFi sensing)
 namespace dect2 { struct AtvFrame; }
 void videoOutPush(std::shared_ptr<const dect2::AtvFrame> f);   // video_out_ui.cpp: the analog picture to the network stream
 void videoOutButton();

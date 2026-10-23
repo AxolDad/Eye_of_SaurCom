@@ -20,7 +20,7 @@ One program for radio and communications, grown from OnAir (GPL-3.0). New code i
 | 4 | Mesh send | Meshtastic and MeshCore text and position out through the SDR. | Mesh receive, frame generator, step 1 |
 | 5 | Trunking and scanning | Multi-system P25, DMR and NXDN trunking, talkgroup aliases, call recording, one scanner. sdrtrunk is the reference. | P25 follower, step 2 |
 | 6 | Internet radio and video out | Station directory and player; re-stream decoded TV and FPV video. | Step 2, TV player |
-| 7 | WiFi sensing (from RuView, MIT) | Presence, people count, breathing and heart rate, motion and falls from WiFi channel state information; approach chosen after mapping RuView's interfaces. | RuView, Wi-Fi decoder |
+| 7 | WiFi sensing (from RuView, MIT) | Presence, motion, breathing and heart rate per room from the CSI frames RuView's ESP32 firmware sends over UDP (port 5005). RuView's vital-sign algorithms are ported to the Rust crate `onair_wifisense`; a UDP listener runs one sensor per node; View > WiFi sensing shows them. People counting, pose and fall detection need RuView's trained models and stay out until they can run without a cloud service. | RuView |
 
 ## Out of scope
 

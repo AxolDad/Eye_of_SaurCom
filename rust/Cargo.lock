@@ -35,6 +35,7 @@ dependencies = [
  "onair_uat",
  "onair_usb",
  "onair_vdl2",
+ "onair_wifisense",
  "onair_wisun",
 ]
 

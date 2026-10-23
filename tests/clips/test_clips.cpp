@@ -208,7 +208,7 @@ int main(int argc, char** argv) {
         const std::string d = clips::discordText(c);
         CHECK(d.rfind("**ADS-B", 0) == 0 && d.find("@ 1090 MHz** \xC2\xB7 2025-10-09 ") != std::string::npos && d.find("16 aircraft") != std::string::npos && d.find("SNR 13 dB") != std::string::npos);
         CHECK(d.find("@everyone") == std::string::npos && d.find("[link](") != std::string::npos && d.find("`x`") == std::string::npos);
-        CHECK(d.find("discord.png") != std::string::npos && d.find("Made with OnAir") != std::string::npos);
+        CHECK(d.find("discord.png") != std::string::npos && d.find("Made with Eye of ZorCom") != std::string::npos);
         const clips::Image cp = clips::composite(c);
         CHECK(cp.w == 1024 && cp.h == c.spectro.h + 64);
         const auto cpng = clips::encodePng(cp.rgba.data(), cp.w, cp.h);

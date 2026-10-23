@@ -130,7 +130,7 @@ impl Breathing {
 }
 
 fn breathing_confidence(h: &[f64], f: f64, fs: f64) -> f64 {
-    if h.len() < 4 || !(f > 0.0) || !(fs > 0.0) {
+    if h.len() < 4 || f.is_nan() || fs.is_nan() || f <= 0.0 || fs <= 0.0 {
         return 0.0;
     }
     let period = round(fs / f) as usize;

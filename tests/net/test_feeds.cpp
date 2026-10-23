@@ -110,7 +110,7 @@ static void testAprs() {
     CHECK(feedfmt::aprsIsLine("N0CALL", "APRS", "", "}W1AW>APRS,TCPIP:>x", "LY1ABC", true).empty(), "third party not gated");
     CHECK(feedfmt::aprsIsLine("N0CALL", "APRS", "", ">x", "LY1ABC", false).empty(), "not a UI / F0 frame");
     CHECK(feedfmt::aprsIsLine("N0CALL", "APRS", "", ">x", "", true).empty(), "no callsign set");
-    CHECK(feedfmt::aprsIsLogin("ly1abc-10", "12345").rfind("user LY1ABC-10 pass 12345 vers OnAir ", 0) == 0, "APRS-IS login");
+    CHECK(feedfmt::aprsIsLogin("ly1abc-10", "12345").rfind("user LY1ABC-10 pass 12345 vers EyeOfZorCom ", 0) == 0, "APRS-IS login");
     const uint8_t d[] = {0x01, 0xC0, 0x02, 0xDB, 0x03};
     const std::string k = feedfmt::kissFrame(d, sizeof d);
     const uint8_t want[] = {0xC0, 0x00, 0x01, 0xDB, 0xDC, 0x02, 0xDB, 0xDD, 0x03, 0xC0};
