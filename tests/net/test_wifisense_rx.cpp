@@ -64,7 +64,7 @@ int main() {
         CHECK(n->s.n_subcarriers == 52 && n->s.freq_mhz == 2437 && n->s.rssi == -45 && n->s.noise == -92 && n->from == "10.0.0.3", "node 3 fields");
         CHECK(n->heardMs == t0 + 1999 * 20 && n->s.frames == 2001, "node 3 last heard, frames %llu", (unsigned long long)n->s.frames);
     } else CHECK(false, "node 3 missing");
-    if (const auto* n = find(v, 4)) CHECK(!n->s.presence && n->s.breathing_bpm == 0, "node 4 empty");
+    if (const auto* n = find(v, 4)) CHECK(!n->s.presence && n->s.breathing_bpm == 0, "node 4 empty: presence %d motion %.4f breathing %.2f", n->s.presence, n->s.motion, n->s.breathing_bpm);
     else CHECK(false, "node 4 missing");
     L.clear();
     CHECK(L.nodes().empty(), "cleared");

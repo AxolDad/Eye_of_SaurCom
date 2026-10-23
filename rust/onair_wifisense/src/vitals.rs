@@ -117,6 +117,9 @@ impl Breathing {
             return None;
         }
         let h = self.hist.make_contiguous();
+        if h.iter().all(|y| fabs(*y) < 1e-6) {
+            return None;   // a still channel: the residuals are rounding noise, whose sign changes are no rhythm
+        }
         let crossings = h.windows(2).filter(|w| w[0] * w[1] < 0.0).count();
         let f = crossings as f64 / (2.0 * (h.len() as f64 / self.fs));
         if f < self.lo || f > self.hi {

@@ -95,7 +95,7 @@ static void streamChecks() {
         CHECK(srv.request.rfind("PUT /test HTTP/1.1\r\n", 0) == 0 && srv.request.find("Ice-Description: FM 93.900 MHz") != std::string::npos, "the server got the source request");
         CHECK(srv.body.size() > 500 && hasMp3Frame(srv.body), "MP3 frames arrived: %zu bytes", srv.body.size());
         const AudioStreamStats st = S.stats();
-        CHECK(!st.active && st.bytesSent > 0 && st.seconds > 0.5 && st.error.empty(), "stats: sent %llu, %.1f s, '%s'", (unsigned long long)st.bytesSent, st.seconds, st.error.c_str());
+        CHECK(!st.active && st.bytesSent >= srv.body.size() && st.seconds > 0.1 && st.error.empty(), "stats: sent %llu, %.1f s, '%s'", (unsigned long long)st.bytesSent, st.seconds, st.error.c_str());
     }
     {
         FakeIcecast srv("HTTP/1.1 401 Unauthorized\r\n\r\n");

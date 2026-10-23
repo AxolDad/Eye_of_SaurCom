@@ -104,3 +104,15 @@ fn an_empty_room_is_empty_and_movement_shows() {
     let w = w.unwrap();
     assert!(w.presence && w.motion > crate::sensor::PRESENCE_MOTION, "walking: motion {:.4}", w.motion);
 }
+
+#[test]
+fn a_perfectly_still_channel_has_no_rhythm() {
+    // identical frames: the residuals are only rounding noise, which must not read as breathing
+    let mut s = Sensor::new(FS);
+    let mut r = None;
+    for i in 0..(40.0 * FS) as u32 {
+        r = Some(s.feed(&parse(&frame(i, |_| 60.0)).unwrap()));
+    }
+    let r = r.unwrap();
+    assert!(r.breathing.is_none() && r.heart.is_none() && !r.presence, "{:?}", r);
+}
