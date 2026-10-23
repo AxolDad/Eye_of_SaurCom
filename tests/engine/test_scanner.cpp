@@ -156,8 +156,8 @@ int main() {
         CHECK(s.m.target().mhz == 460.5 && s.m.target().trunk);   // A quiet for its 8 s dwell: on to B
         s.run(12);
         CHECK(s.m.target().mhz == 460.5 && s.m.state() != Machine::Dwell);   // held while B's call ran (and hanging after it)
-        s.run(5);
-        CHECK(s.m.target().mhz == 146.52 && !s.m.target().trunk);   // then the conventional channel
+        s.run(3.5);   // the call ended at 20 s, 3 s hang: at 24.5 s the scan is on the conventional channel (its dwell ends at 25.3 s)
+        CHECK(s.m.target().mhz == 146.52 && !s.m.target().trunk);
         const std::vector<Entry> w = scanlist::fromCsv(scanlist::toCsv(s.m.list));
         CHECK(w.size() == 3 && w[0].trunk && w[1].trunk && !w[2].trunk);
         CHECK(!scanlist::fromCsv("145.5,fm,x,2,0,0\n")[0].trunk);   // a file without the column
