@@ -250,19 +250,23 @@ int main() {
         const std::string csv = c.log.exportCsv(&c.tgs);
         CHECK(csv.find("\"Fire, Disp\"") != std::string::npos && csv.find("851.20625") != std::string::npos && csv.find(",555,") != std::string::npos, "log csv: %s", csv.c_str());
     }
-    // ---- DMR Tier III grants (layout under test is the simplified one documented in docs/trunking.md)
+    // ---- DMR Tier III grants (TS 102 361-4: PV_GRANT 0x30, TV_GRANT 0x31, BTV_GRANT 0x32; channel 12 bits, timeslot, late entry, emergency, offset)
     {
         Controller c;
         c.dmr.setChannel(3, 450.125e6);
         c.setCapture(450.1e6, 1e6);
-        uint8_t d[8] = {0x00, 0x03, 0x00, 0x00, 0x64, 0x00, 0x00, 0x2A};
-        c.onDmrCsbk(0x30, 0, d, 1.0);
-        CHECK(c.log.records().size() == 1 && c.log.records()[0].dmr && c.log.records()[0].tg == 100 && c.log.records()[0].src == 42 && c.log.records()[0].followed, "dmr grant");
-        d[0] = 0x40; d[4] = 0x65;   // privacy, another talkgroup
-        c.onDmrCsbk(0x30, 0, d, 5.0);
-        CHECK(c.log.records().size() == 2 && c.log.records()[1].encrypted && !c.log.records()[1].followed, "dmr privacy not followed");
-        c.onDmrCsbk(0x30, 0x10, d, 6.0);   // a manufacturer's
-        CHECK(c.log.records().size() == 2, "manufacturer CSBK ignored");
+        uint8_t d[8] = {0x00, 0x30, 0x00, 0x00, 0x64, 0x00, 0x00, 0x2A};   // channel 3, slot 0, talkgroup 100, source 42
+        c.onDmrCsbk(0x31, 0, d, 1.0);
+        CHECK(c.log.records().size() == 1 && c.log.records()[0].dmr && c.log.records()[0].group && c.log.records()[0].tg == 100 && c.log.records()[0].src == 42
+              && c.log.records()[0].followed && std::fabs(c.log.records()[0].freqHz - 450.125e6) < 1, "dmr talkgroup grant");
+        d[1] = 0x38 | 0x02; d[4] = 0x65;   // slot 1, emergency, talkgroup 101
+        c.onDmrCsbk(0x31, 0, d, 5.0);
+        CHECK(c.log.records().size() == 2 && c.log.records()[1].tg == 101 && c.log.records()[1].slot == 1 && c.log.records()[1].emergency, "dmr slot and emergency");
+        d[4] = 0x66;
+        c.onDmrCsbk(0x30, 0, d, 8.0);   // a private call
+        CHECK(c.log.records().size() == 3 && !c.log.records()[2].group, "dmr private grant");
+        c.onDmrCsbk(0x31, 0x10, d, 9.0);   // a manufacturer's
+        CHECK(c.log.records().size() == 3, "manufacturer CSBK ignored");
     }
     // ---- malformed and random input
     {

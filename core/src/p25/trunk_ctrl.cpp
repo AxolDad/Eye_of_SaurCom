@@ -14,10 +14,9 @@ bool DmrModel::onCsbk(int opcode, int fid, const uint8_t d[8], double, Grant& g)
     if (opcode != ops_.tvGrant && opcode != ops_.pvGrant && opcode != ops_.btvGrant) return false;
     g = Grant();
     g.dmr = true; g.tdma = true;
-    g.channel = ((d[0] & 0x0F) << 8) | d[1];
-    g.slot = (d[0] >> 4) & 1;
-    g.emergency = (d[0] >> 5) & 1;
-    g.encrypted = (d[0] >> 6) & 1;   // the privacy indicator
+    g.channel = (d[0] << 4) | (d[1] >> 4);
+    g.slot = (d[1] >> 3) & 1;
+    g.emergency = (d[1] >> 1) & 1;   // a voice grant has no privacy bit: encryption shows on the traffic channel
     g.tg = (d[2] << 16) | (d[3] << 8) | d[4];
     g.src = (d[5] << 16) | (d[6] << 8) | d[7];
     g.group = opcode != ops_.pvGrant;

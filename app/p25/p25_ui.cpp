@@ -38,7 +38,8 @@ State S;
 struct Trunk {
     dect2::trunk::Controller ctl;
     bool on = false, loaded = false, dirty = false;
-    uint64_t tsbkSeen = 0;
+    uint64_t tsbkSeen = 0, csbkSeen = 0;
+    std::string dmrChannels;             // "LCN=MHz" pairs for Tier III (pref "trunkDmrChannels")
     int forcedSel = 0;
     uint64_t recCall = 0;
     std::string status;
@@ -64,6 +65,7 @@ void tgSave(const std::string& path) {
 }
 
 bool live(const App& a) { return a.rx.standard == 51; }   // the engine reports its standard code minus one
+bool liveDmr(const App& a) { return a.rx.standard == 10; }   // DMR: Tier III grants come as CSBKs
 
 std::string clock(int64_t t) {
     if (t <= 0) return "-";
@@ -260,19 +262,49 @@ void messageView(App& a) {
 
 // ---------------------------------------------------------------- hooks
 
+// "LCN=MHz" pairs (spaces, commas or new lines between them) into the Tier III channel table; the number of channels read
+int applyDmrChannels(const std::string& text) {
+    std::string tok, norm = text;
+    int n = 0;
+    for (char& c : norm) if (c == ',' || c == ';' || c == '\n' || c == '\t') c = ' ';
+    std::istringstream words(norm);
+    while (words >> tok) {
+        const size_t eq = tok.find('=');
+        if (eq == std::string::npos) continue;
+        char* end = nullptr;
+        const long lcn = std::strtol(tok.c_str(), &end, 10);
+        const double mhz = std::strtod(tok.c_str() + eq + 1, nullptr);
+        if (end != tok.c_str() + eq || lcn < 0 || lcn > 4095 || !(mhz > 1 && mhz < 6000)) continue;
+        T.ctl.dmr.setChannel((int)lcn, mhz * 1e6);
+        n++;
+    }
+    return n;
+}
+
 void trunkTick(App& a) {
-    if (!T.loaded) { T.loaded = true; if (std::filesystem::exists(std::filesystem::u8path(tgFile()))) tgLoad(tgFile(), false); }
-    if (!T.on || !live(a)) return;
+    if (!T.loaded) {
+        T.loaded = true;
+        if (std::filesystem::exists(std::filesystem::u8path(tgFile()))) tgLoad(tgFile(), false);
+        T.dmrChannels = plat::prefs().getS("trunkDmrChannels", "");
+        applyDmrChannels(T.dmrChannels);
+    }
+    const bool p25 = live(a), dmr = liveDmr(a);
+    if (!T.on || !(p25 || dmr)) return;
     using namespace dect2::trunk;
     const double now = nowSec();
     const dect2::P25Telemetry& t = a.rx.p25;
-    for (const auto& r : t.tsbks) {
+    if (p25) for (const auto& r : t.tsbks) {
         if (r.seq <= T.tsbkSeen) continue;
         T.tsbkSeen = r.seq;
         dect2::p25::Tsbk k; k.opcode = r.opcode; k.mfid = r.mfid; k.args = r.args;
         T.ctl.onTsbk(k, r.nac, now);
     }
-    T.ctl.setCapture(radioCenterMhz(a) * 1e6, wideActive(a) ? t.inputRate : 0);
+    if (dmr) for (const auto& r : a.rx.dmr.csbks) {
+        if (r.seq <= T.csbkSeen) continue;
+        T.csbkSeen = r.seq;
+        T.ctl.onDmrCsbk(r.opcode, r.fid, r.data, now);
+    }
+    T.ctl.setCapture(radioCenterMhz(a) * 1e6, p25 && wideActive(a) ? t.inputRate : 0);   // DMR: the radio retunes for each call
     T.ctl.tick(now);
     for (const Action& ac : T.ctl.takeActions()) {
         switch (ac.kind) {
@@ -322,7 +354,20 @@ void followView(App& a) {
         ImGui::SetTooltip("Follows the voice grants of a P25 control channel. Inside a wide capture every channel is decoded and the sound moves to the call you should hear;\n"
                           "outside it the one radio leaves the control channel for the call and comes back. Encrypted calls are logged as encrypted and never followed.\n"
                           "Sound needs your own mbelib; the talkgroups and the call log work without it. See docs/trunking.md.");
-    if (!T.on) { ImGui::TextDisabled("%s", live(a) ? "off: the control channel is only decoded, nothing is followed" : "start the receiver first"); }
+    if (!T.on) { ImGui::TextDisabled("%s", live(a) || liveDmr(a) ? "off: the control channel is only decoded, nothing is followed" : "start the receiver first"); }
+    if (liveDmr(a)) {
+        ImGui::TextDisabled("DMR Tier III: the grants give channel numbers; enter each channel's frequency (LCN=MHz, e.g. 1=451.0125 2=451.0375)");
+        char b[512]; snprintf(b, sizeof b, "%s", T.dmrChannels.c_str());
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::InputText("##dmrlcn", b, sizeof b)) T.dmrChannels = b;
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+            T.ctl.dmr = dect2::trunk::DmrModel();
+            const int n = applyDmrChannels(T.dmrChannels);
+            plat::prefs().setS("trunkDmrChannels", T.dmrChannels);
+            T.status = std::to_string(n) + " DMR channels set";
+        }
+        ImGui::TextDisabled("%llu Tier III grants seen", (unsigned long long)T.ctl.dmr.grants());
+    }
     const double now = nowSec();
     const ControllerStatus st = T.ctl.status(now);
     kvRow(a, "state", "%s%s", followStateName(st.state), st.controlLocked ? "" : " (no control channel message lately)");
@@ -494,6 +539,10 @@ void summary(const App& a, std::string& l1, std::string& l2) {
 }
 
 } // namespace
+
+// The trunking follower is shared by P25 and DMR Tier III: the DMR tab ticks it and shows the same panel (talkgroups, now talking, call log).
+void trunkFollowTick(App& a) { trunkTick(a); }
+void trunkFollowPanel(App& a) { followView(a); }
 
 extern const ModeUi kP25Ui;
 const ModeUi kP25Ui = {

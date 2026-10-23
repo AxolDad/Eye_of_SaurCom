@@ -673,6 +673,12 @@ Link::Outcome Link::decodeData(Track& t, const Bits& burst, const float* z, int 
             tel_.crcOk++;
             o.valid = true;
             endVoiceByData();
+            {
+                DmrCsbk k; k.seq = ++csbkSeq_; k.opcode = c.opcode; k.fid = c.fid;
+                memcpy(k.data, c.data, sizeof k.data);
+                tel_.csbks.push_back(k);
+                if (tel_.csbks.size() > 64) tel_.csbks.erase(tel_.csbks.begin());
+            }
             const uint64_t key = (uint64_t)c.opcode << 56 | (uint64_t)c.fid << 48 | (uint64_t)be24(c.data + 2) << 24 | be24(c.data + 5);
             if (!(key == t.lastCsbkKey && now - t.lastCsbkSec < 3.0)) {
                 DmrCall e;

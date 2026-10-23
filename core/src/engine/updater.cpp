@@ -1,5 +1,6 @@
 #include "dect2/common/thread_name.h"
 #include "dect2/engine/updater.h"
+#include "dect2/engine/curl_stream.h"
 #include "dect2/common/str.h"
 #include "dect2/common/timecompat.h"
 #include <algorithm>
@@ -451,7 +452,10 @@ void spawnDetached(const std::string& script, const std::vector<std::string>& ar
 // a console program started through it would open one). tick() is called about every 100 ms; curl is stopped as soon as cancel is set, so that
 // closing Eye of ZorCom never waits for a download. The exit code of curl; kCurlMissing when it could not be started, kCurlCancelled when stopped.
 constexpr int kCurlMissing = -2, kCurlCancelled = -1;
-int runCurl(const std::vector<std::string>& args, std::string* out, const std::atomic<bool>& cancel, const std::function<void()>& tick = {}) {
+int runCurl(const std::vector<std::string>& args, std::string* out, const std::atomic<bool>& cancel, const std::function<void()>& tick = {},
+            const std::function<void(const char*, size_t)>& onData = {}) {
+    const bool want = out || onData;   // curl's output is read: into *out, or handed over as it arrives
+    const auto put = [&](const char* d, size_t n) { if (onData) onData(d, n); else out->append(d, n); };
 #if defined(_WIN32)
     auto wide = [](const std::string& a) {   // the paths come from the system in the ANSI code page
         const int w = MultiByteToWideChar(CP_ACP, 0, a.c_str(), -1, nullptr, 0);
@@ -482,7 +486,7 @@ int runCurl(const std::vector<std::string>& args, std::string* out, const std::a
     sa.nLength = sizeof sa;
     sa.bInheritHandle = TRUE;
     HANDLE rd = nullptr, wr = nullptr;
-    if (out && !CreatePipe(&rd, &wr, &sa, 1 << 20)) return kCurlMissing;
+    if (want && !CreatePipe(&rd, &wr, &sa, 1 << 20)) return kCurlMissing;
     if (rd) SetHandleInformation(rd, HANDLE_FLAG_INHERIT, 0);
     HANDLE nul = CreateFileW(L"NUL", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, OPEN_EXISTING, 0, nullptr);
     STARTUPINFOW si{};
@@ -500,12 +504,12 @@ int runCurl(const std::vector<std::string>& args, std::string* out, const std::a
     if (!started) { if (rd) CloseHandle(rd); return kCurlMissing; }
     char b[16384];
     for (;;) {
-        if (rd) { DWORD avail = 0, n = 0; while (PeekNamedPipe(rd, nullptr, 0, nullptr, &avail, nullptr) && avail && ReadFile(rd, b, (DWORD)std::min<size_t>(avail, sizeof b), &n, nullptr) && n) out->append(b, n); }
+        if (rd) { DWORD avail = 0, n = 0; while (PeekNamedPipe(rd, nullptr, 0, nullptr, &avail, nullptr) && avail && ReadFile(rd, b, (DWORD)std::min<size_t>(avail, sizeof b), &n, nullptr) && n) put(b, n); }
         if (cancel) TerminateProcess(pi.hProcess, 1);
         if (WaitForSingleObject(pi.hProcess, 100) == WAIT_OBJECT_0) break;
         if (tick) tick();
     }
-    if (rd) { DWORD n = 0; while (ReadFile(rd, b, sizeof b, &n, nullptr) && n) out->append(b, n); CloseHandle(rd); }
+    if (rd) { DWORD n = 0; while (ReadFile(rd, b, sizeof b, &n, nullptr) && n) put(b, n); CloseHandle(rd); }
     DWORD code = 1;
     GetExitCodeProcess(pi.hProcess, &code);
     CloseHandle(pi.hThread);
@@ -513,7 +517,7 @@ int runCurl(const std::vector<std::string>& args, std::string* out, const std::a
     return cancel ? kCurlCancelled : (int)code;
 #else
     int fd[2] = {-1, -1};
-    if (out && pipe(fd) != 0) return kCurlMissing;
+    if (want && pipe(fd) != 0) return kCurlMissing;
     std::vector<char*> av;
     av.push_back((char*)"curl");
     for (auto& a : args) av.push_back((char*)a.c_str());
@@ -521,23 +525,23 @@ int runCurl(const std::vector<std::string>& args, std::string* out, const std::a
     posix_spawn_file_actions_t fa;
     posix_spawn_file_actions_init(&fa);
     posix_spawn_file_actions_addopen(&fa, 0, "/dev/null", O_RDONLY, 0);
-    if (out) { posix_spawn_file_actions_adddup2(&fa, fd[1], 1); posix_spawn_file_actions_addclose(&fa, fd[0]); posix_spawn_file_actions_addclose(&fa, fd[1]); }
+    if (want) { posix_spawn_file_actions_adddup2(&fa, fd[1], 1); posix_spawn_file_actions_addclose(&fa, fd[0]); posix_spawn_file_actions_addclose(&fa, fd[1]); }
     else posix_spawn_file_actions_addopen(&fa, 1, "/dev/null", O_WRONLY, 0);
     posix_spawn_file_actions_addopen(&fa, 2, "/dev/null", O_WRONLY, 0);
     pid_t pid = -1;
     const int e = posix_spawnp(&pid, "curl", &fa, nullptr, av.data(), environ);
     posix_spawn_file_actions_destroy(&fa);
-    if (out) close(fd[1]);
-    if (e != 0) { if (out) close(fd[0]); return kCurlMissing; }
+    if (want) close(fd[1]);
+    if (e != 0) { if (want) close(fd[0]); return kCurlMissing; }
     int status = 0;
-    bool eof = !out;
+    bool eof = !want;
     char b[16384];
     for (;;) {
         if (!eof) {
             pollfd p{fd[0], POLLIN, 0};
             if (poll(&p, 1, 100) > 0) {
                 const ssize_t n = read(fd[0], b, sizeof b);
-                if (n > 0) out->append(b, (size_t)n);
+                if (n > 0) put(b, (size_t)n);
                 else if (n == 0 || errno != EINTR) eof = true;
             }
         } else std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -546,7 +550,7 @@ int runCurl(const std::vector<std::string>& args, std::string* out, const std::a
         if (w == pid || (w < 0 && errno != EINTR)) break;
         if (tick) tick();
     }
-    if (out) { ssize_t n; while ((n = read(fd[0], b, sizeof b)) > 0) out->append(b, (size_t)n); close(fd[0]); }
+    if (want) { ssize_t n; while ((n = read(fd[0], b, sizeof b)) > 0) put(b, (size_t)n); close(fd[0]); }
     if (cancel) return kCurlCancelled;
     if (!WIFEXITED(status) || WEXITSTATUS(status) == 127) return kCurlMissing;   // 127: the child could not run curl
     return WEXITSTATUS(status);
@@ -586,6 +590,11 @@ int pidNow() {
 
 double nowSeconds() { return (double)dect2::unixNow(); }
 }
+
+int curlStream(const std::vector<std::string>& args, const std::function<void(const char*, size_t)>& onData, const std::atomic<bool>& cancel) {
+    return runCurl(args, nullptr, cancel, {}, onData);
+}
+
 
 
 // ---------------------------------------------------------------- the Windows helper script and its result

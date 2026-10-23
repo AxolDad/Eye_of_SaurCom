@@ -196,6 +196,7 @@ void uploadFrame(App& a) {
     if (!live(a) || !gGfx) return;
     auto f = a.engine.atv().frame(S.frameSeq);
     if (!f || f->width <= 0 || f->height <= 0 || f->rgba.size() < (size_t)f->width * f->height * 4) return;
+    videoOutPush(f);
     if (!S.img || S.imgW != f->width || S.imgH != f->height) {
         delete S.img;
         S.img = gGfx->createImage(f->width, f->height, 0xFF000000u);
@@ -266,6 +267,8 @@ void tab(App& a) {
     ImGui::SameLine(0, 4 * gUi);
     if (pillButton("Bob", S.deint == 1)) { S.deint = 1; plat::prefs().setI("atvDeint", 1); savePrefs(a); }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("One field at a time, lines doubled: no combing, half the vertical detail.");
+    ImGui::SameLine(0, 8 * gUi);
+    videoOutButton();
     const float rest = ImGui::GetContentRegionAvail().y;
     const bool side = W - rest * 4.f / 3.f > 300 * gUi;   // wide window: the scope goes beside the picture
     if (side) {
