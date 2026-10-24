@@ -3,6 +3,7 @@
 #include "dect2/results/results_io.h"
 #include "dect2/ism/ism_tel.h"
 #include "dect2/ism/ism_sigfox.h"
+#include "dect2/ism/ism_subfile.h"
 #include "dect2/dsp/fftutil.h"
 #include <algorithm>
 #include <atomic>
@@ -403,11 +404,20 @@ struct IsmReceiver::Impl {
     }
 
     void handle(const IsmTrain& t, double fAbs, float rssi, float snr, float devHz, double sec) {
-        if (t.p.size() < 3) return;
+        if (handleInto(tel, t, fAbs, rssi, snr, devHz, sec, tap, log)) changed = true;
+    }
+
+    // One pulse train through the decoders and into the lists of tel: a reading updates or adds its device and is logged, a train no
+    // protocol accepts is kept as an unknown signal. Static so that a train from a file (importSubFile) goes the same way, into the
+    // published copy, from the interface thread. Returns whether tel changed.
+    static bool handleInto(IsmTelemetry& tel, const IsmTrain& t, double fAbs, float rssi, float snr, float devHz, double sec,
+                           const std::function<void(const IsmReading&, double)>& tap, const std::function<void(const std::string&)>& log) {
+        bool changed = false;
+        if (t.p.size() < 3) return changed;
         const int64_t now = (int64_t)std::time(nullptr);
         std::vector<IsmReading> rs = ismDecode(t);
         if (rs.empty()) {
-            if (t.p.size() < 8) return;
+            if (t.p.size() < 8) return changed;
             IsmRaw r;
             r.wallTime = now; r.sec = sec; r.freqHz = fAbs; r.rssiDb = rssi; r.snrDb = snr; r.fsk = t.fsk; r.fskDevHz = devHz;
             r.guess = ismClassify(t);
@@ -419,10 +429,9 @@ struct IsmReceiver::Impl {
             char b[160];
             snprintf(b, sizeof b, "%s %s, %zu pulses, short %.0f us, long %.0f us", t.fsk ? "FSK" : "OOK", r.guess.code.c_str(), t.p.size(), r.guess.shortUs, r.guess.longUs);
             ev.text = b;
-            pushEvent(ev);
+            pushEventTo(tel, ev);
             tel.blocksBad++;
-            changed = true;
-            return;
+            return true;
         }
         for (auto& rd0 : rs) {
             if (tap) tap(rd0, fAbs);
@@ -456,7 +465,7 @@ struct IsmReceiver::Impl {
                 IsmEvent ev;
                 ev.wallTime = now; ev.sec = sec; ev.freqHz = fAbs; ev.rssiDb = rssi;
                 ev.model = rd0.model; ev.id = rd0.id; ev.text = ismReadingText(rd0.fields);
-                pushEvent(ev);
+                pushEventTo(tel, ev);
                 tel.blocksOk++;
                 tel.snrDb = snr;
                 if (fresh && log) {
@@ -468,9 +477,11 @@ struct IsmReceiver::Impl {
             if (di) std::rotate(tel.devices.begin(), tel.devices.begin() + (ptrdiff_t)di, tel.devices.begin() + (ptrdiff_t)di + 1);
             changed = true;
         }
+        return changed;
     }
 
-    void pushEvent(const IsmEvent& e) {
+    void pushEvent(const IsmEvent& e) { pushEventTo(tel, e); }
+    static void pushEventTo(IsmTelemetry& tel, const IsmEvent& e) {
         tel.events.insert(tel.events.begin(), e);
         if (tel.events.size() > kIsmLogMax) tel.events.pop_back();
     }
@@ -526,6 +537,48 @@ bool IsmReceiver::loadResults(const std::string& blob) {
     p_->pub.seq++;
     return true;
 }
+// A Flipper .sub file: its pulses go through the decoders at the file's frequency, into the published lists at once (the interface
+// thread calls this, the receiver may not even be running) and into the feed thread's copy through loadReq, as a loaded results file does
+bool IsmReceiver::importSubFile(const std::string& text, std::string& summary, std::string& err) {
+    SubFile f;
+    if (!parseSubFile(text, f, err)) return false;
+    char mhz[32];
+    snprintf(mhz, sizeof mhz, "%.3f MHz", f.freqHz / 1e6);
+    std::lock_guard<std::mutex> lk(p_->mu);
+    IsmTelemetry& P = p_->pub;
+    const double sec = P.timeSec;
+    char b[256];
+    if (f.kind == SubFile::Key) {   // a remote the Flipper decoded itself: logged as it is, nothing to run through the decoders
+        IsmEvent ev;
+        ev.wallTime = (int64_t)std::time(nullptr); ev.sec = sec; ev.freqHz = f.freqHz; ev.rssiDb = -200;
+        ev.model = f.protocol; ev.id = f.key;
+        snprintf(b, sizeof b, "Flipper key file: %d bits%s%s", f.bits, f.teUs > 0 ? ", TE " : "", f.teUs > 0 ? (std::to_string(f.teUs) + " us").c_str() : "");
+        ev.text = b;
+        Impl::pushEventTo(P, ev);
+        snprintf(b, sizeof b, "key file: %s, %d bits, at %s (the Flipper's own decoding, listed in the log)", f.protocol.c_str(), f.bits, mhz);
+    } else {
+        const uint64_t ok0 = P.blocksOk, bad0 = P.blocksBad;
+        Impl::handleInto(P, f.train, f.freqHz, -200, 0, 0, sec, p_->tap, p_->log);
+        const char* what = f.kind == SubFile::BinRaw ? "BinRAW" : "RAW";
+        if (P.blocksOk > ok0) {
+            std::string names;
+            for (const auto& e : P.events) { if (e.sec != sec || e.unknown) break; names += (names.empty() ? "" : ", ") + e.model + " " + e.id; }
+            snprintf(b, sizeof b, "%s, %zu pulses at %s: %s", what, f.train.p.size(), mhz, names.c_str());
+        } else if (P.blocksBad > bad0) {
+            const IsmRaw& r = P.raws.front();
+            snprintf(b, sizeof b, "%s, %zu pulses at %s: no protocol matched (%s %s, short %.0f us, long %.0f us), kept under Unknown", what, f.train.p.size(), mhz,
+                     f.fsk ? "FSK" : "OOK", r.guess.code.c_str(), r.guess.shortUs, r.guess.longUs);
+        } else snprintf(b, sizeof b, "%s, %zu pulses at %s: too short for any decoder", what, f.train.p.size(), mhz);
+    }
+    summary = b;
+    IsmTelemetry l;
+    l.devices = P.devices; l.events = P.events; l.raws = P.raws;
+    Impl::moveLists(p_->loaded, l);
+    p_->loadReq = true;
+    P.seq++;
+    return true;
+}
+
 void IsmReceiver::setLogCallback(std::function<void(const std::string&)> cb) { std::lock_guard<std::mutex> lk(p_->mu); p_->log = std::move(cb); }
 void IsmReceiver::setReadingTap(std::function<void(const IsmReading&, double)> cb) { std::lock_guard<std::mutex> lk(p_->mu); p_->tap = std::move(cb); }
 void IsmReceiver::setThresholdDb(float db) { std::lock_guard<std::mutex> lk(p_->mu); p_->thrSet = std::max(8.f, std::min(25.f, db)); p_->resetReq = true; }
