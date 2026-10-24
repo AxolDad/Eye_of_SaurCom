@@ -114,6 +114,7 @@ void parseDevFlags(App& app, int argc, char** argv, DevOpts& o) {
         if (std::string(argv[i]) == "--trunkopen") gTrunkPanelDevOpen = true;   // dev: open View > Data feeds (screenshots)
         if (std::string(argv[i]) == "--cotlisten") cotListenDev(app);   // dev: listen for ATAK / TAK contacts (screenshots)
         if (std::string(argv[i]) == "--radiotools") radioToolsDevOpen(app, i + 1 < argc && isdigit((unsigned char)argv[i + 1][0]) ? atoi(argv[++i]) : 0);   // dev: open Tools > Radio tools [tab]
+        if (std::string(argv[i]) == "--netadd" && i + 1 < argc) { app.netAddOpen = true; app.netAddType = atoi(argv[++i]); app.netAddPort = dect2::netRadioDefaultPort((dect2::NetRadio::Type)app.netAddType); }   // dev: the add network radio window, on that type
         if (std::string(argv[i]) == "--dsn") dsnDevOpen(app);   // dev: open Tools > Deep Space Network
         if (std::string(argv[i]) == "--webradio") app.webRadioOpen = true;   // dev: open View > Internet radio
         if (std::string(argv[i]) == "--wifisense") wifiSenseDevOpen(app);   // dev: open View > WiFi sensing, listening   // dev: open View > Scanner   // dev: open View > Passes
