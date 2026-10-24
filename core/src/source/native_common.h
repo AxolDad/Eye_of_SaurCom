@@ -651,6 +651,10 @@ void nrspStCaps(DeviceInfo& d);
 // The source delivers the Kiwi's 12 kHz IQ interpolated to 21 x (252 kHz) or 84 x (1.008 MHz). kiwiSetBackoffForTest: the pauses before a new connection.
 DeviceInfo kiwiSdrDevice(const std::string& host, int port);
 std::unique_ptr<IqSource> makeKiwiSdr(const DeviceInfo& d);
+// ---- Aaronia RTSA-Suite (source_aaronia.cpp): the HTTP Server block of a graph driving a Spectran V6 or another Aaronia radio
+DeviceInfo aaroniaDevice(const std::string& host, int port, const std::string& auth);
+void aaroniaSetAuth(const std::string& hostPort, const std::string& userPass);   // "user:password"; kept aside, never in a DeviceInfo
+std::unique_ptr<IqSource> makeAaronia(const DeviceInfo& d);
 bool kiwiProbe(const std::string& host, int port, int timeoutMs, std::string& err);
 void kiwiSdrCaps(DeviceInfo& d);
 void kiwiSetBackoffForTest(int minMs, int maxMs);
