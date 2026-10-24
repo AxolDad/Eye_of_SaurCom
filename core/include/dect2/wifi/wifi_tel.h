@@ -11,6 +11,7 @@ namespace dect2 {
 constexpr size_t kWifiRssiHist = 24;   // the last levels of a network, oldest first
 constexpr size_t kWifiApMax = 300;     // networks kept (the longest unheard go first)
 constexpr size_t kWifiLogMax = 400;    // frames in the log
+constexpr size_t kWifiDeauthMax = 200; // deauthentication / disassociation frames kept
 
 // One access point (a BSSID): what its beacons and probe responses announce
 struct WifiAp {
@@ -63,6 +64,15 @@ struct WifiFrameLog {
     std::string info;
 };
 
+// A deauthentication (management subtype 12) or disassociation (10) frame that passed its FCS. Both carry their addresses in the clear, even with
+// protected management frames, so a flood of them can be noticed (tools::deauthAlarm). Heard only, never sent.
+struct WifiDeauth {
+    int64_t wall = 0;                  // wall clock, seconds
+    std::string source, dest, bssid;   // "AA:BB:CC:DD:EE:FF"; dest ff:ff:ff:ff:ff:ff is a broadcast
+    bool disassoc = false;
+    int channel = 0;
+};
+
 struct WifiTelemetry {
     uint64_t seq = 0;
     int state = 0;                     // 0 nothing heard, 1 frames heard in the last seconds
@@ -85,6 +95,8 @@ struct WifiTelemetry {
     uint64_t ofdmTriggers = 0, ofdmSignalOk = 0, ofdmSignalBad = 0, ofdmOther = 0, ofdmBadFcs = 0;   // the receiver's stages: preambles, SIGNAL fields, FCS
     uint64_t dupFrames = 0;            // frames heard on the secondary 20 MHz of a wider channel (non-HT duplicates), not counted twice
     uint64_t filsFrames = 0;
+    uint64_t deauths = 0, disassocs = 0;   // frames heard (a wide capture on 5 / 6 GHz may hear a frame once per 20 MHz part)
+    std::vector<WifiDeauth> deauthLog;     // newest first
     std::vector<WifiAp> aps;           // most recently heard first
     std::vector<WifiFrameLog> log;     // beacons and probe responses, newest first
 };

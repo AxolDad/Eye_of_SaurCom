@@ -369,6 +369,15 @@ struct WifiReceiver::Impl {
         wifi::Frame f;
         if (!wifi::parseFrame(p, n, f, bnd)) return;
         if (f.type >= 0 && f.type < 3) tel.perType[f.type]++;
+        if (f.type == 0 && (f.subtype == 12 || f.subtype == 10)) {   // deauthentication / disassociation: counted and kept for the flood alarm
+            WifiDeauth d;
+            d.wall = (int64_t)time(nullptr); d.disassoc = f.subtype == 10; d.channel = tuned;
+            d.source = wifi::macText(f.addr2); d.dest = wifi::macText(f.addr1); d.bssid = wifi::macText(f.bssid);
+            if (d.disassoc) tel.disassocs++; else tel.deauths++;
+            tel.deauthLog.insert(tel.deauthLog.begin(), std::move(d));
+            if (tel.deauthLog.size() > kWifiDeauthMax) tel.deauthLog.pop_back();
+            return;
+        }
         if (!f.beacon && !f.probeResp && !f.fils) return;   // data and the other frames: counted only
         // A 40 / 80 / 160 MHz BSS sends its non-HT frame on every 20 MHz part (clause 17.3.8.2): the copies heard away from the primary channel are not new beacons
         if (bnd >= wifi::Band5 && tuned && f.channel && f.channel != tuned && wifi::validChannel(bnd, f.channel) && !f.fils) { tel.dupFrames++; return; }

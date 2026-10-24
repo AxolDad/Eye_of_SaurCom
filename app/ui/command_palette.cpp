@@ -25,7 +25,7 @@ int gTabFrame = -1;
 struct Panel { const char* name; bool App::*on; };
 const Panel kPanels[] = {
     {"Passes", &App::passesOpen}, {"SatNOGS transmitters", &App::satnogsOpen}, {"Direction finder", &App::dfOpen}, {"Interference hunter", &App::rfiOpen},
-    {"Passive radar", &App::passiveRadarOpen}, {"Images", &App::galleryOpen}, {"Data feeds...", &App::feedsOpen}, {"Internet radio...", &App::webRadioOpen}, {"Deep Space Network", &App::dsnOpen}, {"WiFi sensing...", &App::wifiSenseOpen},
+    {"Passive radar", &App::passiveRadarOpen}, {"Images", &App::galleryOpen}, {"Data feeds...", &App::feedsOpen}, {"Internet radio...", &App::webRadioOpen}, {"Deep Space Network", &App::dsnOpen}, {"Radio tools", &App::radioToolsOpen}, {"WiFi sensing...", &App::wifiSenseOpen},
     {"Messages...", &App::msgdbOpen}, {"Protocol lab...", &App::protolabOpen}, {"Watchlists...", &App::watchlistOpen},
     {"Automations...", &App::automationOpen}, {"Plugins...", &App::pluginsOpen}, {"Memory...", &App::memoryOpen},
     {"Data packs...", &App::packsOpen}, {"Frequencies...", &App::freqOpen}, {"Map", &App::mapOpen}, {"Propagation...", &App::propOpen},

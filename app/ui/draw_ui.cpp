@@ -209,6 +209,7 @@ static void floatingWindows(App& a, ImVec2 disp) {
     feedsWindow(a);
     webRadioWindow(a);
     dsnWindow(a);
+    radioToolsWindow(a);
     wifiSenseWindow(a);
     automationWindow(a);
     protolabWindow(a);
