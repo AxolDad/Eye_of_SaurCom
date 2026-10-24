@@ -22,6 +22,7 @@
 #include "../main_internal.h"
 
 bool gIdentifyDev = false;   // --identify
+bool gTrunkPanelDevOpen = false;   // --trunkopen
 
 // the per-frame work of a receiver: ingest, the mode's tick, scans, EPG, gain control, the video and subtitles (drawn or not)
 static void tickReceiver(App& a) {
@@ -207,6 +208,7 @@ static void floatingWindows(App& a, ImVec2 disp) {
     a.engine.setMultiChannel(a.mtvOn && a.family == 0, a.mtvMax, a.mtvGrid);
     feedsWindow(a);
     webRadioWindow(a);
+    dsnWindow(a);
     wifiSenseWindow(a);
     automationWindow(a);
     protolabWindow(a);

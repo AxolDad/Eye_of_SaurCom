@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Trunked radio: follow calls and scan systems</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #070a0e; }
+#root { position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: Inter, sans-serif; color: #e8eef5;
+        background: radial-gradient(ellipse at 30% 20%, #142233 0%, #070a0e 70%); }
+.full { position: absolute; inset: 0; }
+.frame { position: absolute; left: 210px; top: 36px; width: 1500px; height: 900px; overflow: hidden; border-radius: 14px;
+         box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(120,200,255,0.18); background: #000; }
+.zoom { position: absolute; inset: 0; }
+.zoom img { position: absolute; left: 0; top: 0; width: 1500px; height: 900px; }
+.hl { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.38), 0 0 24px rgba(255,176,32,0.7); }
+.hl2 { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 24px rgba(255,176,32,0.7); }
+.cap { position: absolute; left: 210px; right: 210px; bottom: 26px; height: 104px; display: flex; align-items: center; gap: 22px;
+       padding: 0 30px; border-radius: 14px; background: rgba(10,16,24,0.92); box-shadow: 0 0 0 1px rgba(120,200,255,0.2); }
+.step { flex: none; padding: 10px 18px; border-radius: 10px; background: #ffb020; color: #10161d; font-weight: 800; font-size: 26px; }
+.captext { font-size: 34px; font-weight: 600; line-height: 1.2; }
+.brand { position: absolute; right: 228px; top: 52px; padding: 8px 16px; border-radius: 9px; background: rgba(7,10,14,0.85);
+         color: #7fd0ff; font-weight: 700; font-size: 22px; letter-spacing: 0.04em; }
+.title { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 28px; }
+.eye { width: 170px; height: 170px; border-radius: 50%; border: 10px solid #7fd0ff; display: flex; align-items: center; justify-content: center;
+       box-shadow: 0 0 60px rgba(127,208,255,0.5); }
+.eye div { width: 62px; height: 62px; border-radius: 50%; background: #ffb020; box-shadow: 0 0 40px rgba(255,176,32,0.9); }
+.t1 { font-size: 104px; font-weight: 800; letter-spacing: -0.02em; }
+.t2 { font-size: 44px; font-weight: 500; color: #b9c7d6; max-width: 1500px; }
+.t3 { font-size: 34px; font-weight: 600; color: #ffb020; }
+</style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="03-trunking" data-start="0" data-duration="77.429" data-width="1920" data-height="1080" data-fps="30">
+<div id="s0" class="clip full" data-start="0.000" data-duration="9.776" data-track-index="0">
+<div id="s0t" class="full title"><div class="eye"><div></div></div><div class="t1">Trunked radio</div><div class="t2">Follow calls on P25, DMR Tier III and NXDN, and scan whole systems</div><div class="t3">Eye of ZorCom how-to</div></div>
+</div>
+<audio id="s0a" class="clip" data-start="0.250" data-duration="8.876" data-track-index="1" data-volume="1" src="assets/vo/03-trunking_0.wav"></audio>
+<div id="s1" class="clip full" data-start="9.776" data-duration="11.733" data-track-index="0">
+<div class="frame"><div id="s1z" class="zoom"><img src="assets/shots/p25.jpg" alt="" />
+<div id="s1b0" class="hl" style="left:370px;top:44px;width:430px;height:46px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s1c" class="cap"><div class="step">STEP 1</div><div class="captext">Tune to the system&#x27;s control channel in the P25, DMR or NXDN mode</div></div>
+</div>
+<audio id="s1a" class="clip" data-start="10.026" data-duration="10.833" data-track-index="1" data-volume="1" src="assets/vo/03-trunking_1.wav"></audio>
+<div id="s2" class="clip full" data-start="21.509" data-duration="7.338" data-track-index="0">
+<div class="frame"><div id="s2z" class="zoom"><img src="assets/shots/p25_trunking.jpg" alt="" />
+<div id="s2b0" class="hl" style="left:306px;top:96px;width:600px;height:240px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s2c" class="cap"><div class="step">STEP 2</div><div class="captext">The Trunking view lists the site, neighbours and channel plan</div></div>
+</div>
+<audio id="s2a" class="clip" data-start="21.759" data-duration="6.438" data-track-index="1" data-volume="1" src="assets/vo/03-trunking_2.wav"></audio>
+<div id="s3" class="clip full" data-start="28.847" data-duration="11.512" data-track-index="0">
+<div class="frame"><div id="s3z" class="zoom"><img src="assets/shots/p25_follow.jpg" alt="" />
+<div id="s3b0" class="hl" style="left:306px;top:198px;width:110px;height:26px;opacity:0"></div>
+<div id="s3b1" class="hl2" style="left:306px;top:386px;width:210px;height:28px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s3c" class="cap"><div class="step">STEP 3</div><div class="captext">Follow tab: tick Follow calls, then import your talkgroup list</div></div>
+</div>
+<audio id="s3a" class="clip" data-start="29.097" data-duration="10.612" data-track-index="1" data-volume="1" src="assets/vo/03-trunking_3.wav"></audio>
+<div id="s4" class="clip full" data-start="40.359" data-duration="12.423" data-track-index="0">
+<div class="frame"><div id="s4z" class="zoom"><img src="assets/shots/nxdn_site.jpg" alt="" />
+<div id="s4b0" class="hl" style="left:306px;top:306px;width:860px;height:190px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s4c" class="cap"><div class="step">DMR / NXDN</div><div class="captext">DMR and NXDN grants carry channel numbers: enter number = MHz pairs</div></div>
+</div>
+<audio id="s4a" class="clip" data-start="40.609" data-duration="11.523" data-track-index="1" data-volume="1" src="assets/vo/03-trunking_4.wav"></audio>
+<div id="s5" class="clip full" data-start="52.783" data-duration="14.148" data-track-index="0">
+<div class="frame"><div id="s5z" class="zoom"><img src="assets/shots/scanner.jpg" alt="" />
+<div id="s5b0" class="hl" style="left:60px;top:60px;width:760px;height:220px;opacity:0"></div>
+<div id="s5b1" class="hl2" style="left:700px;top:116px;width:56px;height:104px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s5c" class="cap"><div class="step">STEP 4</div><div class="captext">Tools &gt; Scanner: tick Trunked on a control channel entry</div></div>
+</div>
+<audio id="s5a" class="clip" data-start="53.033" data-duration="13.248" data-track-index="1" data-volume="1" src="assets/vo/03-trunking_5.wav"></audio>
+<div id="s6" class="clip full" data-start="66.930" data-duration="10.299" data-track-index="0">
+<div id="s6t" class="full title"><div class="eye"><div></div></div><div class="t1">Good to know</div><div class="t2">Encrypted calls are logged, never followed. Voice needs your own mbelib.</div><div class="t3">Recordings are saved per call</div></div>
+</div>
+<audio id="s6a" class="clip" data-start="67.180" data-duration="9.399" data-track-index="1" data-volume="1" src="assets/vo/03-trunking_6.wav"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s0", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 0.000);
+tl.fromTo("#s0t", {scale: 0.94}, {scale: 1, duration: 9.676, ease: "sine.out"}, 0.000);
+tl.fromTo("#s1", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 9.776);
+tl.fromTo("#s1z", {scale: 1, transformOrigin: "585px 67px"}, {scale: 1.15, duration: 11.633, ease: "sine.inOut"}, 9.776);
+tl.fromTo("#s1c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 10.026);
+tl.fromTo("#s1b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 10.676);
+tl.fromTo("#s2", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 21.509);
+tl.fromTo("#s2z", {scale: 1, transformOrigin: "606px 216px"}, {scale: 1.1, duration: 7.238, ease: "sine.inOut"}, 21.509);
+tl.fromTo("#s2c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 21.759);
+tl.fromTo("#s2b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 22.409);
+tl.fromTo("#s3", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 28.847);
+tl.fromTo("#s3z", {scale: 1, transformOrigin: "361px 211px"}, {scale: 1.1, duration: 11.412, ease: "sine.inOut"}, 28.847);
+tl.fromTo("#s3c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 29.097);
+tl.fromTo("#s3b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 29.747);
+tl.fromTo("#s3b1", {opacity: 0}, {opacity: 1, duration: 0.4}, 30.247);
+tl.fromTo("#s4", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 40.359);
+tl.fromTo("#s4z", {scale: 1, transformOrigin: "736px 401px"}, {scale: 1.1, duration: 12.323, ease: "sine.inOut"}, 40.359);
+tl.fromTo("#s4c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 40.609);
+tl.fromTo("#s4b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 41.259);
+tl.fromTo("#s5", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 52.783);
+tl.fromTo("#s5z", {scale: 1, transformOrigin: "440px 170px"}, {scale: 1.3, duration: 14.048, ease: "sine.inOut"}, 52.783);
+tl.fromTo("#s5c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 53.033);
+tl.fromTo("#s5b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 53.683);
+tl.fromTo("#s5b1", {opacity: 0}, {opacity: 1, duration: 0.4}, 54.183);
+tl.fromTo("#s6", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 66.930);
+tl.fromTo("#s6t", {scale: 0.94}, {scale: 1, duration: 10.199, ease: "sine.out"}, 66.930);
+      window.__timelines["03-trunking"] = tl;
+    </script>
+  </body>
+</html>

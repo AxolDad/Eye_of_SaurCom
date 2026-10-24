@@ -33,6 +33,12 @@ void rate(double bpm, double conf) {
 
 } // namespace
 
+void wifiSenseDevOpen(App& a) {
+    a.wifiSenseOpen = true;
+    S.loaded = true;
+    listen(true);
+}
+
 void wifiSenseWindow(App& a) {
     if (!S.loaded) {
         S.loaded = true;

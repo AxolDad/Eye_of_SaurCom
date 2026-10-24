@@ -14,6 +14,7 @@ dependencies = [
  "onair_dab",
  "onair_dmr",
  "onair_drm",
+ "onair_dsn",
  "onair_dstar",
  "onair_dvbsi",
  "onair_engine",
@@ -90,6 +91,10 @@ dependencies = [
  "onair_common",
  "onair_dab",
 ]
+
+[[package]]
+name = "onair_dsn"
+version = "0.1.0"
 
 [[package]]
 name = "onair_dstar"

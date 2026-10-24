@@ -12,9 +12,9 @@ namespace {
 
 struct State {
     bool loaded = false;
-    int viewMode = 0;                    // 0 messages, 1 channels, 2 system
+    int viewMode = 0;                    // 0 messages, 1 channels, 2 system, 3 stations
     int minPrio = 0;                     // show messages of at least this priority
-    int kindFilter = 0;                  // 0 all, 1 SafetyNET, 2 FleetNET
+    int kindFilter = 0;                  // 0 all, 1 SafetyNET, 2 FleetNET, 3 messages to ships
     uint64_t selected = 0;               // key of the message in the reading pane (0 = none)
     bool search = true;                  // look for more channels in the band
     int pushedSearch = -1;
@@ -45,7 +45,13 @@ void loadState() {
     S.sat = v >= 1 && v <= kNumSats ? (int)v : 0;
 }
 
-uint64_t keyOf(const dect2::InmcMessage& m) { return ((uint64_t)m.channel << 40) | ((uint64_t)m.serviceCode << 24) | m.id | (1ull << 62); }
+uint64_t keyOf(const dect2::InmcMessage& m) {
+    if (m.kind == 3)     // messages to ships: one channel carries one message after another, so the time tells them apart
+        return (1ull << 61) | ((uint64_t)m.channel << 52) | ((uint64_t)(m.lesId & 63) << 44) | ((uint64_t)(m.logicalChannel & 255) << 36) | (uint32_t)m.rxUnix;
+    return ((uint64_t)m.channel << 40) | ((uint64_t)m.serviceCode << 24) | m.id | (1ull << 62);
+}
+
+const char* kindName(int k) { return k == 1 ? "SafetyNET" : k == 2 ? "FleetNET" : k == 3 ? "Ship" : "System"; }
 
 ImVec4 prioColour(int p) {
     if (p >= 3) return pal::badRed();
@@ -91,11 +97,19 @@ void readingPane(const App& a, const dect2::InmcMessage* m) {
     if (!m) { { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("Click a message to read all of it."); ImGui::PopTextWrapPos(); } return; }
     char b[160];
     snprintf(b, sizeof b, "%s, %s", m->rxTime.c_str(), dect2::inmc::priorityName(m->priority)); kvLine(a, "received", b);
-    snprintf(b, sizeof b, "%02X  %s", m->serviceCode, m->serviceText.c_str()); kvLine(a, "service", b);
-    snprintf(b, sizeof b, "%u, repetition %d, %d packet%s%s", m->id, m->repetition, m->packets, m->packets == 1 ? "" : "s", m->complete ? "" : ", not complete yet"); kvLine(a, "message", b);
-    if (!m->area.empty()) kvLine(a, "area bytes", m->area.c_str());
-    if (m->sat >= 0 && !m->lesName.empty()) { snprintf(b, sizeof b, "%s, %s (a guess)", dect2::inmc::satName(m->sat).c_str(), m->lesName.c_str()); kvLine(a, "station", b); }
-    snprintf(b, sizeof b, "%s", m->presentation == 6 ? "ITA2" : m->presentation == 7 ? "binary" : m->presentation == 0 ? "IA5" : "other"); kvLine(a, "coding", b);
+    if (m->kind == 3) {
+        kvLine(a, "message", m->serviceText.c_str());
+        if (m->mesId >= 0) { snprintf(b, sizeof b, "%d", m->mesId); kvLine(a, "ship (mobile)", b); }
+        snprintf(b, sizeof b, "channel %d, %d packet%s%s", m->logicalChannel, m->packets, m->packets == 1 ? "" : "s", m->complete ? "" : ", not complete yet"); kvLine(a, "packets", b);
+        snprintf(b, sizeof b, "%s, %s", dect2::inmc::satName(m->sat).c_str(), m->lesName.empty() ? "(station not in the table)" : m->lesName.c_str()); kvLine(a, "station", b);
+    } else {
+        snprintf(b, sizeof b, "%02X  %s", m->serviceCode, m->serviceText.c_str()); kvLine(a, "service", b);
+        snprintf(b, sizeof b, "%u, repetition %d, %d packet%s%s", m->id, m->repetition, m->packets, m->packets == 1 ? "" : "s", m->complete ? "" : ", not complete yet"); kvLine(a, "message", b);
+        if (!m->areaText.empty()) kvLine(a, "area", m->areaText.c_str());
+        if (!m->area.empty()) kvLine(a, "area bytes", m->area.c_str());
+        if (m->sat >= 0 && !m->lesName.empty()) { snprintf(b, sizeof b, "%s, %s (a guess)", dect2::inmc::satName(m->sat).c_str(), m->lesName.c_str()); kvLine(a, "station", b); }
+    }
+    snprintf(b, sizeof b, "%s", m->presentation == 6 ? "ITA2" : m->presentation == 7 ? "binary" : m->presentation == 0 ? "IA5" : m->presentation < 0 ? "IA5 or binary (no announcement seen)" : "other"); kvLine(a, "coding", b);
     if (m->seen > 0) { snprintf(b, sizeof b, "%u time%s complete", m->seen, m->seen == 1 ? "" : "s"); kvLine(a, "heard", b); }
     ImGui::Spacing();
     ImGui::TextDisabled("Text");
@@ -117,8 +131,8 @@ void messageView(App& a) {
     ImGui::SameLine(0, 12 * gUi);
     ImGui::TextDisabled("Service"); ImGui::SameLine(0, 5 * gUi);
     ImGui::SetNextItemWidth(100 * gUi);
-    static const char* kinds[] = {"all", "SafetyNET", "FleetNET"};
-    ImGui::Combo("##inmkind", &S.kindFilter, kinds, 3);
+    static const char* kinds[] = {"all", "SafetyNET", "FleetNET", "ships"};
+    ImGui::Combo("##inmkind", &S.kindFilter, kinds, 4);
     const float H = ImGui::GetContentRegionAvail().y;
     const float listH = std::max(120.f * gUi, H * 0.5f);
     if (ImGui::BeginTable("##inmmsg", 7, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV, ImVec2(0, listH))) {
@@ -136,7 +150,7 @@ void messageView(App& a) {
                 char id[32]; snprintf(id, sizeof id, "##m%llx", (unsigned long long)keyOf(m));
                 if (ImGui::Selectable((m.rxTime + id).c_str(), S.selected == keyOf(m), ImGuiSelectableFlags_SpanAllColumns)) S.selected = keyOf(m);
                 ImGui::TableNextColumn(); ImGui::PushStyleColor(ImGuiCol_Text, prioColour(m.priority)); ImGui::TextUnformatted(dect2::inmc::priorityName(m.priority)); ImGui::PopStyleColor();
-                ImGui::TableNextColumn(); ImGui::TextUnformatted(m.kind == 1 ? "SafetyNET" : m.kind == 2 ? "FleetNET" : "System");
+                ImGui::TableNextColumn(); ImGui::TextUnformatted(kindName(m.kind));
                 ImGui::TableNextColumn(); ImGui::Text("%d", m.channel);
                 ImGui::TableNextColumn(); ImGui::Text("%u", m.id);
                 ImGui::TableNextColumn(); ImGui::Text("%d%s", m.packets, m.complete ? "" : "+");
@@ -222,14 +236,57 @@ void systemView(const App& a) {
     ImGui::PushFont(a.mono, 0); ImGui::TextWrapped("%s", n.servicesText.empty() ? "-" : n.servicesText.c_str()); ImGui::PopFont();
 }
 
+// the station list (0xAB) and the announcements (0x81) of messages to ships
+void stationsView(const App& a) {
+    const dect2::InmcTelemetry& t = a.rx.inmc;
+    if (!live(a)) { { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("%s", a.engine.running() ? "starting" : "start the receiver to see the stations"); ImGui::PopTextWrapPos(); } return; }
+    const float avail = ImGui::GetContentRegionAvail().y;
+    ImGui::TextDisabled("Land earth stations (station list packet)");
+    if (t.stations.empty()) ImGui::TextDisabled("  none yet: the NCS sends the list now and then");
+    else if (ImGui::BeginTable("##inmles", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV, ImVec2(0, avail * 0.42f))) {
+        ImGui::TableSetupScrollFreeze(0, 1);
+        ImGui::TableSetupColumn("LES"); ImGui::TableSetupColumn("Name"); ImGui::TableSetupColumn("TDM MHz"); ImGui::TableSetupColumn("Services", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableHeadersRow();
+        for (const auto& s : t.stations) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn(); ImGui::Text("%d", s.sat * 100 + s.lesId);
+            ImGui::TableNextColumn(); ImGui::TextUnformatted(s.lesName.empty() ? "-" : s.lesName.c_str());
+            ImGui::TableNextColumn(); ImGui::Text("%.4f", s.downlinkMhz);
+            ImGui::TableNextColumn(); ImGui::TextUnformatted(ellipsize(s.servicesText, ImGui::GetContentRegionAvail().x).c_str());
+            if (ImGui::IsItemHovered() && !s.servicesText.empty()) ImGui::SetTooltip("%s", s.servicesText.c_str());
+        }
+        ImGui::EndTable();
+    }
+    ImGui::Spacing();
+    ImGui::TextDisabled("Announcements: a message for a ship follows on a channel");
+    if (t.announcements.empty()) { ImGui::TextDisabled("  none yet"); return; }
+    if (ImGui::BeginTable("##inmann", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV, ImVec2(0, ImGui::GetContentRegionAvail().y))) {
+        ImGui::TableSetupScrollFreeze(0, 1);
+        ImGui::TableSetupColumn("Time UTC"); ImGui::TableSetupColumn("Ship"); ImGui::TableSetupColumn("Ch"); ImGui::TableSetupColumn("Coding");
+        ImGui::TableSetupColumn("TDM MHz"); ImGui::TableSetupColumn("Station", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableHeadersRow();
+        for (const auto& n : t.announcements) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn(); ImGui::TextUnformatted(n.rxTime.substr(0, 8).c_str());
+            ImGui::TableNextColumn(); ImGui::Text("%d", n.mesId);
+            ImGui::TableNextColumn(); ImGui::Text("%d", n.logicalChannel);
+            ImGui::TableNextColumn(); ImGui::TextUnformatted(n.presentation == 6 ? "ITA2" : n.presentation == 7 ? "binary" : n.presentation == 0 ? "IA5" : "other");
+            ImGui::TableNextColumn(); ImGui::Text("%.4f", n.downlinkMhz);
+            ImGui::TableNextColumn(); ImGui::Text("%d %s", n.sat * 100 + n.lesId, n.lesName.c_str());
+        }
+        ImGui::EndTable();
+    }
+}
+
 // ---------------------------------------------------------------- hooks
 
 void tab(App& a) {
     loadState();
-    subNav("inmcv", S.viewMode, {"Messages", "Channel", "System"});
+    subNav("inmcv", S.viewMode, {"Messages", "Channel", "System", "Stations"});
     if (S.viewMode == 0) messageView(a);
     else if (S.viewMode == 1) channelView(a);
-    else systemView(a);
+    else if (S.viewMode == 2) systemView(a);
+    else stationsView(a);
 }
 
 // the bottom row of the overview: the newest message, and the packets seen by type
@@ -273,7 +330,7 @@ void list(App& a) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn(); ImGui::TextUnformatted(m.rxTime.substr(0, 8).c_str());
         ImGui::TableNextColumn(); ImGui::PushStyleColor(ImGuiCol_Text, prioColour(m.priority)); ImGui::TextUnformatted(dect2::inmc::priorityName(m.priority)); ImGui::PopStyleColor();
-        ImGui::TableNextColumn(); ImGui::TextUnformatted(m.kind == 1 ? "SafetyNET" : m.kind == 2 ? "FleetNET" : "System");
+        ImGui::TableNextColumn(); ImGui::TextUnformatted(kindName(m.kind));
     }
     ImGui::EndTable();
 }

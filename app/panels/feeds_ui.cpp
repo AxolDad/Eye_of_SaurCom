@@ -402,3 +402,5 @@ void feedsWindow(App& a) {
     if (changed) apply(a);
     ImGui::End();
 }
+
+void cotListenDev(App& a) { cotListen(a.feeds, true); }

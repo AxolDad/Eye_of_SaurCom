@@ -136,6 +136,7 @@ void siteView(App& a) {
     kvRow(a, "service", "0x%04X", s.service);
     kvRow(a, "channel", "0x%04X", s.channel);
     kvRow(a, "heard", "%s UTC", clock(s.wallTime).c_str());
+    if (gTrunkPanelDevOpen) ImGui::SetNextItemOpen(true, ImGuiCond_Once);
     if (ImGui::TreeNode("Type C trunking: follow calls")) { trunkFollowPanel(a); ImGui::TreePop(); }
 }
 
@@ -232,3 +233,5 @@ const ModeUi kNxdnUi = {
     .summary = summary,
     .tick = tick,
 };
+
+void nxdnDevView(int v) { S.view = v; }   // dev: the sub-view the NXDN tab starts on (screenshots)

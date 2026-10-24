@@ -763,8 +763,13 @@ struct InmcReceiver::Impl {
             if (k > 0) {
                 for (auto m : c.tel.messages) { m.channel = ids[k]; all.push_back(std::move(m)); }
                 count += c.tel.messageCount;
+                if (tel.stations.empty()) tel.stations = c.tel.stations;
+                tel.announcements.insert(tel.announcements.end(), c.tel.announcements.begin(), c.tel.announcements.end());
             }
         }
+        std::stable_sort(tel.announcements.begin(), tel.announcements.end(),
+                         [](const InmcAnnouncement& a, const InmcAnnouncement& b) { return a.rxUnix > b.rxUnix; });
+        if (tel.announcements.size() > 50) tel.announcements.resize(50);
         if (ch.size() > 1 || !kept.empty()) {
             mergeKept(all);
             inmc::trimMessages(all, 150, 70000);

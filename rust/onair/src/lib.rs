@@ -13,6 +13,7 @@ pub use onair_ax25 as ax25;
 pub use onair_common as common;
 pub use onair_cot as cot;
 pub use onair_wifisense as wifisense;
+pub use onair_dsn as dsn;
 pub use onair_dab as dab;
 pub use onair_dmr as dmr;
 pub use onair_drm as drm;

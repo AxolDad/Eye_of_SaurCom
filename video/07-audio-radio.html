@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Sound output, streaming and internet radio</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #070a0e; }
+#root { position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: Inter, sans-serif; color: #e8eef5;
+        background: radial-gradient(ellipse at 30% 20%, #142233 0%, #070a0e 70%); }
+.full { position: absolute; inset: 0; }
+.frame { position: absolute; left: 210px; top: 36px; width: 1500px; height: 900px; overflow: hidden; border-radius: 14px;
+         box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(120,200,255,0.18); background: #000; }
+.zoom { position: absolute; inset: 0; }
+.zoom img { position: absolute; left: 0; top: 0; width: 1500px; height: 900px; }
+.hl { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.38), 0 0 24px rgba(255,176,32,0.7); }
+.hl2 { position: absolute; border: 4px solid #ffb020; border-radius: 10px; box-shadow: 0 0 24px rgba(255,176,32,0.7); }
+.cap { position: absolute; left: 210px; right: 210px; bottom: 26px; height: 104px; display: flex; align-items: center; gap: 22px;
+       padding: 0 30px; border-radius: 14px; background: rgba(10,16,24,0.92); box-shadow: 0 0 0 1px rgba(120,200,255,0.2); }
+.step { flex: none; padding: 10px 18px; border-radius: 10px; background: #ffb020; color: #10161d; font-weight: 800; font-size: 26px; }
+.captext { font-size: 34px; font-weight: 600; line-height: 1.2; }
+.brand { position: absolute; right: 228px; top: 52px; padding: 8px 16px; border-radius: 9px; background: rgba(7,10,14,0.85);
+         color: #7fd0ff; font-weight: 700; font-size: 22px; letter-spacing: 0.04em; }
+.title { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 28px; }
+.eye { width: 170px; height: 170px; border-radius: 50%; border: 10px solid #7fd0ff; display: flex; align-items: center; justify-content: center;
+       box-shadow: 0 0 60px rgba(127,208,255,0.5); }
+.eye div { width: 62px; height: 62px; border-radius: 50%; background: #ffb020; box-shadow: 0 0 40px rgba(255,176,32,0.9); }
+.t1 { font-size: 104px; font-weight: 800; letter-spacing: -0.02em; }
+.t2 { font-size: 44px; font-weight: 500; color: #b9c7d6; max-width: 1500px; }
+.t3 { font-size: 34px; font-weight: 600; color: #ffb020; }
+</style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="07-audio-radio" data-start="0" data-duration="48.976" data-width="1920" data-height="1080" data-fps="30">
+<div id="s0" class="clip full" data-start="0.000" data-duration="3.640" data-track-index="0">
+<div id="s0t" class="full title"><div class="eye"><div></div></div><div class="t1">Sound out and internet radio</div><div class="t2">Any device, virtual audio cables, Icecast streaming, radio stations worldwide</div><div class="t3">Eye of ZorCom how-to</div></div>
+</div>
+<audio id="s0a" class="clip" data-start="0.250" data-duration="2.740" data-track-index="1" data-volume="1" src="assets/vo/07-audio-radio_0.wav"></audio>
+<div id="s1" class="clip full" data-start="3.640" data-duration="12.836" data-track-index="0">
+<div class="frame"><div id="s1z" class="zoom"><img src="assets/shots/main_fm.jpg" alt="" />
+<div id="s1b0" class="hl" style="left:6px;top:214px;width:290px;height:28px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s1c" class="cap"><div class="step">STEP 1</div><div class="captext">Source panel: pick the sound output device</div></div>
+</div>
+<audio id="s1a" class="clip" data-start="3.890" data-duration="11.936" data-track-index="1" data-volume="1" src="assets/vo/07-audio-radio_1.wav"></audio>
+<div id="s2" class="clip full" data-start="16.476" data-duration="11.199" data-track-index="0">
+<div class="frame"><div id="s2z" class="zoom"><img src="assets/shots/main_fm.jpg" alt="" />
+<div id="s2b0" class="hl" style="left:6px;top:238px;width:290px;height:60px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s2c" class="cap"><div class="step">STEP 2</div><div class="captext">Stream audio: send the sound to an Icecast server as MP3</div></div>
+</div>
+<audio id="s2a" class="clip" data-start="16.726" data-duration="10.299" data-track-index="1" data-volume="1" src="assets/vo/07-audio-radio_2.wav"></audio>
+<div id="s3" class="clip full" data-start="27.675" data-duration="10.763" data-track-index="0">
+<div class="frame"><div id="s3z" class="zoom"><img src="assets/shots/webradio.jpg" alt="" />
+<div id="s3b0" class="hl" style="left:60px;top:60px;width:560px;height:44px;opacity:0"></div>
+</div></div>
+<div class="brand">EYE OF ZORCOM</div>
+<div id="s3c" class="cap"><div class="step">STEP 3</div><div class="captext">Tools &gt; Internet radio: search the world&#x27;s stations</div></div>
+</div>
+<audio id="s3a" class="clip" data-start="27.925" data-duration="9.863" data-track-index="1" data-volume="1" src="assets/vo/07-audio-radio_3.wav"></audio>
+<div id="s4" class="clip full" data-start="38.438" data-duration="10.339" data-track-index="0">
+<div id="s4t" class="full title"><div class="eye"><div></div></div><div class="t1">Video out too</div><div class="t2">FPV and analogue TV pictures re-stream as MPEG-TS over UDP</div><div class="t3">Open the stream in VLC or OBS</div></div>
+</div>
+<audio id="s4a" class="clip" data-start="38.688" data-duration="9.439" data-track-index="1" data-volume="1" src="assets/vo/07-audio-radio_4.wav"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s0", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 0.000);
+tl.fromTo("#s0t", {scale: 0.94}, {scale: 1, duration: 3.540, ease: "sine.out"}, 0.000);
+tl.fromTo("#s1", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 3.640);
+tl.fromTo("#s1z", {scale: 1, transformOrigin: "151px 228px"}, {scale: 1.4, duration: 12.736, ease: "sine.inOut"}, 3.640);
+tl.fromTo("#s1c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 3.890);
+tl.fromTo("#s1b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 4.540);
+tl.fromTo("#s2", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 16.476);
+tl.fromTo("#s2z", {scale: 1, transformOrigin: "151px 268px"}, {scale: 1.4, duration: 11.099, ease: "sine.inOut"}, 16.476);
+tl.fromTo("#s2c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 16.726);
+tl.fromTo("#s2b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 17.376);
+tl.fromTo("#s3", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 27.675);
+tl.fromTo("#s3z", {scale: 1, transformOrigin: "340px 82px"}, {scale: 1.4, duration: 10.663, ease: "sine.inOut"}, 27.675);
+tl.fromTo("#s3c", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}, 27.925);
+tl.fromTo("#s3b0", {opacity: 0}, {opacity: 1, duration: 0.4}, 28.575);
+tl.fromTo("#s4", {opacity: 0}, {opacity: 1, duration: 0.35, ease: "power1.out"}, 38.438);
+tl.fromTo("#s4t", {scale: 0.94}, {scale: 1, duration: 10.239, ease: "sine.out"}, 38.438);
+      window.__timelines["07-audio-radio"] = tl;
+    </script>
+  </body>
+</html>
