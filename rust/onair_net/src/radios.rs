@@ -24,6 +24,9 @@ pub const KIWI_SDR: u32 = 8;
 pub const SOAPY_ARGS: u32 = 9;
 /// TCI (Transceiver Control Interface of ExpertSDR3 and others; WebSocket on port 50001), receive only.
 pub const TCI: u32 = 10;
+/// Aaronia RTSA-Suite (the HTTP Server block of a graph that is driving a Spectran V6 or another Aaronia radio); its `remote` text is
+/// "user:password" when the server asks for one.
+pub const AARONIA: u32 = 11;
 
 /// The key of a type in the settings text (an unknown type is written as rtl_tcp).
 pub fn type_key(t: u32) -> &'static str {
@@ -38,6 +41,7 @@ pub fn type_key(t: u32) -> &'static str {
         KIWI_SDR => "kiwisdr",
         SOAPY_ARGS => "soapyargs",
         TCI => "tci",
+        AARONIA => "aaronia",
         _ => "rtltcp",
     }
 }
@@ -55,6 +59,7 @@ pub fn type_name(t: u32) -> &'static str {
         KIWI_SDR => "KiwiSDR",
         SOAPY_ARGS => "SoapySDR (device string)",
         TCI => "TCI (network)",
+        AARONIA => "Aaronia RTSA-Suite (Spectran)",
         _ => "rtl_tcp",
     }
 }
@@ -71,6 +76,7 @@ pub fn default_port(t: u32) -> i32 {
         KIWI_SDR => 8073,
         SOAPY_ARGS => 0,
         TCI => 50001,
+        AARONIA => 54664,
         _ => 1234,
     }
 }
@@ -152,6 +158,7 @@ fn type_from_key(t: &[u8]) -> Option<u32> {
         b"kiwisdr" => KIWI_SDR,
         b"soapyargs" => SOAPY_ARGS,
         b"tci" => TCI,
+        b"aaronia" => AARONIA,
         _ => return None,
     })
 }
@@ -282,6 +289,22 @@ mod kiwi_tests {
         assert_eq!(radios[1].remote.len, 0);
         assert_eq!(radios[2].remote.len, 0);
         assert_eq!((type_key(KIWI_SDR), type_name(KIWI_SDR), default_port(KIWI_SDR)), ("kiwisdr", "KiwiSDR", 8073));
+    }
+
+    #[test]
+    fn aaronia_is_listed_and_round_trips() {
+        let text = b"aaronia,10.0.0.7,54664;aaronia,box,0,user:pw";
+        let mut radios = [Radio::default(); 4];
+        let mut arena = [0u8; 128];
+        let n = parse(text, &mut radios, &mut arena);
+        assert_eq!(n, 2);
+        assert_eq!((radios[0].kind, radios[0].port), (AARONIA, 54664));
+        assert_eq!((radios[1].kind, radios[1].port), (AARONIA, 0));
+        assert_eq!(port_of(AARONIA, 0), 54664);
+        assert_eq!((type_key(AARONIA), type_name(AARONIA), default_port(AARONIA)), ("aaronia", "Aaronia RTSA-Suite (Spectran)", 54664));
+        let mut out = [0u8; 128];
+        let len = format(&radios[..1], &arena, &mut out);
+        assert_eq!(&out[..len], b"aaronia,10.0.0.7,54664");
     }
 
     #[test]

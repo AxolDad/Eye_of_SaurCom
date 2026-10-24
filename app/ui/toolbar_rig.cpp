@@ -142,7 +142,7 @@ void netRadioWindow(App& a) {
     if (!ImGui::Begin(trw("Network radios"), &a.netAddOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::End(); return; }
     const bool busy = a.netAddProbe != nullptr;
     ImGui::BeginDisabled(busy);
-    static const char* kTypes[] = {"PlutoSDR (by IP)", "rtl_tcp", "SoapyRemote", "SpyServer", "Hermes Lite 2", "Red Pitaya", "SDR++ server", "SDRplay nRSP-ST (SDRconnect)", "KiwiSDR", "SoapySDR (device string)", "TCI (network)"};
+    static const char* kTypes[] = {"PlutoSDR (by IP)", "rtl_tcp", "SoapyRemote", "SpyServer", "Hermes Lite 2", "Red Pitaya", "SDR++ server", "SDRplay nRSP-ST (SDRconnect)", "KiwiSDR", "SoapySDR (device string)", "TCI (network)", "Aaronia RTSA-Suite (Spectran)"};
     ImGui::SetNextItemWidth(200 * gUi);
     if (ImGui::Combo("Type", &a.netAddType, kTypes, IM_ARRAYSIZE(kTypes))) {
         const auto t = (NetRadio::Type)a.netAddType;
@@ -181,6 +181,16 @@ void netRadioWindow(App& a) {
     if (a.netAddType == NetRadio::Tci)
         ImGui::TextDisabled("%s", tr("TCI: the Transceiver Control Interface of ExpertSDR3 (and SunSDR or other programs with a TCI server), port 50001. Turn its TCI server on and type "
                                      "that computer's address. Eye of ZorCom only receives (the IQ stream, 48 to 384 kHz); it never transmits. No password is needed."));
+    if (a.netAddType == NetRadio::Aaronia) {
+        ImGui::SetNextItemWidth(200 * gUi);
+        ImGui::InputTextWithHint(tr("Password"), tr("user:password, blank if the server asks for none"), a.netAddPass, sizeof a.netAddPass, ImGuiInputTextFlags_Password);
+        ImGui::PushTextWrapPos(400 * gUi);
+        ImGui::TextDisabled("%s", tr("A Spectran V6 (or another Aaronia radio) is reached through the Aaronia RTSA-Suite, not directly. In RTSA-Suite, build a graph that ends in an "
+                                     "IQ demodulator block feeding an HTTP Server block, note the port that block is set to (54664 in Aaronia's own examples) and type this computer's "
+                                     "address here. The span and the frequency are the graph's: Eye of ZorCom asks it to change them, and reports whatever its packets carry. "
+                                     "A graph serving spectra instead of IQ cannot be listened to."));
+        ImGui::PopTextWrapPos();
+    }
     if (a.netAddType == NetRadio::KiwiSdr) {
         ImGui::SetNextItemWidth(200 * gUi);
         ImGui::InputTextWithHint(tr("Password"), tr("blank if the owner set none"), a.netAddPass, sizeof a.netAddPass, ImGuiInputTextFlags_Password);
@@ -201,7 +211,7 @@ void netRadioWindow(App& a) {
     if (ImGui::Button(tr("Connect"))) {
         NetRadio r;
         if (a.netAddType == NetRadio::SoapyRemote || a.netAddType == NetRadio::SoapyArgs) r.remote = a.netAddRemote;
-        if (a.netAddType == NetRadio::KiwiSdr) r.remote = a.netAddPass;
+        if (a.netAddType == NetRadio::KiwiSdr || a.netAddType == NetRadio::Aaronia) r.remote = a.netAddPass;
         r.type = (NetRadio::Type)a.netAddType;
         r.host = a.netAddHost;
         r.port = a.netAddPort;

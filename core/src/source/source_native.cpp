@@ -78,6 +78,7 @@ std::unique_ptr<IqSource> makeNativeSource(const DeviceInfo& d) {
     if (d.board == "tci") return native::makeTci(d);
     if (d.board == "nrspst") return native::makeNrspSt(d);
     if (d.board == "kiwisdr") return native::makeKiwiSdr(d);
+    if (d.board == "aaronia") return native::makeAaronia(d);
     if (d.board == "hermeslite2") return native::makeHermesLite2(d);
     if (d.board == "redpitaya") return native::makeRedPitaya(d);
     if (d.board == "fobos") return native::makeFobos(d);         // ---- fobos

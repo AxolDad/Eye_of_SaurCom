@@ -34,8 +34,8 @@ std::string hostPort(const std::string& host, int port) {
 
 // the type tables and the settings text of the list are in net_proto.h (C++ or the Rust crate onair_net)
 const char* netRadioTypeName(NetRadio::Type t) {
-    static const std::string names[11] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8), netp::radioTypeName(9), netp::radioTypeName(10)};
-    return names[(unsigned)t < 11 ? (unsigned)t : 1].c_str();
+    static const std::string names[12] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8), netp::radioTypeName(9), netp::radioTypeName(10), netp::radioTypeName(11)};
+    return names[(unsigned)t < 12 ? (unsigned)t : 1].c_str();
 }
 int netRadioDefaultPort(NetRadio::Type t) { return netp::radioDefaultPort((uint32_t)t); }
 const char* netRadioDefaultHost(NetRadio::Type t) {
@@ -234,6 +234,7 @@ std::string netRadioDeviceName(const NetRadio& r) {
     case NetRadio::KiwiSdr: return native::kiwiSdrDevice(cleanHost(r.host), netRadioPort(r)).name;
     case NetRadio::SoapyArgs: return "SoapySDR " + r.remote;
     case NetRadio::Tci: return native::tciDevice(cleanHost(r.host), netRadioPort(r)).name;
+    case NetRadio::Aaronia: return native::aaroniaDevice(cleanHost(r.host), netRadioPort(r), r.remote).name;
     default: return native::rtlTcpDevice(cleanHost(r.host), netRadioPort(r)).name;
     }
 }
@@ -274,6 +275,7 @@ std::vector<DeviceInfo> netRadioDevices(const std::vector<NetRadio>& v) {
         case NetRadio::SdrppServer: out.push_back(native::sdrppDevice(cleanHost(r.host), netRadioPort(r))); break;
         case NetRadio::NrspSt: out.push_back(native::nrspStDevice(cleanHost(r.host), netRadioPort(r))); break;
         case NetRadio::Tci: out.push_back(native::tciDevice(cleanHost(r.host), netRadioPort(r))); break;
+        case NetRadio::Aaronia: out.push_back(native::aaroniaDevice(cleanHost(r.host), netRadioPort(r), r.remote)); break;
         case NetRadio::KiwiSdr: {
             const auto d = native::kiwiSdrDevice(cleanHost(r.host), netRadioPort(r));
             kiwiSetPassword(d.nativeArgs, r.remote);   // for the source; not in the device entry
