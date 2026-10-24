@@ -58,6 +58,33 @@ int main() {
         CHECK(t.perType[2] >= 12 && t.perType[0] == t.beacons + t.probeResps && t.channel == 6, "data frames counted %llu", (unsigned long long)t.perType[2]);
         CHECK(t.snrDb > 20, "SNR %.1f", t.snrDb);
     }
+    {   // deauthentication and disassociation frames are counted and listed (for the flood alarm), and are not taken for access points
+        auto mgmt = [](uint8_t fc0, const uint8_t dst[6], const uint8_t src[6], const uint8_t bss[6]) {
+            WifiGenFrame g;
+            g.mpdu = {fc0, 0x00, 0x00, 0x00};
+            g.mpdu.insert(g.mpdu.end(), dst, dst + 6); g.mpdu.insert(g.mpdu.end(), src, src + 6); g.mpdu.insert(g.mpdu.end(), bss, bss + 6);
+            g.mpdu.insert(g.mpdu.end(), {0x10, 0x00, 0x07, 0x00});   // sequence control, reason 7
+            appendFcs(g.mpdu);
+            return g;
+        };
+        const uint8_t all[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, ap1[6] = {0x00, 0x04, 0x0E, 0x12, 0x34, 0x56}, sta[6] = {0x3C, 0x22, 0xFB, 0x01, 0x02, 0x03};
+        WifiGenConfig c;
+        c.snrDb = 30;
+        c.frames = wifiTestSchedule();
+        for (int i = 0; i < 4; i++) c.frames.push_back(mgmt(0xC0, all, ap1, ap1));    // deauthentication to everyone
+        c.frames.push_back(mgmt(0xA0, sta, ap1, ap1));                                   // disassociation of one station
+        const WifiTelemetry t = run(c, 0.25, channelMhz(6) * 1e6);
+        printf("  deauth: %llu deauth, %llu disassoc, %zu listed, %zu APs\n", (unsigned long long)t.deauths, (unsigned long long)t.disassocs, t.deauthLog.size(), t.aps.size());
+        CHECK(t.deauths >= 12 && t.disassocs >= 3, "counts: %llu / %llu", (unsigned long long)t.deauths, (unsigned long long)t.disassocs);
+        CHECK(!t.deauthLog.empty() && t.deauthLog.size() <= kWifiDeauthMax, "list %zu", t.deauthLog.size());
+        bool sawBroadcast = false, sawStation = false;
+        for (const auto& d : t.deauthLog) {
+            if (!d.disassoc && d.source == "00:04:0E:12:34:56" && d.dest == "FF:FF:FF:FF:FF:FF" && d.bssid == "00:04:0E:12:34:56" && d.channel == 6) sawBroadcast = true;
+            if (d.disassoc && d.dest == "3C:22:FB:01:02:03") sawStation = true;
+        }
+        CHECK(sawBroadcast && sawStation, "addresses: broadcast %d station %d", sawBroadcast, sawStation);
+        CHECK(t.aps.size() == 3 && t.perType[0] >= t.beacons + t.probeResps + t.deauths + t.disassocs, "still three APs, management frames counted");
+    }
     {   // a bad FCS is rejected, the good frames around it still decode
         WifiGenConfig c;
         c.frames = wifiTestSchedule();

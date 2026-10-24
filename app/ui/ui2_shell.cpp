@@ -238,6 +238,7 @@ void sidebar(App& a) {
         tool("Images", a.galleryOpen, "The pictures the receivers have decoded");
         tool("Data feeds...", a.feedsOpen, "Send decoded data to other programs and services");
         tool("Internet radio...", a.webRadioOpen, N_("Search the world's internet radio stations and play one through the sound output"));
+        tool("Radio tools", a.radioToolsOpen, N_("Wi-Fi and Bluetooth alerts, a frequency analyzer and a drive log, with links to the other receive-only tools"));
         tool("Deep Space Network", a.dsnOpen, N_("What NASA's deep space dishes are talking to now: spacecraft, distance, bands and data rates"));
         tool("WiFi sensing...", a.wifiSenseOpen, N_("Presence, motion, breathing and heart rate in a room from the WiFi channel of ESP32 nodes"));
         tool("Messages...", a.msgdbOpen, N_("Every decoded message in one searchable database, with filters and export"));
@@ -421,6 +422,7 @@ static void viewMenu(App& a) {
         ImGui::MenuItem(tr("Images"), nullptr, &a.galleryOpen);
         ImGui::MenuItem(tr("Data feeds..."), nullptr, &a.feedsOpen);
         ImGui::MenuItem(tr("Internet radio..."), nullptr, &a.webRadioOpen);
+        ImGui::MenuItem(tr("Radio tools"), nullptr, &a.radioToolsOpen);
         ImGui::MenuItem(tr("Deep Space Network"), nullptr, &a.dsnOpen);
         ImGui::MenuItem(tr("WiFi sensing..."), nullptr, &a.wifiSenseOpen);
         ImGui::MenuItem(tr("Messages..."), nullptr, &a.msgdbOpen);

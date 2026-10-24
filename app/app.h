@@ -417,6 +417,7 @@ struct App {
     bool feedsOpen = false;   // View > Data feeds: the window (feeds_ui.cpp)
     bool webRadioOpen = false;   // View > Internet radio (web_radio_ui.cpp)
     bool dsnOpen = false;        // Tools > Deep Space Network (dsn_ui.cpp)
+    bool radioToolsOpen = false; // Tools > Radio tools (radio_tools_ui.cpp)
     bool wifiSenseOpen = false;  // View > WiFi sensing (wifisense_ui.cpp)
     bool watchlistOpen = false;    // View > Watchlists: alerts when listed aircraft, ships, call signs, frequencies or words are heard (watchlist_ui.cpp)
     bool msgdbOpen = false;        // View > Messages: the decoded-message database (msgdb_ui.cpp)
@@ -882,6 +883,8 @@ void feedsWindow(App& a);          // feeds_ui.cpp: the "Data feeds" window (Vie
 void webRadioWindow(App& a);       // web_radio_ui.cpp: internet radio stations (View > Internet radio)
 void dsnWindow(App& a);            // dsn_ui.cpp: NASA Deep Space Network Now (Tools > Deep Space Network)
 void dsnDevOpen(App& a);           // dsn_ui.cpp: --dsn
+void radioToolsWindow(App& a);     // radio_tools_ui.cpp: Tools > Radio tools (a.radioToolsOpen); also feeds the drive log, every frame
+void radioToolsDevOpen(App& a, int tab);   // radio_tools_ui.cpp: --radiotools [tab]
 void wifiSenseWindow(App& a);      // wifisense_ui.cpp: presence and vital signs from ESP32 CSI nodes (View > WiFi sensing)
 void wifiSenseDevOpen(App& a);     // dev: the window open and listening (screenshots)
 void cotListenDev(App& a);         // dev: feeds_ui.cpp: the Cursor on Target listener on (screenshots)
