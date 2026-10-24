@@ -1,6 +1,7 @@
 // General receiver (see general_rx.h): one channel of the band mixed down, filtered, demodulated (NFM, WFM, AM, USB, LSB, CW),
 // squelched and played; optionally recorded to WAV, one file per transmission.
 #include "dect2/general/general_rx.h"
+#include "dect2/general/sam.h"
 #include "dect2/dsp/baseband_filter.h"
 #include "dect2/audio/flac_enc.h"
 #include "dect2/audio/mp3_enc.h"
@@ -82,6 +83,11 @@ struct Cfg {
     float gainDb = 20;
     double deemphUs = 0;
     double pitch = 700;
+    int samSide = 0;                 // sam::Dsb / Usb / Lsb
+    double samLoopBw = 10;
+    bool coOn = false;
+    int coClean = 1;                 // sam::Usb
+    float coDepth = 1;
 };
 
 void put16(FILE* f, uint16_t v) { uint8_t b[2] = {(uint8_t)v, (uint8_t)(v >> 8)}; fwrite(b, 1, 2, f); }
@@ -153,14 +159,14 @@ struct Delay {
 } // namespace
 
 const char* generalDemodName(int d) {
-    static const char* const k[] = {"NFM", "WFM", "AM", "USB", "LSB", "CW"};
+    static const char* const k[] = {"NFM", "WFM", "AM", "USB", "LSB", "CW", "SAM"};
     return d >= 0 && d < GenDemodCount ? k[d] : "?";
 }
 
 const double* generalWidthPresets(int d, int& count) {
     switch (d) {
     case GenWfm: count = 3; return kWfmW;
-    case GenAm: count = 4; return kAmW;
+    case GenAm: case GenSam: count = 4; return kAmW;
     case GenUsb: case GenLsb: count = 4; return kSsbW;
     case GenCw: count = 4; return kCwW;
     default: count = 3; return kNfmW;
@@ -170,7 +176,7 @@ const double* generalWidthPresets(int d, int& count) {
 double generalDefaultWidth(int d) {
     switch (d) {
     case GenWfm: return 180000;
-    case GenAm: return 9000;
+    case GenAm: case GenSam: return 9000;
     case GenUsb: case GenLsb: return 2700;
     case GenCw: return 500;
     default: return 12500;
@@ -180,7 +186,7 @@ double generalDefaultWidth(int d) {
 void generalWidthRange(int d, double& lo, double& hi) {
     switch (d) {
     case GenWfm: lo = 50000; hi = 220000; break;
-    case GenAm: lo = 1000; hi = 20000; break;
+    case GenAm: case GenSam: lo = 1000; hi = 20000; break;
     case GenUsb: case GenLsb: lo = 500; hi = 6000; break;
     case GenCw: lo = 50; hi = 3000; break;
     default: lo = 2000; hi = 30000; break;
@@ -243,6 +249,8 @@ struct GeneralReceiver::Impl {
     float deAl = 1;
     double car = 0, env = 0, bfoPh = 0;
     bool carInit = false;
+    sam::SamDemod samD;              // synchronous AM
+    sam::CoChannel coCh;             // the co-channel canceller, in front of the demodulator
     float dcX = 0, dcY = 0, deY = 0;
     RealFir audLp;
     // squelch
@@ -313,6 +321,11 @@ struct GeneralReceiver::Impl {
         fft = std::make_unique<Fft>(kNoiseN);
         win.resize(kNoiseN); wsum2 = 0;
         for (int i = 0; i < kNoiseN; i++) { win[(size_t)i] = (float)(0.5 - 0.5 * std::cos(2 * kPi * (i + 0.5) / kNoiseN)); wsum2 += (double)win[(size_t)i] * win[(size_t)i]; }
+        samD.configure(demodRate, cfg.samLoopBw);
+        samD.setSide(cfg.samSide);
+        coCh.configure(demodRate, cfg.samLoopBw);
+        coCh.setCleanSide(cfg.coClean);
+        coCh.setDepth(cfg.coDepth);
         if (wide) audLp.design(121, 15000.0 / demodRate, (int)std::lround(demodRate / kGeneralAudioRate));
         else audLp.design(63, 4000.0 / demodRate, 1);
         design();
@@ -343,6 +356,7 @@ struct GeneralReceiver::Impl {
         std::fill(hist.begin(), hist.end(), cf32(0, 0)); hpos = 0;
         acc.assign(kNoiseN, 0.0); accN = 0; fbuf.clear(); noisePsd = -1; noisePsdIn = -1;
         prev = cf32(0, 0); car = 0; env = 0; carInit = false; bfoPh = 0;
+        samD.reset(); coCh.reset();
         dcX = dcY = deY = 0; audLp.reset(); dry.reset();
         blkPow = 0; blkN = 0; lvl = -1; open = false; hang = 0; ramp = 0;
         fmSum = 0; fmN = 0; cfo = 0;
@@ -415,6 +429,8 @@ struct GeneralReceiver::Impl {
         float a = 0;
         bool have = true;
         const double g = gLin;
+        // the canceller takes the strong station out of the channel first, so what follows hears the one underneath
+        if (cfg.coOn && (cfg.demod == GenAm || cfg.demod == GenSam)) z = coCh.push(z);
         switch (cfg.demod) {
         case GenNfm: case GenWfm: {
             const cf32 d = z * std::conj(prev);
@@ -430,6 +446,11 @@ struct GeneralReceiver::Impl {
             dcX = y; dcY = hp;
             if (cfg.deemphUs > 0) { deY += deAl * (hp - deY); a = deY; }
             else a = hp;
+            break;
+        }
+        case GenSam: {
+            const double m = samD.push(z);    // the modulation itself, the same quantity the envelope detector gives
+            a = (float)(cfg.agc ? m * kOutLevel : m * samD.pll().amplitude() * g);
             break;
         }
         case GenAm: {
@@ -522,6 +543,14 @@ struct GeneralReceiver::Impl {
         GeneralTelemetry t;
         t.seq = pub.seq + 1;
         t.demod = cfg.demod; t.rate = curRate; t.demodRate = demodRate;
+        t.samLocked = samD.pll().locked(); t.samLock = (float)samD.pll().lock();
+        t.samOffsetHz = samD.pll().offsetHz(); t.samSide = cfg.samSide;
+        t.coChannelOn = cfg.coOn; t.coChannelLocked = coCh.locked();
+        t.coChannelOffsetHz = coCh.strongOffsetHz(); t.coChannelNullDb = (float)coCh.nullDepthDb();
+        t.samLocked = samD.pll().locked(); t.samLock = (float)samD.pll().lock();
+        t.samOffsetHz = samD.pll().offsetHz(); t.samSide = cfg.samSide;
+        t.coChannelOn = cfg.coOn; t.coChannelLocked = coCh.locked();
+        t.coChannelOffsetHz = coCh.strongOffsetHz(); t.coChannelNullDb = (float)coCh.nullDepthDb();
         t.chanOffsetHz = cfg.chanOff; t.filterLoHz = fLo; t.filterHiHz = fHi;
         const bool ssb = (cfg.demod == GenUsb || cfg.demod == GenLsb) && noisePsdIn > 0;
         const double noisePow = (ssb ? noisePsdIn : noisePsd) > 0 ? (ssb ? noisePsdIn : noisePsd) * (fHi - fLo) : -1;
@@ -686,6 +715,7 @@ void GeneralReceiver::feed(const cf32* x, size_t n) {
         const bool demodCh = c.demod != m.cfg.demod;
         const bool refilter = demodCh || c.width != m.cfg.width;
         const bool retuned = c.chanOff != m.cfg.chanOff;
+        const bool loopBwCh = c.samLoopBw != m.cfg.samLoopBw;
         if (rebuild || retuned || demodCh) {   // the open file is the old channel: finish it before the dial or the mode moves
             std::lock_guard<std::mutex> lk(m.wavMu);
             if (m.txFile) m.endTransmission();
@@ -695,7 +725,14 @@ void GeneralReceiver::feed(const cf32* x, size_t n) {
         m.gLin = std::pow(10.0, c.gainDb / 20.0);
         m.deAl = c.deemphUs > 0 ? (float)(1 - std::exp(-1.0 / (kGeneralAudioRate * c.deemphUs * 1e-6))) : 1.f;
         if (rebuild) m.build();
-        else if (refilter) { m.design(); m.prev = cf32(0, 0); m.carInit = false; m.env = 0; m.deY = 0; }
+        else {
+            if (refilter) { m.design(); m.prev = cf32(0, 0); m.carInit = false; m.env = 0; m.deY = 0; }
+            m.samD.setSide(c.samSide);
+            m.coCh.setCleanSide(c.coClean);
+            m.coCh.setDepth(c.coDepth);
+            if (loopBwCh) { m.samD.configure(m.demodRate, c.samLoopBw); m.samD.setSide(c.samSide); m.coCh.configure(m.demodRate, c.samLoopBw); m.coCh.setCleanSide(c.coClean); m.coCh.setDepth(c.coDepth); }
+            if (demodCh) { m.samD.reset(); m.coCh.reset(); }
+        }
         if (retuned && !rebuild) { m.acc.assign(kNoiseN, 0.0); m.accN = 0; m.fbuf.clear(); m.noisePsd = -1; m.noisePsdIn = -1; m.lvl = -1; }
     }
     if (m.resetReq.exchange(false) && m.built) m.clearState();
@@ -765,6 +802,24 @@ void GeneralReceiver::setAgc(bool on, float g) {
 }
 void GeneralReceiver::setDeemphUs(double us) { std::lock_guard<std::mutex> lk(p_->mu); if (p_->cfgSet.deemphUs != us) { p_->cfgSet.deemphUs = std::max(0.0, us); p_->cfgDirty = true; } }
 void GeneralReceiver::setCwPitchHz(double hz) { std::lock_guard<std::mutex> lk(p_->mu); hz = std::clamp(hz, 200.0, 1500.0); if (p_->cfgSet.pitch != hz) { p_->cfgSet.pitch = hz; p_->cfgDirty = true; } }
+void GeneralReceiver::setSamSide(int side) {
+    std::lock_guard<std::mutex> lk(p_->mu);
+    if (side >= sam::Dsb && side <= sam::Lsb && p_->cfgSet.samSide != side) { p_->cfgSet.samSide = side; p_->cfgDirty = true; }
+}
+void GeneralReceiver::setSamLoopBwHz(double hz) {
+    std::lock_guard<std::mutex> lk(p_->mu);
+    hz = std::clamp(hz, 1.0, 50.0);
+    if (p_->cfgSet.samLoopBw != hz) { p_->cfgSet.samLoopBw = hz; p_->cfgDirty = true; }
+}
+void GeneralReceiver::setCoChannel(bool on, int cleanSide, float depth) {
+    std::lock_guard<std::mutex> lk(p_->mu);
+    depth = std::clamp(depth, 0.f, 1.f);
+    if (cleanSide < sam::Dsb || cleanSide > sam::Lsb) cleanSide = sam::Usb;
+    if (p_->cfgSet.coOn != on || p_->cfgSet.coClean != cleanSide || p_->cfgSet.coDepth != depth) {
+        p_->cfgSet.coOn = on; p_->cfgSet.coClean = cleanSide; p_->cfgSet.coDepth = depth;
+        p_->cfgDirty = true;
+    }
+}
 void GeneralReceiver::setVolume(float v) { p_->volume = std::clamp(v, 0.f, 1.f); }
 void GeneralReceiver::setNoiseRemover(bool on, float strength) { p_->nrSpk.setStrength(strength); p_->nrDry.setStrength(strength); p_->nrSpk.setEnabled(on); p_->nrDry.setEnabled(on); }
 float GeneralReceiver::noiseRemoverVad() const { return p_->nrSpk.enabled() ? p_->nrSpk.vad() : 0.f; }

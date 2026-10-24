@@ -30,7 +30,10 @@ namespace dect2 {
 
 struct GeneralTelemetry;   // general_tel.h
 
-enum GeneralDemod { GenNfm = 0, GenWfm, GenAm, GenUsb, GenLsb, GenCw, GenDemodCount };
+// SAM is synchronous AM: a loop locks the station's own carrier instead of measuring the envelope, so fading that takes the carrier
+// down no longer distorts the audio, and one sideband can be heard on its own to step around a station crowding the other side.
+// SAM is last on purpose: the numbers before it are stored in the settings and used by the test signal generator, so they must not move.
+enum GeneralDemod { GenNfm = 0, GenWfm, GenAm, GenUsb, GenLsb, GenCw, GenSam, GenDemodCount };
 
 constexpr double kGeneralAudioRate = 48000.0;
 constexpr double kGeneralWideRate = 240000.0;       // WFM demodulation rate (5 x 48 kHz)
@@ -67,6 +70,12 @@ public:
     void setAgc(bool on, float manualGainDb);        // AM / SSB / CW: AGC, or a fixed gain (dB) when off
     void setDeemphUs(double us);                     // NFM / WFM: 0 off, 50, 75, 750
     void setCwPitchHz(double hz);                    // CW: the tone a carrier on the channel frequency gives (BFO)
+    // SAM: which sideband to listen to (sam::Dsb both, sam::Usb, sam::Lsb) and how fast the carrier loop follows (3 - 20 Hz).
+    void setSamSide(int side);
+    void setSamLoopBwHz(double hz);
+    // Co-channel canceller (AM and SAM): locks the strong station on the channel, rebuilds it from the sideband the interference is
+    // not on (cleanSide) and subtracts it, so the station underneath can be heard. depth 0 passes the channel through unchanged.
+    void setCoChannel(bool on, int cleanSide, float depth);
 
     void setVolume(float v);                         // 0 .. 1
     void setMuted(bool m);

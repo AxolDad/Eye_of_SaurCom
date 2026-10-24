@@ -30,6 +30,11 @@ const char* const kDeemphNames[] = {"off", "50 us", "75 us", "750 us"};
 struct State {
     bool loaded = false;
     int demod = dect2::GenNfm;
+    int samSide = 0;                 // sam::Dsb / Usb / Lsb
+    float samLoopBw = 10;
+    bool coOn = false;
+    int coClean = 1;                 // the sideband of the strong station the interference is not on
+    float coDepth = 1;
     double width[dect2::GenDemodCount] = {};
     int step[dect2::GenDemodCount] = {};
     bool sqOn = true, sqAuto = true;
@@ -75,6 +80,11 @@ void load() {
     S.loaded = true;
     auto& p = plat::prefs();
     S.demod = (int)std::clamp(p.getI("genDemod", dect2::GenNfm), 0L, (long)dect2::GenDemodCount - 1);
+    S.samSide = (int)std::clamp(p.getI("genSamSide", 0), 0L, 2L);
+    S.samLoopBw = (float)std::clamp(p.getD("genSamBw", 10.0), 1.0, 50.0);
+    S.coOn = p.getI("genCoOn", 0) != 0;
+    S.coClean = (int)std::clamp(p.getI("genCoClean", 1), 0L, 2L);
+    S.coDepth = (float)std::clamp(p.getD("genCoDepth", 1.0), 0.0, 1.0);
     for (int d = 0; d < dect2::GenDemodCount; d++) {
         char k[24];
         snprintf(k, sizeof k, "genWidth%d", d); S.width[d] = dect2::generalClampWidth(d, p.getD(k, dect2::generalDefaultWidth(d)));
@@ -101,6 +111,8 @@ void load() {
 void save() {
     auto& p = plat::prefs();
     p.setI("genDemod", S.demod);
+    p.setI("genSamSide", S.samSide); p.setD("genSamBw", S.samLoopBw);
+    p.setI("genCoOn", S.coOn ? 1 : 0); p.setI("genCoClean", S.coClean); p.setD("genCoDepth", S.coDepth);
     for (int d = 0; d < dect2::GenDemodCount; d++) {
         char k[24];
         snprintf(k, sizeof k, "genWidth%d", d); p.setD(k, S.width[d]);
@@ -296,6 +308,52 @@ void controls(App& a) {
             if (ImGui::IsItemDeactivatedAfterEdit()) save();
             tip("BFO: the tone a carrier on the channel frequency gives");
         }
+        if (S.demod == dect2::GenSam) {
+            flowNext(10 * gUi);
+            ImGui::TextDisabled("sideband"); flowNext(4 * gUi);
+            ImGui::SetNextItemWidth(95 * gUi);
+            if (ImGui::Combo("##gsamside", &S.samSide, "Both\0Upper\0Lower\0")) save();
+            tip("A station's two sidebands carry the same audio, so one on its own sounds the same and steps around whatever is crowding the other side. "
+                "Pick the side away from the interference.");
+            flowNext(8 * gUi);
+            ImGui::SetNextItemWidth(130 * gUi);
+            ImGui::SliderFloat("##gsambw", &S.samLoopBw, 1, 30, "loop %.0f Hz");
+            if (ImGui::IsItemDeactivatedAfterEdit()) save();
+            tip("How fast the loop follows the carrier. Narrow rides through fading and holds a steady station; wide catches one that drifts.");
+            if (live(a)) {
+                flowNext(8 * gUi);
+                const dect2::GeneralTelemetry& t = T(a);
+                if (t.samLocked) ImGui::TextColored(pal::okGreen(), "locked %+.1f Hz", t.samOffsetHz);
+                else ImGui::TextColored(pal::grey(), "hunting for the carrier");
+                tip("The loop has the station's own carrier: the audio no longer distorts when the carrier fades.");
+            }
+        }
+    }
+    // the co-channel canceller (AM and SAM): take the strong station out and hear the one underneath
+    if (S.demod == dect2::GenAm || S.demod == dect2::GenSam) {
+        flowNext(14 * gUi);
+        if (ImGui::Checkbox("Co-channel", &S.coOn)) save();
+        tip("Two AM stations on one channel: this locks the near one, rebuilds it from the sideband the far one is not on, and subtracts it, "
+            "so the station underneath can be heard. Receive only.");
+        if (S.coOn) {
+            flowNext(6 * gUi);
+            ImGui::TextDisabled("clean side"); flowNext(4 * gUi);
+            ImGui::SetNextItemWidth(95 * gUi);
+            if (ImGui::Combo("##gcoside", &S.coClean, "Both\0Upper\0Lower\0")) save();
+            tip("The sideband of the near station that the far one is NOT sitting on. If the far station is above, pick Lower, and the other way round. "
+                "Try both and keep whichever sounds cleaner.");
+            flowNext(8 * gUi);
+            ImGui::SetNextItemWidth(130 * gUi);
+            ImGui::SliderFloat("##gcodepth", &S.coDepth, 0, 1, "depth %.2f");
+            if (ImGui::IsItemDeactivatedAfterEdit()) save();
+            tip("How much of the near station to take out. Slide it to 0 to hear the channel untouched and compare.");
+            if (live(a)) {
+                flowNext(8 * gUi);
+                const dect2::GeneralTelemetry& t = T(a);
+                if (t.coChannelLocked) ImGui::TextColored(pal::okGreen(), "near station %+.1f Hz, down %.0f dB", t.coChannelOffsetHz, t.coChannelNullDb);
+                else ImGui::TextColored(pal::grey(), "looking for the near station's carrier");
+            }
+        }
     }
     flowNext(14 * gUi);
     if (iconFlat(a.muted ? Ic::Mute : Ic::Speaker, a.muted ? "Unmute" : "Mute")) a.muted = !a.muted;
@@ -477,6 +535,9 @@ void tick(App& a) {
     S.lastDial = a.freqMhz;
     auto& r = a.engine.general();
     r.setDemod(S.demod);
+    r.setSamSide(S.samSide);
+    r.setSamLoopBwHz(S.samLoopBw);
+    r.setCoChannel(S.coOn, S.coClean, S.coDepth);
     r.setWidthHz(S.width[S.demod]);
     r.setChannelOffsetHz(S.chanOff);
     r.setSquelch(S.sqOn, S.sqAuto, S.sqDb);
@@ -557,7 +618,7 @@ void meters(const App& a, std::vector<ModeMeter>& out) {
 void synth(App& a, bool& changed) {
     dect2::SynthConfig& sc = a.tune.synth;
     { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("one station on the dial frequency, modulated by a 1 kHz tone (CW: a steady carrier), over noise"); ImGui::PopTextWrapPos(); }
-    int m = std::clamp(sc.modeOpt[0], 0, (int)dect2::GenDemodCount - 1);
+    int m = std::clamp(sc.modeOpt[0], 0, 5);   // the generator makes NFM, WFM, AM, USB, LSB and CW; SAM listens to the AM one
     ImGui::SetNextItemWidth(120 * gUi);
     if (ImGui::Combo("Modulation##gsyn", &m, "NFM\0WFM\0AM\0USB\0LSB\0CW\0")) { sc.modeOpt[0] = m; changed = true; }
     bool quiet = sc.modeOpt[1] == 1;

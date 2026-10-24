@@ -25,6 +25,15 @@ struct GeneralTelemetry {
     float audioDb = -200;              // the audio that plays (after the squelch, before the volume), dBFS rms
     float squelchDb = 0;               // the threshold now in force, dBFS (auto: noise + margin)
     bool squelchOpen = false;
+    // SAM and the co-channel canceller
+    bool samLocked = false;            // the carrier loop is on the station's carrier
+    float samLock = 0;                 // how firmly, 0 to 1
+    double samOffsetHz = 0;            // where that carrier sits, relative to the channel
+    int samSide = 0;                   // sam::Side being listened to
+    bool coChannelOn = false;
+    bool coChannelLocked = false;
+    double coChannelOffsetHz = 0;      // the strong station's carrier
+    float coChannelNullDb = 0;         // how far the strong station has been pushed down
     bool recording = false;
     double recordSec = 0;
     std::string recordPath;            // the WAV being written (or the last one)
