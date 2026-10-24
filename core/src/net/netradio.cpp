@@ -2,6 +2,7 @@
 #include "tcp_client.h"
 #include "../source/native_common.h"
 #include "dect2/net/netradio.h"
+#include "../source/esp_sdr.h"
 #include "dect2/net/net_proto.h"
 #include "dect2/net/kiwisdr.h"
 #include <algorithm>
@@ -34,8 +35,8 @@ std::string hostPort(const std::string& host, int port) {
 
 // the type tables and the settings text of the list are in net_proto.h (C++ or the Rust crate onair_net)
 const char* netRadioTypeName(NetRadio::Type t) {
-    static const std::string names[12] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8), netp::radioTypeName(9), netp::radioTypeName(10), netp::radioTypeName(11)};
-    return names[(unsigned)t < 12 ? (unsigned)t : 1].c_str();
+    static const std::string names[13] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8), netp::radioTypeName(9), netp::radioTypeName(10), netp::radioTypeName(11), netp::radioTypeName(12)};
+    return names[(unsigned)t < 13 ? (unsigned)t : 1].c_str();
 }
 int netRadioDefaultPort(NetRadio::Type t) { return netp::radioDefaultPort((uint32_t)t); }
 const char* netRadioDefaultHost(NetRadio::Type t) {
@@ -235,6 +236,7 @@ std::string netRadioDeviceName(const NetRadio& r) {
     case NetRadio::SoapyArgs: return "SoapySDR " + r.remote;
     case NetRadio::Tci: return native::tciDevice(cleanHost(r.host), netRadioPort(r)).name;
     case NetRadio::Aaronia: return native::aaroniaDevice(cleanHost(r.host), netRadioPort(r), r.remote).name;
+    case NetRadio::EspSdr: { DeviceInfo d; espSdrDescribe(espSdrEthernetArgs(cleanHost(r.host), netRadioPort(r)), d); return d.name; }
     default: return native::rtlTcpDevice(cleanHost(r.host), netRadioPort(r)).name;
     }
 }
@@ -287,6 +289,11 @@ std::vector<DeviceInfo> netRadioDevices(const std::vector<NetRadio>& v) {
             if (!r.remote.empty()) out.push_back(soapyDeviceFor(r.remote, "soapy", netRadioDeviceName(r)));
 #endif
             break;
+        case NetRadio::EspSdr:   // an ESPARGOS board on Ethernet: SoapyESPSDR opens it by host= (esp_sdr.h); soapyDeviceFor fills its ranges
+#ifdef DECT2_HAVE_SOAPY
+            out.push_back(soapyDeviceFor(espSdrEthernetArgs(cleanHost(r.host), netRadioPort(r)), "espsdr", netRadioDeviceName(r)));
+#endif
+            break;
         case NetRadio::SoapyRemote:
 #ifdef DECT2_HAVE_SOAPY
         {
@@ -320,7 +327,9 @@ bool probeNetRadio(const NetRadio& r, int timeoutMs, std::string& err) {
     if (host.empty()) { err = "type the radio's address"; return false; }
 #ifndef DECT2_HAVE_SOAPY
     if (r.type == NetRadio::SoapyRemote) { err = "this build of Eye of ZorCom has no SoapySDR, which SoapyRemote needs"; return false; }
+    if (r.type == NetRadio::EspSdr) { err = "this build of Eye of ZorCom has no SoapySDR, which the ESP-SDR module (SoapyESPSDR) plugs into"; return false; }
 #endif
+    // an ESP-SDR board on Ethernet: its HTTP control port answers a TCP connection; the stream itself is the module's business
     if (r.type == NetRadio::SoapyRemote && !soapyRemoteModuleAvailable()) { err = soapyRemoteModuleHelp(); return false; }
     if (r.type == NetRadio::SpyServer) return native::spyServerProbe(host, netRadioPort(r), timeoutMs, err);   // HELLO, then its DEVICE_INFO
     if (r.type == NetRadio::HermesLite2) return native::hermesLite2Probe(host, netRadioPort(r), timeoutMs, err);   // UDP: a discovery to it

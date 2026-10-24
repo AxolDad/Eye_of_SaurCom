@@ -10,6 +10,7 @@
 #include <SoapySDR/Formats.h>
 #include <SoapySDR/Types.h>
 #include <SoapySDR/Version.hpp>
+#include "esp_sdr.h"
 #include <algorithm>
 #include <atomic>
 #include <cctype>
@@ -673,7 +674,7 @@ private:
 // What the list says about transmitting: a radio that has been opened says so exactly; before that, the drivers known to have a transmit
 // channel (the radio is opened to find out when Transmit starts, and says "no transmit channel" if the guess was wrong)
 void applyTxInfo(DeviceInfo& d, const std::string& driver, const SoapyRanges* r) {
-    static const char* const kHinted[] = {"lime", "bladerf", "uhd", "plutosdr", "xtrx", "redpitaya", "sx", "iris", "remote"};
+    static const char* const kHinted[] = {"lime", "bladerf", "uhd", "plutosdr", "xtrx", "redpitaya", "sx", "iris", "remote", "esdr"};
     bool hinted = false;
     for (const char* h : kHinted) if (driver == h) hinted = true;
     if (r && r->txKnown) {
@@ -709,9 +710,13 @@ std::vector<DeviceInfo> listSoapyDevices(std::string& err) {
             d.board = driver;
             d.soapyArgs = SoapySDR::KwargsToString(kw);
             std::string label = get("label");
-            if (label.empty()) label = driver + (get("serial").empty() ? "" : " " + get("serial"));
-            d.name = label;
             d.serial = get("serial");
+            d.name = label;
+            // an ESP32 board (ESP-SDR): named, and given the ranges its driver's documentation states, since the driver itself says nothing
+            // before the radio has been opened (esp_sdr.h). Run again below, once the ranges a started radio reported are in.
+            const bool esp = espSdrDescribe(d.soapyArgs, d);
+            if (label.empty()) label = esp ? d.name : driver + (d.serial.empty() ? "" : " " + d.serial);
+            d.name = label;
             std::vector<std::string> antennas;
             {   // the ranges are known once the radio has been started (0 = unknown until then); the radio is not opened here
                 std::lock_guard<std::mutex> lk(gRangesMu);
@@ -725,6 +730,7 @@ std::vector<DeviceInfo> listSoapyDevices(std::string& err) {
                     applyTxInfo(d, driver, &r);
                 } else applyTxInfo(d, driver, nullptr);
             }
+            if (esp) espSdrDescribe(d.soapyArgs, d);
             d.settings.insert(d.settings.begin(), ppmSetting(0.01));   // the driver's own correction, or Eye of ZorCom's
             if (driver == "plutosdr") {   // SoapyPlutoSDR on the USB cable (or its USB-gadget address): the same ~4 Msps of 16-bit samples
                 const std::string uri = get("uri");
@@ -775,6 +781,7 @@ DeviceInfo soapyDeviceFor(const std::string& args, const std::string& board, con
             applyTxInfo(d, board, &r);
         } else applyTxInfo(d, board, nullptr);
     }
+    espSdrDescribe(d.soapyArgs, d);   // an ESP-SDR board on Ethernet, added by address: its specified ranges until it has been started
     d.settings.insert(d.settings.begin(), ppmSetting(0.01));
     return d;
 }

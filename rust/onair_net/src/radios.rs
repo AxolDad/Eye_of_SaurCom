@@ -27,6 +27,8 @@ pub const TCI: u32 = 10;
 /// Aaronia RTSA-Suite (the HTTP Server block of a graph that is driving a Spectran V6 or another Aaronia radio); its `remote` text is
 /// "user:password" when the server asks for one.
 pub const AARONIA: u32 = 11;
+/// An ESP-SDR board (ESPARGOS ESP32-S31 running the SoapyESPSDR streaming firmware) on Ethernet; the port is its HTTP control port (80).
+pub const ESP_SDR: u32 = 12;
 
 /// The key of a type in the settings text (an unknown type is written as rtl_tcp).
 pub fn type_key(t: u32) -> &'static str {
@@ -42,6 +44,7 @@ pub fn type_key(t: u32) -> &'static str {
         SOAPY_ARGS => "soapyargs",
         TCI => "tci",
         AARONIA => "aaronia",
+        ESP_SDR => "espsdr",
         _ => "rtltcp",
     }
 }
@@ -60,6 +63,7 @@ pub fn type_name(t: u32) -> &'static str {
         SOAPY_ARGS => "SoapySDR (device string)",
         TCI => "TCI (network)",
         AARONIA => "Aaronia RTSA-Suite (Spectran)",
+        ESP_SDR => "ESP-SDR (ESP32 on Ethernet)",
         _ => "rtl_tcp",
     }
 }
@@ -77,6 +81,7 @@ pub fn default_port(t: u32) -> i32 {
         SOAPY_ARGS => 0,
         TCI => 50001,
         AARONIA => 54664,
+        ESP_SDR => 80,
         _ => 1234,
     }
 }
@@ -159,6 +164,7 @@ fn type_from_key(t: &[u8]) -> Option<u32> {
         b"soapyargs" => SOAPY_ARGS,
         b"tci" => TCI,
         b"aaronia" => AARONIA,
+        b"espsdr" => ESP_SDR,
         _ => return None,
     })
 }
@@ -305,6 +311,22 @@ mod kiwi_tests {
         let mut out = [0u8; 128];
         let len = format(&radios[..1], &arena, &mut out);
         assert_eq!(&out[..len], b"aaronia,10.0.0.7,54664");
+    }
+
+    #[test]
+    fn esp_sdr_is_listed_and_round_trips() {
+        let text = b"espsdr,192.168.1.100,0;espsdr,esp-sdr.local,8080";
+        let mut radios = [Radio::default(); 4];
+        let mut arena = [0u8; 128];
+        let n = parse(text, &mut radios, &mut arena);
+        assert_eq!(n, 2);
+        assert_eq!((radios[0].kind, radios[0].port), (ESP_SDR, 0));
+        assert_eq!((radios[1].kind, radios[1].port), (ESP_SDR, 8080));
+        assert_eq!(port_of(ESP_SDR, 0), 80);
+        assert_eq!((type_key(ESP_SDR), type_name(ESP_SDR), default_port(ESP_SDR)), ("espsdr", "ESP-SDR (ESP32 on Ethernet)", 80));
+        let mut out = [0u8; 128];
+        let len = format(&radios[1..], &arena, &mut out);
+        assert_eq!(&out[..len], b"espsdr,esp-sdr.local,8080");
     }
 
     #[test]

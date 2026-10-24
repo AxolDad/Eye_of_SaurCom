@@ -454,6 +454,7 @@ OnAir supports the **HackRF One and HackRF Pro** natively, and drives these radi
 | **Fobos SDR** (agile firmware) | ✅ | ✅ | Contributed, untested here. Specified for 50 MHz – 6 GHz on the RF input, HF on the HF1 / HF2 inputs. Library not included: put RigExpert's `fobos_sdr` library next to OnAir, see [DEVICES.md](DEVICES.md) |
 | **RX888 MkII** | ✅ | ✅ | Native SDDC/USB driver (FX3 firmware, 16-bit ADC), still being hardened on real hardware. USB 3 required. Packages include `SDDC_FX3.img` (RAM load only); see [DEVICES.md](DEVICES.md) |
 | **RFNM** | ✅ | ✅ | Contributed. Only in builds made with [librfnm](https://github.com/rfnm/librfnm) installed (not the downloads yet), see [DEVICES.md](DEVICES.md). One entry per receive channel of the daughterboards |
+| **ESP32 boards** (ESP-SDR: SoapyESPSDR for the ESPARGOS ESP32-S31 on USB or Ethernet, the serial SoapyESPSDR for an ESP32-S3, esp-sdr-zephyr for a XIAO ESP32S3 / ESP32-C6) | ❌ | 2.4 GHz band only | Through their SoapySDR modules; recognised and named, with the documented ranges shown before the board has been started. 4 – 40 Msps (S31) or up to 625 ksps (serial boards), 2150 – 2800 MHz, gain a PHY index. Untested on a board, see [docs/esp-sdr.md](docs/esp-sdr.md) |
 | **Anything else** | depends | depends | Through [SoapySDR](https://github.com/pothosware/SoapySDR), once its SoapySDR module is installed |
 
 - The libraries these radios need are included in the downloads, except as noted above.
@@ -486,6 +487,7 @@ Add them from the source list: **Add network radio…**, choose the type, type i
 | **SDRplay nRSP-ST** (through SDRconnect's WebSocket API; experimental, see [docs/nrsp-st.md](docs/nrsp-st.md)) | the computer running SDRconnect, with its WebSocket server on | 5454 |
 | **TCI (network)** (Expert Electronics' Transceiver Control Interface of ExpertSDR3, SunSDR and other programs with a TCI server; receive only, see [docs/NETWORK_RADIOS.md](docs/NETWORK_RADIOS.md)) | the computer running the TCI server | 50001 |
 | **Aaronia RTSA-Suite** (a Spectran V6 or another Aaronia radio, through the HTTP Server block of an RTSA-Suite graph; receive only) | the computer running RTSA-Suite | 54664 |
+| **ESP-SDR (ESP32 on Ethernet)** (an ESPARGOS ESP32-S31 board with the SoapyESPSDR streaming firmware; needs the SoapyESPSDR module here, see [docs/esp-sdr.md](docs/esp-sdr.md)) | the board's DHCP address | 80 (its HTTP control port) |
 | **Hermes Lite 2** | found by itself on your networks (or type its address) | 1024 |
 | **Red Pitaya** (SDR transceiver app, HPSDR protocol 1) | found by itself on your networks (or type its address) | 1024 |
 
