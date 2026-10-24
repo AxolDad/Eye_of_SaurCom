@@ -88,6 +88,64 @@ int main() {
         CHECK(r.tel.squelchOpen && r.tel.dataValid && r.tel.snrDb > 15, "%s squelch %d snr %.1f", c.name, r.tel.squelchOpen, r.tel.snrDb);
     }
 
+    // synchronous AM through the whole receiver: the same tone and level as the envelope detector, and the loop reports its lock
+    {
+        const Run am = run(GenAm, GenAm, 1.5, 30, false);
+        const Run sam = run(GenSam, GenAm, 1.5, 30, false);
+        printf("  SAM: tone %.3f (AM %.3f), lock %.2f at %+.1f Hz\n", toneAmp(sam.aud, 1000), toneAmp(am.aud, 1000), sam.tel.samLock, sam.tel.samOffsetHz);
+        CHECK(sam.tel.samLocked && sam.tel.samLock > 0.9, "SAM locks: %.2f", sam.tel.samLock);
+        CHECK(std::fabs(sam.tel.samOffsetHz) < 2.0, "the carrier is on the channel: %+.2f Hz", sam.tel.samOffsetHz);
+        CHECK(std::fabs(20 * std::log10(toneAmp(sam.aud, 1000) / 0.25)) < 1.5, "SAM level %.3f", toneAmp(sam.aud, 1000));
+        CHECK(toneAmp(sam.aud, 1370) < 0.1 * toneAmp(sam.aud, 1000), "SAM off-tone %.4f", toneAmp(sam.aud, 1370));
+        CHECK(sam.tel.squelchOpen && sam.tel.snrDb > 15, "SAM squelch %d snr %.1f", sam.tel.squelchOpen, sam.tel.snrDb);
+        // either sideband on its own carries the whole tone
+        for (int side : {1, 2}) {
+            SynthConfig sc;
+            sc.mode = 57; sc.snrDb = 30; sc.modeOpt[0] = GenAm; sc.modeVal[1] = 1000;
+            auto syn = makeGeneralSynth(sc, kRate);
+            GeneralReceiver r;
+            r.configure(kRate);
+            r.setSignalOffset(-generalTuning().tuneOffsetHz);
+            r.setSilent(true);
+            r.setDemod(GenSam);
+            r.setWidthHz(generalDefaultWidth(GenSam));
+            r.setSamSide(side);
+            std::vector<float> aud;
+            r.setAudioTap([&](const float* x, size_t n) { aud.insert(aud.end(), x, x + n); });
+            std::vector<cf32> buf(20000);
+            for (double t = 0; t < 1.5; t += buf.size() / kRate) { syn->generate(buf.data(), buf.size()); r.feed(buf.data(), buf.size()); }
+            GeneralTelemetry g;
+            r.telemetry(g, 0);
+            CHECK(g.samSide == side && std::fabs(20 * std::log10(toneAmp(aud, 1000) / 0.25)) < 1.5, "SAM side %d: level %.3f", side, toneAmp(aud, 1000));
+        }
+    }
+    // the co-channel canceller through the receiver: switching it on must not break an ordinary station, and depth 0 is a no-op
+    {
+        SynthConfig sc;
+        sc.mode = 57; sc.snrDb = 30; sc.modeOpt[0] = GenAm; sc.modeVal[1] = 1000;
+        auto make = [&](bool on, float depth, std::vector<float>& aud, GeneralTelemetry& g) {
+            auto syn = makeGeneralSynth(sc, kRate);
+            GeneralReceiver r;
+            r.configure(kRate);
+            r.setSignalOffset(-generalTuning().tuneOffsetHz);
+            r.setSilent(true);
+            r.setDemod(GenAm);
+            r.setWidthHz(generalDefaultWidth(GenAm));
+            r.setCoChannel(on, 1, depth);
+            r.setAudioTap([&](const float* x, size_t n) { aud.insert(aud.end(), x, x + n); });
+            std::vector<cf32> buf(20000);
+            for (double t = 0; t < 1.5; t += buf.size() / kRate) { syn->generate(buf.data(), buf.size()); r.feed(buf.data(), buf.size()); }
+            r.telemetry(g, 0);
+        };
+        std::vector<float> off, zero;
+        GeneralTelemetry gOff, gZero;
+        make(false, 1.f, off, gOff);
+        make(true, 0.f, zero, gZero);
+        CHECK(!gOff.coChannelOn && gZero.coChannelOn, "the flag reaches the telemetry");
+        CHECK(std::fabs(20 * std::log10(toneAmp(zero, 1000) / std::max(toneAmp(off, 1000), 1e-9))) < 0.5,
+              "depth 0 changes nothing: %.3f against %.3f", toneAmp(zero, 1000), toneAmp(off, 1000));
+    }
+
     // a station 25 kHz above the dial, the channel put on it
     {
         const Run r = run(GenNfm, GenNfm, 1.0, 30, false, 25000, 25000);
