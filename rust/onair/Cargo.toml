@@ -45,3 +45,4 @@ onair_kris = { path = "../onair_kris" }
 onair_kaws = { path = "../onair_kaws" }
 onair_cot = { path = "../onair_cot" }
 onair_wifisense = { path = "../onair_wifisense" }
+onair_dsn = { path = "../onair_dsn" }

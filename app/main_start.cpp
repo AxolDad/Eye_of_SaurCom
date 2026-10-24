@@ -113,6 +113,7 @@ void parseDevFlags(App& app, int argc, char** argv, DevOpts& o) {
         if (std::string(argv[i]) == "--nxdnview" && i + 1 < argc) nxdnDevView(atoi(argv[++i]));
         if (std::string(argv[i]) == "--trunkopen") gTrunkPanelDevOpen = true;   // dev: open View > Data feeds (screenshots)
         if (std::string(argv[i]) == "--cotlisten") cotListenDev(app);   // dev: listen for ATAK / TAK contacts (screenshots)
+        if (std::string(argv[i]) == "--dsn") dsnDevOpen(app);   // dev: open Tools > Deep Space Network
         if (std::string(argv[i]) == "--webradio") app.webRadioOpen = true;   // dev: open View > Internet radio
         if (std::string(argv[i]) == "--wifisense") wifiSenseDevOpen(app);   // dev: open View > WiFi sensing, listening   // dev: open View > Scanner   // dev: open View > Passes
         if (std::string(argv[i]) == "--tle" && i + 1 < argc) passesDevTle(argv[++i]);   // dev: TLEs from a file for the pass planner (no download)

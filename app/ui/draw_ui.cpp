@@ -208,6 +208,7 @@ static void floatingWindows(App& a, ImVec2 disp) {
     a.engine.setMultiChannel(a.mtvOn && a.family == 0, a.mtvMax, a.mtvGrid);
     feedsWindow(a);
     webRadioWindow(a);
+    dsnWindow(a);
     wifiSenseWindow(a);
     automationWindow(a);
     protolabWindow(a);
