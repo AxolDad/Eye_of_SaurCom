@@ -15,10 +15,10 @@ hands each station its own address, the host is left blank for you to fill in.
 
 | Network | Preset | Notes |
 |---|---|---|
-| **airplanes.live** | `feed.airplanes.live:30004`, Beast | No account needed. Their own feeder documents this address; MLAT (port 31090) needs their separate client and is not implemented here |
-| **adsb.lol** | `feed.adsb.lol:30004`, Beast | No account needed. Their documentation also names `in.adsb.lol`; try that if the first will not connect |
-| **adsb.fi** | `feed.adsb.fi:30004`, Beast | No account needed |
-| **TheAirTraffic** | `feed.theairtraffic.com:30004`, Beast | No account needed |
+| **airplanes.live** | `feed.airplanes.live:30004`, Beast, **with a feeder id** | No account needed. Their own feeder documents this address. For MLAT see below |
+| **adsb.lol** | `feed.adsb.lol:30004`, Beast, with a feeder id | No account needed. Their documentation also names `in.adsb.lol`; try that if the first will not connect |
+| **adsb.fi** | `feed.adsb.fi:30004`, Beast, with a feeder id | No account needed |
+| **TheAirTraffic** | `feed.theairtraffic.com:30004`, Beast, with a feeder id | No account needed |
 | **ADS-B Exchange** | `feed.adsbexchange.com:30004`, Beast | Beast only; their MLAT uses a separate client |
 | **ADSBHub** | `data.adsbhub.org:5001`, SBS-1 | Register a station first; they identify you by the address you feed from |
 | **Flightradar24** | `127.0.0.1:30334`, Beast | **Through the `fr24feed` program you run yourself**, set to `beast-tcp`. Their upload protocol is private and is not reimplemented here |
@@ -26,6 +26,63 @@ hands each station its own address, the host is left blank for you to fill in.
 | **Plane Finder** | `127.0.0.1:30005`, Beast | Likewise, through their client |
 
 Feeding several networks at once is normal and none of them mind.
+
+### The feeder id
+
+The readsb-based networks — airplanes.live, adsb.lol, adsb.fi, TheAirTraffic — tell one feeder from another by a **UUID** that the feeder
+sends the moment it connects. Their own feeder software does this (airplanes.live's `configure.sh` runs readsb with
+`beast_reduce_plus_out` and `--uuid-file`); without it a feed still arrives, but nothing ties it to your station, so it will not show on their
+per-feeder statistics.
+
+When you add one of those presets, a fresh id is made for it. It is sent as readsb's own receiver-id frame — `0x1A 0xE4` and the 36 characters
+— ahead of any data, which is how readsb sends it and what readsb's Beast reader expects. That was checked against readsb's source
+(`net_io.c`, the `0xE4` case of the reader and `read_uuid`): the test transcribes readsb's acceptance rule and confirms it reads every id this
+program sends back as itself.
+
+- **Each target has its own id**, so two networks cannot match you up by it.
+- **New id** makes you a new feeder to that network, and your statistics there start again.
+- **Already fed with their own client?** Paste the id from that feeder (on a Pi running their image: `/usr/local/share/airplanes/airplanes-uuid`)
+  and you carry on as the same feeder.
+- Only a canonical UUID (`8-4-4-4-12` hex digits) is sent. Anything else sends no id at all, rather than one the network would read short.
+- An SBS target never gets the frame: SBS is text, and a binary frame in it would be garbage to whoever reads it.
+
+Two things their feeder does that this one does not. It sends **reduced** Beast (`beast_reduce`), which is fewer messages for less bandwidth;
+this sends every message, which their ingest accepts. And it can switch on their **ping** protocol, which measures network delay; that is
+opt-in on their side (readsb only pings a feeder that asks), so not asking means nothing comes back down the connection to handle.
+
+### MLAT
+
+This program does not do multilateration itself, but it does not need to: airplanes.live's own [`mlat-client`](https://github.com/airplanes-live/mlat-client)
+reads Beast from a port, and **this program's Beast server is the kind it reads**. `mlat-client` asks for "Beast-format output with a 12 MHz
+clock", and this program's Beast time stamp is the sample count of the radio scaled to 12 MHz — the same free-running sample clock readsb and
+dump1090 give it, not the wall clock.
+
+**This has not been tried against their server** — nothing here could reach port 31090 — so treat it as expected to work rather than known to.
+
+1. Turn on **Beast binary (TCP server)** in View > Data feeds (port 30005 by default) and keep ADS-B running.
+2. Put the **same feeder id** as your airplanes.live target in a file, say `~/airplanes-uuid`. The MLAT server pairs your MLAT with your feed by it.
+3. Run their client the way their own feeder does (`airplanes-live/feed`, `scripts/airplanes-mlat.sh`):
+
+   ```
+   mlat-client --input-type dump1090 --no-udp --input-connect 127.0.0.1:30005 \
+       --server feed.airplanes.live:31090 --user YOUR-NAME \
+       --lat 51.50000 --lon -0.12000 --alt 30m \
+       --uuid-file ~/airplanes-uuid \
+       --results beast,listen,30105
+   ```
+
+   `--user` is the name shown on their MLAT map, and the position must be your **antenna's**, to five decimal places: MLAT is a timing
+   measurement and a wrong position makes it wrong. Add `--privacy` to keep your station off their public map.
+4. To see the MLAT positions in this program too, add `127.0.0.1:30105` as a feed from another receiver on the ADS-B screen. Note `listen`
+   rather than their feeder's `connect`: their feeder connects out to a listening readsb, but this program's feed-in connects out itself, so
+   `mlat-client` has to be the one listening.
+
+Those MLAT positions arrive like any other receiver's feed: shown, marked with where they came from, and **not** recorded in the flight history.
+That is the conservative choice — the aircraft genuinely were in earshot, but the position was worked out by the network, and the flight history
+only keeps what this receiver measured.
+
+A retune, a reset or dropped USB samples restart or jump the sample clock. `mlat-client` notices and resynchronises, but a receiver that does
+that often will rarely stay in sync.
 
 ## Asking a service what is in the air
 
@@ -40,6 +97,18 @@ gets asked for is a circle around you.
 | **airplanes.live** | **needs their permission** | Their API refuses callers it does not know, and answers with "contact us at contact@airplanes.live … include a description of the project". Feeding **to** them needs no permission at all |
 | **Flightradar24** | **no** | Their API is a paid subscription and wants the token in a request header, which this program cannot send yet |
 | **ADS-B Exchange** | **no** | Paid, through RapidAPI, and also header-only |
+
+Why airplanes.live refuses: their [`api-archive`](https://github.com/airplanes-live/api-archive) is the API as it was when they were **ADSB One**
+— a thin layer over readsb's `re-api`, rate-limited to one request a second, with no access check at all. The check came later, in front of
+the live service, and the old `api.adsb.one` address is now behind it too.
+
+That archive also shows the full set of questions these readsb-based services answer, beyond the circle around you that this program asks:
+`/v2/hex/…`, `/v2/callsign/…`, `/v2/reg/…`, `/v2/type/…`, `/v2/sqk/…` (a squawk: `7700` for emergencies), and `/v2/mil` (aircraft flagged
+military). adsb.lol and adsb.fi both answer those today. This program does not ask them yet.
+
+Two it will not ask: `/v2/ladd` and `/v2/pia`. LADD is the list of aircraft whose owners asked the FAA to limit how their aircraft is shown in
+public, and PIA aircraft fly on an anonymised address precisely so they cannot be picked out. A feature that listed exactly those aircraft would
+work against the choice their owners made.
 
 The radius is capped per service and the interval can never go below the service's own rate limit, whatever you set — these are free networks
 run by people, and hammering them is both rude and the fastest way to get blocked.

@@ -114,6 +114,16 @@ std::string beastFrame(const uint8_t* bytes, int bits, uint64_t ts12, uint8_t si
     return o;
 }
 
+std::string beastUuidFrame(const std::string& uuid) {
+    if (!feedUuidValid(uuid)) return {};
+    std::string o;
+    o.reserve(2 + 36);
+    o += (char)0x1A;
+    o += (char)0xE4;
+    o += uuid;   // feedUuidValid guarantees exactly 36 characters, so readsb's padding to 36 with 'f' has nothing to add
+    return o;
+}
+
 // ---------------------------------------------------------------- APRS
 
 std::string kissFrame(const uint8_t* d, size_t n) {

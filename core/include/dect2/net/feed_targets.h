@@ -20,6 +20,11 @@ struct FeedTarget {
     std::string host;
     int port = 0;
     std::string key;         // optional: sent as the first line after a TCP connect (some services want an id); empty = nothing
+    // Beast over TCP only: the feeder's id, sent as readsb's receiver-id frame the moment the connection opens. This is how airplanes.live,
+    // adsb.lol, adsb.fi and the other readsb-based networks tell one feeder from another: their own feeder sends it ahead of the data
+    // (readsb net_io.c sendUUID, "beast_reduce_plus_out"), and without it a feed still arrives but cannot be tied to anyone's station.
+    // A canonical UUID (8-4-4-4-12 hex); empty = none sent. Each target gets its own, so two networks cannot match you up by it.
+    std::string uuid;
     bool enabled = false;
 };
 
@@ -31,7 +36,14 @@ struct FeedTargetStatus {
 
 struct FeedPreset {
     const char* name; FeedKind kind; FeedProto proto; const char* host; int port; const char* note;
+    bool wantsUuid = false;  // the network identifies feeders by the readsb receiver-id frame: a fresh UUID is made when the preset is added
 };
+
+// The feeder id these networks use. A canonical UUID is 36 characters, 8-4-4-4-12 hex digits with hyphens; nothing else is accepted, so a
+// value that would be read short or mangled by the network never goes out.
+bool feedUuidValid(const std::string& uuid);
+// A new random (version 4) UUID, lower case.
+std::string feedUuidNew();
 // Presets are only a starting point for the fields. Where an aggregator hands each user their own address, host stays empty.
 const std::vector<FeedPreset>& feedPresets();
 

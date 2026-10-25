@@ -65,6 +65,10 @@ struct FeedAdsbFrame {
 
 // The formats, without any network (feeds_fmt.cpp)
 namespace feedfmt {
+// readsb's receiver-id frame: 0x1A 0xE4 and the UUID as exactly 36 characters, padded with 'f' as readsb pads it. It is sent bare, without
+// the 0x1A doubling of a Beast frame, exactly as readsb sends it - a UUID is hex digits and hyphens, so it can never contain 0x1A anyway.
+// "" for anything feedUuidValid() refuses.
+std::string beastUuidFrame(const std::string& uuid);
 // SBS-1 BaseStation "MSG,..." line with CRLF; "" when the frame has no SBS transmission type. wallMs: Unix milliseconds (local time is written).
 std::string sbsLine(const FeedAdsbFrame& f, int64_t wallMs);
 // Beast binary: 0x1A, '2' or '3', 6 byte 12 MHz timestamp, signal byte, the frame; every 0x1A after the first doubled
