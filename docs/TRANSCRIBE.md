@@ -39,13 +39,51 @@ clear airband speech. `base.en` and `small.en` mistake fewer words and need a st
   keeps 0.35 s in front and 0.7 s behind, and ends when the speaker stops. Clicks shorter than half a second are dropped; a transmission is cut at 27 s.
 - Each transmission goes to a queue (at most 6 waiting; **the oldest is dropped** when the speech engine is slower than the radio) and is transcribed on
   a background thread, never in the audio path. While the channels are quiet nothing runs, so it costs no battery. **CPU threads** limits the processor.
-- The speech engine is given a hint for aviation (ICAO alphabet, "cleared", "runway", "flight level", airline radio names) or marine speech.
+- The speech engine is given a hint for aviation (ICAO alphabet, "cleared", "runway", "flight level", airline radio names) or marine speech, and
+  on top of it the names that are **actually on the air** (below).
 - Mistakes of the engine on silence and noise are filtered: text it itself marks as "no speech", sounds such as `[Music]`, the stock phrases it makes up
   on static ("Thank you.", "Thanks for watching"), a phrase repeated over and over, and more characters than a person can speak in that time.
 - **Callsigns** are read from the text: `Lufthansa one two three alpha` becomes `DLH123A`, `Speedbird 4 7 2` `BAW472`, `november one two three alpha bravo`
   `N123AB`, `hotel bravo alpha lima charlie` `HBALC`, and a written `DLH123` as it is. The table has about 150 airline radio names. A call is linked to
   an aircraft on the screen when the callsign or registration matches an ADS-B aircraft; if it matches none now, it still shows up in that aircraft's
   list when the aircraft appears later. The *Speaker* column ("ATC" when the text starts with the callsign, "Aircraft" when it ends with it) is a guess.
+
+## What the speech engine is given
+
+The engine does not read the sound you hear. A radio channel carries things that are not speech and that a speech engine will nevertheless try to turn
+into words, so OnAir conditions a separate copy for it. **Nothing you hear or record goes through this** — the chain that cleans up your listening is a
+different one (`docs/audio-cleanup.md`), with different settings, for a different reason.
+
+In *Settings and speech model*, under **What the speech engine is given**:
+
+| Setting | What it does |
+|---|---|
+| **Keep 300 – 3400 Hz** | A 6th-order high pass at 300 Hz and a 4th-order low pass at 3400 Hz. Takes out CTCSS tones (67 – 254.1 Hz), DCS turn-off bitstreams (134.4 bps) and the discriminator hiss above the voice band. 6th order up, not 4th, because a 4th-order corner leaves the highest CTCSS tone only 6.4 dB down, which is not enough to stop a strong one holding the transmission gate open; 6th order puts it 9.1 dB down and the common 203.5 Hz tone 20 dB down. |
+| **Mute signalling bursts** | MDC-1200 and single-tone key-ups, found by how much of a 15 ms frame sits on 1200 and 1800 Hz, and muted **before the speech detector sees them** — so a data burst can neither start a transmission nor be read as syllables. It must persist for three frames before the mute acts, because a held vowel can look like a tone for a frame or two; a burst is therefore muted from about 45 ms in, which is what matters, since 45 ms cannot open a transmission by itself. |
+| **Tell the engine what is on the air** | Below. |
+
+Everything here is deterministic — fixed filters and a tone detector, no model and no training — and with it switched off the samples reach the engine
+bit for bit as the radio produced them. There is deliberately **no noise gate for squelch tails**: the transmission gate already tracks the noise floor
+and will not open below it, and a squelch tail sits at the noise floor by definition.
+
+## Telling the engine what is on the air
+
+A speech engine guesses from what it has heard before, and it has never heard of the aircraft overhead this minute. It will turn *Ryanair three four
+alpha* into "Ryan air 34 alpha". Giving it the names that are genuinely in the air fixes most of that, and costs nothing.
+
+Once a second OnAir collects:
+
+- the **call signs of the aircraft in range**, said the way they are said on the radio (`BAW472` → "Speedbird 472"), and their **registrations**;
+  an aircraft close to you counts for more than one at the edge of coverage
+- the **runways of the airports within 60 km**, spelled out (`25L` → "runway two five left"), and the airport names
+- the **talkgroup names** of a trunked system you are following, from your own talkgroup list, with the one in a call now counting for more
+
+They are ranked by how recently each was seen and how much it is worth, and cut to a character budget, because the engine reads only 224 tokens of hint
+and the aviation phraseology above comes first. A name not seen for ten minutes is no longer "on the air" and drops out. The window shows what is
+currently being offered, so the setting is not a matter of faith.
+
+**Only names are used, never anything heard.** This reads the aircraft table, the airport database and your talkgroup list; nothing that was said goes
+into it. It is off for auto subtitles, where the live names of aircraft have nothing to do with what is on television.
 
 ## The window
 

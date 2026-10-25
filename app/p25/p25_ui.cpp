@@ -9,6 +9,7 @@
 #include "dect2/p25/p25_rx.h"
 #include "dect2/p25/p25_tel.h"
 #include "dect2/p25/trunk.h"
+#include "dect2/transcribe/context.h"
 #include "dect2/audio/audio_rec.h"
 #include "dect2/common/u8file.h"
 #include "platform/platform.h"
@@ -504,8 +505,33 @@ void followView(App& a) {
     }
 }
 
+// Publish the names of this system's talkgroups to the context store, so that when the sound of a trunked call reaches the speech engine
+// (through the audio tap, as "general") the engine has already been told what the dispatcher calls things. The talkgroup list lives here, so
+// the feeder lives here too rather than handing the list out to another module.
+void contextTick(App& a) {
+    static double last = 0;
+    const double now = ImGui::GetTime();
+    if (now - last < 2.0) return;
+    last = now;
+    const int64_t nowMs = (int64_t)time(nullptr) * 1000;
+    std::vector<dect2::ContextTerm> terms;
+    const dect2::P25Telemetry& t = a.rx.p25;
+    // The talkgroups that have actually been active, named from the user's list where it has a name for them.
+    for (const dect2::P25Talkgroup& g : t.talkgroups) {
+        const dect2::trunk::TgEntry* e = T.ctl.tgs.find(g.tg);
+        if (!e || e->alpha.empty()) continue;
+        const int64_t seen = g.lastWall > 0 ? g.lastWall * 1000 : nowMs;
+        terms.push_back({e->alpha, g.active ? 2.0f : 1.0f, seen});
+        // The description is often the plain-language name a dispatcher says ("Engine 7", "North Patrol").
+        if (!e->desc.empty() && e->desc != e->alpha) terms.push_back({e->desc, 0.7f, seen});
+    }
+    if (terms.empty()) dect2::ContextStore::global().clearScope("general");
+    else dect2::ContextStore::global().setTerms("general", std::move(terms));
+}
+
 void tick(App& a) {
     if (live(a)) appcodec::voiceCodecTick("imbe");   // the user's codec plug-in (docs/CODECS.md), loaded whichever tab is shown
+    contextTick(a);
     trunkTick(a);
     if (!a.engine.running()) { S.wasRunning = false; return; }
     dect2::P25Receiver& r = a.engine.p25();
