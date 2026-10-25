@@ -1,4 +1,5 @@
 // The airport search of the airband panel (see airport_ui.h).
+#include "../adsb/notam_app.h"
 #include "dect2/common/thread_name.h"
 #include "airband/airport_ui.h"
 #include "app.h"
@@ -298,6 +299,22 @@ void airportSection(App& a, const std::function<void(const std::vector<dect2::Ai
         ImGui::Text("%s%s%s  %s", ap.icao.c_str(), ap.iata.empty() ? "" : " / ", ap.iata.c_str(), ap.name.c_str());
         ImGui::SameLine(0, 8 * gUi);
         ImGui::TextDisabled("%.3f %.3f, %d ft", ap.latDeg, ap.lonDeg, ap.elevFt);
+        // Its NOTAMs, and any TFR within 10 NM (Tools > NOTAMs and TFRs gathers them from the FAA and off the air).
+        {
+            const std::vector<dect2::notam::Notam> ns = notamapp::forAirport(ap.icao, ap.latDeg, ap.lonDeg, 10);
+            char hd[64];
+            snprintf(hd, sizeof hd, "%s (%zu)###aptnotams", tr("NOTAMs"), ns.size());
+            if (ns.empty()) ImGui::TextDisabled("%s", tr("No NOTAM known for this airport (Tools > NOTAMs and TFRs says where they come from)."));
+            else if (ImGui::CollapsingHeader(hd)) {
+                ImGui::PushTextWrapPos(0);
+                for (const auto& n : ns) {
+                    ImGui::TextColored(n.stale ? pal::warnAmber() : pal::accent(), "%s%s", n.title.c_str(), n.stale ? tr("  (stale)") : "");
+                    ImGui::TextUnformatted(n.text.empty() ? tr("(no text yet)") : n.text.c_str());
+                    ImGui::Separator();
+                }
+                ImGui::PopTextWrapPos();
+            }
+        }
         if (S.chans.empty()) {
             ImGui::TextDisabled("%s", tr("This airport has no frequency in the airband in the table."));
         } else {

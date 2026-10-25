@@ -3,6 +3,9 @@
 #include "dect2/adsb/adsb_msg.h"
 #include "dect2/uat/uat_decode_c.h"
 #include "dect2/uat/uat_frame.h"
+#include "dect2/uat/fisb.h"
+#include <algorithm>
+#include <map>
 #include <cstdio>
 #include <cstring>
 #include "dect2/common/str.h"
@@ -28,29 +31,126 @@ void fillAcFromMdb(const uat_adsb_mdb& m, UatAircraft& ac) {
     ac.tisb = m.address_qualifier == AQ_TISB_ICAO || m.address_qualifier == AQ_TISB_OTHER;
 }
 
-std::string fisbTextFromApdu(const fisb_apdu& ap) {
-    if (!ap.data || ap.length == 0) return {};
-    std::string t((const char*)ap.data, (const char*)ap.data + ap.length);
-    while (!t.empty() && (t.back() == '\r' || t.back() == '\n' || t.back() == ' ')) t.pop_back();
-    return t;
+// The kind of a DLAC text product, from its own first word; the station from its second.
+void textKind(const std::string& t, std::string& kind, std::string& station) {
+    kind.clear();
+    station.clear();
+    size_t a = t.find_first_of(" \n");
+    const std::string first = t.substr(0, a);
+    static const char* kKinds[] = {"METAR", "SPECI", "TAF", "TAF.AMD", "PIREP", "WINDS"};
+    for (const char* k : kKinds)
+        if (first == k) kind = k;
+    if (kind.empty() || a == std::string::npos) return;
+    while (a < t.size() && (t[a] == ' ' || t[a] == '\n')) a++;
+    const size_t b = t.find_first_of(" \n", a);
+    station = t.substr(a, b == std::string::npos ? std::string::npos : b - a);
+}
+
+// The kind of NOTAM a TWGO text record holds, from its own first word ("NOTAM-D", "NOTAM-FDC", "NOTAM-TFR" ...).
+std::string notamKind(const std::string& t) {
+    const size_t a = t.find(' ');
+    const std::string first = t.substr(0, a);
+    return first.rfind("NOTAM", 0) == 0 ? first : std::string();
+}
+
+// The airspace of one graphic record. A polygon often comes as the same ring twice, one copy at the floor and one at the ceiling; a ring
+// with a single altitude reaches from the surface up to it. A circle is a prism with its own floor and ceiling. Lines and points are not
+// airspace and are left out.
+void areasOf(const fisb::GraphicRecord& g, std::vector<UatFisbProduct::Area>& out) {
+    const bool agl = g.altitudesAgl();
+    for (const fisb::Prism& z : g.prisms) {
+        UatFisbProduct::Area a;
+        a.centreLat = z.latBottom;
+        a.centreLon = z.lonBottom;
+        a.radiusNm = z.rMajorNm;
+        a.floorFt = z.bottomFt;
+        a.ceilingFt = z.topFt;
+        a.agl = agl;
+        out.push_back(std::move(a));
+    }
+    if ((g.geometry == 3 || g.geometry == 4) && g.vertices.size() >= 3) {
+        std::map<int, std::vector<std::pair<double, double>>> byAlt;
+        for (const fisb::Vertex& v : g.vertices) byAlt[v.altFt].push_back({v.lat, v.lon});
+        UatFisbProduct::Area a;
+        a.ring = byAlt.begin()->second;
+        a.floorFt = byAlt.size() >= 2 ? byAlt.begin()->first : 0;
+        a.ceilingFt = byAlt.rbegin()->first;
+        a.agl = agl;
+        if (a.ring.size() >= 3) out.push_back(std::move(a));
+    }
 }
 
 } // namespace
 
+// The names come from fisb.h, which follows DO-358B (and dump978 for the older numbering). This used to name product 8 "AIRMET" (it is
+// NOTAMs, TFRs included) and 413 "Winds aloft" (it is every DLAC text product), among others.
 std::string uatFisbProductName(uint16_t productId) {
-    switch (productId) {
-    case 0: return "METAR";
-    case 1: return "TAF";
-    case 2: return "NEXRAD";
-    case 8: return "AIRMET";
-    case 10: return "SIGMET";
-    case 12: return "GAIRMET";
-    case 413: return "Winds aloft";
-    default: {
-        char b[32];
-        snprintf(b, sizeof b, "FIS-B %u", productId);
-        return b;
+    const char* n = fisb::productName(productId);
+    if (n && *n) return n;
+    char b[32];
+    snprintf(b, sizeof b, "FIS-B %u", productId);
+    return b;
+}
+
+void uatFisbProducts(uint16_t productId, const uint8_t* payload, size_t n, std::vector<UatFisbProduct>& out) {
+    if (!payload || n == 0) return;
+    const fisb::Form form = fisb::productForm(productId);
+    if (form == fisb::Form::Text) {
+        UatFisbProduct p;
+        p.productId = productId;
+        p.text = fisb::dlacDecode(payload, n);
+        if (p.text.empty()) return;
+        std::string kind, station;
+        textKind(p.text, kind, station);
+        p.title = kind.empty() ? uatFisbProductName(productId) : kind;
+        p.location = station;
+        out.push_back(std::move(p));
+        return;
     }
+    if (form != fisb::Form::Twgo) return;   // gridded images: not text, and nothing here draws them yet
+    fisb::Twgo tw;
+    if (!fisb::decodeTwgo(payload, n, productId, tw)) return;
+    // DO-358B: a reference point other than a facility (0x00) or external (0xFF) means the records are to be ignored.
+    if (tw.referencePoint != 0x00 && tw.referencePoint != 0xFF) return;
+    for (const fisb::TextRecord& r : tw.text) {
+        UatFisbProduct p;
+        p.productId = productId;
+        p.location = tw.location;
+        p.reportNumber = r.reportNumber;
+        p.reportYear = r.reportYear;
+        p.cancelled = !r.active;
+        p.text = r.text;
+        const std::string k = notamKind(r.text);
+        p.title = k.empty() ? uatFisbProductName(productId) : k;
+        out.push_back(std::move(p));
+    }
+    // One report's airspace often comes as several records in one APDU (an area for each period it applies, or each part of the shape):
+    // they make one product, with each distinct area once.
+    const size_t firstGraphic = out.size();
+    for (const fisb::GraphicRecord& g : tw.graphics) {
+        UatFisbProduct* p = nullptr;
+        for (size_t i = firstGraphic; i < out.size(); i++)
+            if (out[i].reportNumber == g.reportNumber && out[i].reportYear == g.reportYear) p = &out[i];
+        if (!p) {
+            out.emplace_back();
+            p = &out.back();
+            p->productId = productId;
+            p->location = tw.location;
+            p->reportNumber = g.reportNumber;
+            p->reportYear = g.reportYear;
+            // A NOTAM's graphic says it is a TFR (object element 0) before its text has come.
+            p->title = productId == 8 && g.objectElement == 0 && tw.location.empty() ? "NOTAM-TFR" : uatFisbProductName(productId);
+        }
+        if (g.cancelled()) p->cancelled = true;
+        std::vector<UatFisbProduct::Area> v;
+        areasOf(g, v);
+        for (UatFisbProduct::Area& a : v) {
+            bool dup = false;
+            for (const UatFisbProduct::Area& b : p->areas)
+                dup = dup || (a.ring == b.ring && a.centreLat == b.centreLat && a.centreLon == b.centreLon && a.radiusNm == b.radiusNm &&
+                              a.floorFt == b.floorFt && a.ceilingFt == b.ceilingFt && a.agl == b.agl);
+            if (!dup) p->areas.push_back(std::move(a));
+        }
     }
 }
 
@@ -68,16 +168,27 @@ bool uatDecodeFrame(const UatRawFrame& raw, UatDecoded& out) {
             out.summary = "UAT uplink (no application data)";
             return true;
         }
+        // Every FIS-B APDU of the frame: a frame usually carries several, and this used to stop at the first.
+        std::map<std::string, int> names;
+        bool haveFirst = false;
         for (unsigned i = 0; i < mdb.num_info_frames; i++) {
             const auto& fr = mdb.info_frames[i];
-            if (!fr.is_fisb) continue;
+            if (!fr.is_fisb || !fr.data || fr.length == 0) continue;
             out.kind = UatDecoded::Kind::Fisb;
-            out.fisb.productId = fr.fisb.product_id;
-            out.fisb.title = uatFisbProductName(fr.fisb.product_id);
-            out.fisb.text = fisbTextFromApdu(fr.fisb);
-            out.fisb.timeSec = raw.timeSec;
-            out.summary = out.fisb.title;
-            if (!out.fisb.text.empty()) out.summary += ": " + out.fisb.text.substr(0, 120);
+            out.fisbApdus.emplace_back(fr.data, fr.data + fr.length);
+            fisb::Apdu a;
+            if (!fisb::parseApdu(fr.data, fr.length, a)) continue;
+            names[uatFisbProductName(a.productId)]++;
+            if (haveFirst || a.segmented) continue;   // a segment means nothing alone: the tracker puts the product back together
+            std::vector<UatFisbProduct> v;
+            uatFisbProducts(a.productId, a.payload, a.payloadLen, v);
+            for (const UatFisbProduct& p : v)
+                if (!p.text.empty()) { out.fisb = p; out.fisb.timeSec = raw.timeSec; haveFirst = true; break; }
+        }
+        if (out.kind == UatDecoded::Kind::Fisb) {
+            out.summary = "FIS-B";
+            for (const auto& kv : names) out.summary += " " + kv.first + (kv.second > 1 ? " x" + std::to_string(kv.second) : "");
+            if (haveFirst) out.summary += ": " + out.fisb.text.substr(0, 120);
             return true;
         }
         out.kind = UatDecoded::Kind::Other;

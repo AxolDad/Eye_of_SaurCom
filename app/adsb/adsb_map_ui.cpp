@@ -4,6 +4,7 @@
 #include "adsb_internal.h"
 #include "map/pos_predict.h"
 #include "adsb_acars.h"
+#include "notam_app.h"
 
 using namespace adsbui;
 
@@ -284,6 +285,12 @@ static void mapCorner(App& a, ImVec2 p0, ImVec2 size, bool wrongRef, double area
     if (ImGui::Checkbox("GPS interference", &S.jamLayer)) { plat::prefs().setB("adsbGpsJam", S.jamLayer); plat::prefs().flush(); }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Shades 0.5 degree squares by the share of aircraft that reported a poor GPS position (NACp / NIC low, or a position jump) in the last hour; at least 3 aircraft per square. An indicator, not proof of jamming.");
     ImGui::SameLine(0, 6 * gUi);
+    {
+        bool tfr = notamapp::mapLayerOn();
+        if (ImGui::Checkbox("TFRs", &tfr)) notamapp::setMapLayer(tfr);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Flight restrictions and other NOTAM airspace (Tools > NOTAMs and TFRs): red in force, amber coming, grey not up to date");
+    }
+    ImGui::SameLine(0, 6 * gUi);
     gPred.load("adsb", true, false);
     gPred.controls();
     ImGui::SameLine(0, 6 * gUi);
@@ -338,6 +345,7 @@ void mapView(App& a, ImVec2 size) {
     gPred.load("adsb", true, false);
     if (on && gPred.predict) gPred.feedAdsb(t.aircraft, ImGui::GetTime());
     if (on && S.jamLayer) drawJam(dl, p0, size);
+    notamapp::drawMap(dl);   // TFRs and other NOTAM airspace: red in force, amber coming, grey stale
     if (on) {
         drawTrails(dl, t);
         if (S.winds) drawWinds(dl, t);

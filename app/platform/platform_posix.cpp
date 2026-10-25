@@ -170,6 +170,52 @@ bool postRequest(const std::string& url, const std::string& body, const std::str
 #endif
 }
 
+bool fetchUrlHeaders(const std::string& url, const std::string& file, const std::string& userAgent, const std::vector<std::string>& headers) {
+    static std::atomic<unsigned> counter{0};
+    const std::string hdrFile = cacheDir() + "/fetchh_" + std::to_string(counter++ % 1000) + ".hdr";
+    std::string hdr;
+    for (const std::string& h : headers) {
+        if (h.find('\n') != std::string::npos || h.find('\r') != std::string::npos) return false;
+        hdr += h + "\n";
+    }
+#ifdef _WIN32
+    FILE* f = _wfopen(wide(hdrFile).c_str(), L"wb");
+#else
+    FILE* f = fopen(hdrFile.c_str(), "wb");
+    if (f) fchmod(fileno(f), 0600);
+#endif
+    if (!f) return false;
+    fwrite(hdr.data(), 1, hdr.size(), f);
+    fclose(f);
+#ifdef _WIN32
+    wchar_t sys[MAX_PATH + 1] = {0};
+    std::wstring exe = GetSystemDirectoryW(sys, MAX_PATH) ? std::wstring(sys) + L"\\curl.exe" : std::wstring(L"curl.exe");
+    if (GetFileAttributesW(exe.c_str()) == INVALID_FILE_ATTRIBUTES) exe = L"curl.exe";
+    std::wstring line = L"\"" + exe + L"\" -fsSL --ssl-no-revoke --max-time 25 -A \"" + wide(userAgent) + L"\" -H @\"" + wide(hdrFile) + L"\" -o \"" +
+                        wide(file) + L"\" \"" + wide(url) + L"\"";
+    STARTUPINFOW si{};
+    si.cb = sizeof si;
+    PROCESS_INFORMATION pi{};
+    bool ok = false;
+    if (CreateProcessW(nullptr, line.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, nullptr, &si, &pi)) {
+        if (WaitForSingleObject(pi.hProcess, 30000) != WAIT_OBJECT_0) TerminateProcess(pi.hProcess, 1);
+        DWORD rc = 1;
+        GetExitCodeProcess(pi.hProcess, &rc);
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
+        ok = rc == 0;
+    }
+    DeleteFileW(wide(hdrFile).c_str());
+    return ok;
+#else
+    auto q = [](const std::string& s) { std::string o = "'"; for (char c : s) { if (c == '\'') o += "'\\''"; else o += c; } return o + "'"; };
+    const std::string cmd = "curl -fsSL --max-time 25 -A " + q(userAgent) + " -H @" + q(hdrFile) + " -o " + q(file) + " " + q(url) + " 2>/dev/null";
+    const int rc = system(cmd.c_str());
+    std::remove(hdrFile.c_str());
+    return rc == 0;
+#endif
+}
+
 // curl exit codes: 6 host not found, 7 cannot connect, 28 timed out, 35/51/58/60 TLS
 HttpResult httpRequest(const std::string& method, const std::string& url, const std::string& body, const std::string& userAgent, int timeoutSec) {
     static std::atomic<unsigned> counter{0};

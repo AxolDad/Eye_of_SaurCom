@@ -6,6 +6,7 @@
 #endif
 #include "app.h"
 #include "adsb/adsb_api_app.h"
+#include "adsb/notam_app.h"
 #include "ui/contrast.h"
 #include "ui/touch.h"
 #include "dect2/source/iq_file.h"
@@ -221,7 +222,8 @@ static void shutdownApp(App& app, gfx::Backend* gfxBackend, GLFWwindow* window) 
     delete gDiscord;   // clears the status and joins its thread
     txShutdown();      // the transmitter goes quiet before anything else is closed
     pluginShutdown();  // plugin threads and helper processes end, the crash marker goes
-    adsbapi::shutdown();   // the aggregator polling thread stops before the receiver it hands aircraft to goes away
+    adsbapi::shutdown();
+    notamapp::shutdown();   // the NOTAM fetch thread   // the aggregator polling thread stops before the receiver it hands aircraft to goes away
     receiversShutdown(app);
     tvRecShutdown(app);   // the recordings that run are finished and closed before the receiver stops
     app.engine.stop();
