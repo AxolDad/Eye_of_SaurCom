@@ -421,6 +421,7 @@ struct App {
     bool wifiSenseOpen = false;  // View > WiFi sensing (wifisense_ui.cpp)
     bool watchlistOpen = false;    // View > Watchlists: alerts when listed aircraft, ships, call signs, frequencies or words are heard (watchlist_ui.cpp)
     bool msgdbOpen = false;        // View > Messages: the decoded-message database (msgdb_ui.cpp)
+    bool flightsOpen = false;      // View > Flight history: every flight heard, the dossier of each aircraft and what stands out (flights_ui.cpp)
     bool protolabOpen = false;     // View > Protocol lab: reverse-engineering workbench for unknown signals (protolab_ui.cpp)
     bool pluginsOpen = false;      // View > Plugins: the plugin manager (plugin/plugin_app.cpp)
     bool automationOpen = false;   // View > Automations: rules and scripts (automation_ui.cpp)
@@ -873,6 +874,7 @@ void remoteApiSection(App& a);       // the settings panel (in the Data feeds wi
 void shareTick(App& a);             // feeds_ui.cpp: carries out the frequency / gain commands of the clients of "Share my radio" (when allowed)
 void watchlistWindow(App& a);   // app/watchlist/watchlist_ui.cpp: the Watchlists window (View > Watchlists); also starts the alerts
 void msgdbWindow(App& a);   // msgdb_ui.cpp: the Messages window (View > Messages); also starts the database and its feed
+void flightsWindow(App& a); // flights_ui.cpp: the Flight history window (View > Flight history); also records flights, every frame
 void protolabWindow(App& a);   // protolab_ui.cpp: the Protocol lab window (View > Protocol lab)
 void pluginFrame(App& a);          // plugin/plugin_app.cpp, every frame: discovery at the first call, starts and stops the running plugin mode, ticks the host
 void pluginShutdown();             // at exit: stops the plugins and removes the crash marker
