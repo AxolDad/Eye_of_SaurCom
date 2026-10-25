@@ -154,6 +154,10 @@ file(CONFIGURE OUTPUT ${_fdb_inc} CONTENT "${_fdb_out}" @ONLY)
 file(READ ${ONAIR_ROOT}/data/airports/airports.tsv _ap_txt)
 file(CONFIGURE OUTPUT ${CMAKE_BINARY_DIR}/generated/airports_data.inc CONTENT "static const char kAirportData[] = R\"OnAirAP(${_ap_txt})OnAirAP\";\n" @ONLY)
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${ONAIR_ROOT}/data/airports/airports.tsv)
+# the built-in runway table: data/airports/runways.tsv (OurAirports, public domain), for the approach measurements of the flight recorder
+file(READ ${ONAIR_ROOT}/data/airports/runways.tsv _rw_txt)
+file(CONFIGURE OUTPUT ${CMAKE_BINARY_DIR}/generated/runways_data.inc CONTENT "static const char kRunwayData[] = R\"OnAirRW(${_rw_txt})OnAirRW\";\n" @ONLY)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${ONAIR_ROOT}/data/airports/runways.tsv)
 target_sources(dect2core PRIVATE core/src/airports/airports.cpp)
 target_sources(dect2core PRIVATE core/src/sweep/station_health.cpp core/src/source/agc.cpp)   # station and antenna health report (docs/STATION_HEALTH.md)
 # The modes added after FM (DVB-S/S2, DTMB, analog TV, DMR, DRM, ADS-B): every core/src/<mode>/*.cpp belongs to its mode, so a mode can add files without editing this list

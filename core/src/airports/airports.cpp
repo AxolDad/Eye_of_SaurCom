@@ -12,6 +12,27 @@ namespace dect2 {
 
 namespace {
 #include "airports_data.inc"
+#include "runways_data.inc"
+
+std::string upper(const std::string& s) {
+    std::string o = s;
+    for (auto& c : o) c = (char)std::toupper((unsigned char)c);
+    return o;
+}
+
+// the signed difference between two bearings, -180 .. 180
+double angleDiff(double a, double b) {
+    double d = std::fmod(a - b + 540.0, 360.0) - 180.0;
+    return d;
+}
+
+// true bearing from one position to another, 0 .. 360
+double bearingDeg(double lat1, double lon1, double lat2, double lon2) {
+    const double p1 = lat1 * math::kPi / 180, p2 = lat2 * math::kPi / 180, dl = (lon2 - lon1) * math::kPi / 180;
+    const double y = std::sin(dl) * std::cos(p2);
+    const double x = std::cos(p1) * std::sin(p2) - std::sin(p1) * std::cos(p2) * std::cos(dl);
+    return std::fmod(std::atan2(y, x) * 180 / math::kPi + 360.0, 360.0);
+}
 
 std::vector<std::string> splitTab(const std::string& s, size_t from, size_t to) {
     std::vector<std::string> v;
@@ -170,6 +191,7 @@ const AirportDb& AirportDb::builtin() {
     static const AirportDb db = [] {
         AirportDb d;
         d.parseTsv(kAirportData);
+        d.parseRunwaysTsv(kRunwayData);
         return d;
     }();
     return db;
@@ -247,6 +269,146 @@ AirportReport AirportDb::importOurAirports(const std::string& airportsCsv, const
     std::sort(v_.begin(), v_.end(), [](const Airport& x, const Airport& y) { return x.icao < y.icao; });
     if (rep.airports == 0) rep.log.push_back("no airport found: not the OurAirports airports.csv?");
     return rep;
+}
+
+// ---------------------------------------------------------------- runways
+
+const RunwayEnd* Runway::endForTrack(double trackDegT) const {
+    const RunwayEnd* best = nullptr;
+    double bestDiff = 90.0;   // neither end counts when the aircraft is flying across the runway
+    for (const RunwayEnd* e : {&le, &he}) {
+        if (!e->hasHeading) continue;
+        double d = std::fabs(angleDiff(trackDegT, e->headingDegT));
+        if (d < bestDiff) { bestDiff = d; best = e; }
+    }
+    return best;
+}
+
+namespace {
+// The airport an "R" line belongs to; the table is sorted by ICAO code, so a binary search finds it
+Airport* airportFor(std::vector<Airport>& v, const std::string& ident) {
+    const auto it = std::lower_bound(v.begin(), v.end(), ident, [](const Airport& a, const std::string& k) { return a.icao < k; });
+    if (it != v.end() && it->icao == ident) return &*it;
+    for (auto& a : v) if (a.icao == ident) return &a;   // an unsorted table (a hand-made one in a test)
+    return nullptr;
+}
+
+void endFromFields(RunwayEnd& e, const std::string& ident, const std::string& lat, const std::string& lon, const std::string& elev, const std::string& hdg) {
+    bool o1 = false, o2 = false, o3 = false, o4 = false;
+    e.ident = ident;
+    const double la = toD(lat, o1), lo = toD(lon, o2), el = toD(elev, o3), hd = toD(hdg, o4);
+    if (o1 && o2 && std::fabs(la) <= 90 && std::fabs(lo) <= 180) { e.latDeg = la; e.lonDeg = lo; e.hasPos = true; }
+    if (o3) { e.elevFt = (int)el; e.hasElev = true; }
+    if (o4 && hd >= -0.01 && hd <= 360.01) { e.headingDegT = (float)std::fmod(hd + 360.0, 360.0); e.hasHeading = true; }
+}
+} // namespace
+
+AirportReport AirportDb::parseRunwaysTsv(const std::string& text) {
+    AirportReport rep;
+    for (auto& a : v_) a.runways.clear();
+    size_t p = 0;
+    while (p < text.size()) {
+        size_t e = text.find('\n', p);
+        if (e == std::string::npos) e = text.size();
+        size_t le = e;
+        if (le > p && text[le - 1] == '\r') le--;
+        const size_t ls = p;
+        p = e + 1;
+        if (le == ls || text[ls] == '#') continue;
+        const auto f = splitTab(text, ls, le);
+        if (f[0] != "R" || f.size() < 16) { rep.skipped++; continue; }
+        Airport* a = airportFor(v_, f[1]);
+        if (!a) { rep.skipped++; continue; }   // a runway of an airport this table does not have
+        Runway r;
+        endFromFields(r.le, f[2], f[3], f[4], f[5], f[6]);
+        endFromFields(r.he, f[7], f[8], f[9], f[10], f[11]);
+        if (!r.le.hasPos && !r.he.hasPos) { rep.skipped++; continue; }
+        bool ok = false;
+        r.lengthFt = (int)toD(f[12], ok);
+        r.widthFt = (int)toD(f[13], ok);
+        r.hard = f[14] == "1";
+        r.lit = f[15] == "1";
+        a->runways.push_back(std::move(r));
+        rep.runways++;
+    }
+    return rep;
+}
+
+std::string AirportDb::runwaysToTsv() const {
+    std::string o = "# Runways (see data/airports/runways.tsv for the format)\n";
+    char b[160];
+    for (const auto& a : v_)
+        for (const auto& r : a.runways) {
+            o += "R\t" + a.icao + "\t";
+            for (const RunwayEnd* e : {&r.le, &r.he}) {
+                o += e->ident + "\t";
+                if (e->hasPos) { snprintf(b, sizeof b, "%.6f\t%.6f\t", e->latDeg, e->lonDeg); o += b; } else o += "\t\t";
+                if (e->hasElev) { snprintf(b, sizeof b, "%d\t", e->elevFt); o += b; } else o += "\t";
+                if (e->hasHeading) { snprintf(b, sizeof b, "%.1f\t", e->headingDegT); o += b; } else o += "\t";
+            }
+            snprintf(b, sizeof b, "%d\t%d\t%d\t%d\n", r.lengthFt, r.widthFt, r.hard ? 1 : 0, r.lit ? 1 : 0);
+            o += b;
+        }
+    return o;
+}
+
+AirportReport AirportDb::importRunways(const std::string& runwaysCsv) {
+    AirportReport rep;
+    for (auto& a : v_) a.runways.clear();
+    std::vector<std::string> head;
+    int cApt = -1, cLen = -1, cWid = -1, cSurf = -1, cLit = -1, cClosed = -1;
+    int cLeId = -1, cLeLat = -1, cLeLon = -1, cLeElev = -1, cLeHdg = -1;
+    int cHeId = -1, cHeLat = -1, cHeLon = -1, cHeElev = -1, cHeHdg = -1;
+    bool first = true;
+    parseCsv(runwaysCsv, [&](const std::vector<std::string>& r) {
+        if (first) {
+            first = false; head = r;
+            cApt = colOf(head, "airport_ident"); cLen = colOf(head, "length_ft"); cWid = colOf(head, "width_ft");
+            cSurf = colOf(head, "surface"); cLit = colOf(head, "lighted"); cClosed = colOf(head, "closed");
+            cLeId = colOf(head, "le_ident"); cLeLat = colOf(head, "le_latitude_deg"); cLeLon = colOf(head, "le_longitude_deg");
+            cLeElev = colOf(head, "le_elevation_ft"); cLeHdg = colOf(head, "le_heading_degT");
+            cHeId = colOf(head, "he_ident"); cHeLat = colOf(head, "he_latitude_deg"); cHeLon = colOf(head, "he_longitude_deg");
+            cHeElev = colOf(head, "he_elevation_ft"); cHeHdg = colOf(head, "he_heading_degT");
+            return;
+        }
+        if (cApt < 0) return;
+        auto at = [&](int c) { return c >= 0 && (size_t)c < r.size() ? r[(size_t)c] : std::string(); };
+        if (at(cClosed) == "1") { rep.skipped++; return; }
+        Airport* a = airportFor(v_, at(cApt));
+        if (!a) { rep.skipped++; return; }
+        Runway w;
+        endFromFields(w.le, at(cLeId), at(cLeLat), at(cLeLon), at(cLeElev), at(cLeHdg));
+        endFromFields(w.he, at(cHeId), at(cHeLat), at(cHeLon), at(cHeElev), at(cHeHdg));
+        if (!w.le.hasPos && !w.he.hasPos) { rep.skipped++; return; }
+        // a heading OurAirports leaves out: from the two thresholds, as tools/gen_runways.py does
+        if (w.le.hasPos && w.he.hasPos) {
+            if (!w.le.hasHeading) { w.le.headingDegT = (float)bearingDeg(w.le.latDeg, w.le.lonDeg, w.he.latDeg, w.he.lonDeg); w.le.hasHeading = true; }
+            if (!w.he.hasHeading) { w.he.headingDegT = (float)bearingDeg(w.he.latDeg, w.he.lonDeg, w.le.latDeg, w.le.lonDeg); w.he.hasHeading = true; }
+        }
+        bool ok = false;
+        w.lengthFt = (int)toD(at(cLen), ok);
+        w.widthFt = (int)toD(at(cWid), ok);
+        const std::string surf = upper(at(cSurf));
+        for (const char* h : {"ASP", "CON", "PEM", "BIT", "TAR", "PAV", "COP"}) if (surf.find(h) != std::string::npos) w.hard = true;
+        w.lit = at(cLit) == "1";
+        a->runways.push_back(std::move(w));
+        rep.runways++;
+    });
+    if (rep.runways == 0) rep.log.push_back("no runway found: not the OurAirports runways.csv?");
+    return rep;
+}
+
+const Airport* AirportDb::nearestWithRunway(double lat, double lon, double radiusKm, int minRunwayFt) const {
+    const Airport* best = nullptr;
+    double bestKm = radiusKm;
+    const double dLat = radiusKm / 111.0 + 0.01;
+    for (const auto& a : v_) {
+        if (std::fabs(a.latDeg - lat) > dLat) continue;
+        if (a.runways.empty() || a.longestRunwayFt() < minRunwayFt) continue;
+        const double d = airportDistanceKm(lat, lon, a.latDeg, a.lonDeg);
+        if (d <= bestKm) { bestKm = d; best = &a; }
+    }
+    return best;
 }
 
 // ---------------------------------------------------------------- search
