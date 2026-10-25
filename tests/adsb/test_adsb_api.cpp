@@ -270,6 +270,38 @@ int main() {
         CHECK(v.empty(), "a truncated state vector was read");
     }
 
+    // ---- every aircraft alike: nothing is dropped, or treated differently, for the database flags a service attaches
+    //
+    // readsb-based services mark aircraft in "dbFlags": 1 military, 2 interesting, 4 PIA, 8 LADD. This program takes no part in LADD and
+    // filters nothing by any of them, so an aircraft carrying any of those flags must come through exactly as one carrying none.
+    {
+        const char* body = R"({"ac":[
+            {"hex":"a00001","flight":"PLAIN1","alt_baro":30000,"lat":40.0,"lon":-75.0},
+            {"hex":"a00002","flight":"LADD1","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":8},
+            {"hex":"a00003","flight":"PIA1","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":4},
+            {"hex":"a00004","flight":"BOTH1","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":12},
+            {"hex":"a00005","flight":"MIL1","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":1},
+            {"hex":"a00006","flight":"ALL1","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":15}
+        ]})";
+        std::vector<ApiAircraft> v;
+        std::string err;
+        size_t skipped = 0;
+        CHECK(parseApiResponse(ApiShape::ReadsbJson, body, "ac", v, &err, &skipped), "failed: %s", err.c_str());
+        CHECK(v.size() == 6, "%zu of 6 aircraft came through: a flagged aircraft was dropped", v.size());
+        CHECK(skipped == 0, "%zu flagged aircraft were skipped", skipped);
+        // and each one is read in full, the same as the unflagged one
+        const size_t plain = findIcao(v, 0xa00001);
+        for (uint32_t icao : {0xa00002u, 0xa00003u, 0xa00004u, 0xa00005u, 0xa00006u}) {
+            const size_t i = findIcao(v, icao);
+            CHECK(i != (size_t)-1, "%06X is missing", icao);
+            if (i == (size_t)-1 || plain == (size_t)-1) continue;
+            CHECK(v[i].hasPos && v[i].hasAlt && !v[i].callsign.empty(), "%06X was not read in full", icao);
+            CHECK(v[i].lat == v[plain].lat && v[i].altFt == v[plain].altFt, "%06X was treated differently from the unflagged one", icao);
+            const AdsbExtUpdate u = apiToExtUpdate(v[i]);
+            CHECK(u.icao == icao && u.hasPos && u.hasAlt, "%06X did not reach the table whole", icao);
+        }
+    }
+
     // ---- what reaches the aircraft table
     {
         ApiAircraft a;
