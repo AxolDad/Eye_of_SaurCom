@@ -242,6 +242,7 @@ void sidebar(App& a) {
         tool("Deep Space Network", a.dsnOpen, N_("What NASA's deep space dishes are talking to now: spacecraft, distance, bands and data rates"));
         tool("WiFi sensing...", a.wifiSenseOpen, N_("Presence, motion, breathing and heart rate in a room from the WiFi channel of ESP32 nodes"));
         tool("Messages...", a.msgdbOpen, N_("Every decoded message in one searchable database, with filters and export"));
+        tool("Flight history...", a.flightsOpen, N_("Every flight this receiver heard: what is overhead most, where it goes, what stands out, and your own dossier on each aircraft"));
         tool("Protocol lab...", a.protolabOpen, N_("Work out an unknown digital signal: modulation, baud rate, sync word, CRC and fields, with an export"));
         tool("Watchlists...", a.watchlistOpen, N_("Alerts when listed aircraft, ships, call signs, frequencies or words are heard: notification, sound, ntfy, Telegram or webhook"));
         tool("Automations...", a.automationOpen, N_("Rules and scripts: when something is decoded, notify, record, tune or call a webhook"));
@@ -426,6 +427,7 @@ static void viewMenu(App& a) {
         ImGui::MenuItem(tr("Deep Space Network"), nullptr, &a.dsnOpen);
         ImGui::MenuItem(tr("WiFi sensing..."), nullptr, &a.wifiSenseOpen);
         ImGui::MenuItem(tr("Messages..."), nullptr, &a.msgdbOpen);
+        ImGui::MenuItem(tr("Flight history..."), nullptr, &a.flightsOpen);
         ImGui::MenuItem(tr("Protocol lab..."), nullptr, &a.protolabOpen);
         ImGui::MenuItem(tr("Watchlists..."), nullptr, &a.watchlistOpen);
         ImGui::MenuItem(tr("Automations..."), nullptr, &a.automationOpen);

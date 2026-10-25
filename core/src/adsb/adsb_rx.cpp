@@ -51,6 +51,14 @@ struct AdsbReceiver::Impl {
         tracker.applyExternal(u, (uint8_t)src, now);
     }
     AdsbFeedIn feedIn;                   // last: it stops its threads first
+    // Services the application polls for us (adsb_api.h). Their aircraft sit in the same table behind a source of their own.
+    struct ApiSrc {
+        std::string name;
+        uint64_t aircraftSeen = 0;       // updates taken from it
+        bool ok = false;
+        std::string error;
+    };
+    std::vector<ApiSrc> api;
 
     void say(const std::string& s) {
         std::function<void(const std::string&)> f;
@@ -178,7 +186,52 @@ bool AdsbReceiver::telemetry(AdsbTelemetry& out, uint64_t lastSeq) {
         i.aircraft = p.tracker.aircraftFrom((uint8_t)(out.sources.size()));
         out.sources.push_back(std::move(i));
     }
+    for (const Impl::ApiSrc& a : p.api) {
+        AdsbSourceInfo i;
+        i.name = a.name;
+        i.format = "API";
+        i.state = a.ok ? 1 : 0;
+        i.msgs = a.aircraftSeen;
+        i.error = a.error;
+        i.aircraft = p.tracker.aircraftFrom((uint8_t)(out.sources.size()));
+        out.sources.push_back(std::move(i));
+    }
     return true;
+}
+
+void AdsbReceiver::setApiServices(const std::vector<std::string>& names) {
+    std::lock_guard<std::mutex> lk(p_->mu);
+    std::vector<Impl::ApiSrc> next;
+    next.reserve(names.size());
+    for (const std::string& n : names) {
+        // Keep what a service had already done when the list is only reordered or added to.
+        Impl::ApiSrc a;
+        a.name = n;
+        for (const Impl::ApiSrc& old : p_->api)
+            if (old.name == n) { a = old; break; }
+        next.push_back(std::move(a));
+    }
+    p_->api.swap(next);
+}
+
+void AdsbReceiver::applyApiAircraft(const std::string& name, const std::vector<AdsbExtUpdate>& aircraft, bool ok, const std::string& error) {
+    std::lock_guard<std::mutex> lk(p_->mu);
+    size_t idx = p_->api.size();
+    for (size_t i = 0; i < p_->api.size(); i++)
+        if (p_->api[i].name == name) { idx = i; break; }
+    if (idx == p_->api.size()) return;   // not an enabled service: the window and the poller disagree, so drop it rather than invent a slot
+    Impl::ApiSrc& a = p_->api[idx];
+    a.ok = ok;
+    a.error = error;
+    if (!ok) return;
+    // The source id is this service's place in the table the telemetry builds: self, then the TCP feeds, then these.
+    const size_t src = 1 + p_->feedIn.info().size() + idx;
+    if (src > 255) return;
+    for (const AdsbExtUpdate& u : aircraft) {
+        if (!u.icao) continue;
+        p_->tracker.applyExternal(u, (uint8_t)src, p_->now);
+        a.aircraftSeen++;
+    }
 }
 
 void AdsbReceiver::setLogCallback(std::function<void(const std::string&)> cb) {

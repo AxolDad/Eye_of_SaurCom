@@ -1,6 +1,8 @@
-// View > Data feeds: send what the decoders find to other programs (tar1090 / readsb / VRS, OpenCPN, APRS-IS, acarshub).
+// View > Data feeds: send what the decoders find to other programs (tar1090 / readsb / VRS, OpenCPN, APRS-IS, acarshub), and the
+// other direction - ask an aggregator what is in the air (app/adsb/adsb_api_app.h, core adsb_api.h).
 // Every feed is off until the user turns it on; the network work is in core (feeds.cpp).
 #include "../app.h"
+#include "../adsb/adsb_api_app.h"
 #include "../ui/typography.h"
 #include "dect2/net/cot_rx.h"
 #include <cstdio>
@@ -68,6 +70,18 @@ void targetsSection(dect2::FeedConfig& c, bool ais, bool& changed) {
         ImGui::SameLine(); changed |= portField(N_("Port"), t.port);
         ImGui::SameLine(); if (ImGui::SmallButton(tr("Remove"))) { c.targets.erase(c.targets.begin() + (long)i); changed = true; ImGui::PopID(); break; }
         if (t.proto == dect2::FeedProto::Tcp) { ImGui::Indent(); changed |= textField(N_("Key / id line (optional)"), t.key, ImGuiInputTextFlags_Password, 160); ImGui::Unindent(); }
+        if (t.proto == dect2::FeedProto::Tcp && t.kind == FeedKind::AdsbBeast) {
+            // The feeder id the readsb-based networks know a station by (feed_targets.h FeedTarget::uuid)
+            ImGui::Indent();
+            changed |= textField(N_("Feeder id (UUID)"), t.uuid, 0, 290);
+            ImGui::SameLine();
+            if (ImGui::SmallButton(tr("New id"))) { t.uuid = dect2::feedUuidNew(); changed = true; }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("%s", tr("A new id makes you a new feeder to that network: your statistics there start again. Paste the id of a feeder you already ran to carry on as it."));
+            if (!t.uuid.empty() && !dect2::feedUuidValid(t.uuid))
+                ImGui::TextColored(pal::badRed(), "%s", tr("Not a UUID: 36 characters, 8-4-4-4-12 hex digits. Nothing is sent until it is one."));
+            ImGui::Unindent();
+        }
         const dect2::FeedTargetStatus s = dect2::FeedTargets::get().status(i);
         ImGui::Indent();
         if (!t.enabled) ImGui::TextDisabled("%s", tr("off"));
@@ -83,6 +97,7 @@ void targetsSection(dect2::FeedConfig& c, bool ais, bool& changed) {
             if ((p.kind == FeedKind::AisNmea) != ais) continue;
             if (ImGui::Selectable(p.name)) {
                 dect2::FeedTarget t; t.name = p.name; t.kind = p.kind; t.proto = p.proto; t.host = p.host; t.port = p.port;
+                if (p.wantsUuid) t.uuid = dect2::feedUuidNew();   // its own, never shared with another target
                 c.targets.push_back(t); changed = true;
             }
             if (ImGui::IsItemHovered() && p.note[0]) ImGui::SetTooltip("%s", p.note);
@@ -90,8 +105,9 @@ void targetsSection(dect2::FeedConfig& c, bool ais, bool& changed) {
         ImGui::EndCombo();
     }
     ImGui::PushTextWrapPos(460 * gUi);
-    ImGui::TextDisabled("%s", tr("Privacy: aggregators publish what you send, and they know your station's position from your account there. Beast and NMEA data carry no key of yours; "
-                                 "enter only the address and key your own account gave you. Nothing is sent until you tick a target."));
+    ImGui::TextDisabled("%s", tr("Privacy: aggregators publish what you send, and they know your station's position from your account there. NMEA data carries no key of yours. "
+                                 "A Beast target with a feeder id sends that id, so the network can recognise your station from one connection to the next; each target has its own, "
+                                 "so two networks cannot match you up by it. Enter only the address and key your own account gave you. Nothing is sent until you tick a target."));
     ImGui::PopTextWrapPos();
     ImGui::PopID();
 }
@@ -128,6 +144,7 @@ void loadFeedPrefs(App& a) {
         dect2::FeedTarget t;
         t.name = d.getS((k + "Name").c_str(), ""); t.kind = (dect2::FeedKind)(int)d.getI((k + "Kind").c_str(), 0); t.proto = (dect2::FeedProto)(int)d.getI((k + "Proto").c_str(), 0);
         t.host = d.getS((k + "Host").c_str(), ""); t.port = (int)d.getI((k + "Port").c_str(), 0); t.key = d.getS((k + "Key").c_str(), ""); t.enabled = d.getB((k + "On").c_str(), false);
+        t.uuid = d.getS((k + "Uuid").c_str(), "");
         c.targets.push_back(t);
     }
     bool any = false;
@@ -188,6 +205,7 @@ void saveFeedPrefs(const App& a) {
         const dect2::FeedTarget& t = c.targets[i];
         d.setS((k + "Name").c_str(), t.name); d.setI((k + "Kind").c_str(), (int)t.kind); d.setI((k + "Proto").c_str(), (int)t.proto);
         d.setS((k + "Host").c_str(), t.host); d.setI((k + "Port").c_str(), t.port); d.setS((k + "Key").c_str(), t.key); d.setB((k + "On").c_str(), t.enabled);
+        d.setS((k + "Uuid").c_str(), t.uuid);
     }
     d.setB("shareOn", a.share.on); d.setI("sharePort", a.share.port); d.setI("shareLan", a.share.lan ? 1 : 0); d.setI("shareControl", a.share.allowControl ? 1 : 0);
     remoteApiSavePrefs(a);
@@ -223,6 +241,10 @@ void feedsWindow(App& a) {
     statusLine(dect2::kFeedBeast, true);
     ImGui::PopID();
     targetsSection(c, false, changed);
+
+    // The other direction: ask a network what is in the air, rather than tell one what you heard (app/adsb/adsb_api_app.h).
+    typo::separatorText(tr("Bring aircraft in from a service"));
+    adsbapi::panel(a);
 
     typo::separatorText(tr("AIS"));
     ImGui::PushID("ais");

@@ -1,6 +1,8 @@
 // Live transcripts in the app. See transcribe_app.h and docs/TRANSCRIBE.md.
 #include "dect2/common/thread_name.h"
 #include "transcribe_app.h"
+#include "dect2/airports/airports.h"
+#include "dect2/transcribe/context.h"
 #include "app.h"
 #include "adsb/adsb_acars.h"
 #include "adsb/adsb_internal.h"
@@ -51,6 +53,11 @@ struct Cfg {
     bool translate = false;     // also keep an English translation of foreign speech (multilingual model)
     int threads = 2;            // CPU budget: threads of the speech engine
     int days = 7;               // retention
+    // what the speech engine is given, which is not what you hear (dect2/transcribe/asr_front.h, docs/TRANSCRIBE.md)
+    bool front = true;          // condition the audio for the engine
+    bool frontBand = true;      // 300 - 3400 Hz: CTCSS, DCS and hiss out
+    bool frontBurst = true;     // mute MDC-1200 and single-tone key-ups before the speech detector sees them
+    bool bias = true;           // tell the engine the names that are on the air now (dect2/transcribe/context.h)
     // auto subtitles
     bool cap = false;           // master switch for captions (separate from the transcripts: nothing is kept in a file)
     std::set<int> capModes;     // the standards it runs for (empty: none)
@@ -107,6 +114,10 @@ void load() {
     C.translate = d.getB("txTranslate", false);
     C.threads = (int)std::max(1L, std::min(8L, d.getI("txThreads", 2)));
     C.days = (int)std::max(1L, std::min(365L, d.getI("txDays", 7)));
+    C.front = d.getB("txFront", true);
+    C.frontBand = d.getB("txFrontBand", true);
+    C.frontBurst = d.getB("txFrontBurst", true);
+    C.bias = d.getB("txBias", true);
     C.cap = d.getB("capOn", false);
     {
         std::stringstream ss(d.getS("capModes", ""));
@@ -124,6 +135,7 @@ void save() {
     plat::Prefs& d = plat::prefs();
     d.setB("txEnabled", C.enabled); d.setB("txAirband", C.airband); d.setB("txMarine", C.marine); d.setB("txOther", C.other);
     d.setS("txModel", C.model); d.setS("txLang", C.lang); d.setB("txTranslate", C.translate); d.setI("txThreads", C.threads); d.setI("txDays", C.days);
+    d.setB("txFront", C.front); d.setB("txFrontBand", C.frontBand); d.setB("txFrontBurst", C.frontBurst); d.setB("txBias", C.bias);
     d.setB("capOn", C.cap); d.setI("capSource", C.capSource); d.setI("capSize", C.capSize); d.setI("capBg", C.capBg); d.setI("capLines", C.capLines);
     d.setB("capTop", C.capTop); d.setI("capShow", C.capShow); d.setB("capSave", C.capSave);
     { std::string m; for (int k : C.capModes) m += (m.empty() ? "" : ",") + std::to_string(k); d.setS("capModes", m); }
@@ -160,6 +172,10 @@ void applyConfig() {
     c.language = C.lang;
     c.translate = C.translate;
     c.queueMax = 6;
+    c.front.enabled = C.front;
+    c.front.bandpass = C.frontBand;
+    c.front.blankBursts = C.frontBurst;
+    c.biasFromContext = C.bias;
     gTr.configure(c);
     gStore.setLimits(20000, C.days);
     dect2::TranscribeConfig k = gCap.config();   // captions: the same language and CPU budget, one worker, no music, a short queue (late captions are useless)
@@ -172,6 +188,10 @@ void applyConfig() {
     k.segmenter.rejectMusic = true;
     k.segmenter.maxSec = 12;     // shorter pieces: the first words show up sooner
     k.segmenter.hangSec = 0.5;
+    // Captions come from broadcast sound, not from a radio channel: there is no CTCSS or key-up signalling in it, and the live names of
+    // aircraft and talkgroups have nothing to do with what is on television.
+    k.front.enabled = false;
+    k.biasFromContext = false;
     gCap.configure(k);
     gCapStore.setLimits(2000, 1);
 }
@@ -240,6 +260,58 @@ void refreshAircraft() {
     }
     std::lock_guard<std::mutex> lk(gMu);
     gAircraft.swap(m);
+}
+
+// ---------------------------------------------------------------- telling the engine what is on the air
+//
+// Once a second, publish the names that are actually in the air into the context store (dect2/transcribe/context.h), which the transcriber
+// turns into the speech engine's prompt. An engine that has been told "Speedbird 472" is in range stops inventing "speed bird for seven two".
+// Only names, never anything heard: this reads the aircraft table and the airport database, nothing else.
+void refreshContext() {
+    const dect2::TranscribeConfig tc = gTr.config();
+    if (!tc.biasFromContext) {
+        dect2::ContextStore::global().clearScope("aviation");
+        return;
+    }
+    const int64_t nowMs = (int64_t)std::chrono::duration_cast<std::chrono::milliseconds>(
+                              std::chrono::system_clock::now().time_since_epoch()).count();
+    std::vector<dect2::ContextTerm> terms;
+    for (App* r : receiversAll()) {
+        if (!r) continue;
+        for (const auto& ac : r->rx.adsb.aircraft) {
+            if (ac.icao >> 24) continue;
+            // Weight by how close it is: the aircraft being talked to is far more likely to be the one overhead than one at the edge.
+            float w = 1.f;
+            if (ac.hasRange && ac.distNm > 0) w = (float)(1.0 + 2.0 / (1.0 + ac.distNm / 25.0));
+            const int64_t seen = nowMs - (int64_t)(ac.ageSec > 0 ? ac.ageSec * 1000 : 0);
+            if (!ac.callsign.empty()) {
+                const std::string spoken = dect2::spokenFlight(dect2::acarsNormFlight(ac.callsign));
+                if (!spoken.empty()) terms.push_back({spoken, w, seen});
+            }
+            // The registration is what a light aircraft is called on the radio, and it is the rarer string of the two.
+            const std::string reg = adsbui::registrationOf(ac.icao);
+            if (!reg.empty()) terms.push_back({reg, w * 0.9f, seen});
+        }
+    }
+    // The runways of the airports around here: "runway two five left" is said constantly and mis-heard easily.
+    double lat = 0, lon = 0;
+    receiverLocation(lat, lon);
+    if (lat != 0 || lon != 0) {
+        const dect2::AirportDb& db = dect2::AirportDb::builtin();
+        const std::vector<dect2::AirportHit> near = db.nearby(lat, lon, 60, 6, true);
+        for (const dect2::AirportHit& h : near) {
+            const dect2::Airport& ap = db.all()[h.index];
+            if (!ap.name.empty()) terms.push_back({ap.name, 0.7f, nowMs});
+            for (const dect2::Runway& rw : ap.runways) {
+                for (const dect2::RunwayEnd* e : {&rw.le, &rw.he}) {
+                    const std::string spoken = dect2::spokenRunway(e->ident);
+                    // A nearer airport's runways are worth more, but all of them beat nothing.
+                    if (!spoken.empty()) terms.push_back({spoken, h.km < 15 ? 1.1f : 0.6f, nowMs});
+                }
+            }
+        }
+    }
+    dect2::ContextStore::global().setTerms("aviation", std::move(terms));
 }
 
 void startLoad(const std::string& file) {
@@ -343,7 +415,7 @@ void tick(App& first) {
     }
 
     const bool ready = backendReady() && C.enabled;
-    if (ready) refreshAircraft();
+    if (ready) { refreshAircraft(); refreshContext(); }
     // airband: a tap on each channel of each running airband receiver
     for (App* r : receiversAll()) {
         if (!r) continue;
@@ -629,6 +701,45 @@ void settingsPanel() {
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Takes the sound you hear. Music and private conversations are not meant for this: leave it off unless you need it."));
     ImGui::EndDisabled();
     if (ch) { save(); applyConfig(); }
+
+    // what the engine is given, which is not what you hear
+    ImGui::Spacing();
+    ImGui::TextUnformatted(tr("What the speech engine is given"));
+    ImGui::PushTextWrapPos(0);
+    ImGui::TextDisabled("%s", tr("A radio channel carries things that are not speech and that a speech engine will still try to turn into words. This cleans up the copy the engine reads. It never changes what you hear or what is recorded."));
+    ImGui::PopTextWrapPos();
+    bool fc = false;
+    fc |= ImGui::Checkbox(tr("Condition the audio for the engine"), &C.front);
+    ImGui::BeginDisabled(!C.front);
+    ImGui::Indent();
+    fc |= ImGui::Checkbox(tr("Keep 300 - 3400 Hz"), &C.frontBand);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Takes out CTCSS tones (67 - 254 Hz), DCS turn-off bitstreams and the hiss above the voice band."));
+    ImGui::SameLine();
+    fc |= ImGui::Checkbox(tr("Mute signalling bursts"), &C.frontBurst);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("MDC-1200 and single-tone key-ups, muted before the speech detector sees them so they cannot start a transmission or be read as syllables."));
+    ImGui::Unindent();
+    ImGui::EndDisabled();
+    fc |= ImGui::Checkbox(tr("Tell the engine what is on the air"), &C.bias);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The call signs of the aircraft in range, the runways of the airports around you and the talkgroup names of a trunked system, offered to the engine as words to expect. Only names, never anything heard."));
+    if (fc) { save(); applyConfig(); }
+    // what is in the prompt right now, so the setting is not a matter of faith
+    if (C.bias) {
+        const size_t nTerms = dect2::ContextStore::global().termCount();
+        if (nTerms == 0) ImGui::TextDisabled("%s", tr("Nothing on the air to tell it about yet."));
+        else {
+            dect2::SourceInfo probe;
+            probe.domain = "aviation";
+            const int64_t nowMs = (int64_t)time(nullptr) * 1000;
+            const std::vector<dect2::ContextTerm> v =
+                dect2::ContextStore::global().termsFor(probe, 600, nowMs, 600 * 1000);
+            std::string line;
+            for (size_t i = 0; i < v.size() && i < 12; i++) { if (i) line += ", "; line += v[i].spoken; }
+            if (v.size() > 12) line += ", ...";
+            ImGui::PushTextWrapPos(0);
+            ImGui::TextDisabled("%s %zu: %s", tr("Expecting, of"), nTerms, line.empty() ? tr("(none for aviation)") : line.c_str());
+            ImGui::PopTextWrapPos();
+        }
+    }
 
     // the model
     ImGui::Spacing();

@@ -1,5 +1,6 @@
 #include "dect2/transcribe/callsign.h"
 #include <algorithm>
+#include <cstdlib>
 #include <cctype>
 #include <cstring>
 #include <map>
@@ -152,6 +153,79 @@ std::string telephonyToIcao(const std::string& name) {
     return it == telMap().end() ? std::string() : it->second;
 }
 size_t telephonyCount() { return telMap().size(); }
+
+std::string icaoToTelephony(const std::string& icao) {
+    if (icao.size() != 3) return {};
+    // The table is keyed by the spoken name, and aliases can share a designator. It is a std::map, so walking it is in alphabetical order
+    // of the spoken name; keeping the first match makes the answer stable between calls and between builds.
+    static const std::map<std::string, std::string> rev = [] {
+        std::map<std::string, std::string> m;
+        for (const auto& kv : telMap()) m.emplace(kv.second, kv.first);   // emplace keeps the first name seen for a designator
+        return m;
+    }();
+    const auto it = rev.find(icao);
+    if (it == rev.end()) return {};
+    // Capitalise each word, so it reads as a name in the prompt rather than as lower-case noise.
+    std::string o = it->second;
+    bool start = true;
+    for (char& c : o) {
+        if (start && c >= 'a' && c <= 'z') c = (char)(c - 'a' + 'A');
+        start = (c == ' ');
+    }
+    return o;
+}
+
+namespace {
+
+// Aviation reads digits one at a time, and says two of them its own way.
+const char* kDigitWord[10] = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "niner"};
+
+void appendDigits(std::string& out, const std::string& digits) {
+    for (char c : digits) {
+        if (c < '0' || c > '9') continue;
+        if (!out.empty() && out.back() != ' ') out += ' ';
+        out += kDigitWord[c - '0'];
+    }
+}
+
+}  // namespace
+
+std::string spokenFlight(const std::string& callsign) {
+    if (callsign.empty()) return {};
+    std::string cs;
+    for (char c : callsign) if (!std::isspace((unsigned char)c)) cs += (char)std::toupper((unsigned char)c);
+    if (cs.size() < 3) return cs;
+    // A registration (anything that is not three letters then a digit) is read out as it is written.
+    bool threeLetters = true;
+    for (int i = 0; i < 3; i++) if (!std::isupper((unsigned char)cs[i])) threeLetters = false;
+    if (!threeLetters || cs.size() == 3 || !std::isdigit((unsigned char)cs[3])) return cs;
+    const std::string name = icaoToTelephony(cs.substr(0, 3));
+    const std::string tail = cs.substr(3);
+    if (name.empty()) return cs.substr(0, 3) + " " + tail;   // no radio name: letters, then the number
+    return name + " " + tail;
+}
+
+std::string spokenRunway(const std::string& ident) {
+    std::string digits, side;
+    for (char c : ident) {
+        if (std::isdigit((unsigned char)c)) digits += c;
+        else if (c == 'L' || c == 'l') side = "left";
+        else if (c == 'R' || c == 'r') side = "right";
+        else if (c == 'C' || c == 'c') side = "center";
+        else if (std::isspace((unsigned char)c)) continue;
+        else return {};                                      // not a runway identifier
+    }
+    if (digits.empty() || digits.size() > 2) return {};
+    const int n = std::atoi(digits.c_str());
+    if (n < 1 || n > 36) return {};
+    std::string out = "runway ";
+    // "09" is said "zero niner", "9" is said "niner": keep whichever the identifier itself used.
+    std::string words;
+    appendDigits(words, digits);
+    out += words;
+    if (!side.empty()) out += " " + side;
+    return out;
+}
 
 std::vector<CallsignHit> findCallsigns(const std::string& text) {
     std::vector<CallsignHit> hits;

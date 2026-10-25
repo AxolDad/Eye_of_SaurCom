@@ -1,5 +1,6 @@
 // Outbound feed targets (feed_targets.h): one thread, a bounded queue, a socket per enabled target.
 #include "dect2/net/feed_targets.h"
+#include "dect2/net/feeds.h"
 #include "dect2/common/thread_name.h"
 #include "dect2/common/timecompat.h"
 #include "tcp_client.h"
@@ -7,8 +8,10 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <cstdio>
 #include <deque>
 #include <mutex>
+#include <random>
 #include <thread>
 
 namespace dect2 {
@@ -21,6 +24,18 @@ const std::vector<FeedPreset>& feedPresets() {
         {"Flightradar24 via fr24feed (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "127.0.0.1", 30334, "Send to a fr24feed you run yourself (receiver set to beast-tcp)."},
         // the FlightAware / FlightTracker upload protocols are private; their programs read Beast from a port
         {"FlightAware / FlightTracker client (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "127.0.0.1", 30005, "Send to a client program you run. Edit host and port to the one it listens on."},
+        // The four readsb-based networks below tell feeders apart by readsb's receiver-id frame, which their own feeders send first
+        // (airplanes-live/feed configure.sh: beast_reduce_plus_out with --uuid-file). The frame is read in readsb's ordinary Beast input
+        // path, so sending it is harmless to a network that does not use it; "true" makes the window generate one when the preset is added.
+        // airplanes.live document the Beast feed in their own feeder (github.com/airplanes-live/feed): 78.46.234.18 on 30004, which is what
+        // feed.airplanes.live resolves to. Their MLAT runs on 31090 through a separate client and is not implemented here.
+        {"airplanes.live (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "feed.airplanes.live", 30004, "No account needed: your feeder id is made for you. For MLAT, run their mlat-client against this program's Beast server (docs/adsb-services.md).", true},
+        // adsb.lol's own feeder client connects to feed.adsb.lol on 30004; some third-party documentation says in.adsb.lol instead, and both resolve
+        {"adsb.lol (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "feed.adsb.lol", 30004, "Beast feed only; no account needed. If it will not connect, try in.adsb.lol, which their documentation also names.", true},
+        {"adsb.fi (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "feed.adsb.fi", 30004, "Beast feed only; no account needed.", true},
+        {"TheAirTraffic (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "feed.theairtraffic.com", 30004, "Beast feed only; no account needed.", true},
+        {"ADSBHub (SBS-1 TCP)", FeedKind::AdsbSbs, FeedProto::Tcp, "data.adsbhub.org", 5001, "Register a station first; ADSBHub identifies you by the address you feed from."},
+        {"Plane Finder client (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "127.0.0.1", 30005, "Send to the Plane Finder client you run yourself. Edit host and port to the one it listens on."},
         {"AISHub (NMEA UDP)", FeedKind::AisNmea, FeedProto::Udp, "data.aishub.net", 0, "The port is given to you when you register your station."},
         {"AIS Dispatcher (NMEA UDP)", FeedKind::AisNmea, FeedProto::Udp, "", 0, "Enter the address and port from your AIS Dispatcher account."},
         {"VesselFinder (NMEA UDP)", FeedKind::AisNmea, FeedProto::Udp, "", 0, "Enter the address and port VesselFinder gave your station."},
@@ -30,6 +45,41 @@ const std::vector<FeedPreset>& feedPresets() {
         {"Custom (AIS NMEA UDP)", FeedKind::AisNmea, FeedProto::Udp, "", 0, ""},
     };
     return p;
+}
+
+bool feedUuidValid(const std::string& u) {
+    if (u.size() != 36) return false;
+    for (size_t i = 0; i < 36; i++) {
+        const char c = u[i];
+        if (i == 8 || i == 13 || i == 18 || i == 23) {
+            if (c != '-') return false;
+        } else if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string feedUuidNew() {
+    // An identifier, not a secret: what matters is that two stations never pick the same one, which a properly seeded 128-bit draw gives.
+    static std::mutex mu;
+    static std::mt19937_64 rng = [] {
+        std::random_device rd;
+        std::seed_seq seq{rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd()};
+        return std::mt19937_64(seq);
+    }();
+    uint64_t hi, lo;
+    {
+        std::lock_guard<std::mutex> lk(mu);
+        hi = rng();
+        lo = rng();
+    }
+    hi = (hi & 0xFFFFFFFFFFFF0FFFull) | 0x0000000000004000ull;   // version 4
+    lo = (lo & 0x3FFFFFFFFFFFFFFFull) | 0x8000000000000000ull;   // variant 10xx
+    char b[40];
+    snprintf(b, sizeof b, "%08x-%04x-%04x-%04x-%012llx", (unsigned)(hi >> 32), (unsigned)((hi >> 16) & 0xFFFF), (unsigned)(hi & 0xFFFF),
+             (unsigned)(lo >> 48), (unsigned long long)(lo & 0xFFFFFFFFFFFFull));
+    return b;
 }
 
 namespace {
@@ -62,7 +112,8 @@ struct FeedTargets::Impl {
         st[i].connected = false;
     }
     static bool same(const FeedTarget& a, const FeedTarget& b) {
-        return a.enabled && b.enabled && a.host == b.host && a.port == b.port && a.proto == b.proto && a.key == b.key;
+        // the id is part of the address: readsb takes a feeder's id once per connection and ignores a second one, so a new id needs a new connection
+        return a.enabled && b.enabled && a.host == b.host && a.port == b.port && a.proto == b.proto && a.key == b.key && a.uuid == b.uuid;
     }
     // keep the connection of a target whose address did not change; close the rest
     void applyConfig(const std::vector<FeedTarget>& next) {
@@ -122,7 +173,9 @@ struct FeedTargets::Impl {
             setsockopt(c, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof one);
 #endif
             l.s = c; l.wait = 2; s.connected = true; s.lastError.clear();
-            if (!tg.key.empty()) l.pending = tg.key + "\n";
+            // The feeder id goes first, ahead of any frame: readsb reads it as the opening message of the stream.
+            if (tg.kind == FeedKind::AdsbBeast) l.pending = feedfmt::beastUuidFrame(tg.uuid);
+            if (!tg.key.empty()) l.pending += tg.key + "\n";
         }
         s.state = "connected to " + tg.host + ":" + std::to_string(tg.port);
     }

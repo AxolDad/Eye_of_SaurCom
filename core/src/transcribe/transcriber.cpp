@@ -1,5 +1,6 @@
 #include "dect2/common/thread_name.h"
 #include "dect2/transcribe/transcriber.h"
+#include "dect2/transcribe/context.h"
 #include <algorithm>
 #include <cctype>
 #include <chrono>
@@ -205,7 +206,15 @@ std::string Transcriber::promptFor(const SourceInfo& s) const {
             "heading, flight level, QNH, squawk, taxi, hold short, line up and wait, wilco, roger, niner, tree, fife.";
     else if (s.domain == "marine")
         p = "Marine VHF radio. Mayday, Pan-pan, Securite, channel sixteen, Coast Guard, vessel, position, over, out.";
+    // The user's own words come before the live context: they chose them, and they should not be the first thing the budget drops.
     if (!cfg_.extraPrompt.empty()) p += (p.empty() ? "" : " ") + cfg_.extraPrompt;
+    if (cfg_.biasFromContext && cfg_.contextMaxChars > 0) {
+        const int64_t nowMs = (int64_t)std::chrono::duration_cast<std::chrono::milliseconds>(
+                                  std::chrono::system_clock::now().time_since_epoch()).count();
+        const int64_t maxAge = cfg_.contextMaxAgeSec > 0 ? (int64_t)(cfg_.contextMaxAgeSec * 1000) : 0;
+        const std::string live = ContextStore::global().promptFor(s, cfg_.contextMaxChars, nowMs, maxAge);
+        if (!live.empty()) p += (p.empty() ? "" : " ") + live;
+    }
     return p;
 }
 
@@ -230,9 +239,19 @@ void Transcriber::feed(const SourceInfo& src, const float* mono, size_t n, int r
             so.rejectMusic = so.rejectMusic || src.rejectMusic;
             s.seg = std::make_unique<VoiceSegmenter>(rate, so);
             s.rate = rate;
+            s.front.setOptions(cfg_.front);
+            s.front.prepare(rate);
         }
         s.info = src;
-        s.seg->push(mono, n, wallMs, [&](VoiceSegment&& g) { takeSegment(s, std::move(g), ready); });
+        // Condition a copy for the segmenter and the engine. The caller's buffer is left alone: it belongs to whatever is playing or
+        // recording the channel, and that must keep hearing the radio rather than our idea of it.
+        const float* in = mono;
+        if (cfg_.front.enabled) {
+            s.scratch.assign(mono, mono + n);
+            s.front.process(s.scratch.data(), n);
+            in = s.scratch.data();
+        }
+        s.seg->push(in, n, wallMs, [&](VoiceSegment&& g) { takeSegment(s, std::move(g), ready); });
     }
     for (auto& j : ready) submit(std::move(j));
 }

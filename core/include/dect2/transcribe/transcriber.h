@@ -4,6 +4,7 @@
 // are read, and it is added to the TranscriptStore. The caller's thread (the radio's, or the audio callback's) only copies samples and
 // cuts the audio: it never waits for the speech engine. While no transmission is going on nothing runs, so an idle channel costs no battery.
 #pragma once
+#include "dect2/transcribe/asr_front.h"
 #include "dect2/transcribe/callsign.h"
 #include "dect2/transcribe/segmenter.h"
 #include "dect2/transcribe/transcript.h"
@@ -68,6 +69,15 @@ struct TranscribeConfig {
     std::string extraPrompt;       // added to the built-in prompt of the domain
     FilterConfig filter;
     SegmenterOptions segmenter;
+    // Tell the engine the names that are actually on the air (context.h): the aircraft in range, the talkgroups with a channel, the
+    // frequency's own name. The budget is in characters because whisper reads only 224 tokens of prompt and the domain phraseology
+    // above comes first.
+    bool biasFromContext = true;
+    size_t contextMaxChars = 600;
+    double contextMaxAgeSec = 600;   // a name not heard for this long is no longer "on the air"; 0 = no age limit
+    // What the speech engine is given, which is not what anyone hears (asr_front.h). On by default: it only ever helps the engine, and
+    // nothing a person listens to or records goes through it.
+    AsrFrontOptions front;
 };
 
 struct SourceInfo {
@@ -117,7 +127,14 @@ public:
 
 private:
     struct Job { SourceInfo src; VoiceSegment seg; int turn = 0; };
-    struct Src { std::unique_ptr<VoiceSegmenter> seg; int rate = 0; int turn = 0; SourceInfo info; };
+    struct Src {
+        std::unique_ptr<VoiceSegmenter> seg;
+        int rate = 0;
+        int turn = 0;
+        SourceInfo info;
+        AsrFront front;                   // conditions this channel's audio ahead of the segmenter
+        std::vector<float> scratch;       // the conditioned copy; the caller's samples are never written to
+    };
     void submit(Job&& j);
     void process(Job& j);
     void workerLoop();

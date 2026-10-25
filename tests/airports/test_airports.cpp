@@ -177,5 +177,86 @@ int main() {
         const auto r3 = f.parseTsv(d.toTsv());
         CHECK(r3.airports == 3 && r3.freqs == r.freqs, "import -> text -> load");
     }
+    // ---- runways
+    {
+        const AirportDb& db = AirportDb::builtin();
+        size_t rw = 0, withRw = 0;
+        for (const auto& a : db.all()) { rw += a.runways.size(); withRw += !a.runways.empty(); }
+        printf("  %zu runways at %zu airports\n", rw, withRw);
+        CHECK(rw > 9000 && withRw > 6000, "built-in runways: %zu at %zu airports", rw, withRw);
+        // KJFK: four runways, the longest 14511 ft (13R/31L), all paved and lit
+        const Airport* jfk = db.find("KJFK");
+        CHECK(jfk && jfk->runways.size() == 4, "KJFK runways: %zu", jfk ? jfk->runways.size() : 0);
+        CHECK(jfk && jfk->longestRunwayFt() == 14511, "KJFK longest %d ft", jfk ? jfk->longestRunwayFt() : 0);
+        if (jfk) for (const auto& r : jfk->runways) CHECK(r.hard && r.lit && r.le.hasPos && r.he.hasPos && r.le.hasHeading, "KJFK %s/%s", r.le.ident.c_str(), r.he.ident.c_str());
+        // 04L / 22R: headings about 31 and 211, and the two ends roughly opposite
+        const Runway* r04 = nullptr;
+        if (jfk) for (const auto& r : jfk->runways) if (r.le.ident == "04L") r04 = &r;
+        CHECK(r04 && r04->he.ident == "22R", "04L pairs with %s", r04 ? r04->he.ident.c_str() : "?");
+        CHECK(r04 && std::fabs(r04->le.headingDegT - 31) < 2 && std::fabs(r04->he.headingDegT - 211) < 2, "04L/22R headings %.1f %.1f",
+              r04 ? r04->le.headingDegT : -1, r04 ? r04->he.headingDegT : -1);
+        CHECK(r04 && r04->lengthFt == 12079 && r04->le.hasElev && r04->le.elevFt == 12, "04L %d ft, elev %d", r04 ? r04->lengthFt : 0, r04 ? r04->le.elevFt : -1);
+        // which end an arriving aircraft is using, from its track
+        if (r04) {
+            const RunwayEnd* e = r04->endForTrack(30);
+            CHECK(e && e->ident == "04L", "track 030 -> %s", e ? e->ident.c_str() : "(none)");
+            e = r04->endForTrack(215);
+            CHECK(e && e->ident == "22R", "track 215 -> %s", e ? e->ident.c_str() : "(none)");
+            CHECK(!r04->endForTrack(121), "a track across the runway matches an end");
+            e = r04->endForTrack(359);   // wraps past north
+            CHECK(e && e->ident == "04L", "track 359 -> %s", e ? e->ident.c_str() : "(none)");
+        }
+        // the nearest airport with a long runway, for naming where a flight ended
+        const Airport* n = db.nearestWithRunway(40.64, -73.78, 20, 10000);
+        CHECK(n && n->icao == "KJFK", "nearest 10000 ft runway to JFK: %s", n ? n->icao.c_str() : "(none)");
+        CHECK(!db.nearestWithRunway(40.64, -73.78, 20, 20000), "a runway longer than any");
+        CHECK(!db.nearestWithRunway(0, 0, 50, 0), "middle of the Atlantic");
+    }
+    // ---- runways: the text format and the OurAirports CSV
+    {
+        AirportDb d;
+        d.parseTsv("A\tEGXX\tXXX\tTest\tLondon\tGB\t51.5\t-0.5\t80\tL\t1\n"
+                   "A\tEGYY\t\tOther\tLeeds\tGB\t53.8\t-1.5\t300\tM\t0\n");
+        const auto r = d.parseRunwaysTsv(
+            "# a comment\n"
+            "R\tEGXX\t09\t51.5\t-0.51\t80\t90\t27\t51.5\t-0.49\t80\t270\t9000\t150\t1\t1\n"
+            "R\tEGXX\tH1\t51.501\t-0.5\t\t\t\t\t\t\t\t60\t60\t1\t0\n"      // a helipad: one end, no heading
+            "R\tZZZZ\t18\t1\t2\t0\t180\t36\t1.1\t2\t0\t0\t5000\t100\t1\t1\n"   // an airport not in the table
+            "R\tEGYY\t05\t\t\t\t\t23\t\t\t\t\t4000\t75\t0\t0\n"                // neither end has a position
+            "R\tEGXX\tshort\n");
+        CHECK(r.runways == 2 && r.skipped == 3, "parsed %zu runways, %zu skipped", r.runways, r.skipped);
+        const Airport* x = d.find("EGXX");
+        CHECK(x && x->runways.size() == 2 && x->longestRunwayFt() == 9000, "EGXX %zu runways", x ? x->runways.size() : 0);
+        CHECK(x && x->runways[0].le.hasHeading && x->runways[0].le.headingDegT == 90 && x->runways[0].hard && x->runways[0].lit, "09 values");
+        CHECK(x && !x->runways[1].le.hasHeading && !x->runways[1].le.hasElev && x->runways[1].le.hasPos, "the helipad: position only");
+        CHECK(x && !x->runways[1].endForTrack(90), "an end without a heading is never chosen");
+        CHECK(d.find("EGYY") && d.find("EGYY")->runways.empty(), "EGYY has none");
+        // the exported text loads again unchanged
+        AirportDb e;
+        e.parseTsv(d.toTsv());
+        const auto r2 = e.parseRunwaysTsv(d.runwaysToTsv());
+        CHECK(r2.runways == 2 && r2.skipped == 0, "runways -> text -> load: %zu, %zu skipped", r2.runways, r2.skipped);
+        const Airport* x2 = e.find("EGXX");
+        CHECK(x2 && x2->runways.size() == 2 && x2->runways[0].le.headingDegT == 90 && x2->runways[0].le.elevFt == 80, "values survive the round trip");
+        CHECK(x2 && !x2->runways[1].le.hasHeading && !x2->runways[1].le.hasElev, "the unknowns stay unknown");
+        // the OurAirports CSV, with a closed runway and a heading it does not give
+        const auto r3 = d.importRunways(
+            "\"id\",\"airport_ref\",\"airport_ident\",\"length_ft\",\"width_ft\",\"surface\",\"lighted\",\"closed\","
+            "\"le_ident\",\"le_latitude_deg\",\"le_longitude_deg\",\"le_elevation_ft\",\"le_heading_degT\","
+            "\"he_ident\",\"he_latitude_deg\",\"he_longitude_deg\",\"he_elevation_ft\",\"he_heading_degT\"\n"
+            "1,1,\"EGXX\",9000,150,\"ASPH\",1,0,\"09\",51.5,-0.51,80,,\"27\",51.5,-0.49,80,\n"
+            "2,1,\"EGXX\",3000,60,\"GRASS\",0,0,\"18\",51.51,-0.5,80,180,\"36\",51.49,-0.5,80,360\n"
+            "3,1,\"EGXX\",2000,50,\"ASPH\",1,1,\"05\",51.5,-0.5,80,50,\"23\",51.5,-0.5,80,230\n"
+            "4,2,\"ZZZZ\",5000,100,\"CONC\",1,0,\"01\",1,2,0,10,\"19\",1.1,2,0,190\n");
+        CHECK(r3.runways == 2 && r3.skipped == 2, "CSV: %zu runways, %zu skipped (closed and unknown airport)", r3.runways, r3.skipped);
+        const Airport* x3 = d.find("EGXX");
+        CHECK(x3 && x3->runways.size() == 2, "EGXX from CSV: %zu", x3 ? x3->runways.size() : 0);
+        // the missing heading of 09/27 computed from the thresholds: due east and due west
+        CHECK(x3 && x3->runways[0].le.hasHeading && std::fabs(x3->runways[0].le.headingDegT - 90) < 1, "computed heading %.1f", x3 ? x3->runways[0].le.headingDegT : -1);
+        CHECK(x3 && std::fabs(x3->runways[0].he.headingDegT - 270) < 1, "computed reciprocal %.1f", x3 ? x3->runways[0].he.headingDegT : -1);
+        CHECK(x3 && x3->runways[0].hard && !x3->runways[1].hard, "surfaces: asphalt hard, grass not");
+        AirportDb f;
+        CHECK(f.importRunways("nonsense\n1,2\n").runways == 0, "not an OurAirports runways file");
+    }
     return testSummary("airports");
 }

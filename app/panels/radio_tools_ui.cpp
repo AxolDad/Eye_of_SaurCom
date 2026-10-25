@@ -188,6 +188,7 @@ void overview(App& a) {
     ImGui::TextColored(pal::heading(), "%s", tr("Logging and alerts"));
     launcher(a, "Drive log", "networks and devices with a position, to a WiGLE CSV or KML file", 0, nullptr, 4);
     launcher(a, "Messages", "every decoded message in one database", 0, &a.msgdbOpen, -1);
+    launcher(a, "Flight history", "what flies over, where it goes, and your dossier on each aircraft", 0, &a.flightsOpen, -1);
     launcher(a, "Watchlists", "an alert when a listed call sign, frequency or word is heard", 0, &a.watchlistOpen, -1);
 }
 

@@ -86,7 +86,7 @@ The full notices and the open licence points are in [THIRD_PARTY.md](https://git
 | Planespotters photos | Planespotters.net and the individual photographers | Photographers keep their rights, shown with credit and link | aircraft photo on the live map card | fetched in the visitor's browser after a click |
 | CelesTrak TLE data | T.S. Kelso, CelesTrak | Public data, free use with credit | satellite pass prediction | downloaded at run time |
 | OurAirports navaids | David Megginson | Public domain | VOR station list | user downloads the CSV, nothing bundled |
-| OurAirports airports and frequencies | David Megginson and contributors | Public domain | data/airports/airports.tsv (airband mode: airport search, frequencies of each airport) | compiled in as text, built by tools/gen_airports.py from the OurAirports CSV files |
+| OurAirports airports and frequencies | David Megginson and contributors | Public domain | data/airports/airports.tsv and data/airports/runways.tsv (airband mode: airport search and frequencies; flight history: the runway and approach of each flight) | compiled in as text, built by tools/gen_airports.py and tools/gen_runways.py from the OurAirports CSV files |
 | OnAir-channels (DAB transmitter lists) | OnAir-channels contributors | CC0 1.0 (public domain) | Data packs window: dab-tii/<country>.csv, kept for offline use | user downloads the file on a click, nothing bundled |
 | OpenAIP | OpenAIP | CC BY-NC (stated in the app text) | VOR station list alternative | user exports a file, nothing bundled |
 | OpenCelliD | Unwired Labs | CC BY-SA 4.0 | cell tower lookups | downloaded by the user |
