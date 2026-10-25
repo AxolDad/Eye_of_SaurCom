@@ -107,6 +107,7 @@ bool readLimit(const std::string& s0, int& ft, bool& agl) {
 
 const char* sourceName(Source s) {
     switch (s) {
+    case Source::Nms: return "FAA NMS";
     case Source::FaaApi: return "FAA NOTAM API";
     case Source::TfrSite: return "tfr.faa.gov";
     case Source::Fisb: return "FIS-B";
@@ -191,9 +192,9 @@ std::vector<Notam> merge(const std::vector<Snapshot>& snaps, double now, const M
         for (const Notam& n : s.items)
             if (!n.key.empty()) byKey[n.key].push_back({&s, &n, live});
     }
-    static const Source kText[] = {Source::FaaApi, Source::TfrSite, Source::Fisb};
-    static const Source kArea[] = {Source::TfrSite, Source::FaaApi, Source::Fisb};
-    static const Source kTime[] = {Source::FaaApi, Source::TfrSite, Source::Fisb};
+    static const Source kText[] = {Source::Nms, Source::FaaApi, Source::TfrSite, Source::Fisb};
+    static const Source kArea[] = {Source::TfrSite, Source::Nms, Source::FaaApi, Source::Fisb};
+    static const Source kTime[] = {Source::Nms, Source::FaaApi, Source::TfrSite, Source::Fisb};
     // The first holder, in this order of sources, live ones before stale ones, for which `has` is true.
     auto pick = [](const std::vector<Holder>& hs, const Source* order, auto has) -> const Holder* {
         for (int pass = 0; pass < 2; pass++)
@@ -509,6 +510,57 @@ void geometryOf(const json::Value& g, double radiusNm, std::vector<Area>& out, i
 
 }  // namespace
 
+namespace {
+
+// One geoJson feature as the FAA's APIs send it: properties.coreNOTAMData.notam (and .notamTranslation), and geometry.
+bool readFeature(const json::Value& it, double asOfUtc, Notam& n) {
+    const json::Value* props = it.get("properties");
+    if (!props) props = &it;   // a feature's properties on their own
+    const json::Value* core = props->get("coreNOTAMData");
+    const json::Value* no = core ? core->get("notam") : nullptr;
+    if (!no) return false;
+    const std::string num = normNumber(trim(no->str("number")));
+    if (num.empty()) return false;
+    const std::string cls = upper(trim(no->str("classification")));
+    n.number = trim(no->str("number"));
+    n.location = trim(no->str("icaoLocation"));
+    if (n.location.empty()) n.location = trim(no->str("location"));
+    n.text = trim(no->str("text"));
+    if (const json::Value* tr = core->get("notamTranslation"))
+        for (const json::Value& t : tr->a)
+            if (upper(t.str("type")) == "LOCAL_FORMAT") {
+                const std::string s = trim(t.str("simpleText").empty() ? t.str("formattedText") : t.str("simpleText"));
+                if (!s.empty()) n.text = s;
+            }
+    if (cls == "FDC") {
+        n.key = "FDC " + num;
+        n.kind = upper(n.text).find("TEMPORARY FLIGHT RESTRICTION") != std::string::npos ? "TFR" : "FDC";
+    } else {
+        std::string acct = upper(trim(no->str("accountId")));
+        if (acct.empty()) acct = upper(trim(no->str("location")));
+        if (acct.empty()) return false;
+        n.key = "D " + acct + " " + num;
+        // The older API writes DOM, INTL, MIL; NMS writes them out (DOMESTIC, INTERNATIONAL, MILITARY, LOCAL_MILITARY).
+        n.kind = cls == "DOM" || cls == "DOMESTIC" || cls.empty() ? "D" : cls == "INTERNATIONAL" ? "INTL" : cls == "MILITARY" ? "MIL" : cls == "LOCAL_MILITARY" ? "LMIL" : cls;
+    }
+    n.cancelled = upper(trim(no->str("type"))) == "C";
+    n.startUtc = parseIsoUtc(no->str("effectiveStart"));
+    const std::string end = upper(trim(no->str("effectiveEnd")));
+    if (end == "PERM") n.permanent = true;
+    else n.endUtc = parseIsoUtc(end);
+    n.title = n.kind + " " + n.number + (n.location.empty() ? "" : "  " + n.location);
+    n.seenUtc = asOfUtc;
+    const double radius = atof(no->str("radius").c_str());
+    if (const json::Value* g = it.get("geometry")) geometryOf(*g, radius, n.areas);
+    int lo = 0, hi = 0;
+    bool loAgl = false, hiAgl = false;
+    if (readLimit(no->str("lowerLimit"), lo, loAgl) && readLimit(no->str("upperLimit"), hi, hiAgl))
+        for (Area& a : n.areas) { a.hasLimits = true; a.floorFt = lo; a.ceilingFt = hi; a.floorAgl = loAgl; a.ceilingAgl = hiAgl; }
+    return true;
+}
+
+}  // namespace
+
 bool parseFaaApi(const std::string& body, double asOfUtc, std::vector<Notam>& out, int& totalPages, std::string* err) {
     json::Value v;
     std::string e;
@@ -517,48 +569,104 @@ bool parseFaaApi(const std::string& body, double asOfUtc, std::vector<Notam>& ou
     if (!items || items->type != json::Value::Arr) return fail(err, "the NOTAM API answer has no items");
     totalPages = (int)v.num("totalPages", 1);
     for (const json::Value& it : items->a) {
-        const json::Value* props = it.get("properties");
-        const json::Value* core = props ? props->get("coreNOTAMData") : nullptr;
-        const json::Value* no = core ? core->get("notam") : nullptr;
-        if (!no) continue;
-        const std::string num = normNumber(trim(no->str("number")));
-        if (num.empty()) continue;
-        const std::string cls = upper(trim(no->str("classification")));
         Notam n;
-        n.number = trim(no->str("number"));
-        n.location = trim(no->str("icaoLocation"));
-        if (n.location.empty()) n.location = trim(no->str("location"));
-        n.text = trim(no->str("text"));
-        if (const json::Value* tr = core->get("notamTranslation"))
-            for (const json::Value& t : tr->a)
-                if (upper(t.str("type")) == "LOCAL_FORMAT") {
-                    const std::string s = trim(t.str("simpleText").empty() ? t.str("formattedText") : t.str("simpleText"));
-                    if (!s.empty()) n.text = s;
-                }
-        if (cls == "FDC") {
-            n.key = "FDC " + num;
-            n.kind = upper(n.text).find("TEMPORARY FLIGHT RESTRICTION") != std::string::npos ? "TFR" : "FDC";
-        } else {
-            std::string acct = upper(trim(no->str("accountId")));
-            if (acct.empty()) acct = upper(trim(no->str("location")));
-            if (acct.empty()) continue;
-            n.key = "D " + acct + " " + num;
-            n.kind = cls == "DOM" || cls.empty() ? "D" : cls;
+        if (readFeature(it, asOfUtc, n)) out.push_back(std::move(n));
+    }
+    return true;
+}
+
+// ---------------------------------------------------------------- the NOTAM Management Service
+
+const char* nmsEnvName(NmsEnv e) {
+    switch (e) {
+    case NmsEnv::Production: return "production";
+    case NmsEnv::Staging: return "staging";
+    case NmsEnv::Fit: return "fit";
+    }
+    return "?";
+}
+
+namespace {
+const char* nmsHost(NmsEnv e) {
+    switch (e) {
+    case NmsEnv::Staging: return "https://api-staging.cgifederal-aim.com";
+    case NmsEnv::Fit: return "https://api-fit.cgifederal-aim.com";
+    default: return "https://api-nms.aim.faa.gov";
+    }
+}
+}  // namespace
+
+std::string nmsTokenUrl(NmsEnv e) { return std::string(nmsHost(e)) + "/v1/auth/token"; }
+
+std::string nmsNotamsUrl(NmsEnv e, double lat, double lon, double radiusNm) {
+    if (!std::isfinite(lat) || !std::isfinite(lon) || std::fabs(lat) > 90 || std::fabs(lon) > 180) return {};
+    radiusNm = std::max(1.0, std::min(100.0, radiusNm));
+    char b[160];
+    snprintf(b, sizeof b, "/nmsapi/v1/notams?latitude=%.4f&longitude=%.4f&radius=%.0f", lat, lon, radiusNm);
+    return std::string(nmsHost(e)) + b;
+}
+
+std::string nmsBasicAuthHeader(const std::string& id, const std::string& secret) {
+    static const char* k = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const std::string in = id + ":" + secret;
+    std::string out;
+    for (size_t i = 0; i < in.size(); i += 3) {
+        const uint32_t v = ((uint32_t)(uint8_t)in[i] << 16) | (i + 1 < in.size() ? (uint32_t)(uint8_t)in[i + 1] << 8 : 0) |
+                           (i + 2 < in.size() ? (uint32_t)(uint8_t)in[i + 2] : 0);
+        out += k[(v >> 18) & 63];
+        out += k[(v >> 12) & 63];
+        out += i + 1 < in.size() ? k[(v >> 6) & 63] : '=';
+        out += i + 2 < in.size() ? k[v & 63] : '=';
+    }
+    return "Authorization: Basic " + out;
+}
+
+bool nmsTokenValid(const std::string& t) {
+    if (t.empty() || t.size() > 8192) return false;
+    for (char c : t)
+        if (c <= ' ' || c > '~' || c == '"' || c == '\'' || c == '\\') return false;
+    return true;
+}
+
+bool parseNmsToken(const std::string& body, std::string& token, double& expiresInSec, std::string* err) {
+    json::Value v;
+    std::string e;
+    if (!json::parse(body, v, e)) return fail(err, "the token answer is not JSON");
+    token = trim(v.str("access_token"));
+    if (!nmsTokenValid(token)) { token.clear(); return fail(err, "the token answer has no usable token"); }
+    expiresInSec = v.num("expires_in", 0);
+    if (const json::Value* x = v.get("expires_in"))
+        if (x->type == json::Value::Str) expiresInSec = atof(x->s.c_str());
+    if (!(expiresInSec > 0) || expiresInSec > 86400) expiresInSec = 600;
+    return true;
+}
+
+bool parseNms(const std::string& body, double asOfUtc, std::vector<Notam>& out, std::string* err) {
+    json::Value v;
+    std::string e;
+    if (!json::parse(body, v, e)) return fail(err, "the NMS answer is not JSON");
+    const json::Value* data = v.get("data");
+    const json::Value* gj = data ? data->get("geojson") : nullptr;
+    if (!gj || gj->type != json::Value::Arr) {
+        if (data && data->get("url")) return fail(err, "NMS answered with a file to download, which is not read yet");
+        const std::string msg = trim(v.str("message"));
+        if (!msg.empty()) {
+            if (err) *err = "NMS: " + msg;
+            return false;
         }
-        n.cancelled = upper(trim(no->str("type"))) == "C";
-        n.startUtc = parseIsoUtc(no->str("effectiveStart"));
-        const std::string end = upper(trim(no->str("effectiveEnd")));
-        if (end == "PERM") n.permanent = true;
-        else n.endUtc = parseIsoUtc(end);
-        n.title = n.kind + " " + n.number + (n.location.empty() ? "" : "  " + n.location);
-        n.seenUtc = asOfUtc;
-        const double radius = atof(no->str("radius").c_str());
-        if (const json::Value* g = it.get("geometry")) geometryOf(*g, radius, n.areas);
-        int lo = 0, hi = 0;
-        bool loAgl = false, hiAgl = false;
-        if (readLimit(no->str("lowerLimit"), lo, loAgl) && readLimit(no->str("upperLimit"), hi, hiAgl))
-            for (Area& a : n.areas) { a.hasLimits = true; a.floorFt = lo; a.ceilingFt = hi; a.floorAgl = loAgl; a.ceilingAgl = hiAgl; }
-        out.push_back(std::move(n));
+        return fail(err, "the NMS answer has no NOTAMs in it");
+    }
+    for (const json::Value& f : gj->a) {
+        // Each entry a feature, or a FeatureCollection of them.
+        if (const json::Value* fs = f.get("features")) {
+            for (const json::Value& g : fs->a) {
+                Notam n;
+                if (readFeature(g, asOfUtc, n)) out.push_back(std::move(n));
+            }
+            continue;
+        }
+        Notam n;
+        if (readFeature(f, asOfUtc, n)) out.push_back(std::move(n));
     }
     return true;
 }

@@ -2,14 +2,16 @@
 // never something out of date passed off as current.
 //
 // The sources, most accurate first:
-//   FaaApi   the FAA NOTAM API (external-api.faa.gov): every NOTAM, with times and geometry. Needs a free key from api.faa.gov.
+//   Nms      the FAA's NOTAM Management Service (api-nms.aim.faa.gov), the system that replaces the older API: every NOTAM, with times and
+//            geometry. Access is by request to the FAA (notams@faa.gov); OAuth2 client credentials.
+//   FaaApi   the older FAA NOTAM API (external-api.faa.gov): the same, while it lasts. A key from api.faa.gov.
 //   TfrSite  tfr.faa.gov: every TFR in the country, its airspace drawn exactly and its times. No key.
 //   Fisb     FIS-B, off the air on 978 MHz: the NOTAMs and TFRs the ground stations near you broadcast. No internet at all.
 //
 // How they are merged ("fail backwards"):
 //   - one NOTAM is one key ("FDC 6/2203", "D FWA 7/77") whichever source it came from;
-//   - each field comes from the most accurate source that is live and has it: the text from the API before the TFR site before FIS-B, the
-//     airspace from the TFR site (which draws it exactly) before the API before FIS-B. A field only a stale source has is still shown, and
+//   - each field comes from the most accurate source that is live and has it: the text from NMS, then the older API, the TFR site, FIS-B;
+//     the airspace from the TFR site (which draws it exactly) before NMS, the older API and FIS-B. A field only a stale source has is still shown, and
 //     says so;
 //   - a source is live while its last good fetch (or frame) is recent enough; a NOTAM no live source has is shown as stale, with its age;
 //   - a NOTAM a complete, live source does not list, though that source looked after every other source last had it, is gone. "Complete"
@@ -26,8 +28,8 @@
 
 namespace dect2::notam {
 
-enum class Source : uint8_t { FaaApi = 0, TfrSite = 1, Fisb = 2 };
-constexpr int kSources = 3;
+enum class Source : uint8_t { FaaApi = 0, TfrSite = 1, Fisb = 2, Nms = 3 };
+constexpr int kSources = 4;
 const char* sourceName(Source s);
 
 // One piece of airspace: a polygon, or a circle when the ring is empty.
@@ -74,7 +76,7 @@ struct Snapshot {
 };
 
 struct MergeOptions {
-    double liveSec[kSources] = {1800, 1800, 900};   // a source is live this long after its last good fetch (FIS-B: last frame)
+    double liveSec[kSources] = {1800, 1800, 900, 1800};   // by Source: live this long after its last good fetch (FIS-B: last frame)
 };
 
 // The NOTAMs to show, sorted by start time. nowUtc is the wall clock, in the same seconds as asOfUtc and seenUtc.
@@ -99,6 +101,26 @@ std::string faaApiUrl(double lat, double lon, double radiusNm, int page);
 bool parseFaaApi(const std::string& body, double asOfUtc, std::vector<Notam>& out, int& totalPages, std::string* err = nullptr);
 // True when the id and secret can go in a request header as they are: printable, no spaces, quotes or line breaks.
 bool faaKeyValid(const std::string& s);
+
+// ---------------------------------------------------------------- the NOTAM Management Service (NMS)
+//
+// From the FAA's NMS-API as an open-source client of it (faa-nms-api) uses it: credentials are issued per environment and do not carry
+// over. A token from POST <auth> (grant_type=client_credentials, HTTP Basic with the client id and secret), then GET <api>/v1/notams with
+// "Authorization: Bearer <token>" and "nmsResponseFormat: GEOJSON". Not yet checked against the service itself: no access had been granted.
+
+enum class NmsEnv : uint8_t { Production = 0, Staging = 1, Fit = 2 };
+const char* nmsEnvName(NmsEnv e);
+std::string nmsTokenUrl(NmsEnv e);
+// Everything within radiusNm of a point (latitude, longitude, radius).
+std::string nmsNotamsUrl(NmsEnv e, double lat, double lon, double radiusNm);
+// "Authorization: Basic ..." for the token request.
+std::string nmsBasicAuthHeader(const std::string& id, const std::string& secret);
+// Reads the token answer: {"access_token": "...", "expires_in": 1799, ...}. False with *err when there is no token.
+bool parseNmsToken(const std::string& body, std::string& token, double& expiresInSec, std::string* err = nullptr);
+// True when a token can go in a header as it is.
+bool nmsTokenValid(const std::string& t);
+// Reads a NOTAM answer: {"status": "...", "data": {"geojson": [feature, ...]}}, each feature as the older API's.
+bool parseNms(const std::string& body, double asOfUtc, std::vector<Notam>& out, std::string* err = nullptr);
 
 // ---------------------------------------------------------------- FIS-B
 

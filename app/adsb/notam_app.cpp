@@ -38,8 +38,10 @@ struct SourceState {
 struct State {
     bool loaded = false;
     // settings
-    bool tfrOn = false, apiOn = false, layer = true;
+    bool tfrOn = false, apiOn = false, nmsOn = false, layer = true;
     std::string apiId, apiSecret;
+    std::string nmsId, nmsSecret;
+    int nmsEnv = 0;           // nt::NmsEnv: credentials are issued for one environment
     int apiRadius = 50;
     int nearNm = 100;         // the window lists what is within this of the receiver; 0 for everything
     char search[64] = "";
@@ -48,10 +50,11 @@ struct State {
     std::atomic<bool> stop{false};
     std::mutex mu;
     std::condition_variable cv;
-    SourceState tfr, api;     // under mu
+    SourceState tfr, api, nms;   // under mu
     // The settings as the thread sees them: copied in by tick() under mu, so the window can change its own freely.
-    bool thTfrOn = false, thApiOn = false;
-    std::string thId, thSecret;
+    bool thTfrOn = false, thApiOn = false, thNmsOn = false;
+    std::string thId, thSecret, thNmsId, thNmsSecret;
+    int thNmsEnv = 0;
     double thRadius = 50;
     double lat = 0, lon = 0;  // the receiver, for the API's circle (under mu)
     bool havePos = false;
@@ -105,6 +108,13 @@ void load() {
     S.apiId = d.getS("notam.faaId", "");
     S.apiSecret = d.getS("notam.faaSecret", "");
     S.apiRadius = (int)std::max(5L, std::min(100L, d.getI("notam.faaRadius", 50)));
+    S.nmsOn = d.getB("notam.nms", false);
+    S.nmsId = d.getS("notam.nmsId", "");
+    S.nmsSecret = d.getS("notam.nmsSecret", "");
+    S.nmsEnv = (int)std::max(0L, std::min(2L, d.getI("notam.nmsEnv", 0)));
+    if (!nt::faaKeyValid(S.nmsId)) S.nmsId.clear();
+    if (!nt::faaKeyValid(S.nmsSecret)) S.nmsSecret.clear();
+    S.nms.snap.source = nt::Source::Nms;
     S.layer = d.getB("notam.mapLayer", true);
     S.nearNm = (int)std::max(0L, std::min(1000L, d.getI("notam.nearNm", 100)));
     if (!nt::faaKeyValid(S.apiId)) S.apiId.clear();
@@ -121,6 +131,10 @@ void save() {
     d.setS("notam.faaId", S.apiId);
     d.setS("notam.faaSecret", S.apiSecret);
     d.setI("notam.faaRadius", S.apiRadius);
+    d.setB("notam.nms", S.nmsOn);
+    d.setS("notam.nmsId", S.nmsId);
+    d.setS("notam.nmsSecret", S.nmsSecret);
+    d.setI("notam.nmsEnv", S.nmsEnv);
     d.setB("notam.mapLayer", S.layer);
     d.setI("notam.nearNm", S.nearNm);
     d.flush();
@@ -271,13 +285,81 @@ void apiFetch(const std::string& ua, const std::string& id, const std::string& s
     }
 }
 
+// ---------------------------------------------------------------- NMS (on the thread)
+
+std::string gNmsToken;
+double gNmsTokenUntil = 0;
+std::string gNmsTokenFor;   // the environment and id the token was issued for
+
+void nmsFetch(const std::string& ua, int env, const std::string& id, const std::string& secret, double lat, double lon, double radius) {
+    const double t = wallNow();
+    const nt::NmsEnv e = (nt::NmsEnv)env;
+    std::string err;
+    bool ok = true;
+    const std::string who = std::to_string(env) + "|" + id;
+    if (gNmsTokenFor != who) { gNmsToken.clear(); gNmsTokenUntil = 0; }
+    if (gNmsToken.empty() || t > gNmsTokenUntil - 60) {
+        std::string reply;
+        double exp = 0;
+        // The secret goes in the Basic header, which goes to curl in a private file: never on a command line, never in the body.
+        if (!plat::postRequestReply(nt::nmsTokenUrl(e), "grant_type=client_credentials", "application/x-www-form-urlencoded",
+                                    {nt::nmsBasicAuthHeader(id, secret)}, ua, reply)) {
+            ok = false;
+            err = std::string("NMS refused the client id and secret, or could not be reached (") + nt::nmsEnvName(e) + ")";
+        } else if (!nt::parseNmsToken(reply, gNmsToken, exp, &err)) {
+            ok = false;
+        } else {
+            gNmsTokenUntil = t + exp;
+            gNmsTokenFor = who;
+        }
+    }
+    std::vector<nt::Notam> items;
+    if (ok) {
+        const std::string url = nt::nmsNotamsUrl(e, lat, lon, radius);
+        const std::string file = plat::cacheDir() + "/notam_nms.json";
+        std::string body;
+        if (url.empty()) { ok = false; err = "no receiver position"; }
+        else if (!plat::fetchUrlHeaders(url, file, ua, {"Authorization: Bearer " + gNmsToken, "nmsResponseFormat: GEOJSON", "Accept: application/json"})) {
+            ok = false;
+            err = "NMS did not answer the NOTAM query";
+            gNmsToken.clear();   // perhaps the token: a new one next time
+        } else if (!readFile(file, body, 32u << 20)) {
+            ok = false;
+            err = "the answer was unreadable or far too large";
+        } else if (!nt::parseNms(body, t, items, &err)) {
+            ok = false;
+        }
+        std::remove(file.c_str());
+    }
+    std::lock_guard<std::mutex> lk(S.mu);
+    S.nms.lastTry = t;
+    if (ok) {
+        nt::Snapshot s;
+        s.source = nt::Source::Nms;
+        s.ok = true;
+        s.asOfUtc = t;
+        s.complete = true;   // everything within the circle asked about
+        s.hasRegion = true;
+        s.regionLat = lat;
+        s.regionLon = lon;
+        s.regionNm = radius;
+        s.items = std::move(items);
+        S.nms.snap = std::move(s);
+        S.nms.error.clear();
+    } else {
+        S.nms.snap.ok = false;
+        S.nms.error = err;
+    }
+}
+
 void threadBody() {
     const std::string ua = std::string("OnAir/") + ONAIR_VERSION + " (NOTAMs)";
     tfrLoadKept();
-    double nextTfr = 0, nextApi = 0;
+    double nextTfr = 0, nextApi = 0, nextNms = 0;
     while (!S.stop.load(std::memory_order_relaxed)) {
-        bool tfrOn, apiOn, havePos, now;
-        std::string id, secret;
+        bool tfrOn, apiOn, nmsOn, havePos, now;
+        std::string id, secret, nmsId, nmsSecret;
+        int nmsEnv;
         double lat, lon, radius;
         {
             std::unique_lock<std::mutex> lk(S.mu);
@@ -287,6 +369,10 @@ void threadBody() {
             apiOn = S.thApiOn && !S.thId.empty() && !S.thSecret.empty();
             id = S.thId;
             secret = S.thSecret;
+            nmsOn = S.thNmsOn;
+            nmsId = S.thNmsId;
+            nmsSecret = S.thNmsSecret;
+            nmsEnv = S.thNmsEnv;
             lat = S.lat;
             lon = S.lon;
             havePos = S.havePos;
@@ -295,7 +381,12 @@ void threadBody() {
             S.wantNow = false;
         }
         const double t = wallNow();
-        if (now) nextTfr = nextApi = 0;
+        if (now) nextTfr = nextApi = nextNms = 0;
+        if (nmsOn && havePos && t >= nextNms) {
+            nmsFetch(ua, nmsEnv, nmsId, nmsSecret, lat, lon, radius);
+            std::lock_guard<std::mutex> lk(S.mu);
+            nextNms = t + (S.nms.error.empty() ? 900 : 300);
+        }
         if (tfrOn && t >= nextTfr) {
             tfrFetch(ua);
             std::lock_guard<std::mutex> lk(S.mu);
@@ -394,7 +485,7 @@ void tick(App& a) {
     if (a.rxId != 1) return;
     load();
     const double t = wallNow();
-    const bool wantThread = S.tfrOn || S.apiOn;
+    const bool wantThread = S.tfrOn || S.apiOn || S.nmsOn;
     if (wantThread) startThread();
     else stopThread();
     {
@@ -409,6 +500,10 @@ void tick(App& a) {
         S.thId = S.apiId;
         S.thSecret = S.apiSecret;
         S.thRadius = S.apiRadius;
+        S.thNmsOn = S.nmsOn && nt::faaKeyValid(S.nmsId) && nt::faaKeyValid(S.nmsSecret);
+        S.thNmsId = S.nmsId;
+        S.thNmsSecret = S.nmsSecret;
+        S.thNmsEnv = S.nmsEnv;
     }
     if (t - S.mergedAt < 2) return;
     S.mergedAt = t;
@@ -418,6 +513,7 @@ void tick(App& a) {
         std::lock_guard<std::mutex> lk(S.mu);
         if (S.tfrOn) snaps.push_back(S.tfr.snap);   // a source the user turned off is not used, not even its kept answer
         if (S.apiOn) snaps.push_back(S.api.snap);
+        if (S.nmsOn) snaps.push_back(S.nms.snap);
     }
     snaps.push_back(S.fisb);
     S.merged = nt::merge(snaps, t);
@@ -480,11 +576,12 @@ void window(App& a) {
     bool changed = false;
 
     // The sources: what each said last, and how long ago.
-    SourceState tfr, api;
+    SourceState tfr, api, nms;
     {
         std::lock_guard<std::mutex> lk(S.mu);
         tfr = S.tfr;
         api = S.api;
+        nms = S.nms;
     }
     auto status = [&](const SourceState& s, bool on) {
         if (!on && s.snap.items.empty()) { ImGui::TextDisabled("%s", tr("off")); return; }
@@ -499,12 +596,39 @@ void window(App& a) {
     };
     typo::separatorText(tr("Sources, most accurate first"));
     ImGui::PushTextWrapPos(820 * gUi);
-    ImGui::TextDisabled("%s", tr("Each NOTAM is shown from the most accurate source that has it now: the FAA NOTAM API, then tfr.faa.gov (which "
-                                 "draws a TFR's airspace exactly), then FIS-B off the air. When a source cannot be reached its last answer is "
-                                 "still used, marked as stale with its age, and never passed off as current."));
+    ImGui::TextDisabled("%s", tr("Each NOTAM is shown from the most accurate source that has it now: the FAA's new NOTAM Management Service, "
+                                 "then the older FAA NOTAM API, then tfr.faa.gov (which draws a TFR's airspace exactly), then FIS-B off the air. "
+                                 "When a source cannot be reached its last answer is still used, marked as stale with its age, and never passed "
+                                 "off as current."));
     ImGui::PopTextWrapPos();
+    ImGui::PushID("nms");
+    if (ImGui::Checkbox(tr("FAA NOTAM Management Service (NMS)"), &S.nmsOn)) changed = true;
+    ImGui::SameLine();
+    status(nms, S.nmsOn);
+    if (S.nmsOn) {
+        ImGui::Indent();
+        static const char* kEnv[] = {"production", "staging", "fit"};
+        ImGui::SetNextItemWidth(140 * gUi);
+        if (ImGui::Combo(tr("Environment"), &S.nmsEnv, kEnv, 3)) changed = true;
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The FAA issues credentials for one environment; they do not work in another."));
+        char b[136];
+        snprintf(b, sizeof b, "%s", S.nmsId.c_str());
+        ImGui::SetNextItemWidth(220 * gUi);
+        if (ImGui::InputTextWithHint(tr("client id##nms"), tr("from the FAA"), b, sizeof b, ImGuiInputTextFlags_Password)) { S.nmsId = b; changed = true; }
+        snprintf(b, sizeof b, "%s", S.nmsSecret.c_str());
+        ImGui::SetNextItemWidth(220 * gUi);
+        if (ImGui::InputTextWithHint(tr("client secret##nms"), tr("from the FAA"), b, sizeof b, ImGuiInputTextFlags_Password)) { S.nmsSecret = b; changed = true; }
+        if ((!S.nmsId.empty() && !nt::faaKeyValid(S.nmsId)) || (!S.nmsSecret.empty() && !nt::faaKeyValid(S.nmsSecret)))
+            ImGui::TextColored(pal::badRed(), "%s", tr("A key has spaces, quotes or other characters a key does not have."));
+        ImGui::SetNextItemWidth(160 * gUi);
+        if (ImGui::SliderInt(tr("Radius (nm)##nms"), &S.apiRadius, 5, 100)) changed = true;
+        if (!receiverLocationSet()) ImGui::TextColored(pal::warnAmber(), "%s", tr("Set the receiver position on the ADS-B screen: NMS is asked about a circle around it."));
+        ImGui::TextDisabled("%s", tr("Access is by request to the FAA (notams@faa.gov). The same radius is used for the older API."));
+        ImGui::Unindent();
+    }
+    ImGui::PopID();
     ImGui::PushID("api");
-    if (ImGui::Checkbox(tr("FAA NOTAM API"), &S.apiOn)) changed = true;
+    if (ImGui::Checkbox(tr("FAA NOTAM API (older)"), &S.apiOn)) changed = true;
     ImGui::SameLine();
     status(api, S.apiOn);
     if (S.apiOn) {

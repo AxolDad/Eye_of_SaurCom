@@ -104,6 +104,53 @@ static void testFaaApi() {
     CHECK(faaKeyValid("a1b2c3d4e5") && !faaKeyValid("a b") && !faaKeyValid("x'y") && !faaKeyValid("x\ny") && !faaKeyValid(""), "key check");
 }
 
+static void testNms() {
+    CHECK(nmsTokenUrl(NmsEnv::Production) == "https://api-nms.aim.faa.gov/v1/auth/token", "token URL %s", nmsTokenUrl(NmsEnv::Production).c_str());
+    CHECK(nmsTokenUrl(NmsEnv::Staging) == "https://api-staging.cgifederal-aim.com/v1/auth/token", "staging token URL");
+    const std::string u = nmsNotamsUrl(NmsEnv::Production, 33.1, -83.4, 250);
+    CHECK(u == "https://api-nms.aim.faa.gov/nmsapi/v1/notams?latitude=33.1000&longitude=-83.4000&radius=100", "notams URL %s", u.c_str());
+    CHECK(nmsNotamsUrl(NmsEnv::Fit, NAN, 0, 10).empty(), "no position, no query");
+    CHECK(nmsBasicAuthHeader("abc", "xyz") == "Authorization: Basic YWJjOnh5eg==", "%s", nmsBasicAuthHeader("abc", "xyz").c_str());
+    CHECK(nmsBasicAuthHeader("ab", "c") == "Authorization: Basic YWI6Yw==", "padding: %s", nmsBasicAuthHeader("ab", "c").c_str());
+
+    std::string tok, err;
+    double exp = 0;
+    CHECK(parseNmsToken(R"({"access_token":"eyJ0.abc-_","token_type":"Bearer","expires_in":1799})", tok, exp, &err) && tok == "eyJ0.abc-_" && exp == 1799,
+          "token: %s", err.c_str());
+    CHECK(parseNmsToken(R"({"access_token":"t","expires_in":"300"})", tok, exp) && exp == 300, "expires_in as a string");
+    CHECK(!parseNmsToken(R"({"error":"invalid_client"})", tok, exp) && tok.empty(), "no token");
+    CHECK(!parseNmsToken(R"({"access_token":"a b"})", tok, exp), "a token that cannot go in a header");
+
+    const std::string body = R"({"status":"Success","data":{"geojson":[
+      {"type":"Feature","properties":{"coreNOTAMData":{"notam":{"number":"07/077","classification":"DOMESTIC","accountId":"FWA",
+        "icaoLocation":"KFWA","effectiveStart":"2026-10-20T00:00:00.000Z","effectiveEnd":"2026-11-20T00:00:00.000Z","text":"OBST CRANE"}}},
+       "geometry":{"type":"Point","coordinates":[-85.2,40.9]}},
+      {"type":"Feature","properties":{"coreNOTAMData":{"notam":{"number":"6/2203","classification":"FDC",
+        "text":"ZTL GA..TEMPORARY FLIGHT RESTRICTION."}}}}]}})";
+    std::vector<Notam> v;
+    CHECK(parseNms(body, 3000, v, &err) && v.size() == 2, "read: %s, %zu", err.c_str(), v.size());
+    const Notam* d = byKey(v, "D FWA 7/77");
+    CHECK(d && d->kind == "D" && d->endUtc > 0, "DOMESTIC is a NOTAM-D");
+    CHECK(byKey(v, "FDC 6/2203") && byKey(v, "FDC 6/2203")->kind == "TFR", "an FDC TFR");
+    v.clear();
+    CHECK(!parseNms(R"({"timestamp":"x","status":"401","message":"Unauthorized"})", 0, v, &err) && err == "NMS: Unauthorized", "error: %s", err.c_str());
+
+    // NMS is the most accurate: its text over the older API's.
+    Snapshot nms; nms.source = Source::Nms; nms.ok = true; nms.asOfUtc = 9990;
+    Snapshot old; old.source = Source::FaaApi; old.ok = true; old.asOfUtc = 9990;
+    Notam a; a.key = "FDC 6/1"; a.kind = "TFR"; a.text = "NMS"; a.seenUtc = 9990;
+    Notam b = a; b.text = "OLD API";
+    nms.items = {a};
+    old.items = {b};
+    auto m = merge({old, nms}, 10000);
+    CHECK(m.size() == 1 && m[0].text == "NMS" && m[0].textFrom == Source::Nms, "NMS first");
+    // NMS out of reach for an hour: the older API's live answer is used.
+    nms.ok = false;
+    nms.asOfUtc = 6000;
+    m = merge({old, nms}, 10000);
+    CHECK(m.size() == 1 && m[0].text == "OLD API" && !m[0].stale, "falls back to the older API");
+}
+
 static UatFisbProduct fisbProduct(const std::string& title, const std::string& text, uint16_t rn, uint8_t ry, const std::string& loc, double t) {
     UatFisbProduct p;
     p.productId = 8;
@@ -250,6 +297,7 @@ int main() {
     testTimes();
     testTfrSite();
     testFaaApi();
+    testNms();
     testFisb();
     testMerge();
     testDamage();

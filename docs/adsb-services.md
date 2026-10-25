@@ -106,19 +106,6 @@ That archive also shows the full set of questions these readsb-based services an
 `/v2/hex/…`, `/v2/callsign/…`, `/v2/reg/…`, `/v2/type/…`, `/v2/sqk/…` (a squawk: `7700` for emergencies), and `/v2/mil` (aircraft flagged
 military). adsb.lol and adsb.fi both answer those today. This program does not ask them yet.
 
-## No LADD
-
-This program does not take part in LADD, the FAA's Limiting Aircraft Data Displayed program. LADD governs how the FAA hands out its own
-data; it has nothing to do with what a receiver hears over the air. Nothing here is filtered by it: every aircraft received is shown, kept and
-fed on in exactly the same way, whatever list it is on. An aircraft broadcasting on a PIA address is shown on that address, as broadcast.
-
-airplanes.live works the same way. In their readsb, LADD appears only as a selection filter in the API (`filter_ladd`, "give me the aircraft
-that are flagged"), never on any path that hides an aircraft from the feed, the data or the map.
-
-Treating every aircraft alike cuts both ways, so nothing singles them out either: there is no LADD view or LADD list, and the `/v2/ladd` and
-`/v2/pia` questions are not asked. Aircraft from a service come through whatever flags the service attaches to them — the reader does not even
-look — and a test holds that in place.
-
 The radius is capped per service and the interval can never go below the service's own rate limit, whatever you set — these are free networks
 run by people, and hammering them is both rude and the fastest way to get blocked.
 
