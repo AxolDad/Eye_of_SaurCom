@@ -5,6 +5,7 @@
 #include <unistd.h>
 #endif
 #include "app.h"
+#include "adsb/adsb_api_app.h"
 #include "adsb/adsb_map.h"
 #include "ui/contrast.h"
 #include "ui/touch.h"
@@ -217,6 +218,7 @@ static void floatingWindows(App& a, ImVec2 disp) {
     pluginManagerWindow(a);
     msgdbWindow(a);
     flightsWindow(a);
+    adsbapi::tick(a);   // asks the aggregators the user turned on, whichever window is open
     watchlistWindow(a);
     txTick(a);
     shareTick(a);

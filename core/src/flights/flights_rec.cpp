@@ -75,6 +75,10 @@ void Recorder::feed(const AdsbTelemetry& t, double nowWall) {
     if (!p_->on) return;
     for (const AdsbAircraft& a : t.aircraft) {
         if (!a.icao) continue;
+        // Only what this receiver heard. An aircraft that reached the table from another receiver's Beast or SBS feed, or from an
+        // aggregator's API, did not fly over this antenna, and recording it would quietly spoil the answers this store exists to give:
+        // what is overhead most, how far the receiver reaches, how long something was in earshot. Those aircraft are shown, not kept.
+        if (a.srcId != 0) continue;
         const auto it = p_->lastMessages.find(a.icao);
         if (it != p_->lastMessages.end() && it->second == a.messages) continue;   // nothing new since last time
         p_->lastMessages[a.icao] = a.messages;

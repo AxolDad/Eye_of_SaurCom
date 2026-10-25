@@ -1636,6 +1636,9 @@ if(DECT2_BUILD_TESTS)
   add_executable(test_flights_db tests/flights/test_flights_db.cpp)   # the flight history store, asked the questions a user has about their airspace
   target_link_libraries(test_flights_db PRIVATE dect2core)
   add_test(NAME flights_db COMMAND test_flights_db)
+  add_executable(test_flights_rec tests/flights/test_flights_rec.cpp)
+  target_link_libraries(test_flights_rec PRIVATE dect2core)
+  add_test(NAME flights_rec COMMAND test_flights_rec)
   if(TARGET test_nfc_engine)   # checks the mode's registrations in the sources too
     target_compile_definitions(test_nfc_engine PRIVATE DECT2_SOURCE_DIR="${ONAIR_ROOT}")
   endif()

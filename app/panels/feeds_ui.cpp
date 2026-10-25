@@ -1,6 +1,8 @@
-// View > Data feeds: send what the decoders find to other programs (tar1090 / readsb / VRS, OpenCPN, APRS-IS, acarshub).
+// View > Data feeds: send what the decoders find to other programs (tar1090 / readsb / VRS, OpenCPN, APRS-IS, acarshub), and the
+// other direction - ask an aggregator what is in the air (app/adsb/adsb_api_app.h, core adsb_api.h).
 // Every feed is off until the user turns it on; the network work is in core (feeds.cpp).
 #include "../app.h"
+#include "../adsb/adsb_api_app.h"
 #include "../ui/typography.h"
 #include "dect2/net/cot_rx.h"
 #include <cstdio>
@@ -223,6 +225,10 @@ void feedsWindow(App& a) {
     statusLine(dect2::kFeedBeast, true);
     ImGui::PopID();
     targetsSection(c, false, changed);
+
+    // The other direction: ask a network what is in the air, rather than tell one what you heard (app/adsb/adsb_api_app.h).
+    typo::separatorText(tr("Bring aircraft in from a service"));
+    adsbapi::panel(a);
 
     typo::separatorText(tr("AIS"));
     ImGui::PushID("ais");

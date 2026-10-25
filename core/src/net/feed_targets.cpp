@@ -21,6 +21,15 @@ const std::vector<FeedPreset>& feedPresets() {
         {"Flightradar24 via fr24feed (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "127.0.0.1", 30334, "Send to a fr24feed you run yourself (receiver set to beast-tcp)."},
         // the FlightAware / FlightTracker upload protocols are private; their programs read Beast from a port
         {"FlightAware / FlightTracker client (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "127.0.0.1", 30005, "Send to a client program you run. Edit host and port to the one it listens on."},
+        // airplanes.live document the Beast feed in their own feeder (github.com/airplanes-live/feed): 78.46.234.18 on 30004, which is what
+        // feed.airplanes.live resolves to. Their MLAT runs on 31090 through a separate client and is not implemented here.
+        {"airplanes.live (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "feed.airplanes.live", 30004, "Beast feed only; no account needed. MLAT is not supported."},
+        // adsb.lol's own feeder client connects to feed.adsb.lol on 30004; some third-party documentation says in.adsb.lol instead, and both resolve
+        {"adsb.lol (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "feed.adsb.lol", 30004, "Beast feed only; no account needed. If it will not connect, try in.adsb.lol, which their documentation also names."},
+        {"adsb.fi (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "feed.adsb.fi", 30004, "Beast feed only; no account needed."},
+        {"TheAirTraffic (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "feed.theairtraffic.com", 30004, "Beast feed only; no account needed."},
+        {"ADSBHub (SBS-1 TCP)", FeedKind::AdsbSbs, FeedProto::Tcp, "data.adsbhub.org", 5001, "Register a station first; ADSBHub identifies you by the address you feed from."},
+        {"Plane Finder client (Beast)", FeedKind::AdsbBeast, FeedProto::Tcp, "127.0.0.1", 30005, "Send to the Plane Finder client you run yourself. Edit host and port to the one it listens on."},
         {"AISHub (NMEA UDP)", FeedKind::AisNmea, FeedProto::Udp, "data.aishub.net", 0, "The port is given to you when you register your station."},
         {"AIS Dispatcher (NMEA UDP)", FeedKind::AisNmea, FeedProto::Udp, "", 0, "Enter the address and port from your AIS Dispatcher account."},
         {"VesselFinder (NMEA UDP)", FeedKind::AisNmea, FeedProto::Udp, "", 0, "Enter the address and port VesselFinder gave your station."},

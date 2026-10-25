@@ -35,6 +35,15 @@ public:
     // Feeds in from other receivers (Beast or SBS over TCP, "host:port" each): their aircraft go into the same table. Positions from other
     // receivers are shown, not computed (no MLAT). Hosts outside the local network are refused unless allowNonLan. Works with or without a radio running.
     void setExternalSources(const std::vector<std::string>& hostPorts, bool allowNonLan);
+    // Aircraft read from an aggregator's web API (adsb_api.h). The application does the fetching and the reading, because the HTTP helper
+    // lives there; this puts the result into the same table as a source of its own. They are SHOWN only: applyExternal never touches the
+    // outbound feeds, so a position you did not receive is never re-sent, and the flight recorder skips every aircraft with srcId != 0.
+    // setApiServices gives the enabled services, in the order the window lists them; each keeps a source slot while it stays enabled.
+    // Changing the list of sources can briefly label an aircraft with the wrong service, until its next update a few seconds later.
+    void setApiServices(const std::vector<std::string>& names);
+    // One batch just fetched from `name`. `ok` false records the reason in the source list without disturbing the aircraft.
+    void applyApiAircraft(const std::string& name, const std::vector<AdsbExtUpdate>& aircraft, bool ok = true,
+                          const std::string& error = {});
     void resetStats();                                   // the range-ring statistics only
     void clearAircraft();                                // empty the table and the statistics
     // The aircraft table and the message list stay through reset(), configure() and retunes (an aircraft still leaves it after the
