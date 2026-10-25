@@ -142,7 +142,7 @@ void netRadioWindow(App& a) {
     if (!ImGui::Begin(trw("Network radios"), &a.netAddOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::End(); return; }
     const bool busy = a.netAddProbe != nullptr;
     ImGui::BeginDisabled(busy);
-    static const char* kTypes[] = {"PlutoSDR (by IP)", "rtl_tcp", "SoapyRemote", "SpyServer", "Hermes Lite 2", "Red Pitaya", "SDR++ server", "SDRplay nRSP-ST (SDRconnect)", "KiwiSDR", "SoapySDR (device string)", "TCI (network)", "Aaronia RTSA-Suite (Spectran)"};
+    static const char* kTypes[] = {"PlutoSDR (by IP)", "rtl_tcp", "SoapyRemote", "SpyServer", "Hermes Lite 2", "Red Pitaya", "SDR++ server", "SDRplay nRSP-ST (SDRconnect)", "KiwiSDR", "SoapySDR (device string)", "TCI (network)", "Aaronia RTSA-Suite (Spectran)", "ESP-SDR (ESP32 on Ethernet)"};
     ImGui::SetNextItemWidth(200 * gUi);
     if (ImGui::Combo("Type", &a.netAddType, kTypes, IM_ARRAYSIZE(kTypes))) {
         const auto t = (NetRadio::Type)a.netAddType;
@@ -189,6 +189,15 @@ void netRadioWindow(App& a) {
                                      "IQ demodulator block feeding an HTTP Server block, note the port that block is set to (54664 in Aaronia's own examples) and type this computer's "
                                      "address here. The span and the frequency are the graph's: Eye of ZorCom asks it to change them, and reports whatever its packets carry. "
                                      "A graph serving spectra instead of IQ cannot be listened to."));
+        ImGui::PopTextWrapPos();
+    }
+    if (a.netAddType == NetRadio::EspSdr) {
+        if (!soapySupported()) ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.25f, 1), "%s", tr("This build has no SoapySDR, which the ESP-SDR module plugs into."));
+        ImGui::PushTextWrapPos(400 * gUi);
+        ImGui::TextDisabled("%s", tr("An ESPARGOS ESP32-S31 board running the SoapyESPSDR streaming firmware, on your network: type the address its DHCP gave it (the port is its "
+                                     "HTTP control port, 80 unless the firmware was told otherwise). The SoapyESPSDR module must be installed next to SoapySDR on this computer; "
+                                     "a board on USB needs no entry here, it is listed by itself. It receives 2150 to 2800 MHz at 4 to 40 Msps with 8-bit samples; the gain is "
+                                     "a PHY table index, not dB, and the board takes one connection at a time. Written from the driver's documentation, untested on a board."));
         ImGui::PopTextWrapPos();
     }
     if (a.netAddType == NetRadio::KiwiSdr) {

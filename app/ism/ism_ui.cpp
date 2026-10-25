@@ -2,7 +2,9 @@
 // viewer for reporting them, band presets and the privacy note.
 #include "app.h"
 #include "dect2/ism/ism_rx.h"
+#include "dect2/ism/ism_subfile.h"
 #include "dect2/ism/ism_tel.h"
+#include "dect2/common/u8file.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -18,8 +20,54 @@ struct State {
     int sel = -1;                // the selected unknown signal (index in raws, newest first)
     double selSec = -1;          // its time, so the selection stays on it as new ones arrive
     bool wasRunning = false;
+    std::string msg;             // what the last .sub import or save came to
+    bool msgBad = false;
+    double msgT = 0;
 };
 State S;
+
+void say(const std::string& s, bool bad = false) { S.msg = s; S.msgBad = bad; S.msgT = ImGui::GetTime(); }
+std::string lastSlash(const std::string& p) { const size_t i = p.find_last_of("/\\"); return i == std::string::npos ? p : p.substr(i + 1); }
+
+// A Flipper Zero .sub capture through the decoders (ism_subfile.h): the result goes to the devices, the log and the unknown signals
+void importSub(App& a) {
+    const std::string path = openFileDialog();
+    if (path.empty()) return;
+    FILE* f = dect2::u8fopen(path, "rb");
+    if (!f) { say("Cannot read " + lastSlash(path), true); return; }
+    std::string text;
+    char buf[8192];
+    size_t n;
+    while ((n = fread(buf, 1, sizeof buf, f)) > 0) { text.append(buf, n); if (text.size() > (8u << 20)) break; }   // a .sub is a few hundred kB at most
+    fclose(f);
+    std::string summary, err;
+    if (a.engine.ism().importSubFile(text, summary, err)) say(lastSlash(path) + ": " + summary);
+    else say(lastSlash(path) + ": " + err, true);
+}
+
+// The selected unknown signal as a .sub file a Flipper reads
+void saveSub(const dect2::IsmRaw& r) {
+    char name[64];
+    snprintf(name, sizeof name, "onair_%.3fMHz_%s.sub", r.freqHz / 1e6, r.fsk ? "fsk" : "ook");
+    const std::string path = saveFileDialog(name);
+    if (path.empty()) return;
+    dect2::IsmTrain t;
+    t.fsk = r.fsk;
+    t.p = r.pulses;
+    const std::string text = dect2::subFileText(t, r.freqHz);
+    FILE* f = dect2::u8fopen(path, "wb");
+    if (!f) { say("Cannot write " + lastSlash(path), true); return; }
+    fwrite(text.data(), 1, text.size(), f);
+    fclose(f);
+    say("Saved " + lastSlash(path) + " (" + std::to_string(r.pulses.size()) + " pulses)");
+}
+
+void message() {
+    if (S.msg.empty() || ImGui::GetTime() - S.msgT > 12) return;
+    ImGui::PushTextWrapPos(0);
+    if (S.msgBad) ImGui::TextColored(pal::warnAmber(), "%s", S.msg.c_str()); else ImGui::TextDisabled("%s", S.msg.c_str());
+    ImGui::PopTextWrapPos();
+}
 
 const char* const kKinds[] = {"All", "Weather", "TPMS", "Remote", "Energy", "Meter", "Sensor", "Z-Wave"};
 
@@ -100,6 +148,9 @@ void presets(App& a) {
     ImGui::SameLine(0, 10 * gUi);
     if (ImGui::SmallButton("Clear")) a.engine.ism().clearDevices();
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Forget the devices, the log and the unknown signals.");
+    ImGui::SameLine(0, 10 * gUi);
+    if (ImGui::SmallButton("Import .sub…")) importSub(a);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Read a Flipper Zero Sub-GHz capture (.sub: RAW, BinRAW or a key file) and run its pulses through the decoders, as if it had just been heard at the file's frequency.");
 }
 
 void privacyNote() {
@@ -356,6 +407,9 @@ void pulseViewer(App& a, const dect2::IsmRaw& r) {
         ImGui::SetClipboardText(s.c_str());
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Copy the line code and every pulse / gap in microseconds, to report the device.");
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Save .sub")) saveSub(r);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Write the pulses as a Flipper Zero Sub-GHz RAW file (.sub), to look at them in other tools.");
     // the trace: the first 60 ms or so, scaled to the width
     const float W = ImGui::GetContentRegionAvail().x, H = 60 * gUi;
     const ImVec2 o = ImGui::GetCursorScreenPos();
@@ -452,6 +506,7 @@ void tick(App& a) {
 
 void tab(App& a) {
     presets(a);
+    message();
     privacyNote();
     subNav("ismv", S.view, {"Devices", "Log", "Unknown", "Supported", "Z-Wave", "Sigfox"});
     if (S.view == 3) { supportedView(); return; }

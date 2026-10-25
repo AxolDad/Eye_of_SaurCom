@@ -41,6 +41,10 @@ public:
     void clearResults();
     std::string saveResults() const;                     // for the results file (results_io.h)
     bool loadResults(const std::string& blob);           // false: not this build's format, nothing changes
+    // A Flipper Zero .sub file (ism_subfile.h): its pulses go through the decoders as if heard at the file's frequency, so the devices, the
+    // log and the unknown signals take them up; a key file is logged as the Flipper decoded it. summary: one line on what came of it.
+    // Works whether or not the receiver is running. false: err says why (not a .sub file, no timings ...).
+    bool importSubFile(const std::string& text, std::string& summary, std::string& err);
     void setLogCallback(std::function<void(const std::string&)> cb);
     void setThresholdDb(float db);     // burst detection over the floor, per bin, 8 .. 25 dB (default 13)
     void setReadingTap(std::function<void(const IsmReading&, double freqHz)> cb);   // tests: every reading (repeats too), from the receiver thread
