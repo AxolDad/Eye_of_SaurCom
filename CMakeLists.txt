@@ -157,7 +157,7 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${ONAIR_ROOT}/dat
 target_sources(dect2core PRIVATE core/src/airports/airports.cpp)
 target_sources(dect2core PRIVATE core/src/sweep/station_health.cpp core/src/source/agc.cpp)   # station and antenna health report (docs/STATION_HEALTH.md)
 # The modes added after FM (DVB-S/S2, DTMB, analog TV, DMR, DRM, ADS-B): every core/src/<mode>/*.cpp belongs to its mode, so a mode can add files without editing this list
-  set(DECT2_MODES fsq ifkp cquam selfcal dvbs dtmb atv dmr drm adsb gnss dab sonde ais marine acars inmc aero iridium mesh hdr cdr pager packet hfdig airband vdl2 ism vor ils m17 cell cw dstar hfdl nxdn gsmr psk js8 specx wb specan dvbc dpmr orbcomm uplink tetra tetrapol ale mac astro p25 ble iono qo100 wifi general time rid meteor nr cubesat ccsds goes globalstar vdes hrpt zigbee flarm hfbeacon dji nbiot halow codar datawell same multitone loraraw ant dect elektro ndb lbj railway eczas vdl4 uat wisun fpv wmbus tones sarsat mt63 zwave mscatter dgps dme sitor kris kavb kapp kaft eloran mpt1327 fusion ardop goesdcs modeac bletrk ltr edacs kait satbeacon kaws milhf kaal ham prop)
+  set(DECT2_MODES fsq ifkp cquam selfcal dvbs dtmb atv dmr drm adsb gnss dab sonde ais marine acars inmc aero iridium mesh hdr cdr pager packet hfdig airband vdl2 ism vor ils m17 cell cw dstar hfdl nxdn gsmr psk js8 specx wb specan dvbc dpmr orbcomm uplink tetra tetrapol ale mac astro p25 ble iono qo100 wifi general time rid meteor nr cubesat ccsds goes globalstar vdes hrpt zigbee flarm hfbeacon dji nbiot halow codar datawell same multitone loraraw ant dect elektro ndb lbj railway eczas vdl4 uat wisun fpv wmbus tones sarsat mt63 zwave mscatter dgps dme sitor kris kavb kapp kaft eloran mpt1327 fusion ardop goesdcs modeac bletrk ltr edacs kait satbeacon kaws milhf kaal ham prop nfc)
 target_sources(dect2core PRIVATE core/src/tv/ts_proto_rs.cpp core/src/common/text_charset_rs.cpp core/src/tv/dvb_text.cpp core/src/tv/dvb_text_rs.cpp core/src/tv/teletext_rs.cpp core/src/tv/dvbsub_rs.cpp core/src/tv/epg.cpp core/src/tv/subtitle_export.cpp core/src/tv/recorder.cpp core/src/tv/timeshift.cpp core/src/tv/playback.cpp core/src/tv/dsmcc.cpp core/src/tv/rcs.cpp core/src/tv/si_tables.cpp core/src/tv/ts_data.cpp)   # MPEG-TS parsing layer (C++ or the Rust crate onair_ts) and the TV recorder (guide, schedule, timeshift, playback) (C++ or the Rust crate onair_ts)
 target_sources(dect2core PRIVATE core/src/fec/fec_proto.cpp core/src/fec/fec_proto_rs.cpp)   # Reed-Solomon (DVB-T, ATSC, DAB), DVB-T2 BCH and the LDPC tables (the Rust crate onair_fec), the K = 7 Viterbi decoder (C++)
 target_sources(dect2core PRIVATE core/src/files/files_proto_rs.cpp)   # CSV, SigMF, WAV, TLE, SQLite pages, results container (the Rust crate onair_files)
@@ -191,6 +191,11 @@ target_sources(dect2core PRIVATE
   third_party/uat_fec/fec.c third_party/uat_fec/decode_rs_char.c third_party/uat_fec/init_rs_char.c
   core/src/uat/uat_fec_bridge.c core/src/uat/uat_decode.c)
 target_include_directories(dect2core PRIVATE third_party/uat_fec)
+# nfc-laboratory's decoder (GPL-3.0-or-later, third_party/nfc-laboratory/README-OnAir.md) for the NFC / RFID sniffer mode (core/src/nfc)
+file(GLOB DECT2_NFCLAB_SRC CONFIGURE_DEPENDS third_party/nfc-laboratory/src/*/*.cpp third_party/nfc-laboratory/src/lab-radio/tech/*.cpp third_party/nfc-laboratory/onair/*.cpp)
+target_sources(dect2core PRIVATE ${DECT2_NFCLAB_SRC})
+target_include_directories(dect2core PRIVATE third_party/nfc-laboratory/include third_party/nfc-laboratory/src/lab-radio third_party/nfc-laboratory/onair)
+set_source_files_properties(${DECT2_NFCLAB_SRC} PROPERTIES COMPILE_OPTIONS "-w")
 set_source_files_properties(third_party/uat_fec/fec.c third_party/uat_fec/decode_rs_char.c third_party/uat_fec/init_rs_char.c
   core/src/uat/uat_fec_bridge.c core/src/uat/uat_decode.c PROPERTIES LANGUAGE C)
 file(GLOB DECT2_ATSC3_SYNTH_SRC CONFIGURE_DEPENDS core/src/atsc3/atsc3_synth*.cpp)
@@ -1614,6 +1619,9 @@ if(DECT2_BUILD_TESTS)
   # test_sarsat_rx reads tests/data/sarsat/epirbsignal_223.wav; __FILE__ is prefix-mapped to onair/..., so give it the source dir
   if(TARGET test_sarsat_rx)
     target_compile_definitions(test_sarsat_rx PRIVATE DECT2_SOURCE_DIR="${ONAIR_ROOT}")
+  endif()
+  if(TARGET test_nfc_engine)   # checks the mode's registrations in the sources too
+    target_compile_definitions(test_nfc_engine PRIVATE DECT2_SOURCE_DIR="${ONAIR_ROOT}")
   endif()
   # the signal identifier: the whole matrix (every mode's test signal at 10 / 20 / 30 dB SNR, with and without the frequency known) is slow; the quick one
   # (20 dB, no frequency) runs with the rest (tests/specx/test_specx_idmatrix.cpp, docs/signal-id.md)
