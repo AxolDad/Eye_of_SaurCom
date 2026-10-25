@@ -187,6 +187,7 @@ void Engine::configureReceiver(int a, double r) {
     case 143: rxModeAc_.configure(r); break;
     case 144: rxBt_.configure(r); break;
     case 146: rxMilhf_.configure(r); break;
+    case 149: rxNfc_.configure(r); break;
     case 145: rxSb_.configure(r); break;
     case 130: rxLtr_.configure(r); break;
     case 131: rxEdacs_.configure(r); break;
@@ -311,6 +312,7 @@ void Engine::placeReceiver(int a, double o, double centreHz, double dialHz, doub
     case 143: rxModeAc_.setSignalOffset(o); break;
     case 144: rxBt_.setSignalOffset(o); rxBt_.setCenterHz(centreHz); break;
     case 146: rxMilhf_.setSignalOffset(o); rxMilhf_.setCenterHz(centreHz); break;
+    case 149: rxNfc_.setSignalOffset(o); rxNfc_.setCenterHz(centreHz); break;
     case 145: rxSb_.setSignalOffset(o); rxSb_.setCenterHz(centreHz); break;
     case 130: rxLtr_.setSignalOffset(o); rxLtr_.setCenterHz(centreHz); break;
     case 131: rxEdacs_.setSignalOffset(o); rxEdacs_.setCenterHz(centreHz); break;
