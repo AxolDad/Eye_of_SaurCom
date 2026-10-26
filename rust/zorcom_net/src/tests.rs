@@ -80,8 +80,9 @@ fn rtl_tcp() {
 fn spyserver() {
     let mut o = [0u8; 32];
     let n = spy::hello(&mut o);
-    assert_eq!(n, 8 + 9);
-    assert_eq!(&o[..8], [0, 0, 0, 0, 9, 0, 0, 0]);
+    assert_eq!(n, 8 + 4 + 13);
+    assert_eq!(&o[..8], [0, 0, 0, 0, 17, 0, 0, 0]);
+    assert_eq!(&o[12..25], b"Eye of ZorCom");
     assert_eq!(&o[8..12], (0x0200_06a4u32).to_le_bytes());
     let mut r = [0f64; 24];
     assert_eq!(spy::rates(10_000_000, 9, 0, &mut r), 9);

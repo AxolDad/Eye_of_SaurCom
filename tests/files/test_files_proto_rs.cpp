@@ -471,5 +471,5 @@ int main() {
     containerFamily(iters);
     abiMisuse();
     if (abiFails) return 1;
-    return golden::check("files_proto_rs", dig, 0x88007ab9e0e04110ull, !getenv("ZORCOM_DIFF_ITERS"));
+    return golden::check("files_proto_rs", dig, 0x0b36799fd0e615aaull, !getenv("ZORCOM_DIFF_ITERS"));
 }

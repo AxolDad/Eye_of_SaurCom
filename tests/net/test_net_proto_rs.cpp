@@ -444,5 +444,5 @@ int main() {
     radiosFamily(iters);
     abiMisuse();
     if (abiFails) return 1;
-    return golden::check("net_proto_rs", dig, 0xfcbb7b851760e7dcull, !getenv("ZORCOM_DIFF_ITERS"));
+    return golden::check("net_proto_rs", dig, 0x114e7478b7be6a82ull, !getenv("ZORCOM_DIFF_ITERS"));
 }

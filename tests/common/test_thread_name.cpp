@@ -8,7 +8,7 @@ static int fails = 0;
 
 int main() {
     CHECK(dect2::clipThreadName("zorcom-short") == "zorcom-short");
-    CHECK(dect2::clipThreadName("zorcom-a-very-long-thread-name", 15) == "zorcom-a-very-lo");
+    CHECK(dect2::clipThreadName("zorcom-a-very-long-thread-name", 15) == "zorcom-a-very-l");
     CHECK(dect2::clipThreadName(nullptr).empty());
 #if !defined(_WIN32)
     std::string seen;

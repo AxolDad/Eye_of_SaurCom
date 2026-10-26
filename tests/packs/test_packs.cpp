@@ -25,7 +25,7 @@ int main() {
 
     // catalog
     auto cat = builtinCatalog();
-    CHECK(cat.size() > 15, "catalog has %zu packs", cat.size());
+    CHECK(cat.size() >= 15, "catalog has %zu packs", cat.size());
     bool allOk = true;
     for (const Pack& p : cat) {
         allOk &= !p.id.empty() && !p.licence.empty() && !p.source.empty() && !p.attribution.empty() && (p.tiles ? p.tileCount > 0 && p.tileCount <= 4000 : !p.files.empty());

@@ -58,9 +58,10 @@ pub fn command(ty: u32, body: &[u8], out: &mut [u8]) -> usize {
 
 /// The HELLO command (protocol version and the client name "Eye of ZorCom").
 pub fn hello(out: &mut [u8]) -> usize {
-    let mut body = [0u8; 9];
+    const NAME: &[u8] = b"Eye of ZorCom";
+    let mut body = [0u8; 4 + NAME.len()];
     body[..4].copy_from_slice(&PROTOCOL_VERSION.to_le_bytes());
-    body[4..].copy_from_slice(b"Eye of ZorCom");
+    body[4..].copy_from_slice(NAME);
     command(CMD_HELLO, &body, out)
 }
 
