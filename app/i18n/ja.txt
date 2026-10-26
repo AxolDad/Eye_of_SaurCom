@@ -747,7 +747,6 @@ Level dB	レベル dB
 Linux grabbed the SDRplay radio	Linux が SDRplay の無線機を占有しました
 Linux treats the radio as a sound card	Linux が無線機をサウンドカードとして扱っています
 Load	読み込み
-Look again	再検索
 Look for Hermes Lite 2 radios on this computer's networks again	このコンピューターのネットワーク上で Hermes Lite 2 を再検索します
 Maritime, VHF	海上、VHF
 Max hold	マックスホールド
@@ -1290,7 +1289,6 @@ Last used	Last used
 Manual order	Manual order
 Memories: the frequencies you keep, with mode and settings (Ctrl+M)	Memories: the frequencies you keep, with mode and settings (Ctrl+M)
 Memory	Memory
-Memory panel...	Memory panel...
 Memory...	Memory...
 No group	No group
 No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.	No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.
@@ -1801,7 +1799,7 @@ Could not download the list. Check the internet connection.	リストをダウ�
 Transcribing speech: %s	音声を文字起こし中: %s
 Voice (radio calls)	音声（無線交信）
 No radio call with this aircraft's callsign heard yet	この機体のコールサインでの交信はまだ聞こえていません
-Live transcription is off (View > Transcripts). Airband calls would be listed here by callsign.	ライブ文字起こしはオフです（表示 > 文字起こし）。航空無線の交信はここにコールサイン別に並びます。
+Live transcription is off (Tools > Transcripts). Airband calls would be listed here by callsign.	ライブ文字起こしはオフです（表示 > 文字起こし）。航空無線の交信はここにコールサイン別に並びます。
 Live captions: loading the speech model ...	ライブ字幕: 音声モデルを読み込み中 ...
 Live captions: off.	ライブ字幕: オフ。
 Set up transcripts	文字起こしの設定
@@ -1861,7 +1859,7 @@ Sure	確度
 Speaker (a guess from the wording)	話者（言葉からの推測）
 Click to copy this line	クリックでこの行をコピー
 Aircraft on the screen	画面上の機体
-Transcripts ...	文字起こし ...
+Transcripts...	文字起こし ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	航空無線やその他の音声チャンネルで話された内容をテキストで: ライブ字幕、検索、書き出し。オンにするまでオフです。
 # Automations window
 %d firings. Dropped events: %llu	%d 件の実行。破棄されたイベント: %llu
@@ -2234,7 +2232,7 @@ Save CSV	CSV を保存
 Save FITS	FITS を保存
 Save SigMF text	SigMF テキストを保存
 Save session	セッションを保存
-Site is the receiver location (View > Map). Time is the computer clock, UTC.	地点は受信機の位置 (表示 > マップ)、時刻はコンピュータの時計 (UTC) です。
+Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	地点は受信機の位置 (表示 > マップ)、時刻はコンピュータの時計 (UTC) です。
 Sun	太陽
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	回転曲線には 0〜90 (または 270〜360) の複数の銀経のスペクトルが必要です。
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	目標方向: 地球自転 %+.2f、公転 %+.2f、太陽 %+.2f、合計 %+.2f km/s (トポセントリック速度に加算)
@@ -2966,7 +2964,7 @@ Map tiles around a position	位置の周辺の地図タイル
 Radius (km)	半径 (km)
 Deepest zoom	最大ズーム
 The zoom is lowered by itself so the area stays within 4000 tiles (the OpenStreetMap tile policy does not allow bulk downloads).	範囲が4000タイル以内に収まるよう、ズームは自動的に下げられます（OpenStreetMapのタイル利用ポリシーは大量ダウンロードを認めていません）。
-Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits.	地図データ (c) OpenStreetMap contributors。衛星の軌道要素: CelesTrak。空港: OurAirports（パブリックドメイン）。詳細: ヘルプ > クレジット。
+Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits and licences.	地図データ (c) OpenStreetMap contributors。衛星の軌道要素: CelesTrak。空港: OurAirports（パブリックドメイン）。詳細: ヘルプ > クレジット。
 # Wireless M-Bus
 start the receiver to see the meters	受信を開始するとメーターが表示されます
 Maker	メーカー
@@ -3234,7 +3232,7 @@ behind real time (%.1f x): the oldest speech is skipped	リアルタイムに遅
 speed %.2f x real time	速度 リアルタイムの %.2f 倍
 music skipped %llu	スキップした音楽:%llu
 auto captions	自動字幕
-Captions made on your computer from the speech you hear, with the offline speech model (View > Transcripts > Settings). Nothing is sent anywhere.	聞こえている音声から、オフラインの音声モデルでお使いのコンピューター上で作られる字幕です(表示 > 文字起こし > 設定)。何も送信されません。
+Captions made on your computer from the speech you hear, with the offline speech model (Tools > Transcripts > Settings). Nothing is sent anywhere.	聞こえている音声から、オフラインの音声モデルでお使いのコンピューター上で作られる字幕です(表示 > 文字起こし > 設定)。何も送信されません。
 Station's own subtitles	放送局自身の字幕
 Generated from speech	音声から生成
 Both	両方

@@ -575,16 +575,18 @@ void secondModeControl(App& a, bool vertical) {
     ImGui::SetNextItemWidth(200 * gUi);
     ImGui::InputDouble("MHz##second", &mhz, 0, 0, "%.4f");
     if (ImGui::Checkbox("Play its sound", &a.second.audio)) a.engine.setSecondarySound(a.second.audio);
+    bool fits = true;
     if (pick >= 0) {   // the same check the engine makes, with what the radio runs at (or will)
         const bool run = a.engine.running();
         const ModeTuning* pt = modeTuning(engineStd(a));
         const double centre = run ? a.engine.captureCentreHz() : a.tune.centerHz + (pt && a.devices[a.devIdx].kind != DeviceInfo::File ? pt->tuneOffsetHz : 0);
         const double rate = run ? a.engine.sampleRate() : a.tune.sampleRate;
         const std::string why = Engine::secondaryCheck(engineStd(a), kModes[pick].family + 2, centre, rate, mhz * 1e6);
+        fits = why.empty();
         if (!why.empty()) ImGui::TextColored(ImVec4(0.95f, 0.72f, 0.3f, 1), "%s", why.c_str());
         else ImGui::TextDisabled("Fits: %.3f MHz from the centre of the %.2f Msps capture", (mhz * 1e6 - centre) / 1e6, rate / 1e6);
     }
-    ImGui::BeginDisabled(pick < 0);
+    ImGui::BeginDisabled(pick < 0 || !fits);
     if (ImGui::Button("Run")) setSecondMode(a, pick, mhz);
     ImGui::EndDisabled();
     ImGui::SameLine();

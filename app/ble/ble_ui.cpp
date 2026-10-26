@@ -292,8 +292,9 @@ void list(App& a) {
         ImGui::TableNextColumn();
         if (ImGui::Selectable("##row", S.sel == d.addr, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap)) toggleSel(d.addr);
         ImGui::SameLine(0, 0);
-        if (!d.name.empty()) ImGui::TextColored(recent ? pal::okGreen() : ImGui::GetStyleColorVec4(ImGuiCol_Text), "%s", d.name.c_str());
-        else { ImGui::PushFont(a.mono, 0); ImGui::TextColored(recent ? pal::okGreen() : pal::grey(0.6f), "%s", d.addr.c_str()); ImGui::PopFont(); }
+        const char* mark = recent ? "\xE2\x97\x8F " : "  ";   // a dot for "heard in the last 3 s": not the colour alone
+        if (!d.name.empty()) ImGui::TextColored(recent ? pal::okGreen() : ImGui::GetStyleColorVec4(ImGuiCol_Text), "%s%s", mark, d.name.c_str());
+        else { ImGui::PushFont(a.mono, 0); ImGui::TextColored(recent ? pal::okGreen() : pal::grey(), "%s%s", mark, d.addr.c_str()); ImGui::PopFont(); }
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s (%s)\n%s", d.addr.c_str(), dect2::ble::addrKindName(d.kind), d.vendor.c_str());
         ImGui::TableNextColumn(); ImGui::TextDisabled("%.0f", d.rssi);
         ImGui::PopID();

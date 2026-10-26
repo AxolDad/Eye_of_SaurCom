@@ -105,6 +105,7 @@ void Overview::ingest(const au::Event& ev) {
         row.text = newText ? text : std::string("first seen");
         row.freqHz = r.freqHz; row.first = first;
         row.hasPos = r.hasPos; row.lat = r.lat; row.lon = r.lon;
+        row.seq = ++seq_;
         rows_.push_back(std::move(row));
         while (rows_.size() > lim_.maxRows) rows_.pop_front();
     }

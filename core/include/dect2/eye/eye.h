@@ -31,6 +31,7 @@ struct Row {
     bool first = false;   // the contact's first sighting
     bool hasPos = false;
     double lat = 0, lon = 0;
+    uint64_t seq = 0;     // the row's number, unique and stable while newer rows arrive (an ID for the list)
 };
 
 struct Contact {
@@ -78,6 +79,7 @@ private:
     std::vector<std::array<int, kGroups>> slotCount_ = std::vector<std::array<int, kGroups>>(kSlots);
     uint64_t total_ = 0;
     uint64_t version_ = 0;
+    uint64_t seq_ = 0;
 };
 
 // The program-wide Eye the app shows (fed from the automation engine's overview hook).

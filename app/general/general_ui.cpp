@@ -788,3 +788,9 @@ const ModeUi kGeneralUi = {
     .tick = tick,
     .meters = meters,
 };
+
+// Get me listening's presets: the demodulator the preset needs (SSB on the 2 m calling frequency, NFM on marine channel 16)
+void generalSetDemod(int d) {
+    load();
+    setDemod(d);
+}

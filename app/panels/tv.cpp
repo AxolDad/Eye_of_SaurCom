@@ -11,6 +11,8 @@
 #include "dect2/common/png.h"
 #include "dect2/common/u8file.h"
 
+int gVideoKeysFrame = -10;   // the last frame the TV video panel took the keyboard (Space, R)
+
 namespace {
 // ---- channel logos: a PNG the user picked for a service, copied to <data>/tv-logos/<service>.png and shown on the service card
 struct LogoTex { gfx::Image* img = nullptr; int w = 0, h = 0; };
@@ -390,6 +392,7 @@ void playerTab(App& a) {
     const bool vboxKeys = (ImGui::IsWindowFocused() || ImGui::IsWindowHovered()) && !ImGui::GetIO().WantTextInput;   // Space and R act on the video panel
     ImGui::EndChild();
     if (vboxKeys && pl.selected() >= 0) {
+        gVideoKeysFrame = ImGui::GetFrameCount();   // Space pauses the video here, and must not also stop the radio (ui2.cpp)
         if (ImGui::IsKeyPressed(ImGuiKey_Space, false)) { if (pl.shift().paused) pl.play(); else pl.pause(); }
         if (ImGui::IsKeyPressed(ImGuiKey_R, false)) { if (pl.recording().active) pl.stopRecording(); else tvRecordStart(a); }
     }

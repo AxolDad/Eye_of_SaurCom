@@ -299,7 +299,7 @@ struct App {
     bool freqTab = false;               // the Frequencies panel as a tab of the main screen (saved as freqTab)
     bool memoryTab = false;             // the Memory panel as a tab of the main screen (View > Memory as a tab; saved as memTab)
     bool propOpen = false;              // Tools > Propagation (app/prop): predicted coverage of a transmitter on the map
-    bool mapOpen = false;               // the map window (View > Map): positions and Maidenhead locators
+    bool mapOpen = false;               // the map window (Tools > Map): positions and Maidenhead locators
     bool rotatorOpen = false;           // View > Antenna rotator (rotator_ui.cpp)
     int wizStep = 0;
     bool setupOpen = false;             // the setup wizard (language, radio, location, goals); Help > Setup wizard
@@ -696,13 +696,13 @@ void receiverLocation(double& lat, double& lon);  // adsb_ui.cpp: the one receiv
 bool receiverLocationSet();                        // the user has set it (else it is a placeholder)
 void receiverPositionFields(App& a);               // its fields (latitude, longitude, altitude) and the Locate button
 double receiverAltitudeM();                         // its height above sea level, metres (0 until set)
-void setReceiverLocation(App& a, double lat, double lon);   // move it (saved), e.g. View > Map's "Use as my location"
+void setReceiverLocation(App& a, double lat, double lon);   // move it (saved), e.g. Tools > Map's "Use as my location"
 void syncAdsbReference(App& a);                              // push antenna position into the ADS-B tracker while that mode is running
 struct MapSatRef { std::string name; int norad = 0; const dect2::Sgp4* sgp = nullptr; };
 void passesMapSatellites(std::vector<MapSatRef>& out);   // passes_ui.cpp: the listed satellites with a TLE (for the live map)
 struct MapCellTower { double lat = 0, lon = 0; int rangeM = 0; std::string label; unsigned colour = 0; };
 void cellMapTowers(const dect2::CellTelemetry& t, std::vector<MapCellTower>& out);   // cell_ui.cpp: the towers placed (OpenCelliD / CSV)
-void mapWindow(App& a);                             // map_ui.cpp: View > Map (a.mapOpen): coordinates, Maidenhead locators, distance and bearing
+void mapWindow(App& a);                             // map_ui.cpp: Tools > Map (a.mapOpen): coordinates, Maidenhead locators, distance and bearing
 void mapShow(App& a, double lat, double lon);       // map_ui.cpp: open the map centred on a position, with a pin there
 void propagationWindow(App& a);                     // prop_ui.cpp: Tools > Propagation (a.propOpen): coverage heat map, range and a probe point (no terrain)
 void aeroToolsTick(App& a);                         // aero_ui.cpp: SNR-sound tone while Inmarsat Aero is the mode
@@ -1204,6 +1204,9 @@ void tourMark(const char* id, ImVec2 lo, ImVec2 hi);   // tour.cpp: report where
 void wizEnter(App& a, int step);
 void setupWizardOpen(App& a);                        // wizard.cpp: (re)start the setup wizard
 void setupWizard(App& a, ImVec2 disp);               // wizard.cpp: the window, each frame
+void applyIqFileInfo(App& a, const std::string& path);   // toolbar_source.cpp: a recording's own rate, centre and format (SigMF, WAV)
+void generalSetDemod(int d);                             // general_ui.cpp: the General receiver's demodulator (dect2::GeneralDemod)
+void sameSetListen(bool on);                             // same_ui.cpp: hear the weather channel, not only decode it
 void listenWizardOpen(App& a);                       // listen_wizard.cpp: "Get me listening" (Help menu, or a start with no source configured)
 void listenWizard(App& a, ImVec2 disp);              // listen_wizard.cpp: the window, each frame
 #include "dect2/engine/device_claims.h"

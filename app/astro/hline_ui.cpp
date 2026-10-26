@@ -179,7 +179,7 @@ void velocityTab(App& a, const HlineIn& in) {
     const hl::ObserverVelocity o = hl::observerVelocity(tg, jd, lat, lon, H.kinematic ? hl::Lsr::Kinematic : hl::Lsr::Dynamical);
     ImGui::Checkbox(tr("IAU standard solar motion (off: Schoenrich 2010)"), &H.kinematic); ImGui::SameLine();
     ImGui::Checkbox(tr("LSR axis"), &H.lsrAxis);
-    ImGui::TextDisabled("%s", tr("Site is the receiver location (View > Map). Time is the computer clock, UTC."));
+    ImGui::TextDisabled("%s", tr("Site is the receiver location (Tools > Map). Time is the computer clock, UTC."));
     ImGui::Text(tr("Az %.1f  El %.1f   site %.3f, %.3f"), hz.azDeg, hz.elDeg, lat, lon);
     ImGui::Text(tr("Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)"), o.rotation, o.orbit, o.sun, o.total);
     if (!in.have || !in.ratio || in.ratio->size() < 64) { ImGui::TextDisabled("%s", tr("No processed spectrum yet.")); return; }

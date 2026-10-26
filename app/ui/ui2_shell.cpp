@@ -413,7 +413,7 @@ static void viewMenu(App& a) {
     if (ImGui::BeginMenu(tr("Tools"))) {
         ImGui::MenuItem(tr("The Eye"), "Ctrl+E", &a.eyeOpen);
         ImGui::Separator();
-        if (ImGui::MenuItem(tr("Transcripts ..."), nullptr, tx::windowOpen())) tx::windowOpen() = !tx::windowOpen();
+        if (ImGui::MenuItem(tr("Transcripts..."), nullptr, tx::windowOpen())) tx::windowOpen() = !tx::windowOpen();
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on."));
         if (ImGui::MenuItem(tr("Passes"), nullptr, &a.passesOpen)) {}
         ImGui::MenuItem(tr("SatNOGS transmitters"), nullptr, &a.satnogsOpen);
@@ -503,7 +503,7 @@ float menuBar(App& a) {
         menuH = ImGui::GetWindowHeight();
         const bool running = a.engine.running();
         if (ImGui::BeginMenu(tr("File"))) {
-            if (ImGui::MenuItem(tr(running ? "Stop receiver" : "Start receiver"), "Space")) { if (running) a.engine.stop(); else startReceiver(a); }
+            if (ImGui::MenuItem(tr(running ? "Stop receiver" : "Start receiver"), txViewFlag() ? nullptr : "Space")) { if (running) a.engine.stop(); else startReceiver(a); }
             ImGui::Separator();
             workspaceMenu(a);
             ImGui::Separator();

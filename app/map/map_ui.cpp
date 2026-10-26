@@ -1,4 +1,4 @@
-// View > Map: a world map (the ADS-B map's tiles) to find a position by coordinates (decimal or D°M'S") or by Maidenhead locator,
+// Tools > Map: a world map (the ADS-B map's tiles) to find a position by coordinates (decimal or D°M'S") or by Maidenhead locator,
 // and to read a clicked position's coordinates, locator, and distance and bearing from the receiver location.
 #include "../app.h"
 #include "../adsb/adsb_map.h"

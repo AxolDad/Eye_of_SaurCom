@@ -740,7 +740,6 @@ Level dB	Szint dB
 Linux grabbed the SDRplay radio	A Linux lefoglalta az SDRplay rádiót
 Linux treats the radio as a sound card	A Linux hangkártyaként kezeli a rádiót
 Load	Betöltés
-Look again	Keresés újra
 Look for Hermes Lite 2 radios on this computer's networks again	Hermes Lite 2 rádiók keresése újra a számítógép hálózatain
 Maritime, VHF	Tengeri, URH
 Max hold	Csúcstartás
@@ -1276,7 +1275,6 @@ Last used	Last used
 Manual order	Manual order
 Memories: the frequencies you keep, with mode and settings (Ctrl+M)	Memories: the frequencies you keep, with mode and settings (Ctrl+M)
 Memory	Memory
-Memory panel...	Memory panel...
 Memory...	Memory...
 No group	No group
 No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.	No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.
@@ -1787,7 +1785,7 @@ Could not download the list. Check the internet connection.	A listát nem siker�
 Transcribing speech: %s	Beszéd átírása: %s
 Voice (radio calls)	Hang (rádióhívások)
 No radio call with this aircraft's callsign heard yet	Még nem hallatszott hívás ennek a légijárműnek a hívójelével
-Live transcription is off (View > Transcripts). Airband calls would be listed here by callsign.	Az élő átírás ki van kapcsolva (Nézet > Átiratok). A repülési sáv hívásai itt jelennének meg hívójel szerint.
+Live transcription is off (Tools > Transcripts). Airband calls would be listed here by callsign.	Az élő átírás ki van kapcsolva (Nézet > Átiratok). A repülési sáv hívásai itt jelennének meg hívójel szerint.
 Live captions: loading the speech model ...	Élő feliratok: a beszédmodell betöltése ...
 Live captions: off.	Élő feliratok: kikapcsolva.
 Set up transcripts	Átiratok beállítása
@@ -1847,7 +1845,7 @@ Sure	Biztos
 Speaker (a guess from the wording)	Beszélő (a szavakból tippelve)
 Click to copy this line	Kattints a sor másolásához
 Aircraft on the screen	Légijármű a képernyőn
-Transcripts ...	Átiratok ...
+Transcripts...	Átiratok ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	Ami a repülési sávon és más hangcsatornákon elhangzik, szövegként: élő feliratok, keresés, exportálás. Kikapcsolva, amíg be nem kapcsolod.
 # Automations window
 %d firings. Dropped events: %llu	%d végrehajtás. Eldobott események: %llu
@@ -2220,7 +2218,7 @@ Save CSV	CSV mentése
 Save FITS	FITS mentése
 Save SigMF text	SigMF szöveg mentése
 Save session	Munkamenet mentése
-Site is the receiver location (View > Map). Time is the computer clock, UTC.	A hely a vevő helye (Nézet > Térkép). Az idő a számítógép órája, UTC.
+Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	A hely a vevő helye (Nézet > Térkép). Az idő a számítógép órája, UTC.
 Sun	Nap
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	A forgási görbéhez több hosszúságon kell spektrum 0 és 90 (vagy 270 és 360) között.
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	A cél felé: Föld forgása %+.2f, pálya %+.2f, Nap %+.2f; összesen %+.2f km/s (a topocentrikus sebességhez adandó)
@@ -2952,7 +2950,7 @@ Map tiles around a position	Térképcsempék egy pozíció körül
 Radius (km)	Sugár (km)
 Deepest zoom	Legnagyobb nagyítás
 The zoom is lowered by itself so the area stays within 4000 tiles (the OpenStreetMap tile policy does not allow bulk downloads).	A nagyítás magától csökken, hogy a terület legfeljebb 4000 csempe legyen (az OpenStreetMap csempeszabályzata tiltja a tömeges letöltést).
-Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits.	Térképadatok (c) az OpenStreetMap közreműködői. Műholdpályaadatok: CelesTrak. Repterek: OurAirports (közkincs). Részletek: Súgó > Köszönetnyilvánítás.
+Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits and licences.	Térképadatok (c) az OpenStreetMap közreműködői. Műholdpályaadatok: CelesTrak. Repterek: OurAirports (közkincs). Részletek: Súgó > Köszönetnyilvánítás.
 # Wireless M-Bus
 start the receiver to see the meters	indítsd el a vevőt a mérők megjelenítéséhez
 Maker	Gyártó
@@ -3220,7 +3218,7 @@ behind real time (%.1f x): the oldest speech is skipped	lemarad a valós időtő
 speed %.2f x real time	sebesség: %.2f x valós idő
 music skipped %llu	kihagyott zene: %llu
 auto captions	automatikus feliratok
-Captions made on your computer from the speech you hear, with the offline speech model (View > Transcripts > Settings). Nothing is sent anywhere.	A számítógépén, a hallott beszédből, a kapcsolat nélküli beszédmodellel készített feliratok (Nézet > Átiratok > Beállítások). Semmi sem kerül elküldésre.
+Captions made on your computer from the speech you hear, with the offline speech model (Tools > Transcripts > Settings). Nothing is sent anywhere.	A számítógépén, a hallott beszédből, a kapcsolat nélküli beszédmodellel készített feliratok (Nézet > Átiratok > Beállítások). Semmi sem kerül elküldésre.
 Station's own subtitles	Az adó saját feliratai
 Generated from speech	Beszédből készített
 Both	Mindkettő

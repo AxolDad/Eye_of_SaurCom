@@ -41,14 +41,27 @@ bool modeSelected(const App& a, const ModeDef& m) {
 }
 bool modeMatches(const ModeDef& m, const char* q) {
     if (!q || !*q) return true;
-    auto has = [&](const char* s) {
-        if (!s) return false;
-        std::string h(s), n(q);
-        for (auto& c : h) c = (char)tolower((unsigned char)c);
-        for (auto& c : n) c = (char)tolower((unsigned char)c);
-        return h.find(n) != std::string::npos;
+    // letters and digits only, lower case: "adsb" finds ADS-B, "dvbs2" DVB-S2; every word of the query must match somewhere
+    auto norm = [](const char* s) {
+        std::string o;
+        for (const char* p = s; p && *p; p++) if (isalnum((unsigned char)*p) || (unsigned char)*p >= 0x80) o += (char)tolower((unsigned char)*p);
+        return o;
     };
-    return has(m.name) || has(m.sub) || has(tr(m.sub)) || has(m.blurb) || has(m.keys);
+    const std::string fields[] = {norm(m.name), norm(m.sub), norm(tr(m.sub)), norm(m.blurb), norm(m.keys)};
+    const std::string query(q);
+    size_t p = 0;
+    while (p < query.size()) {
+        while (p < query.size() && query[p] == ' ') p++;
+        size_t e = query.find(' ', p);
+        if (e == std::string::npos) e = query.size();
+        const std::string w = norm(query.substr(p, e - p).c_str());
+        p = e;
+        if (w.empty()) continue;
+        bool hit = false;
+        for (const std::string& f : fields) if (f.find(w) != std::string::npos) { hit = true; break; }
+        if (!hit) return false;
+    }
+    return true;
 }
 // a search box at the top of a mode drop-down; returns the query
 const char* modeSearchBox() {

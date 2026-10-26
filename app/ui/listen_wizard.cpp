@@ -4,6 +4,7 @@
 #include "../app.h"
 #include "dect2/bandplan/bandplan.h"
 #include "dect2/engine/mode_tuning.h"
+#include "dect2/general/general_rx.h"
 
 namespace bp = dect2::bandplan;
 
@@ -26,13 +27,14 @@ bp::Registry& listenPlans() {
 
 // The five things to listen to. modeId "" is the FM broadcast family (its frequency comes from the place's band plan unless given);
 // otherwise the mode's own tuning gives the family and the frequency, unless mhz is given.
-struct Preset { const char* label; const char* modeId; double mhz; };
+// demod: the General receiver's demodulator (-1 leaves it). Marine VHF is voice on channel 16 (the marine mode would start NAVTEX at 518 kHz).
+struct Preset { const char* label; const char* modeId; double mhz; int demod; };
 const Preset kPresets[] = {
-    {N_("FM broadcast"), "", 0},
-    {N_("Airband (aircraft voice)"), "airband", 0},
-    {N_("Marine VHF (ships and harbours)"), "marine", 0},
-    {N_("Weather radio (US and Canada, NOAA, 162.550 MHz)"), "same", 162.550},   // the SAME mode: narrow FM, alerts decoded, Listen in its panel
-    {N_("Ham radio, 2 m (SSB calling, 144.200 MHz)"), "general", 144.200},
+    {N_("FM broadcast"), "", 0, -1},
+    {N_("Airband (aircraft voice)"), "airband", 0, -1},
+    {N_("Marine VHF (channel 16, 156.800 MHz)"), "general", 156.800, dect2::GenNfm},
+    {N_("Weather radio (US and Canada, NOAA, 162.550 MHz)"), "same", 162.550, -1},   // the SAME mode: narrow FM, alerts decoded, its sound on
+    {N_("Ham radio, 2 m (SSB calling, 144.200 MHz)"), "general", 144.200, dect2::GenUsb},
 };
 constexpr int kNumPresets = (int)(sizeof kPresets / sizeof *kPresets);
 
@@ -71,6 +73,9 @@ void finishWizard(App& a) {
     const auto& plans = listenPlans().plans();
     if (gPlan >= 0 && gPlan < (int)plans.size()) a.bandPlan = plans[gPlan].id;
     const Preset& s = kPresets[gPreset];
+    // a recording keeps its own frequency: the preset's would be outside what it holds
+    const bool file = a.devIdx >= 0 && a.devIdx < (int)a.devices.size() && a.devices[a.devIdx].kind == DeviceInfo::File;
+    const double keep = a.freqMhz;
     if (s.modeId[0] == '\0') {
         setFamily(a, 5);   // FM broadcast family
         a.freqMhz = s.mhz > 0 ? s.mhz : fmMhzOf(gPlan >= 0 && gPlan < (int)plans.size() ? &plans[gPlan] : nullptr);
@@ -78,8 +83,13 @@ void finishWizard(App& a) {
         setFamily(a, mt->stdMode - 2);
         a.freqMhz = s.mhz > 0 ? s.mhz : mt->defMhz;
     }
+    if (file) a.freqMhz = keep;
+    if (s.demod >= 0) generalSetDemod(s.demod);
+    if (std::string(s.modeId) == "same") sameSetListen(true);
     savePrefs(a);
-    if (!a.engine.running()) startReceiver(a);
+    if (a.engine.running()) a.engine.stop();   // run again: the new source and mode only take effect at a start
+    a.wizStart = false;
+    startReceiver(a);
     closeWizard();
 }
 
@@ -122,7 +132,7 @@ void listenWizard(App& a, ImVec2 disp) {
         if (gDev >= 0 && gDev < (int)a.devices.size() && a.devices[gDev].kind == DeviceInfo::File) {
             if (ImGui::Button(tr("Choose file..."))) {
                 const std::string p = openFileDialog();
-                if (!p.empty()) { a.file.path = p; a.file.format = guessFormat(p); const double r = guessSampleRate(p); if (r > 0) a.file.sampleRate = r; }
+                if (!p.empty()) { a.file.path = p; a.file.format = guessFormat(p); const double r = guessSampleRate(p); if (r > 0) a.file.sampleRate = r; applyIqFileInfo(a, p); }
             }
             ImGui::SameLine();
             ImGui::TextDisabled("%s", a.file.path.empty() ? tr("no file chosen yet") : a.file.path.c_str());
@@ -132,9 +142,15 @@ void listenWizard(App& a, ImVec2 disp) {
             ImGui::TextColored(pal::warnAmber(), "%s", tr("No radio found"));
             ImGui::TextUnformatted(tr("You can go on without one: the synthetic test signal and IQ recordings work with no hardware."));
             ImGui::TextUnformatted(tr("A radio on the network is not found by looking: add it by its address."));
+            for (const auto& h : a.usbHints) ImGui::TextColored(pal::warnAmber(), "%s", h.c_str());   // the precise cause, when the USB check found one
         }
         ImGui::Spacing();
-        if (ImGui::Button(tr("Look again"))) { refreshDevices(a); if (gDev >= (int)a.devices.size()) gDev = 0; }
+        if (ImGui::Button(tr("Refresh"))) {
+            refreshDevices(a);
+            if (gDev >= (int)a.devices.size()) gDev = 0;
+            if (gDev < 0 || !a.devices[gDev].isRadio())   // a radio just plugged in is the one meant
+                for (int i = 0; i < (int)a.devices.size(); i++) if (a.devices[i].isRadio()) { gDev = i; break; }
+        }
         ImGui::SameLine();
         if (ImGui::Button(tr("Add a network radio..."))) { a.netAddOpen = true; a.netAddErr.clear(); }
         break;

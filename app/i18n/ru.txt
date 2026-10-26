@@ -730,7 +730,6 @@ Level dB	Уровень dB
 Linux grabbed the SDRplay radio	Linux захватил радио SDRplay
 Linux treats the radio as a sound card	Linux считает радио звуковой картой
 Load	Загрузить
-Look again	Искать снова
 Look for Hermes Lite 2 radios on this computer's networks again	Снова искать радио Hermes Lite 2 в сетях этого компьютера
 Maritime, VHF	Морская связь, УКВ
 Max hold	Удержание макс.
@@ -1273,7 +1272,6 @@ Last used	Last used
 Manual order	Manual order
 Memories: the frequencies you keep, with mode and settings (Ctrl+M)	Memories: the frequencies you keep, with mode and settings (Ctrl+M)
 Memory	Memory
-Memory panel...	Memory panel...
 Memory...	Memory...
 No group	No group
 No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.	No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.
@@ -1784,7 +1782,7 @@ Could not download the list. Check the internet connection.	Не удалось 
 Transcribing speech: %s	Расшифровка речи: %s
 Voice (radio calls)	Голос (радиообмен)
 No radio call with this aircraft's callsign heard yet	Радиообмена с позывным этого воздушного судна пока не слышно
-Live transcription is off (View > Transcripts). Airband calls would be listed here by callsign.	Живая расшифровка выключена (Вид > Расшифровки). Вызовы авиадиапазона были бы перечислены здесь по позывному.
+Live transcription is off (Tools > Transcripts). Airband calls would be listed here by callsign.	Живая расшифровка выключена (Вид > Расшифровки). Вызовы авиадиапазона были бы перечислены здесь по позывному.
 Live captions: loading the speech model ...	Живые субтитры: загрузка речевой модели ...
 Live captions: off.	Живые субтитры: выключены.
 Set up transcripts	Настроить расшифровки
@@ -1844,7 +1842,7 @@ Sure	Уверенность
 Speaker (a guess from the wording)	Говорящий (догадка по словам)
 Click to copy this line	Нажмите, чтобы скопировать эту строку
 Aircraft on the screen	Воздушное судно на экране
-Transcripts ...	Расшифровки ...
+Transcripts...	Расшифровки ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	Что говорят в авиадиапазоне и на других голосовых каналах, в виде текста: живые субтитры, поиск, экспорт. Выключено, пока вы не включите.
 # Automations window
 %d firings. Dropped events: %llu	Срабатываний: %d. Отброшено событий: %llu
@@ -2217,7 +2215,7 @@ Save CSV	Сохранить CSV
 Save FITS	Сохранить FITS
 Save SigMF text	Сохранить текст SigMF
 Save session	Сохранить сеанс
-Site is the receiver location (View > Map). Time is the computer clock, UTC.	Место — положение приёмника (Вид > Карта). Время — часы компьютера, UTC.
+Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	Место — положение приёмника (Вид > Карта). Время — часы компьютера, UTC.
 Sun	Солнце
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	Для кривой вращения нужны спектры на нескольких долготах между 0 и 90 (или 270 и 360).
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	К цели: вращение Земли %+.2f, орбита %+.2f, Солнце %+.2f; всего %+.2f км/с (добавить к топоцентрической скорости)
@@ -2949,7 +2947,7 @@ Map tiles around a position	Тайлы карты вокруг позиции
 Radius (km)	Радиус (км)
 Deepest zoom	Макс. масштаб
 The zoom is lowered by itself so the area stays within 4000 tiles (the OpenStreetMap tile policy does not allow bulk downloads).	Масштаб снижается автоматически, чтобы область не превышала 4000 тайлов (политика тайлов OpenStreetMap не допускает массовых загрузок).
-Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits.	Данные карты (c) участники OpenStreetMap. Элементы спутников: CelesTrak. Аэропорты: OurAirports (общественное достояние). Подробности: Справка > Благодарности.
+Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits and licences.	Данные карты (c) участники OpenStreetMap. Элементы спутников: CelesTrak. Аэропорты: OurAirports (общественное достояние). Подробности: Справка > Благодарности.
 # Wireless M-Bus
 start the receiver to see the meters	запустите приёмник, чтобы увидеть счётчики
 Maker	Производитель
@@ -3217,7 +3215,7 @@ behind real time (%.1f x): the oldest speech is skipped	отстаёт от ре
 speed %.2f x real time	скорость %.2f x реального времени
 music skipped %llu	пропущено музыки: %llu
 auto captions	автосубтитры
-Captions made on your computer from the speech you hear, with the offline speech model (View > Transcripts > Settings). Nothing is sent anywhere.	Субтитры создаются на вашем компьютере из слышимой речи офлайн-моделью речи (Вид > Расшифровки > Настройки). Ничего не отправляется.
+Captions made on your computer from the speech you hear, with the offline speech model (Tools > Transcripts > Settings). Nothing is sent anywhere.	Субтитры создаются на вашем компьютере из слышимой речи офлайн-моделью речи (Вид > Расшифровки > Настройки). Ничего не отправляется.
 Station's own subtitles	Собственные субтитры станции
 Generated from speech	Созданные из речи
 Both	Оба

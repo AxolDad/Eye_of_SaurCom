@@ -542,7 +542,7 @@ void voiceSection(const App& a, uint32_t icao, const std::string& callsign, cons
     }
     if (v.empty()) {
         ImGui::PushTextWrapPos(0);
-        ImGui::TextDisabled("%s", C.enabled ? tr("No radio call with this aircraft's callsign heard yet") : tr("Live transcription is off (View > Transcripts). Airband calls would be listed here by callsign."));
+        ImGui::TextDisabled("%s", C.enabled ? tr("No radio call with this aircraft's callsign heard yet") : tr("Live transcription is off (Tools > Transcripts). Airband calls would be listed here by callsign."));
         ImGui::PopTextWrapPos();
         return;
     }
@@ -1125,7 +1125,7 @@ void captionsControls(App& a) {
         if (on) { C.capModes.insert(std_); C.cap = true; } else C.capModes.erase(std_);
         save(); applyConfig();
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Captions made on your computer from the speech you hear, with the offline speech model (View > Transcripts > Settings). Nothing is sent anywhere."));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Captions made on your computer from the speech you hear, with the offline speech model (Tools > Transcripts > Settings). Nothing is sent anywhere."));
     if (isTvStandard(std_) && on) {
         flowNext();
         ImGui::SetNextItemWidth(230 * gUi);

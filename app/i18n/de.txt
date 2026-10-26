@@ -754,7 +754,6 @@ Level dB	Pegel dB
 Linux grabbed the SDRplay radio	Linux hat das SDRplay-Radio belegt
 Linux treats the radio as a sound card	Linux behandelt das Radio als Soundkarte
 Load	Laden
-Look again	Erneut suchen
 Look for Hermes Lite 2 radios on this computer's networks again	Erneut nach Hermes-Lite-2-Radios in den Netzwerken dieses Computers suchen
 Maritime, VHF	Seefunk, VHF
 Max hold	Max-Hold
@@ -1290,7 +1289,6 @@ Last used	Last used
 Manual order	Manual order
 Memories: the frequencies you keep, with mode and settings (Ctrl+M)	Memories: the frequencies you keep, with mode and settings (Ctrl+M)
 Memory	Memory
-Memory panel...	Memory panel...
 Memory...	Memory...
 No group	No group
 No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.	No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.
@@ -1801,7 +1799,7 @@ Could not download the list. Check the internet connection.	Die Liste konnte nic
 Transcribing speech: %s	Sprache wird transkribiert: %s
 Voice (radio calls)	Sprechfunk (Funksprüche)
 No radio call with this aircraft's callsign heard yet	Noch kein Funkspruch mit dem Rufzeichen dieses Flugzeugs gehört
-Live transcription is off (View > Transcripts). Airband calls would be listed here by callsign.	Live-Transkription ist aus (Ansicht > Transkripte). Flugfunk-Rufe würden hier nach Rufzeichen aufgelistet.
+Live transcription is off (Tools > Transcripts). Airband calls would be listed here by callsign.	Live-Transkription ist aus (Ansicht > Transkripte). Flugfunk-Rufe würden hier nach Rufzeichen aufgelistet.
 Live captions: loading the speech model ...	Live-Untertitel: Sprachmodell wird geladen ...
 Live captions: off.	Live-Untertitel: aus.
 Set up transcripts	Transkripte einrichten
@@ -1861,7 +1859,7 @@ Sure	Sicher
 Speaker (a guess from the wording)	Sprecher (eine Vermutung aus der Wortwahl)
 Click to copy this line	Klicken, um diese Zeile zu kopieren
 Aircraft on the screen	Flugzeug auf dem Bildschirm
-Transcripts ...	Transkripte ...
+Transcripts...	Transkripte ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	Was auf Flugfunk und anderen Sprachkanälen gesprochen wird, als Text: Live-Untertitel, Suche, Export. Aus, bis du es einschaltest.
 # Automations window
 %d firings. Dropped events: %llu	%d Auslösungen. Verworfene Ereignisse: %llu
@@ -2234,7 +2232,7 @@ Save CSV	CSV speichern
 Save FITS	FITS speichern
 Save SigMF text	SigMF-Text speichern
 Save session	Sitzung speichern
-Site is the receiver location (View > Map). Time is the computer clock, UTC.	Standort ist der Empfängerstandort (Ansicht > Karte). Zeit ist die Computeruhr, UTC.
+Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	Standort ist der Empfängerstandort (Ansicht > Karte). Zeit ist die Computeruhr, UTC.
 Sun	Sonne
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	Die Rotationskurve braucht Spektren bei mehreren Längen zwischen 0 und 90 (oder 270 und 360).
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	Zum Ziel hin: Erdrotation %+.2f, Bahn %+.2f, Sonne %+.2f; gesamt %+.2f km/s (zur topozentrischen Geschwindigkeit addieren)
@@ -2966,7 +2964,7 @@ Map tiles around a position	Kartenkacheln um eine Position
 Radius (km)	Radius (km)
 Deepest zoom	Tiefster Zoom
 The zoom is lowered by itself so the area stays within 4000 tiles (the OpenStreetMap tile policy does not allow bulk downloads).	Der Zoom wird automatisch verringert, damit das Gebiet höchstens 4000 Kacheln umfasst (die OpenStreetMap-Kachelrichtlinie erlaubt keine Massendownloads).
-Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits.	Kartendaten (c) OpenStreetMap-Mitwirkende. Satellitenbahndaten: CelesTrak. Flughäfen: OurAirports (gemeinfrei). Details: Hilfe > Danksagungen.
+Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits and licences.	Kartendaten (c) OpenStreetMap-Mitwirkende. Satellitenbahndaten: CelesTrak. Flughäfen: OurAirports (gemeinfrei). Details: Hilfe > Danksagungen.
 # Wireless M-Bus
 start the receiver to see the meters	den Empfänger starten, um die Zähler zu sehen
 Maker	Hersteller
@@ -3234,7 +3232,7 @@ behind real time (%.1f x): the oldest speech is skipped	hinter Echtzeit (%.1f x)
 speed %.2f x real time	Geschwindigkeit %.2f x Echtzeit
 music skipped %llu	Musik übersprungen: %llu
 auto captions	Auto-Untertitel
-Captions made on your computer from the speech you hear, with the offline speech model (View > Transcripts > Settings). Nothing is sent anywhere.	Untertitel, die auf Ihrem Computer aus der gehörten Sprache mit dem Offline-Sprachmodell erzeugt werden (Ansicht > Transkripte > Einstellungen). Es wird nichts gesendet.
+Captions made on your computer from the speech you hear, with the offline speech model (Tools > Transcripts > Settings). Nothing is sent anywhere.	Untertitel, die auf Ihrem Computer aus der gehörten Sprache mit dem Offline-Sprachmodell erzeugt werden (Ansicht > Transkripte > Einstellungen). Es wird nichts gesendet.
 Station's own subtitles	Eigene Untertitel des Senders
 Generated from speech	Aus der Sprache erzeugt
 Both	Beide

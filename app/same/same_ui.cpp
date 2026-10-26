@@ -476,3 +476,11 @@ const ModeUi kSameUi = {
     .tuner = tuner,
     .tick = tick,
 };
+
+// Get me listening's weather preset: hear the channel, not only decode it (the SAME mode is silent by default)
+void sameSetListen(bool on) {
+    load();
+    S.listen = on;
+    plat::prefs().setB("sameListen", on);
+    plat::prefs().flush();
+}

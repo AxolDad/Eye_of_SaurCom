@@ -94,7 +94,7 @@ void dabStatus(App& a) {
     ImGui::AlignTextToFramePadding();
     iconInline(Ic::Gauge, iconDim(), 0.9f); ImGui::SameLine(0, 4 * gUi); ImGui::TextDisabled("Level"); ImGui::SameLine(0, 5 * gUi);
     {
-        const ImU32 col = adc == AdcStatus::Overload ? IM_COL32(176, 66, 58, 255) : adc == AdcStatus::Good ? pal::gaugeGood() : IM_COL32(176, 130, 48, 255);
+        const ImU32 col = adc == AdcStatus::Overload ? IM_COL32(176, 66, 58, 255) : adc == AdcStatus::Good ? pal::gaugeGood() : IM_COL32(140, 98, 28, 255);
         snprintf(b, sizeof b, run ? "%.1f dBFS" : "-", st.rmsDbfs);
         gaugePill(130, run ? (st.rmsDbfs + 60.f) / 60.f : 0.f, col, b);
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("ADC level (rms). %s\npeak %.2f   clip %.3f%%   DC %+.3f / %+.3f", adcAdvice(adc).c_str(), st.peak, st.clipFraction * 100, st.dcI, st.dcQ);
@@ -104,7 +104,7 @@ void dabStatus(App& a) {
     iconInline(Ic::Signal, iconDim(), 0.9f); ImGui::SameLine(0, 4 * gUi); ImGui::TextDisabled("Signal"); ImGui::SameLine(0, 5 * gUi);
     {
         const float t = live && d.state == 2 ? std::min(1.f, std::max(0.f, (float)((d.snrDb - 4.0) / 18.0))) : 0.f;
-        const ImU32 col = t < 0.25f ? IM_COL32(176, 66, 58, 255) : t < 0.5f ? IM_COL32(176, 130, 48, 255) : pal::gaugeGood();
+        const ImU32 col = t < 0.25f ? IM_COL32(176, 66, 58, 255) : t < 0.5f ? IM_COL32(140, 98, 28, 255) : pal::gaugeGood();
         snprintf(b, sizeof b, live && d.state == 2 ? "%.0f%%  %s" : "-", t * 100, t > 0.8f ? "excellent" : t > 0.55f ? "good" : t > 0.3f ? "fair" : "poor");
         gaugePill(130, t, col, b);
         if (ImGui::IsItemHovered() && live) ImGui::SetTooltip("DAB needs roughly 10 dB SNR for error-free audio.\nSNR %.1f dB, FIC blocks ok %d of 12 in the last frame.", d.snrDb, d.ficRecentOk);

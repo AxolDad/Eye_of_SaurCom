@@ -473,7 +473,7 @@ void hamlibFollowRig(App& a) {
 
 // ---- Find KiwiSDR -----------------------------------------------------------------------------------------------------------------------------
 // The public list of KiwiSDR receivers, downloaded when the user clicks Download (never at startup, one request), shown with the nearest first when the
-// receiver location is known (View > Map), one click adds a receiver to Network radios (no connection is made until it is picked as the radio).
+// receiver location is known (Tools > Map), one click adds a receiver to Network radios (no connection is made until it is picked as the radio).
 // The address is the public listing's machine-readable file; it can be changed here if the listing moves.
 static const char* kKiwiListUrl = "http://rx.linkfanel.net/kiwisdr_com.js";   // ASSUMED: the feed the public map uses; kiwisdr.com itself could not be read when this was written
 

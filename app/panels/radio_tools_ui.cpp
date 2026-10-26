@@ -128,7 +128,7 @@ void feedLog(App& a) {
     if (now - S.lastFeed < 1.0) return;
     S.lastFeed = now;
     double lat, lon, alt;
-    if (!position(lat, lon, alt)) { S.status = S.gpsMode == GpsNmea ? "waiting for a position fix" : "set the receiver position first (View > Map or the setup)"; return; }
+    if (!position(lat, lon, alt)) { S.status = S.gpsMode == GpsNmea ? "waiting for a position fix" : "set the receiver position first (Tools > Map or the setup)"; return; }
     S.status.clear();
     const int64_t wall = (int64_t)std::time(nullptr);
     for (const WifiAp& ap : a.rx.wifi.aps)
@@ -339,7 +339,7 @@ void driveLog(App& a) {
     } else {
         double lat, lon, alt;
         if (position(lat, lon, alt)) ImGui::TextDisabled("%s %.5f, %.5f", tr("fixed position"), lat, lon);
-        else ImGui::TextDisabled("%s", tr("the receiver position is not set (View > Map, or the setup)"));
+        else ImGui::TextDisabled("%s", tr("the receiver position is not set (Tools > Map, or the setup)"));
     }
     if (ImGui::Checkbox(tr("Include Bluetooth devices (personal devices; off by default)"), &S.includeBle)) { S.log.setBle(S.includeBle); save(); }
     ImGui::SetNextItemWidth(120 * gUi);

@@ -754,7 +754,6 @@ Level dB	电平 dB
 Linux grabbed the SDRplay radio	Linux 占用了 SDRplay 电台
 Linux treats the radio as a sound card	Linux 把电台当作声卡
 Load	加载
-Look again	重新查找
 Look for Hermes Lite 2 radios on this computer's networks again	重新在此电脑的网络上查找 Hermes Lite 2 电台
 Maritime, VHF	海事，VHF
 Max hold	最大保持
@@ -1290,7 +1289,6 @@ Last used	Last used
 Manual order	Manual order
 Memories: the frequencies you keep, with mode and settings (Ctrl+M)	Memories: the frequencies you keep, with mode and settings (Ctrl+M)
 Memory	Memory
-Memory panel...	Memory panel...
 Memory...	Memory...
 No group	No group
 No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.	No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.
@@ -1801,7 +1799,7 @@ Could not download the list. Check the internet connection.	无法下载列表�
 Transcribing speech: %s	正在转录语音：%s
 Voice (radio calls)	语音（无线电通话）
 No radio call with this aircraft's callsign heard yet	尚未听到使用该飞机呼号的通话
-Live transcription is off (View > Transcripts). Airband calls would be listed here by callsign.	实时转录已关闭（视图 > 转录）。航空频段的通话会按呼号列在这里。
+Live transcription is off (Tools > Transcripts). Airband calls would be listed here by callsign.	实时转录已关闭（视图 > 转录）。航空频段的通话会按呼号列在这里。
 Live captions: loading the speech model ...	实时字幕：正在加载语音模型 ...
 Live captions: off.	实时字幕：已关闭。
 Set up transcripts	设置转录
@@ -1861,7 +1859,7 @@ Sure	可信度
 Speaker (a guess from the wording)	说话者（根据措辞推测）
 Click to copy this line	点击复制此行
 Aircraft on the screen	屏幕上的飞机
-Transcripts ...	转录 ...
+Transcripts...	转录 ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	航空频段和其他语音信道上说的话，以文字显示：实时字幕、搜索、导出。在你开启之前保持关闭。
 # Automations window
 %d firings. Dropped events: %llu	已触发 %d 次。丢弃的事件：%llu
@@ -2234,7 +2232,7 @@ Save CSV	保存 CSV
 Save FITS	保存 FITS
 Save SigMF text	保存 SigMF 文本
 Save session	保存会话
-Site is the receiver location (View > Map). Time is the computer clock, UTC.	站点为接收机位置 (视图 > 地图),时间为电脑时钟 (UTC)。
+Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	站点为接收机位置 (视图 > 地图),时间为电脑时钟 (UTC)。
 Sun	太阳
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	旋转曲线需要 0 到 90 (或 270 到 360) 之间多个银经的频谱。
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	朝向目标: 地球自转 %+.2f、公转 %+.2f、太阳 %+.2f;合计 %+.2f km/s (加到站心速度上)
@@ -2966,7 +2964,7 @@ Map tiles around a position	某位置周围的地图瓦片
 Radius (km)	半径（公里）
 Deepest zoom	最大缩放
 The zoom is lowered by itself so the area stays within 4000 tiles (the OpenStreetMap tile policy does not allow bulk downloads).	缩放级别会自动降低，使区域不超过 4000 个瓦片（OpenStreetMap 的瓦片政策不允许批量下载）。
-Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits.	地图数据 (c) OpenStreetMap 贡献者。卫星轨道根数：CelesTrak。机场：OurAirports（公有领域）。详情：帮助 > 致谢。
+Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits and licences.	地图数据 (c) OpenStreetMap 贡献者。卫星轨道根数：CelesTrak。机场：OurAirports（公有领域）。详情：帮助 > 致谢。
 # Wireless M-Bus
 start the receiver to see the meters	启动接收机以查看表计
 Maker	制造商
@@ -3234,7 +3232,7 @@ behind real time (%.1f x): the oldest speech is skipped	落后于实时(%.1f 倍
 speed %.2f x real time	速度:实时的 %.2f 倍
 music skipped %llu	已跳过音乐:%llu
 auto captions	自动字幕
-Captions made on your computer from the speech you hear, with the offline speech model (View > Transcripts > Settings). Nothing is sent anywhere.	字幕由您的电脑根据所听到的语音、使用离线语音模型生成(查看 > 转写 > 设置)。不会发送任何内容。
+Captions made on your computer from the speech you hear, with the offline speech model (Tools > Transcripts > Settings). Nothing is sent anywhere.	字幕由您的电脑根据所听到的语音、使用离线语音模型生成(查看 > 转写 > 设置)。不会发送任何内容。
 Station's own subtitles	电台自带字幕
 Generated from speech	根据语音生成
 Both	两者

@@ -330,7 +330,7 @@ void rotatorWindow(App& a) {
         ImGui::TextDisabled("%s", tr("Peak the dish on a DVB-S signal from the satellite (signal meter or Eye of SaurCom lock). Leave the rotator as it is — even if it reads 0° when you are not on north. Eye of SaurCom compares the true sky direction to the mechanical reading and stores the offset."));
         ImGui::PopTextWrapPos();
         if (!receiverLocationSet()) {
-            ImGui::TextColored(pal::warnAmber(), "%s", tr("Set the receiver position in ADS-B or View > Map first."));
+            ImGui::TextColored(pal::warnAmber(), "%s", tr("Set the receiver position in ADS-B or Tools > Map first."));
         } else {
             double lat = 0, lon = 0;
             receiverLocation(lat, lon);
@@ -501,7 +501,7 @@ void rotatorWindow(App& a) {
                 if (!on) applyConnect();
                 rot.gotoAzEl(mapBrg, S.cmdEl);
             }
-        } else ImGui::TextDisabled("%s", tr("Set the receiver position in ADS-B or View > Map to use bearings."));
+        } else ImGui::TextDisabled("%s", tr("Set the receiver position in ADS-B or Tools > Map to use bearings."));
     }
     ImGui::End();
 }

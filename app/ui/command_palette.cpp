@@ -2,6 +2,7 @@
 #include "command_palette.h"
 #include "../i18n/i18n.h"
 #include "scale.h"
+#include "tour_logic.h"
 #include "dect2/engine/updater.h"
 #include "../transcribe/transcribe_app.h"
 #include <algorithm>
@@ -17,6 +18,7 @@ struct Cmd {
     const char* kind;    // "Tab", "Panel", "Mode" or "Action"
     std::function<void(App&)> run;
     int mode = -1;       // index into kModes for a mode: the search also matches its description and keywords, as the mode list's does
+    bool on = false;     // a panel that is open now: shown as "Open", like the menu's check mark
 };
 
 bool gOpenReq = false;   // commandPaletteOpen(): open on the next frame
@@ -46,14 +48,17 @@ std::vector<Cmd> collect(App& a) {
     c.push_back({a.muted ? "Unmute" : "Mute", "Action", [](App& x) {   // the same switch as the sound controls
         x.muted = !x.muted; x.engine.player().setMuted(x.muted); x.engine.dabAudio().setMuted(x.muted);
     }});
-    for (const Panel& p : kPanels) c.push_back({p.name, "Panel", [p](App& x) { x.*p.on = !(x.*p.on); }});
+    for (const Panel& p : kPanels) c.push_back({p.name, "Panel", [p](App& x) { x.*p.on = !(x.*p.on); }, -1, a.*p.on});
     for (int i = 0; i < kNumModes; i++) c.push_back({kModes[i].name, "Mode", [f = kModes[i].family, s = kModes[i].subId](App& x) { selectMode(x, f, s); }, i});
-    c.push_back({"Transcripts", "Panel", [](App&) { tx::windowOpen() = !tx::windowOpen(); }});
-    c.push_back({"Transmit", "Panel", [](App&) { txViewFlag() = !txViewFlag(); }});
+    c.push_back({"Transcripts...", "Panel", [](App&) { tx::windowOpen() = !tx::windowOpen(); }, -1, tx::windowOpen()});
+    c.push_back({"Transmit...", "Panel", [](App&) { txViewFlag() = !txViewFlag(); }, -1, txViewFlag()});
     c.push_back({"Scanner (highly experimental)", "Panel", [](App& x) { x.scannerOpen = !x.scannerOpen; }});
     c.push_back({"Get me listening", "Action", [](App& x) { listenWizardOpen(x); }});
     c.push_back({"Setup wizard", "Action", [](App& x) { setupWizardOpen(x); }});
     c.push_back({"Guided tour", "Action", [](App& x) { tourStart(x); }});
+    int nt = 0;
+    const tour::Tour* ts = tour::tours(&nt);
+    for (int i = 0; i < nt; i++) c.push_back({std::string(ts[i].title), "Tour", [i](App& x) { tourStartTour(x, i); }});
     c.push_back({"Report a problem", "Action", [](App& x) { x.reportOpen = true; }});
     c.push_back({"Full screen", "Action", [](App&) { toggleFullscreen(); }});
     c.push_back({"Voice codecs", "Action", [](App& x) { x.voiceCodecsOpen = true; }});
@@ -143,8 +148,9 @@ void commandPalette(App& a) {
         ImGui::PushID(k);
         if (ImGui::Selectable(tr(c.label.c_str()), k == sel)) chosen = shown[k];
         if (k == sel && moved) ImGui::SetScrollHereY(0.5f);
-        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(tr(c.kind)).x);
-        ImGui::TextDisabled("%s", tr(c.kind));
+        const char* kind = c.on ? tr("Open") : tr(c.kind);
+        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(kind).x);
+        ImGui::TextDisabled("%s", kind);
         ImGui::PopID();
     }
     ImGui::EndChild();

@@ -32,7 +32,7 @@ int adcBitsFor(const DeviceInfo& d, double rateHz) {
 // with (minSampleRateFor, the limit the engine logs at start, which only reached the log). Empty when the rate is fine or not known: a HackRF
 // gives every rate the modes ask for, a SoapySDR radio lists its rates once it has been opened.
 // A .sigmf-meta / .sigmf-data / two-channel .wav says its own rate, centre frequency, sample format and where the samples start.
-static void applyIqFileInfo(App& a, const std::string& path) {
+void applyIqFileInfo(App& a, const std::string& path) {
     a.file.offsetBytes = 0; a.file.endBytes = 0; a.file.bigEndian = false;
     IqFileInfo info; std::string err;
     if (!probeIqFile(path, info, err)) { if (!err.empty()) { a.engine.log(err); a.file.path.clear(); } return; }

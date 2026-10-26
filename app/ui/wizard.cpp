@@ -39,7 +39,7 @@ const Goal kGoals[] = {
     {N_("Aircraft"), "adsb"},
     {N_("Ships"), "ais"},
     {N_("Satellites"), "meteor"},
-    {N_("Amateur radio"), "hfdig"},
+    {N_("Amateur radio"), "ft8"},   // FT8 on 14.074 MHz ("hfdig" would start RTTY on the SSTV frequency)
     {N_("Trunked and two-way radio"), "dmr"},
     {N_("Sensors and IoT"), "ism"},
     {N_("Just explore"), "specan"},
@@ -95,6 +95,7 @@ static void setupFinish(App& a, bool apply) {
     a.setupOpen = false;
     if (apply) {
         applyGoal(a, pickGoal(a.setupGoals), kRegions[a.setupRegion]);
+        if (a.engine.running()) a.engine.stop();   // run again with what was chosen
         a.wizStart = true;   // the last page says the program starts here: the top bar's run button starts the receiver on the next frame
         if (kRegionPlan[a.setupRegion][0]) a.bandPlan = kRegionPlan[a.setupRegion];
     }
@@ -165,9 +166,14 @@ void setupWizard(App& a, ImVec2 disp) {
             ImGui::Spacing();
             ImGui::TextUnformatted(tr("You can go on without one: the synthetic test signal above, and IQ recordings, work with no hardware."));
             ImGui::TextUnformatted(tr("A radio on the network is not found by looking: add it by its address."));
+            for (const auto& h : a.usbHints) ImGui::TextColored(pal::warnAmber(), "%s", h.c_str());
         }
         ImGui::Spacing();
-        if (ImGui::Button(tr("Look again"))) refreshDevices(a);
+        if (ImGui::Button(tr("Refresh"))) {   // the fix-it steps above say "press the refresh button"
+            refreshDevices(a);
+            if (a.devIdx < 0 || a.devIdx >= (int)a.devices.size() || !a.devices[a.devIdx].isRadio())
+                for (int i = 0; i < (int)a.devices.size(); i++) if (a.devices[i].isRadio()) { a.devIdx = i; break; }
+        }
         // a radio on the network is never found by looking: it is added by its address (a PlutoSDR by IP, rtl_tcp, SpyServer, SDR++ server, ...)
         ImGui::SameLine();
         if (ImGui::Button(tr("Add a network radio..."))) { a.netAddOpen = true; a.netAddErr.clear(); }
