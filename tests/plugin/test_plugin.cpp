@@ -90,7 +90,7 @@ void testManifest() {
     CHECK(!parseManifest(manifestFor("x.so", ",\"abi_version\":2"), m, err), "duplicate key/ABI 2 refused (%s)", err.c_str());
     std::string t = manifestFor("x.so"); t.replace(t.find("\"abi_version\":1"), 15, "\"abi_version\":7");
     CHECK(!parseManifest(t, m, err) && err.find("ABI") != std::string::npos, "ABI mismatch message: %s", err.c_str());
-    CHECK(!parseManifest(manifestFor("x.so", ",\"minimum_zorcom\":\"9.0.0\""), m, err, "0.2.7"), "needs a newer Eye of ZorCom refused");
+    CHECK(!parseManifest(manifestFor("x.so", ",\"minimum_zorcom\":\"9.0.0\""), m, err, "0.2.7"), "needs a newer ZorCom refused");
     CHECK(parseManifest(manifestFor("x.so", ",\"minimum_zorcom\":\"0.2.7\""), m, err, "0.2.10"), "0.2.10 >= 0.2.7");
     CHECK(!parseManifest(manifestFor("x.so", "", "[\"root\"]"), m, err), "unknown permission refused");
     CHECK(!parseManifest(manifestFor("x.so", "", "\"network\""), m, err), "permissions must be a list");
@@ -473,7 +473,7 @@ void testInstall() {
     CHECK(!fs::exists(env.dir / "evil.so") && !fs::exists(env.dir.parent_path() / "evil.so"), "nothing written outside");
     CHECK(!m.installBytes({1, 2, 3, 4}, id, err), "garbage refused");
     std::string newer = manifestFor(base(gFake), ",\"minimum_zorcom\":\"9.9.9\"");
-    CHECK(!m.installBytes(zipStore({{"manifest.json", std::vector<uint8_t>(newer.begin(), newer.end())}, {base(gFake), libBytes}}), id, err) && err.find("newer") != std::string::npos, "needs a newer Eye of ZorCom: %s", err.c_str());
+    CHECK(!m.installBytes(zipStore({{"manifest.json", std::vector<uint8_t>(newer.begin(), newer.end())}, {base(gFake), libBytes}}), id, err) && err.find("newer") != std::string::npos, "needs a newer ZorCom: %s", err.c_str());
     CHECK(!m.remove("nonexistent", err), "remove unknown");
     CHECK(m.remove("fake", err) && m.entries().empty(), "remove");
 }

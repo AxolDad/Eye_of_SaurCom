@@ -1,6 +1,6 @@
 // Decoded results through the engine, as the user meets them: ACARS messages decoded from the test signal stay through a switch to
 // another mode (QO-100) and back, a retune and a stop / start of the receiver; they go into the results folder, a new engine (the next
-// run of Eye of ZorCom) shows them again before its radio starts, and only the mode's Clear empties them.
+// run of ZorCom) shows them again before its radio starts, and only the mode's Clear empties them.
 #include "dect2/engine/engine.h"
 #include "dect2/engine/engine_testkit.h"
 #include <chrono>

@@ -36,7 +36,7 @@ static void rdsGood(const FmTelemetry& t, const char* what, float minOk, double 
     CHECK(t.rdsSync && t.rdsBlockOkPct >= minOk, "%s: RDS blocks %.0f%% good (wanted %.0f%%)", what, t.rdsBlockOkPct, minOk);
     const double want = (secs - 1.5) * 1187.5 / 104 * 0.9;
     CHECK((double)t.rdsGroups >= want, "%s: %llu RDS groups (wanted %.0f)", what, (unsigned long long)t.rdsGroups, want);
-    CHECK(t.psName == "TESTFM  " && t.radioText == "Eye of ZorCom FM test signal" && t.piCode == 0x4A21, "%s: RDS contents", what);
+    CHECK(t.psName == "TESTFM  " && t.radioText == "ZorCom FM test signal" && t.piCode == 0x4A21, "%s: RDS contents", what);
 }
 
 int main() {

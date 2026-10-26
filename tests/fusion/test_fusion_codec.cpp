@@ -1,5 +1,5 @@
 // Yaesu Fusion voice: the sub-frames go to the user-installed codec plug-in when there is one, in the form the header documents, and
-// the callsigns and data are decoded without it. A fake plug-in file and opener stand in for the real codec (Eye of ZorCom ships none).
+// the callsigns and data are decoded without it. A fake plug-in file and opener stand in for the real codec (ZorCom ships none).
 #include "fusion_test_util.h"
 #include "dect2/codec/speech_codec.h"
 #include <cstdio>

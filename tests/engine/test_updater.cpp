@@ -33,7 +33,7 @@ int main() {
     CHECK(sha256Bytes(million.data(), million.size()) == "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0", "SHA-256 of a million a");
 
     const std::string json = R"([
-      {"tag_name":"v0.1.4","name":"Eye of ZorCom 0.1.4","draft":false,"prerelease":true,"html_url":"https://example.org/r/0.1.4","body":"New: a é test\nline two",
+      {"tag_name":"v0.1.4","name":"ZorCom 0.1.4","draft":false,"prerelease":true,"html_url":"https://example.org/r/0.1.4","body":"New: a é test\nline two",
        "assets":[
          {"name":"ZorCom-0.1.4-macos-arm64.dmg","size":10,"browser_download_url":"https://example.org/a.dmg","digest":"sha256:aa"},
          {"name":"ZorCom-0.1.4-macos-x86_64.dmg","size":11,"browser_download_url":"https://example.org/b.dmg","digest":"sha256:bb"},
@@ -41,7 +41,7 @@ int main() {
          {"name":"zorcom-0.1.4-linux-x86_64-portable.tar.gz","size":13,"browser_download_url":"https://example.org/d.tgz","digest":"sha256:dd"},
          {"name":"zorcom-0.1.4-linux-aarch64-portable.tar.gz","size":14,"browser_download_url":"https://example.org/e.tgz","digest":"sha256:ee"},
          {"name":"zorcom_0.1.4_amd64.deb","size":15,"browser_download_url":"https://example.org/f.deb"}]},
-      {"tag_name":"v0.1.3","name":"Eye of ZorCom 0.1.3","draft":false,"prerelease":false,"assets":[]},
+      {"tag_name":"v0.1.3","name":"ZorCom 0.1.3","draft":false,"prerelease":false,"assets":[]},
       {"tag_name":"v0.9.0","name":"draft","draft":true,"prerelease":false,"assets":[]}])";
     {
         auto r = pickRelease(json, "0.1.3", true, InstallKind::MacApp, "arm64");
@@ -78,7 +78,7 @@ int main() {
         CHECK(has(sc, "echo version=%VER%") && has(sc, "echo setup_exit=%CODE%") && has(sc, "echo time="), "script: writes the result file");
         CHECK(has(sc, "start \"\" explorer.exe \"%EXE%\""), "script: the program is started again through explorer, without administrator rights");
         CHECK(sc.find("start \"\" explorer.exe") > sc.find("setup_exit=") && sc.find("/wait") < sc.find("setup_exit="), "script: order is setup, result, restart");
-        CHECK(has(sc, "tasklist /FI \"PID eq %PID%\"") && has(sc, "set \"RESTART=1\""), "script: waits for Eye of ZorCom to end");
+        CHECK(has(sc, "tasklist /FI \"PID eq %PID%\"") && has(sc, "set \"RESTART=1\""), "script: waits for ZorCom to end");
         CHECK(has(windowsApplyScript(1, setup, exe, res, "0.2.0", false), "set \"RESTART=0\""), "script: no restart on request");
         CHECK(has(windowsApplyScript(1, "C:/a b/it's/setup.exe", exe, res, "0.2.0", true), "set \"SETUP=C:\\a b\\it's\\setup.exe\""), "script: slashes become backslashes");
         CHECK(!has(windowsApplyScript(1, "C:\\a\"b\r\n.exe", exe, res, "0.2.0", true), "a\"b"), "script: a quote in a path cannot end the value");
@@ -116,7 +116,7 @@ int main() {
         std::string d2 = d;
         const size_t k = d2.find("x86_64"); d2.replace(k, 6, "aarch64");
         const size_t k2 = d2.find("x86_64"); (void)k2;
-        put((base / "api.json").string(), "[{\"tag_name\":\"v9.9.9\",\"name\":\"Eye of ZorCom 9.9.9\",\"draft\":false,\"prerelease\":false,\"html_url\":\"https://example.org\",\"body\":\"notes\",\"assets\":[" + d + "," + d2 + "]}]");
+        put((base / "api.json").string(), "[{\"tag_name\":\"v9.9.9\",\"name\":\"ZorCom 9.9.9\",\"draft\":false,\"prerelease\":false,\"html_url\":\"https://example.org\",\"body\":\"notes\",\"assets\":[" + d + "," + d2 + "]}]");
     };
     auto waitFor = [&](Updater& u, Updater::Phase want, int secs) {
         for (int i = 0; i < secs * 20; i++) { const auto p = u.status().phase; if (p == want || p == Updater::Phase::Failed) return p; std::this_thread::sleep_for(std::chrono::milliseconds(50)); }
@@ -184,7 +184,7 @@ int main() {
         put(newApp + "/Contents/Info.plist", "<plist>new</plist>");
         const std::string dmg = (base / "ZorCom-9.9.9-macos-arm64.dmg").string();
         const std::string dmg2 = (base / "ZorCom-9.9.9-macos-x86_64.dmg").string();
-        CHECK(system(("hdiutil create -quiet -volname Eye of ZorCom -srcfolder " + (base / "dmgroot").string() + " -ov " + dmg).c_str()) == 0, "made the disk image");
+        CHECK(system(("hdiutil create -quiet -volname ZorCom -srcfolder " + (base / "dmgroot").string() + " -ov " + dmg).c_str()) == 0, "made the disk image");
         fs::copy_file(dmg, dmg2, fs::copy_options::overwrite_existing);
         const std::string sum2 = sha256File(dmg);
         auto asset = [&](const std::string& f) { return "{\"name\":\"" + fs::path(f).filename().string() + "\",\"size\":" + std::to_string(fs::file_size(f)) + ",\"browser_download_url\":\"file://" + f + "\",\"digest\":\"sha256:" + sum2 + "\"}"; };

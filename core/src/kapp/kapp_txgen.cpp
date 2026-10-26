@@ -115,7 +115,7 @@ bool kappFromRequest(const TxRequest& r, std::vector<uint8_t>& msg, std::string&
         if (msg.empty()) { err = "KAPP: the file is empty"; return false; }
         if (msg.size() > kapp::kArqMaxMessage) { err = "KAPP: a message is at most 8 MiB"; return false; }
     } else {
-        const std::string t = r.text.empty() ? std::string("Eye of ZorCom KAPP test message: packet data in bursts with selective repeat.") : r.text;
+        const std::string t = r.text.empty() ? std::string("ZorCom KAPP test message: packet data in bursts with selective repeat.") : r.text;
         msg.assign(t.begin(), t.end());
         if (msg.size() > kapp::kArqMaxMessage) { err = "KAPP: a message is at most 8 MiB"; return false; }
     }

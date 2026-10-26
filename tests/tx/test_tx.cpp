@@ -1,5 +1,5 @@
 // Transmit: the list of modes, the TX session (underruns, stopping, failures, no frequency or power limit) and the round trip: the samples a TX session
-// sends to a recording sink are fed to Eye of ZorCom's own receiver (through the engine) and must decode. The radios' own paths are tried against fakes:
+// sends to a recording sink are fed to ZorCom's own receiver (through the engine) and must decode. The radios' own paths are tried against fakes:
 // with --soapy <module dir> the SoapySDR TX sink against the fake "zorcomtest" radio, with --fake <fake library> the PlutoSDR (libiio) TX sink against
 // the fake libiio. The HackRF's USB path has no fake: only its sample conversion is checked here. NOTHING is transmitted by this test.
 #ifdef _WIN32

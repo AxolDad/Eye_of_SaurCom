@@ -1,5 +1,5 @@
 // dPMR voice through a user-installed "ambe2" codec plug-in (stub library, no codec): generator -> receiver -> plug-in -> PCM tap. Every received voice
-// frame (72 bits) reaches the plug-in as 12 bytes and gives 160 samples. dPMR has no encryption in the signal Eye of ZorCom reads, so there is no gate to
+// frame (72 bits) reaches the plug-in as 12 bytes and gives 160 samples. dPMR has no encryption in the signal ZorCom reads, so there is no gate to
 // test. NOT covered: a real codec or a real dPMR recording.
 #include "dect2/dpmr/dpmr_gen.h"
 #include "dect2/dpmr/dpmr_rx.h"

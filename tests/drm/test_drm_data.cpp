@@ -89,9 +89,9 @@ static void checkServiceTable(const char* what, const Run& r, const char* app) {
     if (!d) return;
     CHECK(d->appName == app, "%s: application name '%s' (expected '%s')", what, d->appName.c_str(), app);
     CHECK(d->appMode.find("packet mode, data units, packet id 1") == 0, "%s: mode text '%s'", what, d->appMode.c_str());
-    CHECK(d->appDecoded && d->label == "Eye of ZorCom Data", "%s: decoded %d label '%s'", what, (int)d->appDecoded, d->label.c_str());
+    CHECK(d->appDecoded && d->label == "ZorCom Data", "%s: decoded %d label '%s'", what, (int)d->appDecoded, d->label.c_str());
     bool audio = false;
-    for (const DrmService& s : r.services) audio |= s.audio && s.label == "Eye of ZorCom DRM";
+    for (const DrmService& s : r.services) audio |= s.audio && s.label == "ZorCom DRM";
     CHECK(audio, "%s: the audio service is missing", what);
     CHECK(r.tel.blocksOk > 0 && r.tel.blocksOk >= 3 * r.tel.blocksBad, "%s: audio blocks %llu ok, %llu bad", what, (unsigned long long)r.tel.blocksOk, (unsigned long long)r.tel.blocksBad);
 }
@@ -149,7 +149,7 @@ static void testSlideshowLossy() {
     CHECK(v.mot.objects >= 3 && v.mot.headerSegments >= 3 && v.mot.bodySegments > 30, "MOT: %llu objects, %llu header / %llu body segments", (unsigned long long)v.mot.objects, (unsigned long long)v.mot.headerSegments, (unsigned long long)v.mot.bodySegments);
     CHECK(v.objects.size() == 3, "object list: %zu", v.objects.size());
     checkServiceTable("slide show (lossy)", r, "MOT slide show");
-    CHECK(r.tel.textMessage == "Eye of ZorCom DRM test signal", "text message '%s' next to the data service", r.tel.textMessage.c_str());
+    CHECK(r.tel.textMessage == "ZorCom DRM test signal", "text message '%s' next to the data service", r.tel.textMessage.c_str());
     CHECK(r.newSlides == 3 && v.slide.seq == 3, "pictures taken: %d, sequence %llu", r.newSlides, (unsigned long long)v.slide.seq);
     printf("slide show lossy: %.0f s of signal, packets %llu (lost %llu, bad CRC %llu, other id %llu), units ok %llu dropped %llu, repeats %llu\n", r.secs, (unsigned long long)v.packets,
            (unsigned long long)v.lostPackets, (unsigned long long)v.badPackets, (unsigned long long)v.otherIdPackets, (unsigned long long)v.unitsOk, (unsigned long long)v.unitsDropped, (unsigned long long)v.mot.repeats);
@@ -170,7 +170,7 @@ static void testWebsite(bool directory) {
     std::vector<DrmMotObject> v;
     DrmMotObject a;
     a.name = "index.html"; a.contentType = 1; a.subtype = 2;
-    a.body = text("<html><head><title>Eye of ZorCom</title></head><body><h1>Hello</h1><p>Page one with an <a href=\"about.html\">about</a> link and <script>alert(1)</script>.</p></body></html>");
+    a.body = text("<html><head><title>ZorCom</title></head><body><h1>Hello</h1><p>Page one with an <a href=\"about.html\">about</a> link and <script>alert(1)</script>.</p></body></html>");
     DrmMotObject b;
     b.name = "about.html"; b.contentType = 1; b.subtype = 2;
     b.body = text(std::string("<html><body>") + std::string(300, 'x') + " \xE9t\xE9</body></html>");   // 8 bit text that is not UTF-8

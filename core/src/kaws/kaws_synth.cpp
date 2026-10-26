@@ -17,7 +17,7 @@ std::unique_ptr<ModeSynth> makeKawsSynth(const SynthConfig& s, double sampleRate
     r.callsign = "ZORCOM";
     r.grid = "KO24RM";
     r.dest = "CQ";
-    r.text = "Eye of ZorCom KAWS test signal: chat from the real transmitter.";
+    r.text = "ZorCom KAWS test signal: chat from the real transmitter.";
     r.opt["kaws.kind"] = (pass % 2 == 0) ? 0 : 1;   // chat, then a short beacon
     r.opt["kaws.profile"] = profile;
     r.opt["kaws.repeat"] = 1;

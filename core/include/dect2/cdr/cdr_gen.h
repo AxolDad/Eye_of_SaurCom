@@ -7,7 +7,7 @@
 // The audio units are filler bytes, not DRA+ (the codec is not openly specified): a receiver can list and measure them but not play them.
 // CdrTxConfig::audioA replaces the filler of service 0x1001. Those bytes are still not DRA+.
 // GY/T 268.2 leaves the codes of the audio algorithm field to later documents; the generator writes 0 there. The service description
-// channel carries the service multiplex configuration table and the network information table ("Eye of ZorCom CDR", country CHN) in every frame.
+// channel carries the service multiplex configuration table and the network information table ("ZorCom CDR", country CHN) in every frame.
 //
 // Options of the synthetic source (SynthConfig::modeOpt, all 0 = the default shown):
 //   modeOpt[0]  transmission mode: 0 mode 1 (default), 1 .. 3 = mode 1 .. 3
@@ -38,11 +38,11 @@ struct CdrTxConfig {
     int rate = 3;                  // LDPC rate index: 0 1/4, 1 1/3, 2 1/2, 3 3/4
     int alloc = 1;                 // sub-frame allocation mode 1..3
     bool textService = true;
-    std::string network = "Eye of ZorCom CDR";
+    std::string network = "ZorCom CDR";
     uint32_t freq10Hz = 10610000;  // 106.1 MHz, in the network information table
     uint64_t networkId = 0x100;
     uint16_t serviceA = 0x1001, serviceB = 0x1002, serviceText = 0x1003;
-    std::string text = "Eye of ZorCom CDR test signal. CDR sound uses the DRA+ codec.";
+    std::string text = "ZorCom CDR test signal. CDR sound uses the DRA+ codec.";
     uint32_t seed = 1;
     // Bytes of service 0x1001, split across its audio units and repeated for as long as the signal runs.
     // Empty: filler bytes. This is not DRA+; a receiver can only play it with a decoder written for these bytes.

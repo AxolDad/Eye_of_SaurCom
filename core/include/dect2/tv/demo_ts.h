@@ -16,10 +16,10 @@ struct DemoTsService {
     bool liveCamera = false;    // this programme is a live camera even when `camera` is empty (OS default)
 };
 
-// Names that go in PAT / SDT / the mpegts muxer. Empty services: one programme called "Eye of ZorCom".
+// Names that go in PAT / SDT / the mpegts muxer. Empty services: one programme called "ZorCom".
 struct DemoTsIdentity {
-    std::string provider = "Eye of ZorCom";
-    std::string network = "Eye of ZorCom";
+    std::string provider = "ZorCom";
+    std::string network = "ZorCom";
     std::vector<std::string> services;     // names only: each becomes its own programme (different picture / beep)
     std::vector<DemoTsService> programmes; // if non-empty, this is the mux (takes priority over `services`)
     int serviceId = 1;                     // first service_id; the rest are consecutive

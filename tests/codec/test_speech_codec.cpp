@@ -40,7 +40,7 @@ int main() {
 
     // The notice text is there and says what the user takes on.
     const std::string notice = speechCodecNotice();
-    CHECK(notice.find("does not include") != std::string::npos, "notice says Eye of ZorCom does not include the codec");
+    CHECK(notice.find("does not include") != std::string::npos, "notice says ZorCom does not include the codec");
     CHECK(notice.find("laws") != std::string::npos, "notice mentions local laws");
     CHECK(notice.find("licence") != std::string::npos, "notice mentions the licence");
 

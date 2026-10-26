@@ -65,7 +65,7 @@ int main() {
         CHECK(out == in, "viterbi with errors");
     }
     // ---- the preamble: the short training is periodic every 16 samples; the long training is two equal symbols after a 32-sample guard
-    const auto mp = beacon("Eye of ZorCom 5G");
+    const auto mp = beacon("ZorCom 5G");
     const auto tx = ofdm::txPpdu(mp);
     CHECK(tx.size() == 320 + 80 + 80 * ((16 + 8 * mp.size() + 6 + 23) / 24), "ppdu length %zu", tx.size());
     float perr = 0;

@@ -144,7 +144,7 @@ static void testHost() {
     const int port = srv.config().port;
 
     Resp r = request(port, "GET", "/");
-    CHECK(r.status == 200 && r.body.find("<title>Eye of ZorCom server</title>") != std::string::npos, "the page is served: %d", r.status);
+    CHECK(r.status == 200 && r.body.find("<title>ZorCom server</title>") != std::string::npos, "the page is served: %d", r.status);
     CHECK(r.body.find("<script src") == std::string::npos && r.body.find("<link") == std::string::npos && r.body.find("http://") == std::string::npos && r.body.find("https://") == std::string::npos && r.body.find("@import") == std::string::npos, "the page loads nothing from outside");
     r = request(port, "GET", "/api/v1/status");
     CHECK(r.status == 200 && r.body.find("\"running\":false") != std::string::npos && r.body.find("\"modeId\":\"fm\"") != std::string::npos && r.body.find("Test signal") != std::string::npos, "status before start: %s", r.body.c_str());

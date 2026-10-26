@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
         CHECK(l.size() == 3, "%zu entries after start (default, RX1, RX2 expected)", l.size());
         if (l.size() == 3) {
             CHECK(l[0].name == radio.name && l[0].soapyArgs == radio.soapyArgs, "default entry changed: %s", l[0].name.c_str());
-            CHECK(l[1].name == "Eye of ZorCom synthetic radio antenna RX1" && l[2].name == "Eye of ZorCom synthetic radio antenna RX2", "antenna entries: %s / %s", l[1].name.c_str(), l[2].name.c_str());
+            CHECK(l[1].name == "ZorCom synthetic radio antenna RX1" && l[2].name == "ZorCom synthetic radio antenna RX2", "antenna entries: %s / %s", l[1].name.c_str(), l[2].name.c_str());
             CHECK(l[2].maxRateHz == l[0].maxRateHz && l[2].maxRateHz > 0 && l[2].serial == radio.serial, "antenna entry lost the ranges");
             rx2 = l[2];
         }

@@ -1,7 +1,7 @@
 // The receiver's audio path against what a real link does to it (issue #138: sound that stopped and never came back):
 // a real DRA+ stream (tests/cdr/cdr_dra_clip.h) is fed in units that are damaged, lost, or preceded by a long run of junk.
 // The decoder must keep going (skip what is broken) and must recover on its own. Headless: nothing is played.
-// Needs the REAL DRA+ add-on (Eye of ZorCom ships none: docs/CODECS.md, tools/addons/dra); without it the test prints SKIP and passes. The loader and the
+// Needs the REAL DRA+ add-on (ZorCom ships none: docs/CODECS.md, tools/addons/dra); without it the test prints SKIP and passes. The loader and the
 // units/frames logic are tested with a fake add-on in test_cdr_dra_addon. Point DECT2_DRA_PATH at your libzorcom_dra to run it.
 #include "../../core/src/cdr/cdr_audio.h"
 #include "dect2/cdr/cdr_dra.h"

@@ -45,7 +45,7 @@ int main() {
     CHECK(wrong == 0, "%d reports with another standard", wrong);
     CHECK(rx.rateOk, "the engine says the rate is too low");
     CHECK(c.state == 3 && c.tm == 1 && c.sm == 1 && c.rate == 3 && c.msdMod == 0, "state %d mode %d/%d rate %d", c.state, c.tm, c.sm, c.rate);
-    CHECK(c.network == "Eye of ZorCom CDR" && c.services.size() == 3, "network '%s', %zu services", c.network.c_str(), c.services.size());
+    CHECK(c.network == "ZorCom CDR" && c.services.size() == 3, "network '%s', %zu services", c.network.c_str(), c.services.size());
     if (c.services.size() == 3) {
         CHECK(c.services[0].id == 0x1001 && c.services[1].id == 0x1002 && c.services[2].id == 0x1003, "service ids");
         CHECK(c.services[2].text == CdrTxConfig().text, "text '%s'", c.services[2].text.c_str());

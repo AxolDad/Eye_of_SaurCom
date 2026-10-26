@@ -1,5 +1,5 @@
 // A stand-in for the user's DRA+ add-on (libzorcom_dra), for the tests of the runtime loader and the CDR audio path only: the five entry points
-// Eye of ZorCom looks up, no codec. Built three times from this file (FAKE_VARIANT, CMakeLists.txt):
+// ZorCom looks up, no codec. Built three times from this file (FAKE_VARIANT, CMakeLists.txt):
 //   0  a good library: a frame sent in (0x7FFF sync, header with the frame size in 32-bit words, exactly that many bytes) "decodes" to 1024
 //      stereo frames at 48 kHz; L = the byte after the header * 100, R = the frame size in bytes. Anything else sent in is refused (-1).
 //   1  not an add-on: DRADecRecvFrame is missing

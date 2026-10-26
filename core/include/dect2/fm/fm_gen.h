@@ -21,7 +21,7 @@ struct FmGenConfig {
     bool rds = true;
     double rdsDevKhz = 2;         // RDS injection
     std::string ps = "TESTFM  ";  // 8 characters
-    std::string rt = "Eye of ZorCom FM test signal";
+    std::string rt = "ZorCom FM test signal";
     int pi = 0x4A21;
     int pty = 10;
     bool tp = true, ta = false, music = true;

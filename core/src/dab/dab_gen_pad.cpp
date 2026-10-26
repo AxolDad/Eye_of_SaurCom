@@ -82,7 +82,7 @@ std::vector<std::vector<uint8_t>> slideDse(size_t nAu) {
     // the MOT object: header (core + ContentName), body = the PNG
     const std::vector<uint8_t> body = slidePng();
     std::vector<uint8_t> head(7, 0);
-    const char* name = "Eye of ZorCom test slide";
+    const char* name = "ZorCom test slide";
     const size_t nl = std::strlen(name);
     const size_t hsize = 7 + 2 + 1 + nl;                        // core, parameter id + length, character set, text
     head[0] = (uint8_t)(body.size() >> 20); head[1] = (uint8_t)(body.size() >> 12); head[2] = (uint8_t)(body.size() >> 4);
@@ -117,7 +117,7 @@ std::vector<std::vector<uint8_t>> slideDse(size_t nAu) {
         out[j].insert(out[j].end(), d.begin(), d.end());
     }
     // the rest of the loop: the dynamic label, two segments (16 and 8 characters) sent over and over, each in one X-PAD with a type 2 indicator
-    const char* label = "Eye of ZorCom Melody - test tune";
+    const char* label = "ZorCom Melody - test tune";
     const size_t ll = std::strlen(label);
     for (size_t j = items.size(); j < nAu; j++) {
         const size_t seg = (j - items.size()) % 2, from = seg * 16, n = std::min<size_t>(16, ll - from);

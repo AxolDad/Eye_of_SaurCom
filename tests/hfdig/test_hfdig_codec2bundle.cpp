@@ -1,4 +1,4 @@
-// The codec2 library that ships with Eye of ZorCom (third_party/codec2, built as libcodec2 next to the programs) is found with nothing installed and no
+// The codec2 library that ships with ZorCom (third_party/codec2, built as libcodec2 next to the programs) is found with nothing installed and no
 // environment variable: a copy of this program in an empty folder, with only the library copied next to it, must load it from there (and
 // not from Homebrew or the system). Skipped when the build has no bundled codec2 (-DDECT2_BUNDLE_CODEC2=OFF) or on Windows.
 // "test_hfdig_codec2bundle --probe" is the copy's mode: it prints the library it loaded.

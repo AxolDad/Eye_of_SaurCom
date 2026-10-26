@@ -192,7 +192,7 @@ int main() {
         CHECK(im.size() % 2880 == 0, "image not block aligned");
         const std::vector<std::vector<double>> cols{{1420.0, 1420.1, 1420.2}, {-3.5, 7.25, 1e-3}};
         const std::string tb = fitsTable({"FREQ", "TA"}, {"MHz", "K"}, cols, {{"EXTNAME", "SPECTRUM"}});
-        const std::string file = fitsFile({{"TELESCOP", "test"}, {"ORIGIN", "Eye of ZorCom"}}, {im, tb});
+        const std::string file = fitsFile({{"TELESCOP", "test"}, {"ORIGIN", "ZorCom"}}, {im, tb});
         CHECK(file.compare(0, 30, "SIMPLE  =                    T") == 0, "primary header start");
         std::vector<Hdu> h;
         CHECK(fitsRead(file, h) && h.size() == 3, "read failed or %zu HDUs", h.size());

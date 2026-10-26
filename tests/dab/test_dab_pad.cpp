@@ -28,7 +28,7 @@ static bool sameImage(const DabSlide& s) {
 static dabgen::TxConfig config() {
     dabgen::TxConfig tc;
     tc.services = dabgen::defaultServices();
-    tc.services[2].slide = true;     // "Eye of ZorCom Melody", 64 kbit/s
+    tc.services[2].slide = true;     // "ZorCom Melody", 64 kbit/s
     tc.utcSeconds = 1700000000;
     return tc;
 }
@@ -41,8 +41,8 @@ static void testDirect() {
     for (const auto& au : aus) pd.accessUnit(au.data(), (int)au.size());
     CHECK(pd.seq() == 1, "one picture expected, seq %llu", (unsigned long long)pd.seq());
     CHECK(sameImage(pd.slide()), "pixels differ");
-    CHECK(pd.slide().name == "Eye of ZorCom test slide", "name '%s'", pd.slide().name.c_str());
-    CHECK(pd.label() == "Eye of ZorCom Melody - test tune", "label '%s'", pd.label().c_str());
+    CHECK(pd.slide().name == "ZorCom test slide", "name '%s'", pd.slide().name.c_str());
+    CHECK(pd.label() == "ZorCom Melody - test tune", "label '%s'", pd.label().c_str());
     const uint64_t s1 = pd.seq();
     for (const auto& au : aus) pd.accessUnit(au.data(), (int)au.size());   // the carousel: the same object again is not a new picture
     CHECK(pd.seq() == s1, "repeat counted as new");
@@ -447,7 +447,7 @@ static void testAudio() {
     CHECK(got && s.seq > 0 && sameImage(s), "DabAudio: slide %d", (int)got);
     const uint64_t seq1 = s.seq;
     CHECK(!au.slide(s, seq1), "no new picture expected");
-    CHECK(au.dynamicLabel() == "Eye of ZorCom Melody - test tune", "DabAudio label '%s'", au.dynamicLabel().c_str());
+    CHECK(au.dynamicLabel() == "ZorCom Melody - test tune", "DabAudio label '%s'", au.dynamicLabel().c_str());
     const DabAudioStats st = au.stats();
     CHECK(st.auBad == 0 && st.superframesBad == 0 && st.pcmFrames > 0, "audio with PAD: %llu bad, %llu pcm frames", (unsigned long long)st.auBad, (unsigned long long)st.pcmFrames);
     au.select(3, true, 64);

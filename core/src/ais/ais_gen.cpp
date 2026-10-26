@@ -524,7 +524,7 @@ private:
             }
             while (s.kind == 2 && s.nextOther < horizon) {
                 const int ch = s.toggle++ & 1;
-                if (s.seq++ & 1) send(s, encodeText14(s, "Eye of ZorCom synthetic test signal"), ch, s.nextOther, tNow);
+                if (s.seq++ & 1) send(s, encodeText14(s, "ZorCom synthetic test signal"), ch, s.nextOther, tNow);
                 else send(s, encodeBinary8(s, 470, 1, 12, rng_), ch, s.nextOther, tNow);
                 s.nextOther += 30.0;
             }

@@ -1,4 +1,4 @@
-// A fake radio for the SoapySDR source test: a SoapySDR driver ("zorcomtest") that streams Eye of ZorCom's synthetic DVB-T2 signal.
+// A fake radio for the SoapySDR source test: a SoapySDR driver ("zorcomtest") that streams ZorCom's synthetic DVB-T2 signal.
 // Built as a plugin module; the test points SOAPY_SDR_PLUGIN_PATH at it.
 #include "dect2/common/ring.h"
 #include "dect2/source/source.h"
@@ -48,7 +48,7 @@ struct TestStream {
 class ZorComTestDevice : public SoapySDR::Device {
 public:
     std::string getDriverKey() const override { return "zorcomtest"; }
-    std::string getHardwareKey() const override { return "Eye of ZorCom synthetic radio"; }
+    std::string getHardwareKey() const override { return "ZorCom synthetic radio"; }
     size_t getNumChannels(const int dir) const override {
         if (dir == SOAPY_SDR_RX) return 1;
         if (dir == SOAPY_SDR_TX) {
@@ -73,7 +73,7 @@ public:
     void setGainMode(const int, const size_t, const bool automatic) override { agc_ = automatic; }
     bool getGainMode(const int, const size_t) const override { return agc_; }
     void setGain(const int dir, const size_t, const double g) override {
-        if (dir == SOAPY_SDR_TX) { note("TXGAIN", std::to_string(g)); return; }   // (asked as given: the test checks what Eye of ZorCom passes on)
+        if (dir == SOAPY_SDR_TX) { note("TXGAIN", std::to_string(g)); return; }   // (asked as given: the test checks what ZorCom passes on)
         gain_ = std::min(60.0, std::max(0.0, g));
     }
     double getGain(const int, const size_t) const override { return gain_; }
@@ -197,7 +197,7 @@ SoapySDR::KwargsList findTest(const SoapySDR::Kwargs& args) {
     if (args.count("driver") && args.at("driver") != "zorcomtest") return out;
     SoapySDR::Kwargs k;
     k["driver"] = "zorcomtest";
-    k["label"] = "Eye of ZorCom synthetic radio";
+    k["label"] = "ZorCom synthetic radio";
     k["serial"] = "0001";
     out.push_back(k);
     return out;
@@ -226,7 +226,7 @@ SoapySDR::KwargsList findTestGr(const SoapySDR::Kwargs& args) {
     if (args.count("driver") && args.at("driver") != "zorcomtestgr") return out;
     SoapySDR::Kwargs k;
     k["driver"] = "zorcomtestgr";
-    k["label"] = "Eye of ZorCom gain-reduction radio";
+    k["label"] = "ZorCom gain-reduction radio";
     k["serial"] = "0002";
     out.push_back(k);
     return out;

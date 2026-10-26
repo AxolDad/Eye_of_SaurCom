@@ -19,7 +19,7 @@ public:
         tx_.setSweepCallsign("ZORCOM");
         kaal::BeaconFields f;
         f.callsign = "ZORCOM"; f.grid = "KO26ab"; f.lat = 54.687; f.lon = 25.279; f.powerDbm = 20; f.frameType = 1;
-        tx_.setBeacon(f, "Eye of ZorCom test signal: KAAL voice and beacon.");
+        tx_.setBeacon(f, "ZorCom test signal: KAAL voice and beacon.");
         tx_.setBeaconMix(true);
         dph_ = 2 * 3.141592653589793 * (1200.0 + s.cfoHz) / rate;
         noise_ = (float)(0.23 / std::pow(10.0, s.snrDb / 20.0) / std::sqrt(2.0));

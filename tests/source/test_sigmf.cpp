@@ -54,7 +54,7 @@ int main() {
     CHECK(r2.start((dir / "plain.cs8").string(), FileFormat::CS8, 2e6, err), "start plain");
     r2.stop();
     CHECK(!fs::exists(dir / "plain.sigmf-meta"), "no meta when off");
-    {   // legacy ri8 / ri16 aliases and core:dataset (Eye of ZorCom writes the .cs8 name, not .sigmf-data)
+    {   // legacy ri8 / ri16 aliases and core:dataset (ZorCom writes the .cs8 name, not .sigmf-data)
         const fs::path d2 = dir / "legacy";
         fs::create_directories(d2);
         std::ofstream(d2 / "iq.cs8", std::ios::binary) << "abcd";

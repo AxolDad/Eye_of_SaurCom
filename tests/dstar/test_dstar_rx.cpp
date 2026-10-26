@@ -101,7 +101,7 @@ int main() {
         CHECK(t.log.size() == 2, "%s: %zu calls", f.name, t.log.size());
         if (a) {
             CHECK(a->sfx == "ID51" && a->ur == "CQCQCQ" && a->rpt1 == "LY0VNO B" && a->rpt2 == "LY0VNO G" && (a->flag[0] & 0x40), "%s: header fields", f.name);
-            CHECK(a->text == "Eye of ZorCom D-STAR test 73", "%s: text '%s'", f.name, a->text.c_str());
+            CHECK(a->text == "ZorCom DSTAR test 73", "%s: text '%s'", f.name, a->text.c_str());
             CHECK(a->hasPos, "%s: no position in the call", f.name);
             if (!late) CHECK(a->voiceFrames >= 195 && a->voiceFrames <= 201, "%s: %u voice frames", f.name, a->voiceFrames);
             if (f.hdrErr > 100 || late) CHECK(a->headerFromSlow, "%s: header should come from the slow data", f.name);

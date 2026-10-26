@@ -11,7 +11,7 @@
 //               6 Scottie DX, 7 PD50, 8 PD90, 9 PD120, 10 PD180, 11 Wraase SC2-180)
 //   modeOpt[2]  1: leave out the VIS header (the decoder then picks the mode from the line period)
 //   modeVal[0]  tuning error of the audio in Hz (all tones move up by it); cfg.sroPpm: error of the sample clock in ppm
-// The picture is sstvTestPicture(): colour bars, a grey gradient and "Eye of ZorCom" in blocks; it is sent once with a pause before and after, over
+// The picture is sstvTestPicture(): colour bars, a grey gradient and "ZorCom" in blocks; it is sent once with a pause before and after, over
 // and over.
 #pragma once
 #include "hfdig_rx.h"

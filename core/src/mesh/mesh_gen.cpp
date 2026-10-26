@@ -426,7 +426,7 @@ public:
         if (meshcore_) s = meshcoreDefaults(region == 1 ? "US" : region == 5 ? "AU" : "EU");
         else meshtasticPreset("LongFast", s);
         p_.sf = s.sf; p_.bwHz = s.bwHz; p_.cr = s.cr; p_.preamble = s.preamble; p_.syncWord = s.syncWord; p_.ldro = s.ldro; p_.crc = true;
-        const std::string name = sender.empty() ? "Eye of ZorCom" : sender;
+        const std::string name = sender.empty() ? "ZorCom" : sender;
         uint32_t h = 2166136261u;   // FNV-1a of the name: a stable node number
         for (unsigned char c : name) h = (h ^ c) * 16777619u;
         mt_.num = 0x2a000000u | (h & 0x00ffffffu);
