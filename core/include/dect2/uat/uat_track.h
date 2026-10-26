@@ -1,7 +1,10 @@
 #pragma once
 #include "uat_proto.h"
 #include "uat_tel.h"
+#include "fisb.h"
 #include <deque>
+#include <map>
+#include <string>
 #include <unordered_map>
 
 namespace dect2 {
@@ -23,7 +26,10 @@ public:
 private:
     struct Rec { UatAircraft ac; double last = 0; };
     std::unordered_map<uint32_t, Rec> ac_;
-    std::deque<UatFisbProduct> fisb_;
+    // FIS-B products by identity, so a report broadcast every few minutes is one entry rather than a new one each time.
+    void addFisb(UatFisbProduct p, int month, double timeSec);
+    std::map<std::string, UatFisbProduct> fisb_;
+    fisb::Unsegmenter unseg_;
     std::deque<UatFrameInfo> log_;
     double expirySec_ = 60;
     bool refValid_ = false;

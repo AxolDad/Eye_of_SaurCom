@@ -48,11 +48,17 @@ std::string dataDir();
 // Downloads url into file (UTF-8 path) with the curl program, which Windows 10 and later, macOS and nearly every Linux have (no TLS library
 // is linked). On Windows it runs without a console window. Gives up after about 15 s. False when the download did not work.
 bool fetchUrl(const std::string& url, const std::string& file, const std::string& userAgent);
+// The same, with extra request headers ("Name: value", e.g. an API's client_id and client_secret). The headers go to curl in a private
+// temporary file, as postRequest's do, so a key never appears in a process list. False when a header holds a line break.
+bool fetchUrlHeaders(const std::string& url, const std::string& file, const std::string& userAgent, const std::vector<std::string>& headers);
 // POST of UTF-8 JSON (Content-Type: application/json), same curl program. False when it did not work (including HTTP 4xx/5xx).
 bool postJson(const std::string& url, const std::string& json, const std::string& userAgent);
 // POST with a Content-Type and extra headers ("Name: value", e.g. an access token). The headers are passed to curl in a private temporary file,
 // so a token never appears in a process list. False when it did not work (including HTTP 4xx/5xx).
 bool postRequest(const std::string& url, const std::string& body, const std::string& contentType, const std::vector<std::string>& headers, const std::string& userAgent);
+// The same, and the response body (up to 64 KB) in reply: an OAuth token exchange, whose secret goes in the private header file.
+bool postRequestReply(const std::string& url, const std::string& body, const std::string& contentType, const std::vector<std::string>& headers,
+                      const std::string& userAgent, std::string& reply);
 // The same, and the response body (up to 64 KB) in reply. The Live rooms feature needs the room id and token the server answers with.
 bool postJsonReply(const std::string& url, const std::string& json, const std::string& userAgent, std::string& reply);
 // One HTTP request that tells why it failed. method "GET", "HEAD" or "POST" (body sent as JSON). status is the HTTP status (0 when there was no

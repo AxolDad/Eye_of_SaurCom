@@ -272,13 +272,13 @@ int main() {
 
     // ---- every aircraft alike: nothing is dropped, or treated differently, for the database flags a service attaches
     //
-    // readsb-based services mark aircraft in "dbFlags": 1 military, 2 interesting, 4 PIA, 8 LADD. This program takes no part in LADD and
-    // filters nothing by any of them, so an aircraft carrying any of those flags must come through exactly as one carrying none.
+    // readsb-based services mark aircraft in "dbFlags" (1, 2, 4, 8). Nothing is filtered by them: an aircraft carrying any of those flags
+    // must come through exactly as one carrying none.
     {
         const char* body = R"({"ac":[
             {"hex":"a00001","flight":"PLAIN1","alt_baro":30000,"lat":40.0,"lon":-75.0},
-            {"hex":"a00002","flight":"LADD1","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":8},
-            {"hex":"a00003","flight":"PIA1","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":4},
+            {"hex":"a00002","flight":"FLAG8","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":8},
+            {"hex":"a00003","flight":"FLAG4","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":4},
             {"hex":"a00004","flight":"BOTH1","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":12},
             {"hex":"a00005","flight":"MIL1","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":1},
             {"hex":"a00006","flight":"ALL1","alt_baro":30000,"lat":40.0,"lon":-75.0,"dbFlags":15}

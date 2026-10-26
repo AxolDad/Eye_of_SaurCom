@@ -78,9 +78,15 @@ void tab(App& a) {
     if (typo::beginTabItem("Aircraft")) { aircraftTable(t); ImGui::EndTabItem(); }
     if (typo::beginTabItem("FIS-B")) {
         for (const auto& p : t.fisb) {
-            ImGui::TextDisabled("%s", p.title.c_str());
+            std::string head = p.title;
+            if (!p.location.empty()) head += "  " + p.location;
+            if (p.reportNumber) head += "  #" + std::to_string(p.reportNumber);
+            if (p.cancelled) head += "  CANCELLED";
+            if (!p.areas.empty()) head += "  " + std::to_string(p.areas.size()) + (p.areas.size() == 1 ? " area" : " areas");
+            if (p.heard > 1) head += "  heard " + std::to_string(p.heard) + "x";
+            ImGui::TextDisabled("%s", head.c_str());
             ImGui::PushTextWrapPos(0);
-            ImGui::TextUnformatted(p.text.empty() ? "(no text)" : p.text.c_str());
+            ImGui::TextUnformatted(p.text.empty() ? (p.areas.empty() ? "(no text)" : "(airspace only: its text has not been heard yet)") : p.text.c_str());
             ImGui::PopTextWrapPos();
             ImGui::Separator();
         }

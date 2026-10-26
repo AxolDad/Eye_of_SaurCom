@@ -240,6 +240,7 @@ void sidebar(App& a) {
         tool("Internet radio...", a.webRadioOpen, N_("Search the world's internet radio stations and play one through the sound output"));
         tool("Radio tools", a.radioToolsOpen, N_("Wi-Fi and Bluetooth alerts, a frequency analyzer and a drive log, with links to the other receive-only tools"));
         tool("Deep Space Network", a.dsnOpen, N_("What NASA's deep space dishes are talking to now: spacecraft, distance, bands and data rates"));
+        tool("NOTAMs and TFRs", a.notamOpen, N_("Notices to air missions and flight restrictions near you, from the FAA and off the air on FIS-B, each from the most accurate source that has it"));
         tool("WiFi sensing...", a.wifiSenseOpen, N_("Presence, motion, breathing and heart rate in a room from the WiFi channel of ESP32 nodes"));
         tool("Messages...", a.msgdbOpen, N_("Every decoded message in one searchable database, with filters and export"));
         tool("Flight history...", a.flightsOpen, N_("Every flight this receiver heard: what is overhead most, where it goes, what stands out, and your own dossier on each aircraft"));
@@ -425,6 +426,7 @@ static void viewMenu(App& a) {
         ImGui::MenuItem(tr("Internet radio..."), nullptr, &a.webRadioOpen);
         ImGui::MenuItem(tr("Radio tools"), nullptr, &a.radioToolsOpen);
         ImGui::MenuItem(tr("Deep Space Network"), nullptr, &a.dsnOpen);
+        ImGui::MenuItem(tr("NOTAMs and TFRs"), nullptr, &a.notamOpen);
         ImGui::MenuItem(tr("WiFi sensing..."), nullptr, &a.wifiSenseOpen);
         ImGui::MenuItem(tr("Messages..."), nullptr, &a.msgdbOpen);
         ImGui::MenuItem(tr("Flight history..."), nullptr, &a.flightsOpen);

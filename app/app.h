@@ -417,6 +417,7 @@ struct App {
     bool feedsOpen = false;   // View > Data feeds: the window (feeds_ui.cpp)
     bool webRadioOpen = false;   // View > Internet radio (web_radio_ui.cpp)
     bool dsnOpen = false;        // Tools > Deep Space Network (dsn_ui.cpp)
+    bool notamOpen = false;      // Tools > NOTAMs and TFRs (adsb/notam_app.cpp)
     bool radioToolsOpen = false; // Tools > Radio tools (radio_tools_ui.cpp)
     bool wifiSenseOpen = false;  // View > WiFi sensing (wifisense_ui.cpp)
     bool watchlistOpen = false;    // View > Watchlists: alerts when listed aircraft, ships, call signs, frequencies or words are heard (watchlist_ui.cpp)

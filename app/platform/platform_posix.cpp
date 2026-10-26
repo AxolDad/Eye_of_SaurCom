@@ -117,10 +117,22 @@ static bool postImpl(const std::string& url, const std::string& json, const std:
 #endif
 }
 
-bool postRequest(const std::string& url, const std::string& body, const std::string& contentType, const std::vector<std::string>& headers, const std::string& userAgent) {
+static bool postRequestImpl(const std::string& url, const std::string& body, const std::string& contentType, const std::vector<std::string>& headers,
+                            const std::string& userAgent, std::string* reply) {
     static std::atomic<unsigned> counter{0};
     const unsigned n = counter++ % 1000;
     const std::string bodyFile = cacheDir() + "/postr_" + std::to_string(n) + ".dat", hdrFile = cacheDir() + "/postr_" + std::to_string(n) + ".hdr";
+    const std::string outFile = cacheDir() + "/postr_" + std::to_string(n) + ".out";
+    auto readReply = [&]() {
+        if (!reply) return;
+        reply->clear();
+#ifdef _WIN32
+        FILE* f = _wfopen(wide(outFile).c_str(), L"rb");
+#else
+        FILE* f = fopen(outFile.c_str(), "rb");
+#endif
+        if (f) { char b[4096]; size_t k; while ((k = fread(b, 1, sizeof b, f)) > 0 && reply->size() < 65536) reply->append(b, k); fclose(f); }
+    };
     auto put = [](const std::string& path, const std::string& data, bool priv) {
 #ifdef _WIN32
         FILE* f = _wfopen(wide(path).c_str(), L"wb");
@@ -144,7 +156,7 @@ bool postRequest(const std::string& url, const std::string& body, const std::str
     wchar_t sys[MAX_PATH + 1] = {0};
     std::wstring exe = GetSystemDirectoryW(sys, MAX_PATH) ? std::wstring(sys) + L"\\curl.exe" : std::wstring(L"curl.exe");
     if (GetFileAttributesW(exe.c_str()) == INVALID_FILE_ATTRIBUTES) exe = L"curl.exe";
-    std::wstring line = L"\"" + exe + L"\" -fsSL --max-time 12 -A \"" + wide(userAgent) + L"\" -H @\"" + wide(hdrFile) + L"\" --data-binary @\"" + wide(bodyFile) + L"\" -o NUL \"" + wide(url) + L"\"";
+    std::wstring line = L"\"" + exe + L"\" -fsSL --max-time 12 -A \"" + wide(userAgent) + L"\" -H @\"" + wide(hdrFile) + L"\" --data-binary @\"" + wide(bodyFile) + L"\" -o " + (reply ? L"\"" + wide(outFile) + L"\"" : std::wstring(L"NUL")) + L" \"" + wide(url) + L"\"";
     STARTUPINFOW si{};
     si.cb = sizeof si;
     PROCESS_INFORMATION pi{};
@@ -159,12 +171,71 @@ bool postRequest(const std::string& url, const std::string& body, const std::str
     }
     DeleteFileW(wide(bodyFile).c_str());
     DeleteFileW(wide(hdrFile).c_str());
+    if (ok) readReply();
+    DeleteFileW(wide(outFile).c_str());
     return ok;
 #else
     auto q = [](const std::string& s) { std::string o = "'"; for (char c : s) { if (c == '\'') o += "'\\''"; else o += c; } return o + "'"; };
-    const std::string cmd = "curl -fsSL --max-time 12 -A " + q(userAgent) + " -H @" + q(hdrFile) + " --data-binary @" + q(bodyFile) + " -o /dev/null " + q(url) + " 2>/dev/null";
+    const std::string cmd = "curl -fsSL --max-time 12 -A " + q(userAgent) + " -H @" + q(hdrFile) + " --data-binary @" + q(bodyFile) + " -o " + (reply ? q(outFile) : std::string("/dev/null")) + " " + q(url) + " 2>/dev/null";
     const int rc = system(cmd.c_str());
     std::remove(bodyFile.c_str());
+    std::remove(hdrFile.c_str());
+    if (rc == 0) readReply();
+    std::remove(outFile.c_str());
+    return rc == 0;
+#endif
+}
+
+bool postRequest(const std::string& url, const std::string& body, const std::string& contentType, const std::vector<std::string>& headers, const std::string& userAgent) {
+    return postRequestImpl(url, body, contentType, headers, userAgent, nullptr);
+}
+
+bool postRequestReply(const std::string& url, const std::string& body, const std::string& contentType, const std::vector<std::string>& headers,
+                      const std::string& userAgent, std::string& reply) {
+    return postRequestImpl(url, body, contentType, headers, userAgent, &reply);
+}
+
+bool fetchUrlHeaders(const std::string& url, const std::string& file, const std::string& userAgent, const std::vector<std::string>& headers) {
+    static std::atomic<unsigned> counter{0};
+    const std::string hdrFile = cacheDir() + "/fetchh_" + std::to_string(counter++ % 1000) + ".hdr";
+    std::string hdr;
+    for (const std::string& h : headers) {
+        if (h.find('\n') != std::string::npos || h.find('\r') != std::string::npos) return false;
+        hdr += h + "\n";
+    }
+#ifdef _WIN32
+    FILE* f = _wfopen(wide(hdrFile).c_str(), L"wb");
+#else
+    FILE* f = fopen(hdrFile.c_str(), "wb");
+    if (f) fchmod(fileno(f), 0600);
+#endif
+    if (!f) return false;
+    fwrite(hdr.data(), 1, hdr.size(), f);
+    fclose(f);
+#ifdef _WIN32
+    wchar_t sys[MAX_PATH + 1] = {0};
+    std::wstring exe = GetSystemDirectoryW(sys, MAX_PATH) ? std::wstring(sys) + L"\\curl.exe" : std::wstring(L"curl.exe");
+    if (GetFileAttributesW(exe.c_str()) == INVALID_FILE_ATTRIBUTES) exe = L"curl.exe";
+    std::wstring line = L"\"" + exe + L"\" -fsSL --ssl-no-revoke --max-time 25 -A \"" + wide(userAgent) + L"\" -H @\"" + wide(hdrFile) + L"\" -o \"" +
+                        wide(file) + L"\" \"" + wide(url) + L"\"";
+    STARTUPINFOW si{};
+    si.cb = sizeof si;
+    PROCESS_INFORMATION pi{};
+    bool ok = false;
+    if (CreateProcessW(nullptr, line.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, nullptr, &si, &pi)) {
+        if (WaitForSingleObject(pi.hProcess, 30000) != WAIT_OBJECT_0) TerminateProcess(pi.hProcess, 1);
+        DWORD rc = 1;
+        GetExitCodeProcess(pi.hProcess, &rc);
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
+        ok = rc == 0;
+    }
+    DeleteFileW(wide(hdrFile).c_str());
+    return ok;
+#else
+    auto q = [](const std::string& s) { std::string o = "'"; for (char c : s) { if (c == '\'') o += "'\\''"; else o += c; } return o + "'"; };
+    const std::string cmd = "curl -fsSL --max-time 25 -A " + q(userAgent) + " -H @" + q(hdrFile) + " -o " + q(file) + " " + q(url) + " 2>/dev/null";
+    const int rc = system(cmd.c_str());
     std::remove(hdrFile.c_str());
     return rc == 0;
 #endif

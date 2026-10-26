@@ -6,6 +6,7 @@
 #endif
 #include "app.h"
 #include "adsb/adsb_api_app.h"
+#include "adsb/notam_app.h"
 #include "adsb/adsb_map.h"
 #include "ui/contrast.h"
 #include "ui/touch.h"
@@ -219,6 +220,8 @@ static void floatingWindows(App& a, ImVec2 disp) {
     msgdbWindow(a);
     flightsWindow(a);
     adsbapi::tick(a);   // asks the aggregators the user turned on, whichever window is open
+    notamapp::tick(a);  // NOTAMs: FIS-B in, the sources the user turned on fetched, the merge redone
+    notamapp::window(a);
     watchlistWindow(a);
     txTick(a);
     shareTick(a);
