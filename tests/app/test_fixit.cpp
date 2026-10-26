@@ -37,6 +37,10 @@ int main() {
     CHECK(fixit::lookup("HackRF is plugged in but this user may not open it: install SaurCom's udev rules") == fixit::byId("usb_permission"), "udev");
     CHECK(fixit::lookup("Could not start the radio: open: HackRF not found") == fixit::byId("hackrf_not_found"), "hackrf not found");
     CHECK(fixit::lookup("Could not start the radio: rtl_tcp: 1.2.3.4:1234 is not an rtl_tcp server") == fixit::byId("rtltcp"), "rtl_tcp");
+    // a radio that cannot be opened is a radio problem, not the "file could not be opened" advice
+    CHECK(fixit::lookup("Could not start the radio: Airspy: cannot open the radio (in use by another program?)") == fixit::byId("start_failed"), "radio, not file");
+    CHECK(fixit::lookup("Could not start the radio: SoapySDR: cannot open the radio (driver=rfnm)") == fixit::byId("start_failed"), "Soapy, not file");
+    CHECK(fixit::lookup("Could not start the radio: cannot open the file /x/y.cu8: No such file or directory") == fixit::byId("file_open"), "the file");
     CHECK(fixit::lookup("Could not start the radio: something new") == fixit::byId("start_failed"), "generic start failure");
     CHECK(fixit::lookup("everything is fine") == nullptr, "no match");
     if (!failures) std::printf("fixit: %d entries OK\n", n);

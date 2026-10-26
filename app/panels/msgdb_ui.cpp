@@ -32,7 +32,8 @@ struct St {
     mdb::Stats stats;
     double lastQ = 0;
     bool dirty = true;
-    int sel = -1;
+    int64_t selId = -1;       // the picked message by its id: the list refreshes every 3 s and new messages move the rows
+    mdb::Record selRec;       // a copy, so the detail stays when the message leaves the page
     bool clearAsk = false;
     std::string note;
     std::string err;
@@ -121,7 +122,6 @@ void refresh() {
     S.stats = db.stats();
     S.modes = db.modes();
     if (S.modeSel > (int)S.modes.size()) S.modeSel = 0;
-    S.sel = -1;
     S.dirty = false;
 }
 
@@ -189,7 +189,9 @@ void windowPanel(App& a) {
             ImGui::TableNextColumn();
             char id[32];
             snprintf(id, sizeof id, "%s##%lld", when(r.time).c_str(), (long long)r.id);
-            if (ImGui::Selectable(id, S.sel == (int)i, ImGuiSelectableFlags_SpanAllColumns)) S.sel = (int)i;
+            if (ImGui::Selectable(id, S.selId == r.id, ImGuiSelectableFlags_SpanAllColumns)) {
+                if (S.selId == r.id) S.selId = -1; else { S.selId = r.id; S.selRec = r; }
+            }
             ImGui::TableNextColumn(); ImGui::TextUnformatted(r.mode.c_str());
             ImGui::TableNextColumn(); ImGui::TextUnformatted(r.ident.c_str());
             ImGui::TableNextColumn(); if (r.freqHz > 0) ImGui::Text("%.4f", r.freqHz / 1e6);
@@ -197,11 +199,15 @@ void windowPanel(App& a) {
         }
         ImGui::EndTable();
     }
-    if (S.sel >= 0 && S.sel < (int)S.rows.size()) {
-        const mdb::Record& r = S.rows[(size_t)S.sel];
-        ImGui::BeginChild("detail", ImVec2(0, 60), true);
+    if (S.selId >= 0) {
+        const mdb::Record& r = S.selRec;
+        ImGui::BeginChild("detail", ImVec2(0, 60 * gUi), true);
         std::string e = r.extra;
         for (char& c : e) if (c == '\n') c = ' ';
+        if (r.hasPos) {
+            if (ImGui::SmallButton(tr("Show on map"))) mapShow(a, r.lat, r.lon);
+            ImGui::SameLine();
+        }
         ImGui::TextWrapped("%s  %s  %s", r.type.c_str(), r.hasPos ? (std::to_string(r.lat).substr(0, 8) + ", " + std::to_string(r.lon).substr(0, 8)).c_str() : "", e.c_str());
         ImGui::EndChild();
     }
@@ -237,6 +243,15 @@ void windowPanel(App& a) {
     ImGui::End();
 }
 }  // namespace
+
+void msgdbFind(App& a, const std::string& ident) {
+    snprintf(S.ident, sizeof S.ident, "%s", ident.c_str());
+    S.text[0] = 0;
+    S.modeSel = 0; S.range = 0; S.posOnly = false;
+    S.page = 0; S.dirty = true;
+    a.msgdbOpen = true;
+    if (App* f = receiverById(1)) f->msgdbOpen = true;
+}
 
 void msgdbWindow(App& a) {
     if (a.rxId != 1) {   // one database for the program: RX 1's window

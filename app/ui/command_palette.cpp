@@ -2,7 +2,9 @@
 #include "command_palette.h"
 #include "../i18n/i18n.h"
 #include "scale.h"
+#include "tour_logic.h"
 #include "dect2/engine/updater.h"
+#include "../transcribe/transcribe_app.h"
 #include <algorithm>
 #include <cctype>
 #include <functional>
@@ -15,7 +17,11 @@ struct Cmd {
     std::string label;   // English text, translated when drawn
     const char* kind;    // "Tab", "Panel", "Mode" or "Action"
     std::function<void(App&)> run;
+    int mode = -1;       // index into kModes for a mode: the search also matches its description and keywords, as the mode list's does
+    bool on = false;     // a panel that is open now: shown as "Open", like the menu's check mark
 };
+
+bool gOpenReq = false;   // commandPaletteOpen(): open on the next frame
 
 // the tabs the tab bar drew in the current frame (paletteNoteTab)
 std::vector<std::string> gTabNames;
@@ -24,6 +30,7 @@ int gTabFrame = -1;
 // View-menu panels: each is a bool of App that its menu item toggles
 struct Panel { const char* name; bool App::*on; };
 const Panel kPanels[] = {
+    {"The Eye", &App::eyeOpen},
     {"Passes", &App::passesOpen}, {"SatNOGS transmitters", &App::satnogsOpen}, {"Direction finder", &App::dfOpen}, {"Interference hunter", &App::rfiOpen},
     {"Passive radar", &App::passiveRadarOpen}, {"Images", &App::galleryOpen}, {"Data feeds...", &App::feedsOpen}, {"Internet radio...", &App::webRadioOpen}, {"Deep Space Network", &App::dsnOpen}, {"NOTAMs and TFRs", &App::notamOpen}, {"Radio tools", &App::radioToolsOpen}, {"WiFi sensing...", &App::wifiSenseOpen},
     {"Messages...", &App::msgdbOpen}, {"Flight history...", &App::flightsOpen}, {"Protocol lab...", &App::protolabOpen}, {"Watchlists...", &App::watchlistOpen},
@@ -41,8 +48,19 @@ std::vector<Cmd> collect(App& a) {
     c.push_back({a.muted ? "Unmute" : "Mute", "Action", [](App& x) {   // the same switch as the sound controls
         x.muted = !x.muted; x.engine.player().setMuted(x.muted); x.engine.dabAudio().setMuted(x.muted);
     }});
-    for (const Panel& p : kPanels) c.push_back({p.name, "Panel", [p](App& x) { x.*p.on = !(x.*p.on); }});
-    for (int i = 0; i < kNumModes; i++) c.push_back({kModes[i].name, "Mode", [f = kModes[i].family, s = kModes[i].subId](App& x) { selectMode(x, f, s); }});
+    for (const Panel& p : kPanels) c.push_back({p.name, "Panel", [p](App& x) { x.*p.on = !(x.*p.on); }, -1, a.*p.on});
+    for (int i = 0; i < kNumModes; i++) c.push_back({kModes[i].name, "Mode", [f = kModes[i].family, s = kModes[i].subId](App& x) { selectMode(x, f, s); }, i});
+    c.push_back({"Transcripts...", "Panel", [](App&) { tx::windowOpen() = !tx::windowOpen(); }, -1, tx::windowOpen()});
+    c.push_back({"Transmit...", "Panel", [](App&) { txViewFlag() = !txViewFlag(); }, -1, txViewFlag()});
+    c.push_back({"Scanner (highly experimental)", "Panel", [](App& x) { x.scannerOpen = !x.scannerOpen; }});
+    c.push_back({"Get me listening", "Action", [](App& x) { listenWizardOpen(x); }});
+    c.push_back({"Setup wizard", "Action", [](App& x) { setupWizardOpen(x); }});
+    c.push_back({"Guided tour", "Action", [](App& x) { tourStart(x); }});
+    int nt = 0;
+    const tour::Tour* ts = tour::tours(&nt);
+    for (int i = 0; i < nt; i++) c.push_back({std::string(ts[i].title), "Tour", [i](App& x) { tourStartTour(x, i); }});
+    c.push_back({"Report a problem", "Action", [](App& x) { x.reportOpen = true; }});
+    c.push_back({"Full screen", "Action", [](App&) { toggleFullscreen(); }});
     c.push_back({"Voice codecs", "Action", [](App& x) { x.voiceCodecsOpen = true; }});
     c.push_back({"Credits", "Action", [](App& x) { x.creditsOpen = true; x.creditsTab = 0; }});
     c.push_back({"Credits and licences", "Action", [](App& x) { x.creditsOpen = true; x.creditsTab = 1; }});
@@ -72,6 +90,8 @@ bool matchAll(const std::string& text, const std::string& query) {
 
 }  // namespace
 
+void commandPaletteOpen() { gOpenReq = true; }
+
 void paletteNoteTab(const char* name) {
     if (gTabFrame != ImGui::GetFrameCount()) { gTabFrame = ImGui::GetFrameCount(); gTabNames.clear(); }
     if (std::find(gTabNames.begin(), gTabNames.end(), name) == gTabNames.end()) gTabNames.push_back(name);
@@ -83,9 +103,10 @@ void commandPalette(App& a) {
     static bool closeReq = false, focusSearch = false;
     ImGuiIO& io = ImGui::GetIO();
     const char* id = trw("Command palette");
-    if ((io.KeyCtrl || io.KeySuper) && ImGui::IsKeyPressed(ImGuiKey_K, false)) {   // Ctrl+K (Cmd+K): open, or close when open
-        if (ImGui::IsPopupOpen(id)) closeReq = true;
-        else { ImGui::OpenPopup(id); q[0] = 0; sel = 0; focusSearch = true; }
+    if (((io.KeyCtrl || io.KeySuper) && ImGui::IsKeyPressed(ImGuiKey_K, false)) || gOpenReq) {   // Ctrl+K (Cmd+K) or Help > Command palette: open, or close when open
+        if (ImGui::IsPopupOpen(id) && !gOpenReq) closeReq = true;
+        else if (!ImGui::IsPopupOpen(id)) { ImGui::OpenPopup(id); q[0] = 0; sel = 0; focusSearch = true; }
+        gOpenReq = false;
     }
     if (!ImGui::IsPopupOpen(id)) return;
 
@@ -108,7 +129,8 @@ void commandPalette(App& a) {
     const std::string query = lower(q);
     std::vector<int> shown;
     for (int i = 0; i < (int)cmds.size(); i++)
-        if (matchAll(cmds[i].label, query) || matchAll(tr(cmds[i].label.c_str()), query)) shown.push_back(i);
+        if (matchAll(cmds[i].label, query) || matchAll(tr(cmds[i].label.c_str()), query) || (cmds[i].mode >= 0 && !query.empty() && modeMatches(kModes[cmds[i].mode], q)))
+            shown.push_back(i);
 
     const int n = (int)shown.size();
     sel = std::max(0, std::min(sel, n - 1));
@@ -126,8 +148,9 @@ void commandPalette(App& a) {
         ImGui::PushID(k);
         if (ImGui::Selectable(tr(c.label.c_str()), k == sel)) chosen = shown[k];
         if (k == sel && moved) ImGui::SetScrollHereY(0.5f);
-        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(tr(c.kind)).x);
-        ImGui::TextDisabled("%s", tr(c.kind));
+        const char* kind = c.on ? tr("Open") : tr(c.kind);
+        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(kind).x);
+        ImGui::TextDisabled("%s", kind);
         ImGui::PopID();
     }
     ImGui::EndChild();

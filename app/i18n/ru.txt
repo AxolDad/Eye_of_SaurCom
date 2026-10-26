@@ -204,7 +204,6 @@ HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, an
 Classic interface	Классический интерфейс
 New interface	Новый интерфейс
 Try the new interface. You can switch back at any time.	Попробуйте новый интерфейс. Вернуться назад можно в любой момент.
-Guided tour	Обзор программы
 Tour	Обзор
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Спасибо всем, кто сообщал об ошибках, присылал записи и отправлял pull request'ы.
 Source	Источник
@@ -635,7 +634,6 @@ Start the radio first	Сначала запустите радио
 Saves the radio's raw samples to a file, for a bug report	Сохраняет необработанные отсчёты радио в файл для отчёта об ошибке
 Copy diagnostics	Копировать диагностику
 Copied	Скопировано
-Copies the version, system, radios, messages and radio log lines, for a bug report	Копирует версию, систему, радио, сообщения и строки журнала радио для отчёта об ошибке
 spectrum dB	спектр dB
 waterfall dB	водопад dB
   (mirrored: I/Q swapped)	  (зеркально: I/Q поменяны местами)
@@ -732,7 +730,6 @@ Level dB	Уровень dB
 Linux grabbed the SDRplay radio	Linux захватил радио SDRplay
 Linux treats the radio as a sound card	Linux считает радио звуковой картой
 Load	Загрузить
-Look again	Искать снова
 Look for Hermes Lite 2 radios on this computer's networks again	Снова искать радио Hermes Lite 2 в сетях этого компьютера
 Maritime, VHF	Морская связь, УКВ
 Max hold	Удержание макс.
@@ -790,7 +787,7 @@ Receivers at once	Одновременно приёмников
 Reduce CPU when hidden	Снижать нагрузку на CPU в скрытом окне
 Remote driver	Удалённый драйвер
 Reset	Сброс
-Reset layout	Сбросить раскладку
+Reset panel sizes	Сбросить раскладку
 Restart Eye of SaurCom (the installer starts SDRplay's background service).	Перезапустите Eye of SaurCom (установщик запускает фоновую службу SDRplay).
 Restart Eye of SaurCom.	Перезапустите Eye of SaurCom.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Перезагрузите Mac или выполните в Терминале: sudo launchctl kickstart -k system/com.sdrplay.service
@@ -803,8 +800,6 @@ SDR	SDR
 SNR dB	SNR dB
 Satellites	Спутники
 Satellites, 1.6 GHz	Спутники, 1.6 GHz
-Save bug report	Сохранить отчёт об ошибке
-Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue	Сохраняет один zip-файл с диагностикой, журналом и последним отчётом о сбое: приложите его к issue на GitHub
 Search	Поиск
 Seen	Замечено
 Send spots to PSK Reporter (pskreporter.info)	Отправлять споты в PSK Reporter (pskreporter.info)
@@ -883,13 +878,11 @@ Waterfall: colour map, intensity range, speed and pause (then drag or use the wh
 Wave buoys, HF	Волновые буи, КВ
 Weather alerts, 162.55 MHz	Штормовые предупреждения, 162.55 MHz
 Weather pictures, 1.7 GHz	Погодные снимки, 1.7 GHz
-What do you want to receive? Tick anything that interests you.	Что вы хотите принимать? Отметьте всё, что интересно.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Что прибавить к уровню в dBFS, чтобы получить dBm для этого радио (его калибровка: её показывает известный сигнал на антенном порту). Также в настройках радио.
 Where are you? This picks the right TV standard and FM band.	Где вы находитесь? Это выбирает подходящий стандарт ТВ и диапазон FM.
 Which language do you want Eye of SaurCom in?	На каком языке вы хотите видеть Eye of SaurCom?
 Which radio do you have?	Какое у вас радио?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Режим можно сменить в любой момент, а эту настройку запустить снова через Справка > Мастер настройки.
-You can go on without one: the synthetic signal and IQ files work with no hardware.	Можно продолжить и без него: синтетический сигнал и файлы IQ работают без оборудования.
 Your callsign	Ваш позывной
 Your locator	Ваш локатор
 Zoom: mouse wheel (both axes), Ctrl+wheel (frequency), Shift+wheel (level).\nCtrl+PageUp / PageDown: step the view by one screen in frequency. Double click: reset.	Масштаб: колесо мыши (обе оси), Ctrl+колесо (частота), Shift+колесо (уровень).\nCtrl+PageUp / PageDown: сдвиг вида на один экран по частоте. Двойной щелчок: сброс.
@@ -1279,7 +1272,6 @@ Last used	Last used
 Manual order	Manual order
 Memories: the frequencies you keep, with mode and settings (Ctrl+M)	Memories: the frequencies you keep, with mode and settings (Ctrl+M)
 Memory	Memory
-Memory panel...	Memory panel...
 Memory...	Memory...
 No group	No group
 No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.	No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.
@@ -1548,8 +1540,6 @@ Click to tune and scroll to zoom. Peak hold keeps the strongest level seen on ea
 Each mode has its own tabs for decoded output, settings and tools. They change with the selected mode.	У каждого режима свои вкладки для декодированных данных, настроек и инструментов. Они меняются вместе с выбранным режимом.
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Память хранит частоты вместе с режимом и настройками. Частоты и диапазонные планы показывают, что есть в эфире, по режимам.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Каждый приёмник сочетает радио и режим. Эта панель переключает их и выбирает, какой воспроизводит звук.
-Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen воспроизводит демодулированный сигнал. Громкость и отключение звука здесь; Record audio сохраняет звук в файл.
-Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Здесь находятся документация, устранение неполадок, благодарности и лицензии. Обзор запускает этот обзор снова.
 Monitor audio	Прослушивание
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Слушать настроенный канал в любом режиме, чтобы опознать сигнал: отсчёты радио демодулируются как USB, LSB, узкая FM или AM. Тишина, пока режим играет свой звук.
 Auto: USB below 30 MHz, narrow FM above	Авто: USB ниже 30 МГц, узкая FM выше
@@ -1792,7 +1782,7 @@ Could not download the list. Check the internet connection.	Не удалось 
 Transcribing speech: %s	Расшифровка речи: %s
 Voice (radio calls)	Голос (радиообмен)
 No radio call with this aircraft's callsign heard yet	Радиообмена с позывным этого воздушного судна пока не слышно
-Live transcription is off (View > Transcripts). Airband calls would be listed here by callsign.	Живая расшифровка выключена (Вид > Расшифровки). Вызовы авиадиапазона были бы перечислены здесь по позывному.
+Live transcription is off (Tools > Transcripts). Airband calls would be listed here by callsign.	Живая расшифровка выключена (Вид > Расшифровки). Вызовы авиадиапазона были бы перечислены здесь по позывному.
 Live captions: loading the speech model ...	Живые субтитры: загрузка речевой модели ...
 Live captions: off.	Живые субтитры: выключены.
 Set up transcripts	Настроить расшифровки
@@ -1852,7 +1842,7 @@ Sure	Уверенность
 Speaker (a guess from the wording)	Говорящий (догадка по словам)
 Click to copy this line	Нажмите, чтобы скопировать эту строку
 Aircraft on the screen	Воздушное судно на экране
-Transcripts ...	Расшифровки ...
+Transcripts...	Расшифровки ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	Что говорят в авиадиапазоне и на других голосовых каналах, в виде текста: живые субтитры, поиск, экспорт. Выключено, пока вы не включите.
 # Automations window
 %d firings. Dropped events: %llu	Срабатываний: %d. Отброшено событий: %llu
@@ -1991,7 +1981,6 @@ The DRA+ decoder add-on cannot be used: %s. How to install:	Модуль-дек�
 How to install	Как установить
 The services, signal information and data work without it.	Службы, информация о сигнале и данные работают и без него.
 Interface and windows	Интерфейс и окна
-View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.	Меню «Вид» переключает компоновку (Sidebar, Scope, Tiles, Faceplate, Panel), классический интерфейс, размер текста и палитру; сенсорный интерфейс находится в разделе «Инструменты». Окна «Частоты», «Сканер-обзор», «Пеленгатор» и «Автоматизации» открываются отсюда.
 # programme guide (SPI)
 Guide	Телегид
 until	до
@@ -2226,7 +2215,7 @@ Save CSV	Сохранить CSV
 Save FITS	Сохранить FITS
 Save SigMF text	Сохранить текст SigMF
 Save session	Сохранить сеанс
-Site is the receiver location (View > Map). Time is the computer clock, UTC.	Место — положение приёмника (Вид > Карта). Время — часы компьютера, UTC.
+Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	Место — положение приёмника (Вид > Карта). Время — часы компьютера, UTC.
 Sun	Солнце
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	Для кривой вращения нужны спектры на нескольких долготах между 0 и 90 (или 270 и 360).
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	К цели: вращение Земли %+.2f, орбита %+.2f, Солнце %+.2f; всего %+.2f км/с (добавить к топоцентрической скорости)
@@ -2958,7 +2947,7 @@ Map tiles around a position	Тайлы карты вокруг позиции
 Radius (km)	Радиус (км)
 Deepest zoom	Макс. масштаб
 The zoom is lowered by itself so the area stays within 4000 tiles (the OpenStreetMap tile policy does not allow bulk downloads).	Масштаб снижается автоматически, чтобы область не превышала 4000 тайлов (политика тайлов OpenStreetMap не допускает массовых загрузок).
-Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits.	Данные карты (c) участники OpenStreetMap. Элементы спутников: CelesTrak. Аэропорты: OurAirports (общественное достояние). Подробности: Справка > Благодарности.
+Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits and licences.	Данные карты (c) участники OpenStreetMap. Элементы спутников: CelesTrak. Аэропорты: OurAirports (общественное достояние). Подробности: Справка > Благодарности.
 # Wireless M-Bus
 start the receiver to see the meters	запустите приёмник, чтобы увидеть счётчики
 Maker	Производитель
@@ -3226,7 +3215,7 @@ behind real time (%.1f x): the oldest speech is skipped	отстаёт от ре
 speed %.2f x real time	скорость %.2f x реального времени
 music skipped %llu	пропущено музыки: %llu
 auto captions	автосубтитры
-Captions made on your computer from the speech you hear, with the offline speech model (View > Transcripts > Settings). Nothing is sent anywhere.	Субтитры создаются на вашем компьютере из слышимой речи офлайн-моделью речи (Вид > Расшифровки > Настройки). Ничего не отправляется.
+Captions made on your computer from the speech you hear, with the offline speech model (Tools > Transcripts > Settings). Nothing is sent anywhere.	Субтитры создаются на вашем компьютере из слышимой речи офлайн-моделью речи (Вид > Расшифровки > Настройки). Ничего не отправляется.
 Station's own subtitles	Собственные субтитры станции
 Generated from speech	Созданные из речи
 Both	Оба

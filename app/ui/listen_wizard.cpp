@@ -4,6 +4,7 @@
 #include "../app.h"
 #include "dect2/bandplan/bandplan.h"
 #include "dect2/engine/mode_tuning.h"
+#include "dect2/general/general_rx.h"
 
 namespace bp = dect2::bandplan;
 
@@ -26,13 +27,14 @@ bp::Registry& listenPlans() {
 
 // The five things to listen to. modeId "" is the FM broadcast family (its frequency comes from the place's band plan unless given);
 // otherwise the mode's own tuning gives the family and the frequency, unless mhz is given.
-struct Preset { const char* label; const char* modeId; double mhz; };
+// demod: the General receiver's demodulator (-1 leaves it). Marine VHF is voice on channel 16 (the marine mode would start NAVTEX at 518 kHz).
+struct Preset { const char* label; const char* modeId; double mhz; int demod; };
 const Preset kPresets[] = {
-    {N_("FM broadcast"), "", 0},
-    {N_("Airband (aircraft voice)"), "airband", 0},
-    {N_("Marine VHF (ships and harbours)"), "marine", 0},
-    {N_("Weather radio (NOAA, 162.550 MHz)"), "", 162.550},
-    {N_("Ham radio, 2 m (SSB and FM, 144.200 MHz)"), "general", 144.200},
+    {N_("FM broadcast"), "", 0, -1},
+    {N_("Airband (aircraft voice)"), "airband", 0, -1},
+    {N_("Marine VHF (channel 16, 156.800 MHz)"), "general", 156.800, dect2::GenNfm},
+    {N_("Weather radio (US and Canada, NOAA, 162.550 MHz)"), "same", 162.550, -1},   // the SAME mode: narrow FM, alerts decoded, its sound on
+    {N_("Ham radio, 2 m (SSB calling, 144.200 MHz)"), "general", 144.200, dect2::GenUsb},
 };
 constexpr int kNumPresets = (int)(sizeof kPresets / sizeof *kPresets);
 
@@ -71,6 +73,9 @@ void finishWizard(App& a) {
     const auto& plans = listenPlans().plans();
     if (gPlan >= 0 && gPlan < (int)plans.size()) a.bandPlan = plans[gPlan].id;
     const Preset& s = kPresets[gPreset];
+    // a recording keeps its own frequency: the preset's would be outside what it holds
+    const bool file = a.devIdx >= 0 && a.devIdx < (int)a.devices.size() && a.devices[a.devIdx].kind == DeviceInfo::File;
+    const double keep = a.freqMhz;
     if (s.modeId[0] == '\0') {
         setFamily(a, 5);   // FM broadcast family
         a.freqMhz = s.mhz > 0 ? s.mhz : fmMhzOf(gPlan >= 0 && gPlan < (int)plans.size() ? &plans[gPlan] : nullptr);
@@ -78,8 +83,13 @@ void finishWizard(App& a) {
         setFamily(a, mt->stdMode - 2);
         a.freqMhz = s.mhz > 0 ? s.mhz : mt->defMhz;
     }
+    if (file) a.freqMhz = keep;
+    if (s.demod >= 0) generalSetDemod(s.demod);
+    if (std::string(s.modeId) == "same") sameSetListen(true);
     savePrefs(a);
-    if (!a.engine.running()) startReceiver(a);
+    if (a.engine.running()) a.engine.stop();   // run again: the new source and mode only take effect at a start
+    a.wizStart = false;
+    startReceiver(a);
     closeWizard();
 }
 
@@ -118,14 +128,31 @@ void listenWizard(App& a, ImVec2 disp) {
             if (a.devices[i].isRadio()) radios++;
             if (ImGui::RadioButton((a.devices[i].name + "##s" + std::to_string(i)).c_str(), gDev == i)) gDev = i;
         }
+        // an IQ recording: choose it here, or the start would have nothing to play
+        if (gDev >= 0 && gDev < (int)a.devices.size() && a.devices[gDev].kind == DeviceInfo::File) {
+            if (ImGui::Button(tr("Choose file..."))) {
+                const std::string p = openFileDialog();
+                if (!p.empty()) { a.file.path = p; a.file.format = guessFormat(p); const double r = guessSampleRate(p); if (r > 0) a.file.sampleRate = r; applyIqFileInfo(a, p); }
+            }
+            ImGui::SameLine();
+            ImGui::TextDisabled("%s", a.file.path.empty() ? tr("no file chosen yet") : a.file.path.c_str());
+        }
         if (!radios) {
             ImGui::Spacing();
             ImGui::TextColored(pal::warnAmber(), "%s", tr("No radio found"));
-            ImGui::TextUnformatted(tr("You can go on without one: the demo signal and IQ files work with no hardware."));
-            ImGui::TextUnformatted(tr("A radio on the network is not found by looking: add it under Setup wizard or the source list."));
+            ImGui::TextUnformatted(tr("You can go on without one: the synthetic test signal and IQ recordings work with no hardware."));
+            ImGui::TextUnformatted(tr("A radio on the network is not found by looking: add it by its address."));
+            for (const auto& h : a.usbHints) ImGui::TextColored(pal::warnAmber(), "%s", h.c_str());   // the precise cause, when the USB check found one
         }
         ImGui::Spacing();
-        if (ImGui::Button(tr("Look again"))) { refreshDevices(a); if (gDev >= (int)a.devices.size()) gDev = 0; }
+        if (ImGui::Button(tr("Refresh"))) {
+            refreshDevices(a);
+            if (gDev >= (int)a.devices.size()) gDev = 0;
+            if (gDev < 0 || !a.devices[gDev].isRadio())   // a radio just plugged in is the one meant
+                for (int i = 0; i < (int)a.devices.size(); i++) if (a.devices[i].isRadio()) { gDev = i; break; }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(tr("Add a network radio..."))) { a.netAddOpen = true; a.netAddErr.clear(); }
         break;
     }
     case 1: {
@@ -157,7 +184,11 @@ void listenWizard(App& a, ImVec2 disp) {
     if (gStep > 0) ImGui::SameLine();
     const bool last = gStep == kListenSteps - 1;
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.34f, 0.40f, 1)); ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.27f, 0.45f, 0.53f, 1));
+    const bool needFile = gDev >= 0 && gDev < (int)a.devices.size() && a.devices[gDev].kind == DeviceInfo::File && a.file.path.empty();
+    ImGui::BeginDisabled(needFile);   // an IQ recording without a file cannot start
     if (ImGui::Button(tr(last ? "Start listening" : "Next"), ImVec2(130 * u, 0))) { if (last) finishWizard(a); else gStep++; }
+    ImGui::EndDisabled();
+    if (needFile && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s", tr("Choose the IQ recording first"));
     ImGui::PopStyleColor(2);
     ImGui::SameLine(0, 18 * u);
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));

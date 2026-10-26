@@ -102,7 +102,7 @@ void parseDevFlags(App& app, int argc, char** argv, DevOpts& o) {
         if (std::string(argv[i]) == "--images-dev" && i + 1 < argc) { app.galleryOpen = true; galleryDev(atoi(argv[++i])); }   // dev: Images with a studio view (1 map + histogram, 2 mosaic)
         if (std::string(argv[i]) == "--hamlib") app.hamlibAddOpen = true;   // dev: open the Add Hamlib rig window
         if (std::string(argv[i]) == "--packs") app.packsOpen = true;   // dev: open View > Data packs
-        if (std::string(argv[i]) == "--map") app.mapOpen = true;   // dev: open View > Map
+        if (std::string(argv[i]) == "--map") app.mapOpen = true;   // dev: open Tools > Map
         if (std::string(argv[i]) == "--memory-selftest") o.memSelfTest = true;
         if (std::string(argv[i]) == "--memdev" && i + 1 < argc) memoryDev(atoi(argv[++i]));   // dev: 1 the Store current dialog, 2 the quick list as a window
         if (std::string(argv[i]) == "--memory") app.memoryOpen = true;   // dev: open View > Memory
@@ -117,6 +117,7 @@ void parseDevFlags(App& app, int argc, char** argv, DevOpts& o) {
         if (std::string(argv[i]) == "--netadd" && i + 1 < argc) { app.netAddOpen = true; app.netAddType = atoi(argv[++i]); app.netAddPort = dect2::netRadioDefaultPort((dect2::NetRadio::Type)app.netAddType); }   // dev: the add network radio window, on that type
         if (std::string(argv[i]) == "--dsn") dsnDevOpen(app);   // dev: open Tools > Deep Space Network
         if (std::string(argv[i]) == "--webradio") app.webRadioOpen = true;   // dev: open View > Internet radio
+        if (std::string(argv[i]) == "--eye") app.eyeOpen = true;             // dev: open Tools > The Eye
         if (std::string(argv[i]) == "--wifisense") wifiSenseDevOpen(app);   // dev: open View > WiFi sensing, listening   // dev: open View > Scanner   // dev: open View > Passes
         if (std::string(argv[i]) == "--tle" && i + 1 < argc) passesDevTle(argv[++i]);   // dev: TLEs from a file for the pass planner (no download)
         if (std::string(argv[i]) == "--rx2") addReceiver();   // dev: a second receiver at once (no warning dialog)

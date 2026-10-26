@@ -329,7 +329,7 @@ void mapCanvas(App& a, ImVec2 size) {
         dl->AddLine(h, adsbmap::project(sc->lat, sc->lon), IM_COL32(110, 210, 230, 110), 1.f * gUi);   // the range line to the picked aircraft
     dl->AddCircleFilled(h, 4 * gUi, IM_COL32(110, 210, 230, 255));
     dl->AddCircle(h, 8 * gUi, IM_COL32(110, 210, 230, 220), 24, 1.5f * gUi);
-    dl->AddText(ImVec2(h.x + 10 * gUi, h.y - 7 * gUi), IM_COL32(110, 210, 230, 255), receiverLocationSet() ? "me" : "me (placeholder: set it in View > Map)");
+    dl->AddText(ImVec2(h.x + 10 * gUi, h.y - 7 * gUi), IM_COL32(110, 210, 230, 255), receiverLocationSet() ? "me" : "me (placeholder: set it in Tools > Map)");
     dl->PopClipRect();
     ImGui::SetCursorScreenPos(ImVec2(p0.x + 8 * gUi, p0.y + 8 * gUi));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.06f, 0.07f, 0.08f, 0.85f));
@@ -388,7 +388,7 @@ void mapSide(App& a) {
             if (!L.note.empty()) { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("%s", L.note.c_str()); ImGui::PopTextWrapPos(); }
         }
     }
-    if (c->hasPos) kv("range", "%s%s", rangeText(*c).c_str(), receiverLocationSet() ? "" : " (set my location in View > Map)");
+    if (c->hasPos) kv("range", "%s%s", rangeText(*c).c_str(), receiverLocationSet() ? "" : " (set my location in Tools > Map)");
     if (!c->posKind.empty()) kv("source", "%s, %s ago", c->posKind.c_str(), ago(t.nowSec, c->posTime).c_str());
     kv("station", "%s%s", gsLabel(c->gsId).c_str(), c->loggedOn ? ", logged on" : "");
     kv("messages", "%u, last %s ago on %.0f kHz", c->messages, ago(t.nowSec, c->lastHeardSec).c_str(), c->freqHz / 1e3);

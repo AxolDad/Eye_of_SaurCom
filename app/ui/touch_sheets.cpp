@@ -44,6 +44,13 @@ bool beginSheet(const char* id, const char* title, bool fullScreen) {
 }
 void endSheet() { ImGui::EndPopup(); }
 void closeSheet() { ImGui::CloseCurrentPopup(); }
+// a selected unit or step: the full accent with black or white text, whichever reads (the half-transparent accent left text at 2:1)
+void pushSelected(bool sel) {
+    const ImVec4 ac = pal::accent();
+    const bool lightAc = 0.2126f * ac.x + 0.7152f * ac.y + 0.0722f * ac.z > 0.35f;
+    ImGui::PushStyleColor(ImGuiCol_Button, sel ? ac : ImGui::GetStyleColorVec4(ImGuiCol_Button));
+    ImGui::PushStyleColor(ImGuiCol_Text, sel ? (lightAc ? ImVec4(0, 0, 0, 1) : ImVec4(1, 1, 1, 1)) : ImGui::GetStyleColorVec4(ImGuiCol_Text));
+}
 
 bool keyboardAvailable() {
 #if defined(_WIN32)
@@ -94,9 +101,9 @@ void keypadSheet(App& a) {
     for (int u = 0; u < 4; u++) {   // the unit
         if (u) ImGui::SameLine();
         const bool sel = (int)gKp.unit == u;
-        ImGui::PushStyleColor(ImGuiCol_Button, sel ? pal::accent(0.55f) : ImGui::GetStyleColorVec4(ImGuiCol_Button));
+        pushSelected(sel);
         if (ImGui::Button(unitName((Unit)u), ImVec2(uw, target()))) gKp.unit = (Unit)u;
-        ImGui::PopStyleColor();
+        ImGui::PopStyleColor(2);
     }
     const float bw = (w - 2 * sp) / 3, bh = target() * 1.25f;
     static const char* keys[12] = {"7", "8", "9", "4", "5", "6", "1", "2", "3", ".", "0", "<"};
@@ -135,9 +142,9 @@ void stepSheet(App& a) {
         char l[32]; stepLabel(s[i], l, sizeof l);
         ImGui::PushID(i);
         const bool sel = s[i] == stepHz();
-        ImGui::PushStyleColor(ImGuiCol_Button, sel ? pal::accent(0.55f) : ImGui::GetStyleColorVec4(ImGuiCol_Button));
+        pushSelected(sel);
         if (ImGui::Button(l, ImVec2(bw, target() * 1.2f))) { stepHz() = s[i]; plat::prefs().setD("touchStepHz", s[i]); closeSheet(); }
-        ImGui::PopStyleColor();
+        ImGui::PopStyleColor(2);
         ImGui::PopID();
     }
     endSheet();
@@ -212,10 +219,14 @@ void menuSheet(App& a, ImVec2 disp) {
     if (ImGui::IsItemDeactivatedAfterEdit()) savePrefs(a);
     ui2::themeChoice(a, false);
     const float hw = (w - sp) / 2;
+    // two half-width buttons on a row, then Tour on its own row (it used to land beside a full-width button, off the sheet)
     if (bigButton(txViewFlag() ? tr("Receive view") : tr("Transmit view"), ImVec2(hw, 0))) { hamViewFlag() = false; txViewFlag() = !txViewFlag(); closeSheet(); }
-    if (bigButton(hamViewFlag() ? tr("Receive view") : tr("Ham view"), ImVec2(w, 0))) { txViewFlag() = false; hamViewFlag() = !hamViewFlag(); closeSheet(); }
     ImGui::SameLine();
-    if (bigButton(tr("Tour"), ImVec2(hw, 0))) { tourStart(a); closeSheet(); }
+    if (bigButton(hamViewFlag() ? tr("Receive view") : tr("Ham view"), ImVec2(hw, 0))) { txViewFlag() = false; hamViewFlag() = !hamViewFlag(); closeSheet(); }
+    if (bigButton(tr("Get me listening"), ImVec2(hw, 0))) { listenWizardOpen(a); closeSheet(); }   // the wizards are in the new interface's Help menu only
+    ImGui::SameLine();
+    if (bigButton(tr("Setup wizard"), ImVec2(hw, 0))) { setupWizardOpen(a); closeSheet(); }
+    if (bigButton(tr("Tour"), ImVec2(w, 0))) { tourStart(a); closeSheet(); }
     languageButton(a);
     endSheet();
 }

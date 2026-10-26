@@ -299,7 +299,7 @@ struct App {
     bool freqTab = false;               // the Frequencies panel as a tab of the main screen (saved as freqTab)
     bool memoryTab = false;             // the Memory panel as a tab of the main screen (View > Memory as a tab; saved as memTab)
     bool propOpen = false;              // Tools > Propagation (app/prop): predicted coverage of a transmitter on the map
-    bool mapOpen = false;               // the map window (View > Map): positions and Maidenhead locators
+    bool mapOpen = false;               // the map window (Tools > Map): positions and Maidenhead locators
     bool rotatorOpen = false;           // View > Antenna rotator (rotator_ui.cpp)
     int wizStep = 0;
     bool setupOpen = false;             // the setup wizard (language, radio, location, goals); Help > Setup wizard
@@ -409,6 +409,7 @@ struct App {
     bool feedsOpen = false;   // View > Data feeds: the window (feeds_ui.cpp)
     bool webRadioOpen = false;   // View > Internet radio (web_radio_ui.cpp)
     bool dsnOpen = false;        // Tools > Deep Space Network (dsn_ui.cpp)
+    bool eyeOpen = false;        // Tools > The Eye (eye_ui.cpp): everything decoded, across modes, on one scope and timeline
     bool notamOpen = false;      // Tools > NOTAMs and TFRs (adsb/notam_app.cpp)
     bool radioToolsOpen = false; // Tools > Radio tools (radio_tools_ui.cpp)
     bool wifiSenseOpen = false;  // View > WiFi sensing (wifisense_ui.cpp)
@@ -695,13 +696,14 @@ void receiverLocation(double& lat, double& lon);  // adsb_ui.cpp: the one receiv
 bool receiverLocationSet();                        // the user has set it (else it is a placeholder)
 void receiverPositionFields(App& a);               // its fields (latitude, longitude, altitude) and the Locate button
 double receiverAltitudeM();                         // its height above sea level, metres (0 until set)
-void setReceiverLocation(App& a, double lat, double lon);   // move it (saved), e.g. View > Map's "Use as my location"
+void setReceiverLocation(App& a, double lat, double lon);   // move it (saved), e.g. Tools > Map's "Use as my location"
 void syncAdsbReference(App& a);                              // push antenna position into the ADS-B tracker while that mode is running
 struct MapSatRef { std::string name; int norad = 0; const dect2::Sgp4* sgp = nullptr; };
 void passesMapSatellites(std::vector<MapSatRef>& out);   // passes_ui.cpp: the listed satellites with a TLE (for the live map)
 struct MapCellTower { double lat = 0, lon = 0; int rangeM = 0; std::string label; unsigned colour = 0; };
 void cellMapTowers(const dect2::CellTelemetry& t, std::vector<MapCellTower>& out);   // cell_ui.cpp: the towers placed (OpenCelliD / CSV)
-void mapWindow(App& a);                             // map_ui.cpp: View > Map (a.mapOpen): coordinates, Maidenhead locators, distance and bearing
+void mapWindow(App& a);                             // map_ui.cpp: Tools > Map (a.mapOpen): coordinates, Maidenhead locators, distance and bearing
+void mapShow(App& a, double lat, double lon);       // map_ui.cpp: open the map centred on a position, with a pin there
 void propagationWindow(App& a);                     // prop_ui.cpp: Tools > Propagation (a.propOpen): coverage heat map, range and a probe point (no terrain)
 void aeroToolsTick(App& a);                         // aero_ui.cpp: SNR-sound tone while Inmarsat Aero is the mode
 void passesDevTle(const std::string& path);       // dev (--tle): TLEs from a file, as if pasted
@@ -850,6 +852,7 @@ void remoteApiSection(App& a);       // the settings panel (in the Data feeds wi
 void shareTick(App& a);             // feeds_ui.cpp: carries out the frequency / gain commands of the clients of "Share my radio" (when allowed)
 void watchlistWindow(App& a);   // app/watchlist/watchlist_ui.cpp: the Watchlists window (View > Watchlists); also starts the alerts
 void msgdbWindow(App& a);   // msgdb_ui.cpp: the Messages window (View > Messages); also starts the database and its feed
+void msgdbFind(App& a, const std::string& ident);   // msgdb_ui.cpp: open the Messages window filtered to one identity (call sign, ICAO, MMSI ...)
 void flightsWindow(App& a); // flights_ui.cpp: the Flight history window (View > Flight history); also records flights, every frame
 void protolabWindow(App& a);   // protolab_ui.cpp: the Protocol lab window (View > Protocol lab)
 void pluginFrame(App& a);          // plugin/plugin_app.cpp, every frame: discovery at the first call, starts and stops the running plugin mode, ticks the host
@@ -860,6 +863,8 @@ extern std::string gAutomationShotPath;   // automation_sink.cpp: a screenshot o
 void feedsWindow(App& a);          // feeds_ui.cpp: the "Data feeds" window (View > Data feeds)
 void webRadioWindow(App& a);       // web_radio_ui.cpp: internet radio stations (View > Internet radio)
 void dsnWindow(App& a);            // dsn_ui.cpp: NASA Deep Space Network Now (Tools > Deep Space Network)
+void eyeTick(App& a);              // eye_ui.cpp: feeds the Eye from the automation engine (every frame; hooks once)
+void eyeWindow(App& a);            // eye_ui.cpp: Tools > The Eye (Ctrl+E)
 void dsnDevOpen(App& a);           // dsn_ui.cpp: --dsn
 void radioToolsWindow(App& a);     // radio_tools_ui.cpp: Tools > Radio tools (a.radioToolsOpen); also feeds the drive log, every frame
 void radioToolsDevOpen(App& a, int tab);   // radio_tools_ui.cpp: --radiotools [tab]
@@ -1199,6 +1204,9 @@ void tourMark(const char* id, ImVec2 lo, ImVec2 hi);   // tour.cpp: report where
 void wizEnter(App& a, int step);
 void setupWizardOpen(App& a);                        // wizard.cpp: (re)start the setup wizard
 void setupWizard(App& a, ImVec2 disp);               // wizard.cpp: the window, each frame
+void applyIqFileInfo(App& a, const std::string& path);   // toolbar_source.cpp: a recording's own rate, centre and format (SigMF, WAV)
+void generalSetDemod(int d);                             // general_ui.cpp: the General receiver's demodulator (dect2::GeneralDemod)
+void sameSetListen(bool on);                             // same_ui.cpp: hear the weather channel, not only decode it
 void listenWizardOpen(App& a);                       // listen_wizard.cpp: "Get me listening" (Help menu, or a start with no source configured)
 void listenWizard(App& a, ImVec2 disp);              // listen_wizard.cpp: the window, each frame
 #include "dect2/engine/device_claims.h"

@@ -226,7 +226,7 @@ void body() {
     if (!u.userNote.empty()) ImGui::TextColored(pal::badRed(), "%s", u.userNote.c_str());
     if (!u.note.empty()) { ImGui::PushTextWrapPos(0); ImGui::TextColored(u.noteBad ? pal::badRed() : pal::okGreen(), "%s", u.note.c_str()); ImGui::PopTextWrapPos(); }
     table(-ImGui::GetFrameHeightWithSpacing() * 1.2f);
-    ImGui::TextDisabled("%s", tr("Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits."));
+    ImGui::TextDisabled("%s", tr("Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits and licences."));
 }
 
 }  // namespace

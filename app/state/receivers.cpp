@@ -310,7 +310,7 @@ void receiversInit(App& first) {
 bool receiverModeBusy(const App& a, std::string* why) {
     for (App* b : receiversAll()) {
         if (b == &a || !b->engine.running() || b->family != a.family || b->sub != a.sub) continue;
-        if (why) *why = "RX " + std::to_string(b->rxId) + " already uses this mode: per-receiver state for this mode is not separated yet";
+        if (why) *why = "RX " + std::to_string(b->rxId) + " is already receiving this mode, and two receivers cannot share one mode yet. Choose another mode here, or stop RX " + std::to_string(b->rxId) + ".";
         return true;
     }
     return false;

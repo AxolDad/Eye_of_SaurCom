@@ -195,7 +195,7 @@ bool addPluginModeRow(int family, const std::string& name, const std::string& bl
     kModes[kNumModes++] = ModeDef{family, n, 14, IM_COL32(90, 104, 128, 255), b, b, sb, ImVec4(0.66f, 0.76f, 0.94f, 1)};
     return true;
 }
-const char* const kGroupNames[kNumGroups] = {N_("TV"), N_("BROADCAST RADIO"), N_("AVIATION"), N_("MARITIME"), N_("SATELLITE & NAVIGATION"), N_("TWO-WAY RADIO"), N_("CELLULAR & RAIL"), N_("PAGERS"), N_("IoT & SENSORS"), N_("WEATHER & SCIENCE"), N_("AMATEUR - DIGITAL"), N_("AMATEUR - VOICE & PACKET"), N_("HF UTILITY"), N_("GENERAL & TOOLS"), N_("PLUGINS"), "Kris custom modes"};
+const char* const kGroupNames[kNumGroups] = {N_("TV"), N_("BROADCAST RADIO"), N_("AVIATION"), N_("MARITIME"), N_("SATELLITE & NAVIGATION"), N_("TWO-WAY RADIO"), N_("CELLULAR & RAIL"), N_("PAGERS"), N_("IoT & SENSORS"), N_("WEATHER & SCIENCE"), N_("AMATEUR - DIGITAL"), N_("AMATEUR - VOICE & PACKET"), N_("HF UTILITY"), N_("GENERAL & TOOLS"), N_("PLUGINS"), N_("KA FAMILY (EXPERIMENTAL)")};
 // a thin accent per group heading in the mode lists (UI only: nothing stores a group number)
 const ImU32 kGroupCols[kNumGroups] = {
     IM_COL32(92, 188, 220, 255), IM_COL32(92, 210, 148, 255), IM_COL32(132, 160, 240, 255), IM_COL32(80, 170, 210, 255),

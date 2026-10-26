@@ -73,7 +73,7 @@ static void videoOnlyKeys(App& a) {
     // I toggles the Identify tool (a click or a drag on the spectrum identifies the signal), Escape leaves it
     if (!io.WantTextInput && !io.KeyCtrl && !io.KeySuper && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_I, false)) a.identifyTool = !a.identifyTool;
     if (a.identifyTool && !io.WantTextInput && ImGui::IsKeyPressed(ImGuiKey_Escape, false)) a.identifyTool = false;
-    if (!io.WantTextInput && ImGui::IsKeyPressed(ImGuiKey_F, false)) {
+    if (!io.WantTextInput && !io.KeyCtrl && !io.KeySuper && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_F, false)) {   // F alone: Ctrl+Shift+F is Frequencies
         if (a.videoOnly) { a.videoOnly = false; if (glfwGetWindowMonitor(gWindow)) toggleFullscreen(); }
         else if (a.video.has()) { a.videoOnly = true; if (!glfwGetWindowMonitor(gWindow)) toggleFullscreen(); }
     }
@@ -206,6 +206,8 @@ static void floatingWindows(App& a, ImVec2 disp) {
     feedsWindow(a);
     webRadioWindow(a);
     dsnWindow(a);
+    eyeTick(a);
+    eyeWindow(a);
     radioToolsWindow(a);
     wifiSenseWindow(a);
     automationWindow(a);

@@ -214,7 +214,6 @@ HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, an
 Classic interface	Interface classique
 New interface	Nouvelle interface
 Try the new interface. You can switch back at any time.	Essayez la nouvelle interface. Vous pouvez revenir en arrière à tout moment.
-Guided tour	Visite guidée
 Tour	Visite
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Merci à toutes celles et ceux qui ont signalé des bugs, envoyé des enregistrements et ouvert des pull requests.
 Source	Source
@@ -658,7 +657,6 @@ Start the radio first	Démarrez d'abord la radio
 Saves the radio's raw samples to a file, for a bug report	Enregistre les échantillons bruts de la radio dans un fichier, pour un rapport de bug
 Copy diagnostics	Copier le diagnostic
 Copied	Copié
-Copies the version, system, radios, messages and radio log lines, for a bug report	Copie la version, le système, les radios, les messages et les lignes du journal radio, pour un rapport de bug
 spectrum dB	spectre dB
 waterfall dB	cascade dB
 # added for 0.2.6: setup wizard, radio troubleshooting, converter, spectrum and waterfall options
@@ -756,7 +754,6 @@ Level dB	Niveau dB
 Linux grabbed the SDRplay radio	Linux a pris la radio SDRplay
 Linux treats the radio as a sound card	Linux traite la radio comme une carte son
 Load	Charger
-Look again	Chercher à nouveau
 Look for Hermes Lite 2 radios on this computer's networks again	Chercher à nouveau des radios Hermes Lite 2 sur les réseaux de cet ordinateur
 Maritime, VHF	Maritime, VHF
 Max hold	Maintien du max
@@ -814,7 +811,7 @@ Receivers at once	Récepteurs simultanés
 Reduce CPU when hidden	Réduire le CPU quand masqué
 Remote driver	Pilote distant
 Reset	Réinitialiser
-Reset layout	Réinitialiser la disposition
+Reset panel sizes	Réinitialiser la disposition
 Restart Eye of SaurCom (the installer starts SDRplay's background service).	Redémarrez Eye of SaurCom (l'installateur démarre le service en arrière-plan de SDRplay).
 Restart Eye of SaurCom.	Redémarrez Eye of SaurCom.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Redémarrez le Mac, ou exécutez dans le Terminal : sudo launchctl kickstart -k system/com.sdrplay.service
@@ -827,8 +824,6 @@ SDR	SDR
 SNR dB	SNR dB
 Satellites	Satellites
 Satellites, 1.6 GHz	Satellites, 1,6 GHz
-Save bug report	Enregistrer le rapport de bogue
-Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue	Enregistre un fichier zip avec le diagnostic, le journal et le dernier rapport de plantage : joignez-le à un ticket GitHub
 Search	Rechercher
 Seen	Vu
 Send spots to PSK Reporter (pskreporter.info)	Envoyer les spots à PSK Reporter (pskreporter.info)
@@ -909,13 +904,11 @@ Waterfall: colour map, intensity range, speed and pause (then drag or use the wh
 Wave buoys, HF	Bouées de houle, HF
 Weather alerts, 162.55 MHz	Alertes météo, 162,55 MHz
 Weather pictures, 1.7 GHz	Images météo, 1,7 GHz
-What do you want to receive? Tick anything that interests you.	Que voulez-vous recevoir ? Cochez tout ce qui vous intéresse.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Ce qu'il faut ajouter à un niveau en dBFS pour obtenir des dBm pour cette radio (son étalonnage : un signal connu sur la prise antenne le révèle). Aussi dans les réglages de la radio.
 Where are you? This picks the right TV standard and FM band.	Où êtes-vous ? Cela choisit la bonne norme TV et la bonne bande FM.
 Which language do you want Eye of SaurCom in?	Dans quelle langue voulez-vous Eye of SaurCom ?
 Which radio do you have?	Quelle radio avez-vous ?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Vous pouvez changer de mode à tout moment et relancer cette configuration depuis Aide > Assistant de configuration.
-You can go on without one: the synthetic signal and IQ files work with no hardware.	Vous pouvez continuer sans : le signal synthétique et les fichiers IQ fonctionnent sans matériel.
 Your callsign	Votre indicatif
 Your locator	Votre locator
 Zoom: mouse wheel (both axes), Ctrl+wheel (frequency), Shift+wheel (level).\nCtrl+PageUp / PageDown: step the view by one screen in frequency. Double click: reset.	Zoom : molette (les deux axes), Ctrl+molette (fréquence), Maj+molette (niveau).\nCtrl+Page préc. / suiv. : décaler la vue d'un écran en fréquence. Double clic : réinitialiser.
@@ -1296,7 +1289,6 @@ Last used	Last used
 Manual order	Manual order
 Memories: the frequencies you keep, with mode and settings (Ctrl+M)	Memories: the frequencies you keep, with mode and settings (Ctrl+M)
 Memory	Memory
-Memory panel...	Memory panel...
 Memory...	Memory...
 No group	No group
 No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.	No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.
@@ -1565,8 +1557,6 @@ Click to tune and scroll to zoom. Peak hold keeps the strongest level seen on ea
 Each mode has its own tabs for decoded output, settings and tools. They change with the selected mode.	Chaque mode a ses propres onglets pour les données décodées, les réglages et les outils. Ils changent avec le mode choisi.
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Mémoire conserve des fréquences avec leur mode et leurs réglages. Fréquences et plans de bande indiquent ce qui est émis, par mode.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Chaque récepteur associe une radio à un mode. Cette barre permet de passer de l'un à l'autre et de choisir celui qui joue le son.
-Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen joue le signal démodulé. Le volume et la coupure du son sont ici ; Record audio l'enregistre dans un fichier.
-Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Vous trouverez ici la documentation, le dépannage, les crédits et les licences. Visite guidée relance cette visite.
 Monitor audio	Écoute audio
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Écoute le canal accordé dans n'importe quel mode pour reconnaître un signal : les échantillons de la radio sont démodulés en USB, LSB, FM étroite ou AM. Silencieux tant que le mode joue son propre son.
 Auto: USB below 30 MHz, narrow FM above	Auto : USB sous 30 MHz, FM étroite au-dessus
@@ -1809,7 +1799,7 @@ Could not download the list. Check the internet connection.	Impossible de télé
 Transcribing speech: %s	Transcription de la voix : %s
 Voice (radio calls)	Voix (appels radio)
 No radio call with this aircraft's callsign heard yet	Aucun appel avec l'indicatif de cet avion entendu pour l'instant
-Live transcription is off (View > Transcripts). Airband calls would be listed here by callsign.	La transcription en direct est désactivée (Affichage > Transcriptions). Les appels de la bande aéronautique seraient listés ici par indicatif.
+Live transcription is off (Tools > Transcripts). Airband calls would be listed here by callsign.	La transcription en direct est désactivée (Affichage > Transcriptions). Les appels de la bande aéronautique seraient listés ici par indicatif.
 Live captions: loading the speech model ...	Sous-titres en direct : chargement du modèle vocal ...
 Live captions: off.	Sous-titres en direct : désactivés.
 Set up transcripts	Configurer les transcriptions
@@ -1869,7 +1859,7 @@ Sure	Sûr
 Speaker (a guess from the wording)	Interlocuteur (déduit des mots employés)
 Click to copy this line	Cliquer pour copier cette ligne
 Aircraft on the screen	Avion à l'écran
-Transcripts ...	Transcriptions ...
+Transcripts...	Transcriptions ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	Ce qui se dit sur la bande aéronautique et d'autres canaux vocaux, en texte : sous-titres en direct, recherche, export. Désactivé tant que vous ne l'activez pas.
 # Automations window
 %d firings. Dropped events: %llu	%d déclenchements. Événements perdus : %llu
@@ -2008,7 +1998,6 @@ The DRA+ decoder add-on cannot be used: %s. How to install:	Le module décodeur 
 How to install	Comment installer
 The services, signal information and data work without it.	Les services, les informations du signal et les données fonctionnent sans lui.
 Interface and windows	Interface et fenêtres
-View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.	Affichage change la disposition (Sidebar, Scope, Tiles, Faceplate, Panel), l'interface classique, la taille du texte et la palette ; l'interface tactile est sous Outils. Des fenêtres comme Fréquences, Scanner de balayage, Radiogoniomètre et Automatisations s'ouvrent d'ici.
 # programme guide (SPI)
 Guide	Guide
 until	jusqu'à
@@ -2243,7 +2232,7 @@ Save CSV	Enregistrer CSV
 Save FITS	Enregistrer FITS
 Save SigMF text	Enregistrer le texte SigMF
 Save session	Enregistrer la session
-Site is the receiver location (View > Map). Time is the computer clock, UTC.	Le site est la position du récepteur (Affichage > Carte). L'heure est l'horloge de l'ordinateur, UTC.
+Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	Le site est la position du récepteur (Affichage > Carte). L'heure est l'horloge de l'ordinateur, UTC.
 Sun	Soleil
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	La courbe de rotation demande des spectres à plusieurs longitudes entre 0 et 90 (ou 270 et 360).
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	Vers la cible : rotation terrestre %+.2f, orbite %+.2f, Soleil %+.2f ; total %+.2f km/s (à ajouter à la vitesse topocentrique)
@@ -2975,7 +2964,7 @@ Map tiles around a position	Tuiles de carte autour d'une position
 Radius (km)	Rayon (km)
 Deepest zoom	Zoom maximal
 The zoom is lowered by itself so the area stays within 4000 tiles (the OpenStreetMap tile policy does not allow bulk downloads).	Le zoom est réduit automatiquement pour que la zone reste sous 4000 tuiles (la politique des tuiles OpenStreetMap interdit les téléchargements en masse).
-Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits.	Données cartographiques (c) contributeurs d'OpenStreetMap. Éléments de satellites : CelesTrak. Aéroports : OurAirports (domaine public). Détails : Aide > Crédits.
+Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits and licences.	Données cartographiques (c) contributeurs d'OpenStreetMap. Éléments de satellites : CelesTrak. Aéroports : OurAirports (domaine public). Détails : Aide > Crédits.
 # Wireless M-Bus
 start the receiver to see the meters	démarrez le récepteur pour voir les compteurs
 Maker	Fabricant
@@ -3243,7 +3232,7 @@ behind real time (%.1f x): the oldest speech is skipped	en retard sur le temps r
 speed %.2f x real time	vitesse %.2f x temps réel
 music skipped %llu	musique ignorée : %llu
 auto captions	sous-titres auto
-Captions made on your computer from the speech you hear, with the offline speech model (View > Transcripts > Settings). Nothing is sent anywhere.	Sous-titres créés sur votre ordinateur à partir de la parole entendue, avec le modèle vocal hors ligne (Affichage > Transcriptions > Réglages). Rien n'est envoyé.
+Captions made on your computer from the speech you hear, with the offline speech model (Tools > Transcripts > Settings). Nothing is sent anywhere.	Sous-titres créés sur votre ordinateur à partir de la parole entendue, avec le modèle vocal hors ligne (Affichage > Transcriptions > Réglages). Rien n'est envoyé.
 Station's own subtitles	Sous-titres propres à la chaîne
 Generated from speech	Générés à partir de la parole
 Both	Les deux

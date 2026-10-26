@@ -22,10 +22,10 @@ int main() {
         {"okGreen", pal::okGreen()}, {"warnAmber", pal::warnAmber()}, {"badRed", pal::badRed()}, {"accent", pal::accent()},
         {"heading (classic)", headClassic}, {"heading (new)", headNew}, {"grey", pal::grey()},
         {"classic Text", ImVec4(0.82f, 0.84f, 0.85f, 1)}, {"classic TextDisabled", ImVec4(0.45f, 0.47f, 0.49f, 1)}, {"plot text", ImVec4(0.62f, 0.64f, 0.66f, 1)},
-        {"instrument text", ImVec4(0.86f, 0.87f, 0.88f, 1)}, {"instrument dim", ImVec4(0.60f, 0.61f, 0.62f, 1)},
+        {"instrument text", ImVec4(0.86f, 0.87f, 0.88f, 1)}, {"instrument dim", ImVec4(0.66f, 0.67f, 0.68f, 1)},
         {"mono text", ImVec4(0.84f, 0.84f, 0.84f, 1)}, {"mono dim", ImVec4(0.50f, 0.50f, 0.50f, 1)},
-        {"terminal text", ImVec4(0.82f, 0.81f, 0.78f, 1)}, {"terminal dim", ImVec4(0.46f, 0.45f, 0.42f, 1)},
-        {"terminal accent", ImVec4(0.86f, 0.65f, 0.30f, 1)}, {"heart rate red", ImVec4(0.95f, 0.35f, 0.35f, 1)},
+        {"terminal text", ImVec4(0.82f, 0.81f, 0.78f, 1)}, {"terminal dim", ImVec4(0.52f, 0.51f, 0.48f, 1)},
+        {"terminal accent", ImVec4(1.00f, 0.55f, 0.10f, 1)}, {"heart rate red", ImVec4(0.95f, 0.35f, 0.35f, 1)},
         {"error orange", ImVec4(0.95f, 0.5f, 0.3f, 1)}, {"scrambled amber", ImVec4(0.95f, 0.7f, 0.2f, 1)},
     };
 

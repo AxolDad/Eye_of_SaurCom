@@ -240,19 +240,24 @@ static void toolbarGain(App& a, bool vertical, bool running, bool& retune) {
     else flowNext();
     if (a.sweep.active()) {
         if (ImGui::Button(tr("Stop tune"))) { a.sweep = GainSweep(); }
-    } else if (ImGui::Button(tr("Auto-tune")) && running) {
-        int rfMax = 0;   // a radio with an RF gain stage (SDRplay RFGR): the sweep covers its states too
-        if (generic) {
-            for (const auto& rs : curDev.settings)
-                if (rs.key == "rfgr" && rs.values.size() > 2)
-                    for (size_t i = rs.values.size(); i-- > 0;)
-                        if (rs.values[i] != "auto") { rfMax = atoi(rs.values[i].c_str()); break; }
-            if (rfMax == 0 && curDev.board == "sdrplay") rfMax = 9;   // known before the radio has been opened once
+    } else {
+        ImGui::BeginDisabled(!running);   // it measures the running receiver: greyed out until Start
+        const bool tune = ImGui::Button(tr("Auto-tune"));
+        ImGui::EndDisabled();
+        if (tune && running) {
+            int rfMax = 0;   // a radio with an RF gain stage (SDRplay RFGR): the sweep covers its states too
+            if (generic) {
+                for (const auto& rs : curDev.settings)
+                    if (rs.key == "rfgr" && rs.values.size() > 2)
+                        for (size_t i = rs.values.size(); i-- > 0;)
+                            if (rs.values[i] != "auto") { rfMax = atoi(rs.values[i].c_str()); break; }
+                if (rfMax == 0 && curDev.board == "sdrplay") rfMax = 9;   // known before the radio has been opened once
+            }
+            a.sweep.start(ImGui::GetTime(), generic ? (int)curDev.gainMaxDb : 0, rfMax, generic ? 0 : (a.tune.ampOn ? 2 : 1));   // the amp stays as the user set it
+            a.agcOn = false;
         }
-        a.sweep.start(ImGui::GetTime(), generic ? (int)curDev.gainMaxDb : 0, rfMax, generic ? 0 : (a.tune.ampOn ? 2 : 1));   // the amp stays as the user set it
-        a.agcOn = false;
     }
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s", tr("Gain helper: tries LNA/VGA combinations for about 40 s and keeps the one with the best SNR that does not clip.\nNeeds a signal the receiver can lock to. The amp stays as you set it."));
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s%s", running || a.sweep.active() ? "" : tr("Press Start first: it measures the running receiver.\n"), tr("Gain helper: tries LNA/VGA combinations for about 40 s and keeps the one with the best SNR that does not clip.\nNeeds a signal the receiver can lock to. The amp stays as you set it."));
     gainOptButtons(a, running);
     ImGui::EndDisabled();
     if (!isHw && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s", tr("Gain controls apply to radios only (not to a recording, a sound card, or the synthetic signal)"));
@@ -570,16 +575,18 @@ void secondModeControl(App& a, bool vertical) {
     ImGui::SetNextItemWidth(200 * gUi);
     ImGui::InputDouble("MHz##second", &mhz, 0, 0, "%.4f");
     if (ImGui::Checkbox("Play its sound", &a.second.audio)) a.engine.setSecondarySound(a.second.audio);
+    bool fits = true;
     if (pick >= 0) {   // the same check the engine makes, with what the radio runs at (or will)
         const bool run = a.engine.running();
         const ModeTuning* pt = modeTuning(engineStd(a));
         const double centre = run ? a.engine.captureCentreHz() : a.tune.centerHz + (pt && a.devices[a.devIdx].kind != DeviceInfo::File ? pt->tuneOffsetHz : 0);
         const double rate = run ? a.engine.sampleRate() : a.tune.sampleRate;
         const std::string why = Engine::secondaryCheck(engineStd(a), kModes[pick].family + 2, centre, rate, mhz * 1e6);
+        fits = why.empty();
         if (!why.empty()) ImGui::TextColored(ImVec4(0.95f, 0.72f, 0.3f, 1), "%s", why.c_str());
         else ImGui::TextDisabled("Fits: %.3f MHz from the centre of the %.2f Msps capture", (mhz * 1e6 - centre) / 1e6, rate / 1e6);
     }
-    ImGui::BeginDisabled(pick < 0);
+    ImGui::BeginDisabled(pick < 0 || !fits);
     if (ImGui::Button("Run")) setSecondMode(a, pick, mhz);
     ImGui::EndDisabled();
     ImGui::SameLine();

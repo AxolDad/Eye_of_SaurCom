@@ -381,6 +381,12 @@ void Engine::setWatcher(std::function<void(const Event&)> f, uint32_t familyMask
     watchMask_.store(watch_ ? familyMask : 0);
 }
 
+void Engine::setOverview(std::function<void(const Event&)> f, uint32_t familyMask) {
+    std::lock_guard<std::mutex> lk(eyeMu_);
+    eye_ = std::move(f);
+    eyeMask_.store(eye_ ? familyMask : 0);
+}
+
 void Engine::submit(Event&& ev) {
     const int fam = familyOf(ev.type);
     if (fam >= 0 && (tapMask_.load(std::memory_order_relaxed) >> fam & 1)) {
@@ -396,6 +402,11 @@ void Engine::submit(Event&& ev) {
     if (fam >= 0 && (watchMask_.load(std::memory_order_relaxed) >> fam & 1)) {
         std::function<void(const Event&)> t;
         { std::lock_guard<std::mutex> lk(watchMu_); t = watch_; }
+        if (t) t(ev);
+    }
+    if (fam >= 0 && (eyeMask_.load(std::memory_order_relaxed) >> fam & 1)) {
+        std::function<void(const Event&)> t;
+        { std::lock_guard<std::mutex> lk(eyeMu_); t = eye_; }
         if (t) t(ev);
     }
     if (!(fam >= 0 && (mask_.load(std::memory_order_relaxed) >> fam & 1))) return;

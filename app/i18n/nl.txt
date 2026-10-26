@@ -207,7 +207,6 @@ HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, an
 Classic interface	Klassieke interface
 New interface	Nieuwe interface
 Try the new interface. You can switch back at any time.	Probeer de nieuwe interface. Je kunt op elk moment terugschakelen.
-Guided tour	Rondleiding
 Tour	Rondleiding
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Dank aan iedereen die bugs meldde, opnames instuurde en pull requests opende.
 Source	Bron
@@ -651,7 +650,6 @@ Start the radio first	Start eerst de radio
 Saves the radio's raw samples to a file, for a bug report	Bewaart de ruwe samples van de radio in een bestand, voor een bugmelding
 Copy diagnostics	Diagnose kopiëren
 Copied	Gekopieerd
-Copies the version, system, radios, messages and radio log lines, for a bug report	Kopieert de versie, het systeem, de radio's, berichten en radiologregels, voor een bugmelding
 spectrum dB	spectrum dB
 waterfall dB	waterval dB
 # added for 0.2.6: setup wizard, radio troubleshooting, converter, spectrum and waterfall options
@@ -749,7 +747,6 @@ Level dB	Niveau dB
 Linux grabbed the SDRplay radio	Linux heeft de SDRplay-radio ingepikt
 Linux treats the radio as a sound card	Linux behandelt de radio als een geluidskaart
 Load	Laden
-Look again	Opnieuw zoeken
 Look for Hermes Lite 2 radios on this computer's networks again	Opnieuw zoeken naar Hermes Lite 2-radio's op de netwerken van deze computer
 Maritime, VHF	Scheepvaart, VHF
 Max hold	Max-hold
@@ -807,7 +804,7 @@ Receivers at once	Ontvangers tegelijk
 Reduce CPU when hidden	CPU-gebruik verlagen als verborgen
 Remote driver	Extern stuurprogramma
 Reset	Herstellen
-Reset layout	Indeling herstellen
+Reset panel sizes	Indeling herstellen
 Restart Eye of SaurCom (the installer starts SDRplay's background service).	Herstart Eye of SaurCom (het installatieprogramma start de achtergronddienst van SDRplay).
 Restart Eye of SaurCom.	Herstart Eye of SaurCom.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Herstart de Mac of voer uit in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service
@@ -820,8 +817,6 @@ SDR	SDR
 SNR dB	SNR dB
 Satellites	Satellieten
 Satellites, 1.6 GHz	Satellieten, 1.6 GHz
-Save bug report	Bugmelding opslaan
-Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue	Slaat één zipbestand op met de diagnose, het logboek en het laatste crashrapport: voeg het toe aan een GitHub-issue
 Search	Zoeken
 Seen	Gezien
 Send spots to PSK Reporter (pskreporter.info)	Spots naar PSK Reporter sturen (pskreporter.info)
@@ -900,13 +895,11 @@ Waterfall: colour map, intensity range, speed and pause (then drag or use the wh
 Wave buoys, HF	Golfboeien, HF
 Weather alerts, 162.55 MHz	Weerwaarschuwingen, 162.55 MHz
 Weather pictures, 1.7 GHz	Weerbeelden, 1.7 GHz
-What do you want to receive? Tick anything that interests you.	Wat wil je ontvangen? Vink alles aan wat je interesseert.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Wat je bij een niveau in dBFS optelt om dBm voor deze radio te krijgen (zijn kalibratie: een bekend signaal in de antenne-aansluiting toont het). Ook in de radio-instellingen.
 Where are you? This picks the right TV standard and FM band.	Waar ben je? Dit kiest de juiste tv-norm en FM-band.
 Which language do you want Eye of SaurCom in?	In welke taal wil je Eye of SaurCom?
 Which radio do you have?	Welke radio heb je?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Je kunt de modus op elk moment wijzigen en deze installatie opnieuw starten via Help > Installatiewizard.
-You can go on without one: the synthetic signal and IQ files work with no hardware.	Je kunt ook zonder doorgaan: het synthetische signaal en IQ-bestanden werken zonder hardware.
 Your callsign	Je roepletters
 Your locator	Je locator
 Zoom: mouse wheel (both axes), Ctrl+wheel (frequency), Shift+wheel (level).\nCtrl+PageUp / PageDown: step the view by one screen in frequency. Double click: reset.	Zoom: muiswiel (beide assen), Ctrl+wiel (frequentie), Shift+wiel (niveau).\nCtrl+PageUp / PageDown: beeld een scherm opschuiven in frequentie. Dubbelklik: herstellen.
@@ -1296,7 +1289,6 @@ Last used	Last used
 Manual order	Manual order
 Memories: the frequencies you keep, with mode and settings (Ctrl+M)	Memories: the frequencies you keep, with mode and settings (Ctrl+M)
 Memory	Memory
-Memory panel...	Memory panel...
 Memory...	Memory...
 No group	No group
 No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.	No memories yet. Tune to a frequency you want to keep and press Store current; or import a list.
@@ -1565,8 +1557,6 @@ Click to tune and scroll to zoom. Peak hold keeps the strongest level seen on ea
 Each mode has its own tabs for decoded output, settings and tools. They change with the selected mode.	Elke modus heeft eigen tabbladen voor gedecodeerde uitvoer, instellingen en hulpmiddelen. Ze veranderen met de gekozen modus.
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Geheugen bewaart frequenties met hun modus en instellingen. Frequenties en bandplannen tonen wat er per modus in de lucht is.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Elke ontvanger koppelt een radio aan een modus. Deze balk schakelt ertussen en bepaalt welke het geluid afspeelt.
-Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen speelt het gedemoduleerde signaal af. Volume en dempen staan hier; Record audio slaat het op in een bestand.
-Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Hier staan documentatie, probleemoplossing, dankwoord en licenties. Rondleiding start deze rondleiding opnieuw.
 Monitor audio	Audio meeluisteren
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Luister in elke modus naar het afgestemde kanaal om een signaal te herkennen: de samples van de radio worden gedemoduleerd als USB, LSB, smalle FM of AM. Stil zolang de modus eigen geluid speelt.
 Auto: USB below 30 MHz, narrow FM above	Auto: USB onder 30 MHz, smalle FM erboven
@@ -1809,7 +1799,7 @@ Could not download the list. Check the internet connection.	De lijst kon niet wo
 Transcribing speech: %s	Spraak wordt getranscribeerd: %s
 Voice (radio calls)	Spraak (radio-oproepen)
 No radio call with this aircraft's callsign heard yet	Nog geen oproep met de roepletters van dit vliegtuig gehoord
-Live transcription is off (View > Transcripts). Airband calls would be listed here by callsign.	Live transcriptie staat uit (Beeld > Transcripties). Oproepen op de luchtvaartband zouden hier per roepletters staan.
+Live transcription is off (Tools > Transcripts). Airband calls would be listed here by callsign.	Live transcriptie staat uit (Beeld > Transcripties). Oproepen op de luchtvaartband zouden hier per roepletters staan.
 Live captions: loading the speech model ...	Live ondertiteling: spraakmodel wordt geladen ...
 Live captions: off.	Live ondertiteling: uit.
 Set up transcripts	Transcripties instellen
@@ -1869,7 +1859,7 @@ Sure	Zeker
 Speaker (a guess from the wording)	Spreker (een gok op basis van de woorden)
 Click to copy this line	Klik om deze regel te kopiëren
 Aircraft on the screen	Vliegtuig op het scherm
-Transcripts ...	Transcripties ...
+Transcripts...	Transcripties ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	Wat op de luchtvaartband en andere spraakkanalen wordt gezegd, als tekst: live ondertiteling, zoeken, exporteren. Uit tot je het aanzet.
 # Automations window
 %d firings. Dropped events: %llu	%d keer uitgevoerd. Weggegooide gebeurtenissen: %llu
@@ -2008,7 +1998,6 @@ The DRA+ decoder add-on cannot be used: %s. How to install:	De DRA+-decoder-add-
 How to install	Zo installeer je het
 The services, signal information and data work without it.	De diensten, signaalinformatie en data werken ook zonder.
 Interface and windows	Interface en vensters
-View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.	Beeld wisselt de indeling (Sidebar, Scope, Tiles, Faceplate, Panel), de klassieke interface, tekstgrootte en palet; de touchinterface staat onder Tools. Vensters zoals Frequenties, Sweepscanner, Peilontvanger en Automatiseringen openen vanaf hier.
 # programme guide (SPI)
 Guide	Gids
 until	tot
@@ -2243,7 +2232,7 @@ Save CSV	CSV opslaan
 Save FITS	FITS opslaan
 Save SigMF text	SigMF-tekst opslaan
 Save session	Sessie opslaan
-Site is the receiver location (View > Map). Time is the computer clock, UTC.	Locatie is de ontvangerlocatie (Beeld > Kaart). Tijd is de computerklok, UTC.
+Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	Locatie is de ontvangerlocatie (Beeld > Kaart). Tijd is de computerklok, UTC.
 Sun	Zon
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	De rotatiecurve heeft spectra nodig op meerdere lengtes tussen 0 en 90 (of 270 en 360).
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	Naar het doel: aardrotatie %+.2f, baan %+.2f, zon %+.2f; totaal %+.2f km/s (optellen bij de topocentrische snelheid)
@@ -2975,7 +2964,7 @@ Map tiles around a position	Kaarttegels rond een positie
 Radius (km)	Straal (km)
 Deepest zoom	Diepste zoom
 The zoom is lowered by itself so the area stays within 4000 tiles (the OpenStreetMap tile policy does not allow bulk downloads).	De zoom wordt vanzelf verlaagd zodat het gebied binnen 4000 tegels blijft (het tegelbeleid van OpenStreetMap staat bulkdownloads niet toe).
-Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits.	Kaartgegevens (c) OpenStreetMap-bijdragers. Satellietelementen: CelesTrak. Luchthavens: OurAirports (publiek domein). Details: Help > Credits.
+Map data (c) OpenStreetMap contributors. Satellite elements: CelesTrak. Airports: OurAirports (public domain). Details: Help > Credits and licences.	Kaartgegevens (c) OpenStreetMap-bijdragers. Satellietelementen: CelesTrak. Luchthavens: OurAirports (publiek domein). Details: Help > Credits and licences.
 # Wireless M-Bus
 start the receiver to see the meters	start de ontvanger om de meters te zien
 Maker	Fabrikant
@@ -3243,7 +3232,7 @@ behind real time (%.1f x): the oldest speech is skipped	achter op de realtime (%
 speed %.2f x real time	snelheid %.2f x realtime
 music skipped %llu	muziek overgeslagen: %llu
 auto captions	automatische ondertitels
-Captions made on your computer from the speech you hear, with the offline speech model (View > Transcripts > Settings). Nothing is sent anywhere.	Ondertitels die op uw computer worden gemaakt van de spraak die u hoort, met het offline spraakmodel (Beeld > Transcripties > Instellingen). Er wordt niets verzonden.
+Captions made on your computer from the speech you hear, with the offline speech model (Tools > Transcripts > Settings). Nothing is sent anywhere.	Ondertitels die op uw computer worden gemaakt van de spraak die u hoort, met het offline spraakmodel (Beeld > Transcripties > Instellingen). Er wordt niets verzonden.
 Station's own subtitles	Eigen ondertitels van de zender
 Generated from speech	Gemaakt uit spraak
 Both	Beide

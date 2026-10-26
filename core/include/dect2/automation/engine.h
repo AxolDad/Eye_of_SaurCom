@@ -70,7 +70,8 @@ public:
     std::string scriptError(const std::string& id) const;
 
     // true when some enabled rule or script wants events of this family (a lock-free read for the decoders)
-    bool wants(int family) const { return family >= 0 && family < kFamilies && ((mask_.load(std::memory_order_relaxed) | tapMask_.load(std::memory_order_relaxed) | observeMask_.load(std::memory_order_relaxed) | watchMask_.load(std::memory_order_relaxed)) >> family & 1); }
+    bool wants(int family) const { return family >= 0 && family < kFamilies && ((mask_.load(std::memory_order_relaxed) | tapMask_.load(std::memory_order_relaxed) | observeMask_.load(std::memory_order_relaxed) | watchMask_.load(std::memory_order_relaxed) |
+                                                                     eyeMask_.load(std::memory_order_relaxed)) >> family & 1); }
     // A tap sees every submitted event of the given families (bit = 1 << Family), on the decoder's thread, whether or not a rule wants it. It must not block
     // (the message database only queues). Pass an empty function to remove it.
     void setTap(std::function<void(const Event&)> f, uint32_t familyMask);
@@ -79,6 +80,8 @@ public:
     void setObserver(std::function<void(const Event&)> f, uint32_t familyMask);
     // A watcher is a third such hook (the watchlists use it); same rules: on the decoder's thread, must not block.
     void setWatcher(std::function<void(const Event&)> f, uint32_t familyMask);
+    // A fourth such hook, for the Eye overview (core/include/dect2/eye/eye.h); same rules: on the decoder's thread, must not block.
+    void setOverview(std::function<void(const Event&)> f, uint32_t familyMask);
     void submit(Event&& ev);                             // queue; never blocks
     uint64_t dropped() const { return dropped_.load(); }
 
@@ -103,6 +106,9 @@ private:
     std::atomic<uint32_t> tapMask_{0};
     std::atomic<uint32_t> observeMask_{0};
     std::atomic<uint32_t> watchMask_{0};
+    std::atomic<uint32_t> eyeMask_{0};
+    std::mutex eyeMu_;
+    std::function<void(const Event&)> eye_;
     std::mutex watchMu_;
     std::function<void(const Event&)> watch_;
     std::mutex obsMu_;

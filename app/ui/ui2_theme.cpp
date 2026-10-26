@@ -12,8 +12,8 @@ UiTheme T;
 void loadTheme(int n) {
     T = UiTheme();
     if (n == 1) {
-        T.bg = ImVec4(0.165f, 0.168f, 0.172f, 1); T.rail = ImVec4(0.135f, 0.138f, 0.142f, 1); T.edge = ImVec4(0.33f, 0.335f, 0.34f, 1);
-        T.text = ImVec4(0.86f, 0.87f, 0.88f, 1); T.dim = ImVec4(0.60f, 0.61f, 0.62f, 1); T.bright = ImVec4(1, 1, 1, 1); T.accent = ImVec4(0.90f, 0.91f, 0.92f, 1);
+        T.bg = ImVec4(0.165f, 0.168f, 0.172f, 1); T.rail = ImVec4(0.135f, 0.138f, 0.142f, 1); T.edge = ImVec4(0.48f, 0.485f, 0.49f, 1);
+        T.text = ImVec4(0.86f, 0.87f, 0.88f, 1); T.dim = ImVec4(0.66f, 0.67f, 0.68f, 1); T.bright = ImVec4(1, 1, 1, 1); T.accent = ImVec4(0.90f, 0.91f, 0.92f, 1);
         T.frame = ImVec4(0.095f, 0.098f, 0.102f, 1); T.button = ImVec4(0.235f, 0.240f, 0.247f, 1); T.plotBg = ImVec4(0.015f, 0.016f, 0.018f, 1);
         const ImVec4 s[8] = {ImVec4(0.90f, 0.91f, 0.92f, 1), ImVec4(0.55f, 0.80f, 0.62f, 1), ImVec4(0.88f, 0.68f, 0.42f, 1), ImVec4(0.62f, 0.72f, 0.92f, 1), ImVec4(0.80f, 0.58f, 0.78f, 1), ImVec4(0.55f, 0.56f, 0.58f, 1), ImVec4(0.88f, 0.84f, 0.56f, 1), ImVec4(0.35f, 0.36f, 0.38f, 1)};
         for (int k = 0; k < 8; k++) T.series[k] = s[k];
@@ -21,7 +21,7 @@ void loadTheme(int n) {
         for (int k = 0; k < 5; k++) T.tone[k] = t[k];
         T.flair = false;
     } else if (n == 2) {
-        T.bg = ImVec4(0.075f, 0.075f, 0.075f, 1); T.rail = ImVec4(0.055f, 0.055f, 0.055f, 1); T.edge = ImVec4(0.22f, 0.22f, 0.22f, 1);
+        T.bg = ImVec4(0.075f, 0.075f, 0.075f, 1); T.rail = ImVec4(0.055f, 0.055f, 0.055f, 1); T.edge = ImVec4(0.40f, 0.40f, 0.40f, 1);
         T.text = ImVec4(0.84f, 0.84f, 0.84f, 1); T.dim = ImVec4(0.50f, 0.50f, 0.50f, 1); T.bright = ImVec4(1, 1, 1, 1); T.accent = ImVec4(0.92f, 0.92f, 0.92f, 1);
         T.frame = ImVec4(0.045f, 0.045f, 0.045f, 1); T.button = ImVec4(0.115f, 0.115f, 0.115f, 1); T.plotBg = ImVec4(0.03f, 0.03f, 0.03f, 1);
         const ImVec4 s[8] = {ImVec4(0.93f, 0.93f, 0.93f, 1), ImVec4(0.62f, 0.62f, 0.62f, 1), ImVec4(0.42f, 0.42f, 0.42f, 1), ImVec4(0.80f, 0.80f, 0.80f, 1), ImVec4(0.55f, 0.55f, 0.55f, 1), ImVec4(0.35f, 0.35f, 0.35f, 1), ImVec4(0.72f, 0.72f, 0.72f, 1), ImVec4(0.28f, 0.28f, 0.28f, 1)};
@@ -30,10 +30,10 @@ void loadTheme(int n) {
         for (int k = 0; k < 5; k++) T.tone[k] = t[k];
         T.flair = false;
     } else {
-        T.bg = ImVec4(0.045f, 0.045f, 0.044f, 1); T.rail = ImVec4(0.037f, 0.037f, 0.036f, 1); T.edge = ImVec4(0.175f, 0.172f, 0.165f, 1);
-        T.text = ImVec4(0.82f, 0.81f, 0.78f, 1); T.dim = ImVec4(0.46f, 0.45f, 0.42f, 1); T.bright = ImVec4(0.96f, 0.95f, 0.92f, 1); T.accent = ImVec4(0.86f, 0.65f, 0.30f, 1);
+        T.bg = ImVec4(0.045f, 0.045f, 0.044f, 1); T.rail = ImVec4(0.037f, 0.037f, 0.036f, 1); T.edge = ImVec4(0.38f, 0.375f, 0.36f, 1);
+        T.text = ImVec4(0.82f, 0.81f, 0.78f, 1); T.dim = ImVec4(0.52f, 0.51f, 0.48f, 1); T.bright = ImVec4(0.96f, 0.95f, 0.92f, 1); T.accent = ImVec4(1.00f, 0.55f, 0.10f, 1);   // ember, the icon's colour
         T.frame = ImVec4(0.030f, 0.030f, 0.030f, 1); T.button = ImVec4(0.045f, 0.045f, 0.044f, 1); T.plotBg = ImVec4(0.030f, 0.030f, 0.030f, 1);
-        const ImVec4 s[8] = {ImVec4(0.86f, 0.65f, 0.30f, 1), ImVec4(0.82f, 0.81f, 0.77f, 1), ImVec4(0.56f, 0.55f, 0.51f, 1), ImVec4(0.74f, 0.50f, 0.30f, 1), ImVec4(0.62f, 0.68f, 0.52f, 1), ImVec4(0.45f, 0.44f, 0.41f, 1), ImVec4(0.86f, 0.74f, 0.50f, 1), ImVec4(0.35f, 0.35f, 0.33f, 1)};
+        const ImVec4 s[8] = {ImVec4(1.00f, 0.55f, 0.10f, 1), ImVec4(0.82f, 0.81f, 0.77f, 1), ImVec4(0.56f, 0.55f, 0.51f, 1), ImVec4(0.74f, 0.50f, 0.30f, 1), ImVec4(0.62f, 0.68f, 0.52f, 1), ImVec4(0.45f, 0.44f, 0.41f, 1), ImVec4(0.86f, 0.74f, 0.50f, 1), ImVec4(0.35f, 0.35f, 0.33f, 1)};
         for (int k = 0; k < 8; k++) T.series[k] = s[k];
         const ImU32 t[5] = {IM_COL32(166, 122, 46, 255), IM_COL32(86, 68, 36, 255), IM_COL32(110, 84, 36, 255), IM_COL32(168, 146, 104, 255), IM_COL32(232, 190, 112, 255)};
         for (int k = 0; k < 5; k++) T.tone[k] = t[k];
@@ -186,13 +186,13 @@ static void applyUiThemeBase(App& a) {
     c[ImGuiCol_Border] = kEdge; c[ImGuiCol_Separator] = kEdge;
     c[ImGuiCol_FrameBg] = T.frame; c[ImGuiCol_FrameBgHovered] = ImVec4(T.frame.x + 0.05f, T.frame.y + 0.05f, T.frame.z + 0.05f, 1); c[ImGuiCol_FrameBgActive] = ImVec4(T.frame.x + 0.08f, T.frame.y + 0.08f, T.frame.z + 0.08f, 1);
     c[ImGuiCol_Button] = T.button; c[ImGuiCol_ButtonHovered] = ImVec4(T.button.x + 0.06f, T.button.y + 0.06f, T.button.z + 0.06f, 1); c[ImGuiCol_ButtonActive] = ImVec4(T.accent.x * 0.45f, T.accent.y * 0.45f, T.accent.z * 0.45f, 1);
-    c[ImGuiCol_Header] = ImVec4(1, 0.95f, 0.85f, 0.06f); c[ImGuiCol_HeaderHovered] = ImVec4(1, 0.95f, 0.85f, 0.10f); c[ImGuiCol_HeaderActive] = ImVec4(0.86f, 0.65f, 0.30f, 0.30f);
+    c[ImGuiCol_Header] = ImVec4(1, 0.95f, 0.85f, 0.06f); c[ImGuiCol_HeaderHovered] = ImVec4(1, 0.95f, 0.85f, 0.10f); c[ImGuiCol_HeaderActive] = ImVec4(T.accent.x, T.accent.y, T.accent.z, 0.30f);
     c[ImGuiCol_Tab] = ImVec4(0, 0, 0, 0); c[ImGuiCol_TabHovered] = ImVec4(1, 0.95f, 0.85f, 0.06f); c[ImGuiCol_TabSelected] = ImVec4(1, 0.95f, 0.85f, 0.05f);
     c[ImGuiCol_TabDimmed] = ImVec4(0, 0, 0, 0); c[ImGuiCol_TabDimmedSelected] = ImVec4(1, 0.95f, 0.85f, 0.04f); c[ImGuiCol_TabSelectedOverline] = kAccent;
     c[ImGuiCol_SliderGrab] = ImVec4(0.58f, 0.56f, 0.52f, 1); c[ImGuiCol_SliderGrabActive] = kAccent; c[ImGuiCol_CheckMark] = kAccent;
     c[ImGuiCol_Text] = kText; c[ImGuiCol_TextDisabled] = kDim; c[ImGuiCol_MenuBarBg] = kRail;
     c[ImGuiCol_TableRowBgAlt] = ImVec4(1, 0.95f, 0.85f, 0.02f); c[ImGuiCol_TableHeaderBg] = ImVec4(0, 0, 0, 0); c[ImGuiCol_TableBorderLight] = kEdge; c[ImGuiCol_TableBorderStrong] = kEdge;
-    c[ImGuiCol_TextSelectedBg] = ImVec4(0.86f, 0.65f, 0.30f, 0.30f);
+    c[ImGuiCol_TextSelectedBg] = ImVec4(T.accent.x, T.accent.y, T.accent.z, 0.30f);
     plt::Style& p = plt::GetStyle();
     for (int i = 0; i < 8; i++) p.AutoColors[i] = T.series[i];
     p.PlotBg = T.plotBg; p.Border = kEdge; p.Grid = ImVec4(0.72f, 0.72f, 0.70f, 0.10f); p.Text = ImVec4(T.dim.x + 0.1f, T.dim.y + 0.1f, T.dim.z + 0.1f, 1);

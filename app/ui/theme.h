@@ -9,7 +9,9 @@ inline ImVec4& accentRef() { static ImVec4 v(0.45f, 0.72f, 0.82f, 1.f); return v
 inline ImVec4 accent(float a = 1.f) { ImVec4 c = accentRef(); c.w = a; return c; }
 inline ImVec4 okGreen() { return ImVec4(0.40f, 0.76f, 0.52f, 1); }
 inline ImVec4 warnAmber() { return ImVec4(0.90f, 0.70f, 0.28f, 1); }
-inline ImVec4 badRed() { return ImVec4(0.88f, 0.38f, 0.34f, 1); }
+// the fill of a level / quality gauge in its good range: green in every palette, never remapped, so "good" never looks like the amber "warning"
+inline ImU32 gaugeGood() { return IM_COL32(44, 112, 70, 255); }   // white text on it: 5.4:1
+inline ImVec4 badRed() { return ImVec4(0.95f, 0.45f, 0.42f, 1); }   // 5:1 as text on the Instrument background
 inline bool& dev() { static bool v = false; return v; }
 // heading text in panels: blue in the classic interface, soft white in the new one
 inline ImVec4 heading() { return dev() ? ImVec4(0.92f, 0.90f, 0.84f, 1) : ImVec4(0.45f, 0.75f, 1, 1); }
@@ -65,7 +67,7 @@ inline void applyTheme() {
     c[ImGuiCol_Separator]     = ImVec4(0.20f, 0.21f, 0.22f, 1);
     c[ImGuiCol_TableRowBgAlt] = ImVec4(1, 1, 1, 0.02f);
     c[ImGuiCol_Text]          = ImVec4(0.82f, 0.84f, 0.85f, 1);
-    c[ImGuiCol_TextDisabled]  = ImVec4(0.45f, 0.47f, 0.49f, 1);
+    c[ImGuiCol_TextDisabled]  = ImVec4(0.50f, 0.52f, 0.54f, 1);   // 4.9:1 on the popup background
 
     plt::Style& p = plt::GetStyle();   // the plots: dark plate, thin border, faint grid
     p.PlotBg  = ImVec4(0.02f, 0.021f, 0.023f, 1);

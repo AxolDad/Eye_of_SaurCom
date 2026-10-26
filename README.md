@@ -50,7 +50,7 @@ It started as a fork of [OnAir](https://github.com/adswill/OnAir), Kristijonas A
 > **About the name:** yes, it is a nod to a certain lidless eye on a dark tower. This one only watches the airwaves, and it reports to you alone.
 
 > [!TIP]
-> New here? Press **Tour** in the app: a little TV walks you through Eye of SaurCom with a built-in demo signal, so you can explore everything before you buy a radio.
+> New here? Choose **Help > Get me listening**, pick *Synthetic test signal* and then *FM broadcast*: you hear something within a minute, with no radio. **Help > Guided tours** then walks you through the window.
 
 ## Contents
 
@@ -90,6 +90,10 @@ It started as a fork of [OnAir](https://github.com/adswill/OnAir), Kristijonas A
 ## What this fork adds
 
 Everything above came from OnAir. This is what Eye of SaurCom built on top of it. Most of it has been tested on generated signals and recordings; a few parts say *experimental* in the app.
+
+**Seeing it all**
+
+- **The Eye** (*Tools > The Eye*, Ctrl+E): everything the station decodes, from every mode, in one window. Live counts per kind of contact, a scope that places every aircraft, ship, APRS station, sonde and drone by bearing and distance from you, and one timeline of first sightings and messages. [docs/eye.md](docs/eye.md)
 
 **Talking back**
 
@@ -190,7 +194,7 @@ Fixes and new features land on the `main` branch first, before they go into a re
 4. Press **Start**. When the receiver locks, the channels appear on the right: click one to watch or listen.
 5. If the picture breaks up, use **Auto-tune** for the gain, or **Optimise gain** (it sweeps the radio's whole gain range, measures the mode's SNR, or else the signal-to-noise of the spectrum around the channel, and keeps the lowest gain within 0.5 dB of the best that does not overload the ADC; **Undo gain** goes back), and watch the quality score while you move the antenna. Height and a clear view toward the transmitter matter more than anything else.
 
-No radio? Open an IQ recording through the *IQ recording file* source (cs8, cu8, cf32, ci16, cu16, SigMF and two-channel WAV IQ files: the sample rate, centre frequency and format are read from SigMF and WAV files), or press **Tour**.
+No radio? Open an IQ recording through the *IQ recording file* source (cs8, cu8, cf32, ci16, cu16, SigMF and two-channel WAV IQ files: the sample rate, centre frequency and format are read from SigMF and WAV files), or choose **Help > Get me listening** and the *Synthetic test signal*.
 
 > [!TIP]
 > Height and a clear view toward the transmitter matter more than anything else for TV. Watch the quality score while you move the antenna.
@@ -543,8 +547,8 @@ Off, and unavailable until you give it a Discord application: none is built in. 
 - **The picture breaks up.** Use **Auto-tune** or **Optimise gain**, and move the antenna while you watch the quality score, see [Quick start](#quick-start). A weak or echo-filled signal is the usual cause.
 - **macOS will not open the app.** It is not signed with a developer certificate yet: right-click it and choose *Open* on the first launch.
 - **No voice in DMR, P25, NXDN, dPMR or D-STAR.** Install mbelib yourself, see [Good to know](#good-to-know) and [docs/CODECS.md](docs/CODECS.md).
-- **No radio at all.** Open an IQ recording through the *IQ recording file* source, or press **Tour**.
-- **Still stuck.** Press **Save bug report** (one zip with diagnostics, log and crash report) and attach it to an issue in [GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues).
+- **No radio at all.** Open an IQ recording through the *IQ recording file* source, or choose **Help > Get me listening** and the *Synthetic test signal*.
+- **Still stuck.** Use **Help > Report a problem** (one zip with diagnostics, log and crash report, with serial numbers, addresses and paths left out) and attach it to an issue in [GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues).
 </details>
 
 ## Build from source
@@ -619,7 +623,7 @@ To use a HackRF, RTL-SDR or Airspy, install the WinUSB driver once with [Zadig](
 ## Community
 
 - **[Docs](docs/)**: the guides and notes in this repository.
-- **[GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues)**: bug reports. Attach an IQ recording of the problem: press **Record IQ** in the Source panel (or run `saurcom-cli --record auto --secs 10`); files go to the `recordings` folder of the app data folder, and **Show recording** opens it. With **SigMF** ticked (the default) every recording also gets a `.sigmf-meta` file, so it opens directly in [IQEngine](https://iqengine.org). **Save bug report** makes one zip with diagnostics, log and crash report.
+- **[GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues)**: bug reports. Attach an IQ recording of the problem: press **Record IQ** in the Source panel (or run `saurcom-cli --record auto --secs 10`); files go to the `recordings` folder of the app data folder, and **Show recording** opens it. With **SigMF** ticked (the default) every recording also gets a `.sigmf-meta` file, so it opens directly in [IQEngine](https://iqengine.org). **Help > Report a problem** makes one zip with diagnostics, log and crash report.
 - **[Pull requests](https://github.com/AxolDad/Eye_of_SaurCom/pulls)** are welcome.
 
 ## License
