@@ -206,7 +206,6 @@ New interface	Новый интерфейс
 Try the new interface. You can switch back at any time.	Попробуйте новый интерфейс. Вернуться назад можно в любой момент.
 Guided tour	Обзор программы
 Tour	Обзор
-by: Kristijonas Adomaitis, made with help from the community	автор: Kristijonas Adomaitis, при участии сообщества
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Спасибо всем, кто сообщал об ошибках, присылал записи и отправлял pull request'ы.
 Source	Источник
 source	источник
@@ -1043,8 +1042,6 @@ GNSS NMEA RMC/GGA (UDP)	GNSS NMEA RMC/GGA (UDP)
 Bluetooth LE advertisements, JSON (UDP)	Реклама Bluetooth LE, JSON (UDP)
 LoRa / LoRaWAN / Meshtastic, JSON (UDP)	LoRa / LoRaWAN / Meshtastic, JSON (UDP)
 JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent.	Строки JSON (один объект в строке), кроме GNSS — это NMEA. Выключено, пока вы не включите канал. Отправляются только режимы, у которых уже есть структурированные сообщения.
-Support	Support
-Support Eye of ZorCom on Ko-fi	Support Eye of ZorCom on Ko-fi
 Documentation	Документация
 Troubleshooting	Устранение неполадок
 Website	Сайт
@@ -1075,10 +1072,6 @@ Amber: DFS channels (radar sharing).	Янтарный: каналы DFS (общ�
 Bright numbers: preferred scanning channels (PSC), where FILS discovery is sent.	Яркие числа: предпочтительные каналы сканирования (PSC), где передаётся FILS discovery.
 start the receiver to see the channels	запустите приёмник, чтобы увидеть каналы
 # map server start-up question
-Keep sending positions	Продолжить отправку позиций
-Eye of ZorCom asks this question at every start. "No, do not ask again" stops it until Eye of ZorCom is updated.	Eye of ZorCom задаёт этот вопрос при каждом запуске. «Нет, больше не спрашивать» отключает его до следующего обновления Eye of ZorCom.
-Nothing is sent in this session. Eye of ZorCom asks again the next time it starts.	В этом сеансе ничего не отправляется. Eye of ZorCom спросит снова при следующем запуске.
-Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu.	Ничего не отправляется, и этот вопрос не показывается до следующего обновления Eye of ZorCom. Позже это можно включить в меню «Сервер».
 #  Wi-Fi HaLow
 (hidden)	(скрытая)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	Радио работает на %.1f Msps: каналам %d МГц нужно не меньше %.0f Msps (рекомендуется %.0f). Выбери СКОРОСТЬ в верхней панели или другую ширину приёма.
@@ -1330,16 +1323,6 @@ Project	Project
 Author	Author
 Licence	Licence
 Used for	Used for
-Update source	Источник обновлений
-Automatic: GitHub	Автоматически: GitHub
-GitHub only	Только GitHub
-Mirror only	Только зеркало
-Use the mirror when GitHub cannot be reached	Использовать зеркало, если GitHub недоступен
-Mirror address (https://host/{url} or a base address)	Адрес зеркала (https://host/{url} или базовый адрес)
-A mirror is a third-party web address you chose. It sees that you check for updates and which version you run. It is used only after GitHub fails (not at all with GitHub only), the package is checked against the checksum from GitHub when GitHub can be reached, and nothing is installed from a mirror without your confirmation.	Зеркало — это веб-адрес третьей стороны, который вы выбрали. Оно видит, что вы проверяете обновления и какую версию используете. Оно применяется только после сбоя GitHub (никогда при «Только GitHub»), пакет проверяется по контрольной сумме GitHub, если GitHub доступен, и ничего не устанавливается из зеркала без вашего подтверждения.
-The list of versions came through the mirror and GitHub could not be reached to confirm the checksum: only the mirror vouches for this package. Nothing is installed without your confirmation.	Список версий пришёл через зеркало, а GitHub был недоступен для подтверждения контрольной суммы: за этот пакет ручается только зеркало. Без вашего подтверждения ничего не устанавливается.
-I understand, download it anyway	Понимаю, всё равно скачать
-The list came through the mirror; the checksum was confirmed by GitHub.	Список пришёл через зеркало; контрольная сумма подтверждена GitHub.
 Noise remover (neural)##gennr	Шумоподавление (нейросеть)##gennr
 Mix of cleaned and original audio: right removes more noise, left keeps more of the original. Adds about 20 ms of delay.	Смесь очищенного и исходного звука: вправо — больше шума убирается, влево — больше исходного. Добавляет около 20 мс задержки.
 Speech only; do not use on music or data modes.	Только для речи; не используйте для музыки и режимов данных.
@@ -1452,9 +1435,6 @@ ACARS messages	Сообщения ACARS
 %d ACARS messages	Сообщений ACARS: %d
 Copy these messages as text	Скопировать эти сообщения как текст
 No ACARS messages heard from this aircraft	От этого воздушного судна сообщений ACARS не принято
-Also share interesting ACARS messages (text becomes public on the map)	Также делиться интересными сообщениями ACARS (текст становится публичным на карте)
-Messages an aircraft sent by ACARS (free text, crew, operations, company and maintenance messages), shown on that aircraft's card on the public map for 48 hours. Phone numbers and e-mail addresses are removed first. Position reports and link tests are not part of this. You can turn it off at any time.	Сообщения, которые воздушное судно отправило по ACARS (свободный текст, сообщения экипажа, эксплуатации, авиакомпании и обслуживания), показываются 48 часов в карточке этого судна на публичной карте. Номера телефонов и адреса e-mail предварительно удаляются. Отчёты о положении и проверки связи сюда не входят. Это можно отключить в любой момент.
-Messages that aircraft send by ACARS (free text and crew, operations, company and maintenance messages) can be shown on the aircraft's card as well, with phone numbers and e-mail addresses removed. This is a separate choice that you can change in the Server menu.	Сообщения, которые воздушные суда отправляют по ACARS (свободный текст, сообщения экипажа, эксплуатации, авиакомпании и обслуживания), можно показывать и в карточке судна, без номеров телефонов и адресов e-mail. Это отдельный выбор, его можно изменить в меню «Сервер».
 #  sweep scanner
 %.0f MHz/s, %d hops, %d averages, %.0f ms per sweep	%.0f МГц/с, %d скачков, %d усреднений, %.0f мс на проход
 pick a radio first (the test signal and files cannot sweep)	сначала выберите радио (тестовый сигнал и файлы сканировать нельзя)
@@ -1560,7 +1540,6 @@ Mode panel	Панель режима
 Memory and frequencies	Память и частоты
 Receivers	Приёмники
 Audio	Звук
-Server and support	Сервер и поддержка
 Take the guided tour	Запустить обзор
 Choose the radio or recording that supplies samples. Record IQ saves the raw signal for later playback.	Выберите радио или запись, которая поставляет отсчёты. Record IQ сохраняет исходный сигнал для последующего воспроизведения.
 Set the frequency, band and sample rate here. Gain and AGC set the input level; Second mode decodes another mode from the same capture.	Здесь задаются частота, диапазон и частота дискретизации. Усиление и АРУ определяют входной уровень; Второй режим декодирует другой режим из той же записи.
@@ -1570,7 +1549,6 @@ Each mode has its own tabs for decoded output, settings and tools. They change w
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Память хранит частоты вместе с режимом и настройками. Частоты и диапазонные планы показывают, что есть в эфире, по режимам.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Каждый приёмник сочетает радио и режим. Эта панель переключает их и выбирает, какой воспроизводит звук.
 Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen воспроизводит демодулированный сигнал. Громкость и отключение звука здесь; Record audio сохраняет звук в файл.
-Server sends decoded positions to the public map. Support helps fund development.	Сервер отправляет декодированные позиции на общедоступную карту. Поддержка помогает финансировать разработку.
 Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Здесь находятся документация, устранение неполадок, благодарности и лицензии. Обзор запускает этот обзор снова.
 Monitor audio	Прослушивание
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Слушать настроенный канал в любом режиме, чтобы опознать сигнал: отсчёты радио демодулируются как USB, LSB, узкая FM или AM. Тишина, пока режим играет свой звук.
@@ -1617,7 +1595,6 @@ translation	перевод
 testing	тестирование
 idea	идея
 Thank you to everyone who sent fixes, reported bugs, shared recordings, translated or suggested ideas. The author is Kristijonas Adomaitis.	Спасибо всем, кто присылал исправления, сообщал об ошибках, делился записями, переводил и предлагал идеи. Автор — Kristijonas Adomaitis.
-Want your name changed or removed? Tell us on Discord or open an issue.	Хотите, чтобы ваше имя изменили или убрали? Напишите нам в Discord или создайте issue.
 # airband: airport search, band watch
 Airport data updated: %s	Данные аэропортов обновлены: %s
 Airport data not updated: %s	Данные аэропортов не обновлены: %s
@@ -1735,9 +1712,6 @@ SNR per channel	SNR на канал
 Second transmitter	Второй передатчик
 Second bearing	Второй пеленг
 Position fix	Определение положения
-Sharing	Отправка данных
-Share my bearing on the map server	Делиться моим пеленгом с сервером карты
-Needs Server > Send data to map server. Only the bearing, its uncertainty, the frequency and your station position go up; the map shows where bearings from several stations cross.	Требуется Сервер > Отправлять данные на сервер карты. Передаются только пеленг, его неопределённость, частота и положение вашей станции; на карте видно, где пересекаются пеленги нескольких станций.
 Bearing and position of a transmitter from an antenna array such as the KrakenSDR	Пеленг и положение передатчика по антенной решётке, например KrakenSDR
 Decoded only	Только расшифрованные
 Hides tone-only pages and pages whose text could not be decoded.	Скрывает вызовы только тоном и сообщения, текст которых не удалось расшифровать.
@@ -1878,8 +1852,6 @@ Sure	Уверенность
 Speaker (a guess from the wording)	Говорящий (догадка по словам)
 Click to copy this line	Нажмите, чтобы скопировать эту строку
 Aircraft on the screen	Воздушное судно на экране
-Also share transcripts of aircraft radio calls (text becomes public on the map)	Также делиться расшифровками радиообмена воздушных судов (текст станет общедоступным на карте)
-The text of airband radio calls that a speech engine on this computer made from what you receive (Transcripts window), linked to the aircraft by the callsign spoken in it, shown on that aircraft's card on the public map for 48 hours. It can contain mistakes. Phone numbers are removed first. Only airband is shared, never marine, amateur or other channels. Off until you choose it, and you can turn it off at any time.	Текст радиообмена авиадиапазона, который речевой движок на этом компьютере получил из принятого вами сигнала (окно Расшифровки), привязанный к воздушному судну по произнесённому позывному и показываемый публично на карточке этого судна на карте 48 часов. Возможны ошибки. Номера телефонов предварительно удаляются. Передаётся только авиадиапазон, никогда морской, любительский и другие каналы. Выключено, пока вы не выберете, и это можно отключить в любой момент.
 Transcripts ...	Расшифровки ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	Что говорят в авиадиапазоне и на других голосовых каналах, в виде текста: живые субтитры, поиск, экспорт. Выключено, пока вы не включите.
 # Automations window
@@ -2395,8 +2367,6 @@ grey: predicted by the downloaded elements, blue: refined, green: measured, ambe
 residual %.1f Hz -> %.1f Hz (%d used, %d rejected); receiver offset %+.0f Hz	остаток %.1f Гц -> %.1f Гц (использовано %d, отброшено %d); смещение приёмника %+.0f Гц
 mean anomaly %+.3f deg, mean motion %+.5f rev/day, inclination %+.4f deg, RAAN %+.4f deg	средняя аномалия %+.3f град., среднее движение %+.5f об/сут, наклонение %+.4f град., RAAN %+.4f град.
 estimated timing error of the prediction: %.1f s before, %.1f s after (1 sigma)	ожидаемая ошибка времени прогноза: %.1f с до, %.1f с после (1 сигма)
-Also share GPS interference cells (counts per area, no aircraft)	Также передавать ячейки помех GPS (счётчики по областям, без самолётов)
-For every 0.5 degree square (about 55 km) around your ADS-B receiver: how many aircraft were heard in the last hour and how many of them reported a poor GPS position. Only these two numbers per square are sent, never aircraft identities, tracks or your location. It feeds the GPS interference layer of the public map and is an indicator, not proof of jamming. Off until you choose it.	Для каждого квадрата 0,5 градуса (около 55 км) вокруг вашего приёмника ADS-B: сколько самолётов было услышано за последний час и сколько из них сообщили о плохой позиции GPS. Для квадрата отправляются только эти два числа, никогда идентификаторы самолётов, треки или ваше местоположение. Они питают слой помех GPS публичной карты и служат признаком, а не доказательством глушения. Выключено, пока вы не включите.
 Calibrate...	Калибровка...
 Measure this radio's frequency error against an FM station or a carrier of known frequency	Измерить ошибку частоты этого радио по FM-станции или несущей известной частоты
 Frequency calibration	Калибровка частоты
@@ -2447,26 +2417,6 @@ to (kHz)	до (кГц)
 Translate to English	Переводить на английский
 Speech in another language is also translated to English, offline, next to the original. Needs a multilingual model and costs about 1.5 times more processor time; it is skipped when the engine cannot keep up. Nothing is sent anywhere. Translation into other languages is not available.	Речь на другом языке дополнительно переводится на английский, офлайн, рядом с оригиналом. Нужна многоязычная модель; требует примерно в 1,5 раза больше времени процессора; пропускается, если движок не успевает. Ничего не отправляется. Перевода на другие языки нет.
 The loaded model is English only: translation needs a multilingual model.	Загружена модель только для английского: для перевода нужна многоязычная модель.
-Live: stop the room	В эфире: остановить комнату
-Copy room link	Копировать ссылку на комнату
-Host PIN (to moderate on the room page):	PIN ведущего (для модерации на странице комнаты):
-Go live (Live rooms)...	Начать трансляцию (Живые комнаты)...
-Could not create the room	Не удалось создать комнату
-Lost the connection to the rooms server	Потеряно соединение с сервером комнат
-The live rooms server is not available yet.	Сервер живых комнат пока недоступен.
-No internet connection.	Нет подключения к интернету.
-The live rooms server did not answer in time.	Сервер живых комнат не ответил вовремя.
-The live rooms server is full right now. Try again later.	Сервер живых комнат сейчас переполнен. Попробуйте позже.
-Too many rooms were started from here. Try again in a few minutes.	Отсюда запущено слишком много комнат. Повторите попытку через несколько минут.
-The live rooms server refused the request.	Сервер живых комнат отклонил запрос.
-The live rooms server sent an answer Eye of ZorCom does not understand.	Сервер живых комнат прислал ответ, который Eye of ZorCom не понимает.
-Checking the live rooms server...	Проверка сервера живых комнат...
-Check the live rooms server again	Проверить сервер живых комнат ещё раз
-Live rooms: while you are live, anyone with the room link can watch this receiver's waterfall, the mode and the frequency you are tuned to, and chat with each other. The room list on the web also shows its title. Nothing is sent before you press Go live, and nothing is stored after the room ends. Your location, your name and the audio are never sent.	Живые комнаты: пока вы в эфире, любой, у кого есть ссылка на комнату, может смотреть водопад этого приёмника, режим и настроенную частоту и общаться в чате. Список комнат в сети также показывает её название. До нажатия «Начать трансляцию» ничего не отправляется, а после завершения комнаты ничего не хранится. Ваше местоположение, имя и звук не отправляются никогда.
-Room title	Название комнаты
-Also show decoded ACARS text in the room (public)	Показывать в комнате и декодированный текст ACARS (публично)
-Needs Server > Send data to map server and Also share interesting ACARS messages.	Требуется Сервер > Отправлять данные на сервер карты и Делиться также интересными сообщениями ACARS.
-Go live	Начать трансляцию
 Schedule passes by itself	Планировать пролёты автоматически
 Takes the passes of the ticked groups one at a time, highest priority first, and starts, tunes and records each one without you. Overlapping passes are trimmed or skipped; a receiver you started yourself is left alone.	Берёт пролёты отмеченных групп по одному, сначала с высшим приоритетом, и сама запускает, настраивает и записывает каждый. Пересекающиеся пролёты укорачиваются или пропускаются; приёмник, запущенный вами, не трогается.
 Priority (higher wins)	Приоритет (больший побеждает)

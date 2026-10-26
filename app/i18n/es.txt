@@ -216,7 +216,6 @@ New interface	Nueva interfaz
 Try the new interface. You can switch back at any time.	Pruebe la nueva interfaz. Puede volver en cualquier momento.
 Guided tour	Recorrido guiado
 Tour	Recorrido
-by: Kristijonas Adomaitis, made with help from the community	por Kristijonas Adomaitis, con ayuda de la comunidad
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Gracias a todos los que informaron de errores, enviaron grabaciones y abrieron pull requests.
 Source	Fuente
 source	fuente
@@ -1060,8 +1059,6 @@ GNSS NMEA RMC/GGA (UDP)	GNSS NMEA RMC/GGA (UDP)
 Bluetooth LE advertisements, JSON (UDP)	Anuncios Bluetooth LE, JSON (UDP)
 LoRa / LoRaWAN / Meshtastic, JSON (UDP)	LoRa / LoRaWAN / Meshtastic, JSON (UDP)
 JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent.	Líneas JSON (un objeto por línea), salvo GNSS, que es NMEA. Apagado hasta que active un feed. Solo se envían modos que ya tienen mensajes estructurados.
-Support	Support
-Support Eye of ZorCom on Ko-fi	Support Eye of ZorCom on Ko-fi
 Documentation	Documentación
 Troubleshooting	Solución de problemas
 Website	Sitio web
@@ -1092,10 +1089,6 @@ Amber: DFS channels (radar sharing).	Ámbar: canales DFS (compartidos con radar)
 Bright numbers: preferred scanning channels (PSC), where FILS discovery is sent.	Números brillantes: canales de búsqueda preferidos (PSC), donde se envía FILS discovery.
 start the receiver to see the channels	inicia el receptor para ver los canales
 # map server start-up question
-Keep sending positions	Seguir enviando posiciones
-Eye of ZorCom asks this question at every start. "No, do not ask again" stops it until Eye of ZorCom is updated.	Eye of ZorCom hace esta pregunta en cada inicio. «No, no volver a preguntar» la detiene hasta que Eye of ZorCom se actualice.
-Nothing is sent in this session. Eye of ZorCom asks again the next time it starts.	No se envía nada en esta sesión. Eye of ZorCom vuelve a preguntar en el próximo inicio.
-Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu.	No se envía nada y esta pregunta no se muestra hasta que Eye of ZorCom se actualice. Aún puedes activarlo más tarde en el menú Servidor.
 #  Wi-Fi HaLow
 (hidden)	(oculta)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	La radio funciona a %.1f Msps: los canales de %d MHz necesitan al menos %.0f Msps (%.0f recomendado). Elige la VELOCIDAD en la barra superior u otro ancho de recepción.
@@ -1347,16 +1340,6 @@ Project	Project
 Author	Author
 Licence	Licence
 Used for	Used for
-Update source	Fuente de actualización
-Automatic: GitHub	Automático: GitHub
-GitHub only	Solo GitHub
-Mirror only	Solo espejo
-Use the mirror when GitHub cannot be reached	Usar el espejo cuando no se pueda llegar a GitHub
-Mirror address (https://host/{url} or a base address)	Dirección del espejo (https://host/{url} o una dirección base)
-A mirror is a third-party web address you chose. It sees that you check for updates and which version you run. It is used only after GitHub fails (not at all with GitHub only), the package is checked against the checksum from GitHub when GitHub can be reached, and nothing is installed from a mirror without your confirmation.	Un espejo es una dirección web de terceros que usted eligió. Ve que busca actualizaciones y qué versión usa. Solo se usa si GitHub falla (nunca con «Solo GitHub»), el paquete se comprueba con la suma de GitHub cuando se puede llegar a GitHub, y nada se instala desde un espejo sin su confirmación.
-The list of versions came through the mirror and GitHub could not be reached to confirm the checksum: only the mirror vouches for this package. Nothing is installed without your confirmation.	La lista de versiones llegó por el espejo y no se pudo llegar a GitHub para confirmar la suma: solo el espejo respalda este paquete. No se instala nada sin su confirmación.
-I understand, download it anyway	Lo entiendo, descargar de todos modos
-The list came through the mirror; the checksum was confirmed by GitHub.	La lista llegó por el espejo; GitHub confirmó la suma de comprobación.
 Noise remover (neural)##gennr	Eliminador de ruido (neuronal)##gennr
 Mix of cleaned and original audio: right removes more noise, left keeps more of the original. Adds about 20 ms of delay.	Mezcla de audio limpio y original: a la derecha quita más ruido, a la izquierda conserva más el original. Añade unos 20 ms de retardo.
 Speech only; do not use on music or data modes.	Solo voz; no usar con música ni modos de datos.
@@ -1469,9 +1452,6 @@ ACARS messages	Mensajes ACARS
 %d ACARS messages	%d mensajes ACARS
 Copy these messages as text	Copiar estos mensajes como texto
 No ACARS messages heard from this aircraft	No se han recibido mensajes ACARS de esta aeronave
-Also share interesting ACARS messages (text becomes public on the map)	Compartir también mensajes ACARS interesantes (el texto se hace público en el mapa)
-Messages an aircraft sent by ACARS (free text, crew, operations, company and maintenance messages), shown on that aircraft's card on the public map for 48 hours. Phone numbers and e-mail addresses are removed first. Position reports and link tests are not part of this. You can turn it off at any time.	Mensajes que una aeronave envió por ACARS (texto libre y mensajes de tripulación, operaciones, compañía y mantenimiento), mostrados durante 48 horas en la ficha de esa aeronave en el mapa público. Antes se quitan los números de teléfono y las direcciones de correo. Los informes de posición y las pruebas de enlace no entran. Puedes desactivarlo en cualquier momento.
-Messages that aircraft send by ACARS (free text and crew, operations, company and maintenance messages) can be shown on the aircraft's card as well, with phone numbers and e-mail addresses removed. This is a separate choice that you can change in the Server menu.	Los mensajes que las aeronaves envían por ACARS (texto libre y mensajes de tripulación, operaciones, compañía y mantenimiento) también pueden mostrarse en la ficha de la aeronave, sin números de teléfono ni direcciones de correo. Es una opción aparte que puedes cambiar en el menú Servidor.
 #  sweep scanner
 %.0f MHz/s, %d hops, %d averages, %.0f ms per sweep	%.0f MHz/s, %d saltos, %d promedios, %.0f ms por barrido
 pick a radio first (the test signal and files cannot sweep)	elige primero una radio (la señal de prueba y los archivos no se pueden barrer)
@@ -1577,7 +1557,6 @@ Mode panel	Panel del modo
 Memory and frequencies	Memoria y frecuencias
 Receivers	Receptores
 Audio	Audio
-Server and support	Servidor y apoyo
 Take the guided tour	Hacer la visita guiada
 Choose the radio or recording that supplies samples. Record IQ saves the raw signal for later playback.	Elija la radio o la grabación que aporta las muestras. Record IQ guarda la señal sin procesar para reproducirla más tarde.
 Set the frequency, band and sample rate here. Gain and AGC set the input level; Second mode decodes another mode from the same capture.	Ajuste aquí la frecuencia, la banda y la tasa de muestreo. La ganancia y el AGC fijan el nivel de entrada; Segundo modo decodifica otro modo de la misma captura.
@@ -1587,7 +1566,6 @@ Each mode has its own tabs for decoded output, settings and tools. They change w
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Memoria guarda frecuencias con su modo y ajustes. Frecuencias y planes de banda muestran lo que hay en el aire, por modo.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Cada receptor une una radio con un modo. Esta barra permite cambiar entre ellos y elegir cuál reproduce el sonido.
 Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen reproduce la señal demodulada. El volumen y el silencio están aquí; Record audio la guarda en un archivo.
-Server sends decoded positions to the public map. Support helps fund development.	Servidor envía las posiciones decodificadas al mapa público. Apoyo ayuda a financiar el desarrollo.
 Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Aquí están la documentación, la solución de problemas, los créditos y las licencias. Visita guiada vuelve a iniciar esta visita.
 Monitor audio	Monitorizar audio
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Escucha el canal sintonizado en cualquier modo para reconocer una señal: las muestras de la radio se demodulan como USB, LSB, FM estrecha o AM. En silencio mientras el modo reproduce su propio sonido.
@@ -1634,7 +1612,6 @@ translation	traducción
 testing	pruebas
 idea	idea
 Thank you to everyone who sent fixes, reported bugs, shared recordings, translated or suggested ideas. The author is Kristijonas Adomaitis.	Gracias a todos los que enviaron correcciones, informaron de errores, compartieron grabaciones, tradujeron o propusieron ideas. El autor es Kristijonas Adomaitis.
-Want your name changed or removed? Tell us on Discord or open an issue.	¿Quieres que cambiemos o quitemos tu nombre? Dínoslo en Discord o abre un issue.
 # airband: airport search, band watch
 Airport data updated: %s	Datos de aeropuertos actualizados: %s
 Airport data not updated: %s	Datos de aeropuertos no actualizados: %s
@@ -1752,9 +1729,6 @@ SNR per channel	SNR por canal
 Second transmitter	Segundo transmisor
 Second bearing	Segunda marcación
 Position fix	Fijación de posición
-Sharing	Compartir
-Share my bearing on the map server	Compartir mi marcación en el servidor del mapa
-Needs Server > Send data to map server. Only the bearing, its uncertainty, the frequency and your station position go up; the map shows where bearings from several stations cross.	Requiere Servidor > Enviar datos al servidor del mapa. Solo suben la marcación, su incertidumbre, la frecuencia y la posición de tu estación; el mapa muestra dónde se cruzan las marcaciones de varias estaciones.
 Bearing and position of a transmitter from an antenna array such as the KrakenSDR	Marcación y posición de un transmisor con un array de antenas como el KrakenSDR
 Decoded only	Solo decodificados
 Hides tone-only pages and pages whose text could not be decoded.	Oculta los avisos solo de tono y los mensajes cuyo texto no se pudo decodificar.
@@ -1895,8 +1869,6 @@ Sure	Fiable
 Speaker (a guess from the wording)	Interlocutor (una suposición según las palabras)
 Click to copy this line	Clic para copiar esta línea
 Aircraft on the screen	Aeronave en pantalla
-Also share transcripts of aircraft radio calls (text becomes public on the map)	Compartir también transcripciones de llamadas de radio de aeronaves (el texto será público en el mapa)
-The text of airband radio calls that a speech engine on this computer made from what you receive (Transcripts window), linked to the aircraft by the callsign spoken in it, shown on that aircraft's card on the public map for 48 hours. It can contain mistakes. Phone numbers are removed first. Only airband is shared, never marine, amateur or other channels. Off until you choose it, and you can turn it off at any time.	El texto de llamadas de radio de banda aérea que un motor de voz de este ordenador ha creado a partir de lo que recibes (ventana Transcripciones), vinculado a la aeronave por el indicativo que se dice en él y mostrado en la ficha pública de esa aeronave en el mapa durante 48 horas. Puede contener errores. Antes se eliminan los números de teléfono. Solo se comparte banda aérea, nunca marina, radioafición ni otros canales. Desactivado hasta que lo elijas, y puedes desactivarlo cuando quieras.
 Transcripts ...	Transcripciones ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	Lo que se dice en la banda aérea y otros canales de voz, como texto: subtítulos en vivo, búsqueda, exportación. Desactivado hasta que lo actives.
 # Automations window
@@ -2412,8 +2384,6 @@ grey: predicted by the downloaded elements, blue: refined, green: measured, ambe
 residual %.1f Hz -> %.1f Hz (%d used, %d rejected); receiver offset %+.0f Hz	residuo %.1f Hz -> %.1f Hz (%d usadas, %d descartadas); desplazamiento del receptor %+.0f Hz
 mean anomaly %+.3f deg, mean motion %+.5f rev/day, inclination %+.4f deg, RAAN %+.4f deg	anomalía media %+.3f grados, movimiento medio %+.5f rev/día, inclinación %+.4f grados, RAAN %+.4f grados
 estimated timing error of the prediction: %.1f s before, %.1f s after (1 sigma)	error de tiempo estimado de la predicción: %.1f s antes, %.1f s después (1 sigma)
-Also share GPS interference cells (counts per area, no aircraft)	Compartir también celdas de interferencia GPS (recuentos por zona, sin aeronaves)
-For every 0.5 degree square (about 55 km) around your ADS-B receiver: how many aircraft were heard in the last hour and how many of them reported a poor GPS position. Only these two numbers per square are sent, never aircraft identities, tracks or your location. It feeds the GPS interference layer of the public map and is an indicator, not proof of jamming. Off until you choose it.	Para cada cuadrado de 0,5 grados (unos 55 km) alrededor de su receptor ADS-B: cuántas aeronaves se oyeron en la última hora y cuántas informaron de una mala posición GPS. Solo se envían estos dos números por cuadrado, nunca identidades de aeronaves, trayectorias ni su ubicación. Alimenta la capa de interferencia GPS del mapa público y es un indicio, no una prueba de inhibición. Desactivado hasta que lo elija.
 Calibrate...	Calibrar...
 Measure this radio's frequency error against an FM station or a carrier of known frequency	Medir el error de frecuencia de esta radio con una emisora FM o una portadora de frecuencia conocida
 Frequency calibration	Calibración de frecuencia
@@ -2464,26 +2434,6 @@ to (kHz)	hasta (kHz)
 Translate to English	Traducir al inglés
 Speech in another language is also translated to English, offline, next to the original. Needs a multilingual model and costs about 1.5 times more processor time; it is skipped when the engine cannot keep up. Nothing is sent anywhere. Translation into other languages is not available.	El habla en otro idioma también se traduce al inglés, sin conexión, junto al original. Necesita un modelo multilingüe y cuesta unas 1,5 veces más tiempo de procesador; se omite si el motor no da abasto. No se envía nada. No hay traducción a otros idiomas.
 The loaded model is English only: translation needs a multilingual model.	El modelo cargado es solo inglés: la traducción necesita un modelo multilingüe.
-Live: stop the room	En directo: detener la sala
-Copy room link	Copiar enlace de la sala
-Host PIN (to moderate on the room page):	PIN de anfitrión (para moderar en la página de la sala):
-Go live (Live rooms)...	Emitir en directo (salas en vivo)...
-Could not create the room	No se pudo crear la sala
-Lost the connection to the rooms server	Se perdió la conexión con el servidor de salas
-The live rooms server is not available yet.	El servidor de salas en vivo aún no está disponible.
-No internet connection.	Sin conexión a Internet.
-The live rooms server did not answer in time.	El servidor de salas en vivo no respondió a tiempo.
-The live rooms server is full right now. Try again later.	El servidor de salas en vivo está lleno ahora mismo. Inténtalo más tarde.
-Too many rooms were started from here. Try again in a few minutes.	Se han iniciado demasiadas salas desde aquí. Inténtalo de nuevo en unos minutos.
-The live rooms server refused the request.	El servidor de salas en vivo rechazó la solicitud.
-The live rooms server sent an answer Eye of ZorCom does not understand.	El servidor de salas en vivo envió una respuesta que Eye of ZorCom no entiende.
-Checking the live rooms server...	Comprobando el servidor de salas en vivo...
-Check the live rooms server again	Comprobar de nuevo el servidor de salas en vivo
-Live rooms: while you are live, anyone with the room link can watch this receiver's waterfall, the mode and the frequency you are tuned to, and chat with each other. The room list on the web also shows its title. Nothing is sent before you press Go live, and nothing is stored after the room ends. Your location, your name and the audio are never sent.	Salas en vivo: mientras estés en directo, cualquiera con el enlace de la sala puede ver la cascada de este receptor, el modo y la frecuencia sintonizada, y chatear entre sí. La lista de salas en la web también muestra su título. No se envía nada antes de pulsar Emitir en directo y no se guarda nada cuando termina la sala. Tu ubicación, tu nombre y el audio nunca se envían.
-Room title	Título de la sala
-Also show decoded ACARS text in the room (public)	Mostrar también el texto ACARS decodificado en la sala (público)
-Needs Server > Send data to map server and Also share interesting ACARS messages.	Requiere Servidor > Enviar datos al servidor del mapa y Compartir también mensajes ACARS interesantes.
-Go live	Emitir en directo
 Schedule passes by itself	Programar pasos automáticamente
 Takes the passes of the ticked groups one at a time, highest priority first, and starts, tunes and records each one without you. Overlapping passes are trimmed or skipped; a receiver you started yourself is left alone.	Toma los pasos de los grupos marcados de uno en uno, primero el de mayor prioridad, y inicia, sintoniza y graba cada uno sin que intervengas. Los pasos que se solapan se recortan u omiten; un receptor que iniciaste tú no se toca.
 Priority (higher wins)	Prioridad (la mayor gana)

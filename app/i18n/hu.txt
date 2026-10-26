@@ -215,7 +215,6 @@ New interface	Új felület
 Try the new interface. You can switch back at any time.	Próbáld ki az új felületet. Bármikor visszaválthatsz.
 Guided tour	Vezetett bemutató
 Tour	Bemutató
-by: Kristijonas Adomaitis, made with help from the community	készítette: Kristijonas Adomaitis, a közösség segítségével
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Köszönet mindenkinek, aki hibákat jelentett, felvételeket küldött és pull requesteket nyitott.
 Source	Forrás
 source	forrás
@@ -1046,8 +1045,6 @@ GNSS NMEA RMC/GGA (UDP)	GNSS NMEA RMC/GGA (UDP)
 Bluetooth LE advertisements, JSON (UDP)	Bluetooth LE hirdetések, JSON (UDP)
 LoRa / LoRaWAN / Meshtastic, JSON (UDP)	LoRa / LoRaWAN / Meshtastic, JSON (UDP)
 JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent.	JSON-sorok (egy objektum soronként), kivéve a GNSS-t, az NMEA. Ki van kapcsolva, amíg be nem kapcsol egy adatfolyamot. Csak a már strukturált üzenetekkel rendelkező módok mennek.
-Support	Support
-Support Eye of ZorCom on Ko-fi	Support Eye of ZorCom on Ko-fi
 Documentation	Dokumentáció
 Troubleshooting	Hibaelhárítás
 Website	Weboldal
@@ -1078,10 +1075,6 @@ Amber: DFS channels (radar sharing).	Borostyán: DFS-csatornák (radarral osztot
 Bright numbers: preferred scanning channels (PSC), where FILS discovery is sent.	Világos számok: előnyben részesített keresési csatornák (PSC), ahol a FILS discovery megy.
 start the receiver to see the channels	indítsd el a vevőt a csatornák megtekintéséhez
 # map server start-up question
-Keep sending positions	Pozíciók küldésének folytatása
-Eye of ZorCom asks this question at every start. "No, do not ask again" stops it until Eye of ZorCom is updated.	Az Eye of ZorCom minden indításkor feltészi ezt a kérdést. A „Nem, ne kérdezz többet” az Eye of ZorCom következő frissítéséig leállítja.
-Nothing is sent in this session. Eye of ZorCom asks again the next time it starts.	Ebben a munkamenetben semmi sem kerül elküldésre. Az Eye of ZorCom a következő indításkor újra rákérdez.
-Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu.	Semmi sem kerül elküldésre, és a kérdés az Eye of ZorCom következő frissítéséig nem jelenik meg. A Szerver menüben később is bekapcsolható.
 #  Wi-Fi HaLow
 (hidden)	(rejtett)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	A rádió %.1f Msps sebességgel megy: a %d MHz-es csatornákhoz legalább %.0f Msps kell (%.0f ajánlott). Válassz SEBESSÉGET a felső sávban, vagy másik vételi szélességet.
@@ -1333,16 +1326,6 @@ Project	Project
 Author	Author
 Licence	Licence
 Used for	Used for
-Update source	Frissítési forrás
-Automatic: GitHub	Automatikus: GitHub
-GitHub only	Csak GitHub
-Mirror only	Csak tükör
-Use the mirror when GitHub cannot be reached	Tükör használata, ha a GitHub nem érhető el
-Mirror address (https://host/{url} or a base address)	Tükör címe (https://host/{url} vagy alapcím)
-A mirror is a third-party web address you chose. It sees that you check for updates and which version you run. It is used only after GitHub fails (not at all with GitHub only), the package is checked against the checksum from GitHub when GitHub can be reached, and nothing is installed from a mirror without your confirmation.	A tükör egy harmadik fél általad választott webcíme. Látja, hogy frissítést keresel és melyik verziót használod. Csak a GitHub hibája után kerül sor rá („Csak GitHub” esetén soha), a csomagot a GitHub ellenőrzőösszegével veti össze a program, ha a GitHub elérhető, és tükörről semmi sem települ a jóváhagyásod nélkül.
-The list of versions came through the mirror and GitHub could not be reached to confirm the checksum: only the mirror vouches for this package. Nothing is installed without your confirmation.	A verziólista a tükrön át jött, és a GitHub nem volt elérhető az ellenőrzőösszeg megerősítéséhez: ezt a csomagot csak a tükör garantálja. Jóváhagyásod nélkül semmi sem települ.
-I understand, download it anyway	Értem, letöltöm mégis
-The list came through the mirror; the checksum was confirmed by GitHub.	A lista a tükrön át jött; az ellenőrzőösszeget a GitHub megerősítette.
 Noise remover (neural)##gennr	Zajszűrő (neurális)##gennr
 Mix of cleaned and original audio: right removes more noise, left keeps more of the original. Adds about 20 ms of delay.	A tisztított és az eredeti hang keveréke: jobbra több zajt távolít el, balra több marad az eredetiből. Kb. 20 ms késleltetést ad.
 Speech only; do not use on music or data modes.	Csak beszédhez; ne használd zenéhez vagy adatmódokhoz.
@@ -1455,9 +1438,6 @@ ACARS messages	ACARS-üzenetek
 %d ACARS messages	%d ACARS-üzenet
 Copy these messages as text	Üzenetek másolása szövegként
 No ACARS messages heard from this aircraft	Ettől a légi járműtől nem érkezett ACARS-üzenet
-Also share interesting ACARS messages (text becomes public on the map)	Az érdekes ACARS-üzenetek megosztása is (a szöveg nyilvános lesz a térképen)
-Messages an aircraft sent by ACARS (free text, crew, operations, company and maintenance messages), shown on that aircraft's card on the public map for 48 hours. Phone numbers and e-mail addresses are removed first. Position reports and link tests are not part of this. You can turn it off at any time.	A légi jármű ACARS-on küldött üzenetei (szabad szöveg, valamint személyzeti, üzemeltetési, társasági és karbantartási üzenetek) 48 órán át látszanak a jármű kártyáján a nyilvános térképen. A telefonszámokat és e-mail-címeket előtte eltávolítjuk. A helyzetjelentések és a kapcsolatpróbák nem tartoznak ide. Bármikor kikapcsolhatod.
-Messages that aircraft send by ACARS (free text and crew, operations, company and maintenance messages) can be shown on the aircraft's card as well, with phone numbers and e-mail addresses removed. This is a separate choice that you can change in the Server menu.	A légi járművek ACARS-on küldött üzenetei (szabad szöveg, valamint személyzeti, üzemeltetési, társasági és karbantartási üzenetek) megjelenhetnek a jármű kártyáján is, telefonszámok és e-mail-címek nélkül. Ez külön választás, a Szerver menüben módosíthatod.
 #  sweep scanner
 %.0f MHz/s, %d hops, %d averages, %.0f ms per sweep	%.0f MHz/s, %d ugrás, %d átlagolás, %.0f ms söprésenként
 pick a radio first (the test signal and files cannot sweep)	előbb válassz rádiót (a tesztjel és a fájlok nem söpörhetők)
@@ -1563,7 +1543,6 @@ Mode panel	Mód panel
 Memory and frequencies	Memória és frekvenciák
 Receivers	Vevők
 Audio	Hang
-Server and support	Szerver és támogatás
 Take the guided tour	Útmutató indítása
 Choose the radio or recording that supplies samples. Record IQ saves the raw signal for later playback.	Válassza ki a mintákat szolgáltató rádiót vagy felvételt. A Record IQ elmenti a nyers jelet a későbbi lejátszáshoz.
 Set the frequency, band and sample rate here. Gain and AGC set the input level; Second mode decodes another mode from the same capture.	Itt állítható be a frekvencia, a sáv és a mintavételi sebesség. Az erősítés és az AGC a bemeneti szintet szabja meg; a Második mód ugyanabból a felvételből dekódol egy másik módot.
@@ -1573,7 +1552,6 @@ Each mode has its own tabs for decoded output, settings and tools. They change w
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	A Memória a frekvenciákat móddal és beállításokkal együtt tárolja. A Frekvenciák és a sávtervek módonként mutatják, mi van adásban.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Minden vevő egy rádiót párosít egy móddal. Ez a sáv vált közöttük, és kijelöli, melyik szólaljon meg.
 Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	A Listen a demodulált jelet játssza le. A hangerő és a némítás itt van; a Record audio fájlba menti.
-Server sends decoded positions to the public map. Support helps fund development.	A Szerver a dekódolt pozíciókat a nyilvános térképre küldi. A Támogatás segít finanszírozni a fejlesztést.
 Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Itt található a dokumentáció, a hibaelhárítás, a közreműködők és a licencek. Az Útmutató újra elindítja ezt a bemutatót.
 Monitor audio	Hang figyelése
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Hallgasd a behangolt csatornát bármely módban egy jel felismeréséhez: a rádió mintáit USB, LSB, keskeny FM vagy AM szerint demodulálja. Néma, amíg a mód saját hangot játszik.
@@ -1620,7 +1598,6 @@ translation	fordítás
 testing	tesztelés
 idea	ötlet
 Thank you to everyone who sent fixes, reported bugs, shared recordings, translated or suggested ideas. The author is Kristijonas Adomaitis.	Köszönet mindenkinek, aki javítást küldött, hibát jelentett, felvételt osztott meg, fordított vagy ötletet adott. A szerző Kristijonas Adomaitis.
-Want your name changed or removed? Tell us on Discord or open an issue.	Szeretnéd, ha módosítanánk vagy törölnénk a neved? Szólj a Discordon, vagy nyiss egy issue-t.
 # airband: airport search, band watch
 Airport data updated: %s	Repülőtéri adatok frissítve: %s
 Airport data not updated: %s	A repülőtéri adatok nem frissültek: %s
@@ -1738,9 +1715,6 @@ SNR per channel	SNR csatornánként
 Second transmitter	Második adó
 Second bearing	Második irány
 Position fix	Pozíciómeghatározás
-Sharing	Megosztás
-Share my bearing on the map server	Irányom megosztása a térképszerverrel
-Needs Server > Send data to map server. Only the bearing, its uncertainty, the frequency and your station position go up; the map shows where bearings from several stations cross.	Szükséges hozzá: Szerver > Adatok küldése a térképszervernek. Csak az irány, bizonytalansága, a frekvencia és az állomásod pozíciója kerül fel; a térkép megmutatja, hol metszik egymást több állomás irányai.
 Bearing and position of a transmitter from an antenna array such as the KrakenSDR	Egy adó iránya és pozíciója antennarendszerrel, például a KrakenSDR-rel
 Decoded only	Csak dekódolt
 Hides tone-only pages and pages whose text could not be decoded.	Elrejti a csak hangjelzéses hívásokat és azokat az üzeneteket, amelyek szövege nem volt dekódolható.
@@ -1881,8 +1855,6 @@ Sure	Biztos
 Speaker (a guess from the wording)	Beszélő (a szavakból tippelve)
 Click to copy this line	Kattints a sor másolásához
 Aircraft on the screen	Légijármű a képernyőn
-Also share transcripts of aircraft radio calls (text becomes public on the map)	A légijárművek rádióhívásainak átiratát is megosztom (a szöveg nyilvános lesz a térképen)
-The text of airband radio calls that a speech engine on this computer made from what you receive (Transcripts window), linked to the aircraft by the callsign spoken in it, shown on that aircraft's card on the public map for 48 hours. It can contain mistakes. Phone numbers are removed first. Only airband is shared, never marine, amateur or other channels. Off until you choose it, and you can turn it off at any time.	Az a repülési sávú rádióhívás-szöveg, amelyet a számítógéped beszédfelismerője készített a vett jelből (Átiratok ablak), a benne elhangzó hívójel alapján a légijárműhöz kötve, 48 órán át nyilvánosan megjelenik a légijármű kártyáján a térképen. Hibákat tartalmazhat. A telefonszámokat előtte eltávolítja. Csak a repülési sáv kerül megosztásra, soha tengeri, amatőr vagy más csatorna. Kikapcsolva, amíg be nem kapcsolod, és bármikor kikapcsolhatod.
 Transcripts ...	Átiratok ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	Ami a repülési sávon és más hangcsatornákon elhangzik, szövegként: élő feliratok, keresés, exportálás. Kikapcsolva, amíg be nem kapcsolod.
 # Automations window
@@ -2398,8 +2370,6 @@ grey: predicted by the downloaded elements, blue: refined, green: measured, ambe
 residual %.1f Hz -> %.1f Hz (%d used, %d rejected); receiver offset %+.0f Hz	maradék %.1f Hz -> %.1f Hz (%d felhasználva, %d elvetve); vevőeltolás %+.0f Hz
 mean anomaly %+.3f deg, mean motion %+.5f rev/day, inclination %+.4f deg, RAAN %+.4f deg	közepes anomália %+.3f fok, közepes mozgás %+.5f ford./nap, inklináció %+.4f fok, RAAN %+.4f fok
 estimated timing error of the prediction: %.1f s before, %.1f s after (1 sigma)	az előrejelzés becsült időhibája: %.1f s előtte, %.1f s utána (1 szigma)
-Also share GPS interference cells (counts per area, no aircraft)	GPS-zavarási cellák megosztása is (területenkénti számok, repülők nélkül)
-For every 0.5 degree square (about 55 km) around your ADS-B receiver: how many aircraft were heard in the last hour and how many of them reported a poor GPS position. Only these two numbers per square are sent, never aircraft identities, tracks or your location. It feeds the GPS interference layer of the public map and is an indicator, not proof of jamming. Off until you choose it.	Az ADS-B vevője körül minden 0,5 fokos négyzetre (kb. 55 km): hány repülőgépet hallott az elmúlt órában, és közülük hány jelentett rossz GPS-pozíciót. Négyzetenként csak ez a két szám megy el, repülőgép-azonosító, nyomvonal vagy az Ön helye soha. A nyilvános térkép GPS-zavarási rétegét táplálja, és jelzés, nem bizonyíték zavarásra. Kikapcsolva, amíg be nem kapcsolja.
 Calibrate...	Kalibrálás...
 Measure this radio's frequency error against an FM station or a carrier of known frequency	A rádió frekvenciahibájának mérése egy FM-adóhoz vagy ismert frekvenciájú vivőhöz képest
 Frequency calibration	Frekvenciakalibrálás
@@ -2450,26 +2420,6 @@ to (kHz)	eddig (kHz)
 Translate to English	Fordítás angolra
 Speech in another language is also translated to English, offline, next to the original. Needs a multilingual model and costs about 1.5 times more processor time; it is skipped when the engine cannot keep up. Nothing is sent anywhere. Translation into other languages is not available.	A más nyelven elhangzó beszédet a program offline angolra is lefordítja, az eredeti mellett. Többnyelvű modellt igényel, és kb. 1,5-szer több processzoridőbe kerül; kimarad, ha a motor nem bírja tartani a lépést. Semmi sem kerül elküldésre. Más nyelvekre fordítás nem érhető el.
 The loaded model is English only: translation needs a multilingual model.	A betöltött modell csak angol: a fordításhoz többnyelvű modell kell.
-Live: stop the room	Élő: a szoba leállítása
-Copy room link	Szobalink másolása
-Host PIN (to moderate on the room page):	Házigazda PIN (a szoba oldalán történő moderáláshoz):
-Go live (Live rooms)...	Élő adás indítása (Élő szobák)...
-Could not create the room	A szobát nem sikerült létrehozni
-Lost the connection to the rooms server	Megszakadt a kapcsolat a szobaszerverrel
-The live rooms server is not available yet.	Az élő szobák kiszolgálója még nem érhető el.
-No internet connection.	Nincs internetkapcsolat.
-The live rooms server did not answer in time.	Az élő szobák kiszolgálója nem válaszolt időben.
-The live rooms server is full right now. Try again later.	Az élő szobák kiszolgálója éppen megtelt. Próbáld újra később.
-Too many rooms were started from here. Try again in a few minutes.	Innen túl sok szobát indítottak. Próbáld újra néhány perc múlva.
-The live rooms server refused the request.	Az élő szobák kiszolgálója elutasította a kérést.
-The live rooms server sent an answer Eye of ZorCom does not understand.	Az élő szobák kiszolgálója olyan választ küldött, amelyet az Eye of ZorCom nem ért.
-Checking the live rooms server...	Az élő szobák kiszolgálójának ellenőrzése...
-Check the live rooms server again	Az élő szobák kiszolgálójának újraellenőrzése
-Live rooms: while you are live, anyone with the room link can watch this receiver's waterfall, the mode and the frequency you are tuned to, and chat with each other. The room list on the web also shows its title. Nothing is sent before you press Go live, and nothing is stored after the room ends. Your location, your name and the audio are never sent.	Élő szobák: amíg élő adásban vagy, a szoba linkjével bárki láthatja ennek a vevőnek a vízesésdiagramját, a módot és a beállított frekvenciát, és csevegni tud másokkal. A weben a szobalista a címét is mutatja. Az Élő adás indítása gomb megnyomása előtt semmi nem kerül elküldésre, és a szoba megszűnése után semmi nem marad tárolva. A helyed, a neved és a hang soha nem kerül elküldésre.
-Room title	Szoba címe
-Also show decoded ACARS text in the room (public)	A dekódolt ACARS-szöveg megjelenítése a szobában (nyilvános)
-Needs Server > Send data to map server and Also share interesting ACARS messages.	Szükséges hozzá: Szerver > Adatok küldése a térképszervernek és Az érdekes ACARS-üzenetek megosztása is.
-Go live	Élő adás indítása
 Schedule passes by itself	Átvonulások automatikus ütemezése
 Takes the passes of the ticked groups one at a time, highest priority first, and starts, tunes and records each one without you. Overlapping passes are trimmed or skipped; a receiver you started yourself is left alone.	A bejelölt csoportok átvonulásait egymás után veszi, a legnagyobb prioritásúval kezdve, és mindegyiket magától indítja, hangolja és rögzíti. Az átfedő átvonulásokat lerövidíti vagy kihagyja; a te indította vevőhöz nem nyúl.
 Priority (higher wins)	Prioritás (a magasabb nyer)
