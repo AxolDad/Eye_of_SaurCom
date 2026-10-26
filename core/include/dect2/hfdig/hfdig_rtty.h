@@ -25,7 +25,7 @@ constexpr double kRttyShiftTable[kRttyShifts] = {170.0, 200.0, 425.0, 450.0, 850
 constexpr size_t kRttyTextMax = 8000;   // characters kept in the telemetry text
 
 // what the test transmission sends in one loop (a line feed ends it; letters, figures and the shifts between them)
-constexpr const char* kRttyTestText = "RYRYRY CQ CQ DE ONAIR TEST 0123456789 1/2 -.:? THE QUICK BROWN FOX\n";
+constexpr const char* kRttyTestText = "RYRYRY CQ CQ DE ZORCOM TEST 0123456789 1/2 -.:? THE QUICK BROWN FOX\n";
 
 class HfdigTestAudio;
 // Custom RTTY audio (8000 Hz). Empty text sends kRttyTestText. reverse: the mark is the upper tone. USB/LSB is the HF mixer, not this flag.

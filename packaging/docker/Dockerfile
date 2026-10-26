@@ -1,31 +1,31 @@
-# OnAir in a browser: the whole desktop GUI runs on a virtual display inside the container and Selkies streams picture and
+# Eye of ZorCom in a browser: the whole desktop GUI runs on a virtual display inside the container and Selkies streams picture and
 # sound to any browser (https://<host>:3001). For servers and NAS boxes without a screen. See README.md here.
-#   docker build -t onair packaging/docker                                  (the latest release that this file names)
-#   docker build -t onair --build-arg ONAIR_VERSION=0.2.6 packaging/docker  (another release)
+#   docker build -t zorcom packaging/docker                                  (the latest release that this file names)
+#   docker build -t zorcom --build-arg ZORCOM_VERSION=0.2.6 packaging/docker  (another release)
 
-# ---------- full: the Selkies desktop with OnAir installed, minus what no OnAir user needs ----------
+# ---------- full: the Selkies desktop with Eye of ZorCom installed, minus what no Eye of ZorCom user needs ----------
 FROM ghcr.io/linuxserver/baseimage-selkies:ubuntunoble AS full
 
-ARG ONAIR_VERSION=0.2.5
+ARG ZORCOM_VERSION=0.2.5
 ARG TARGETARCH
 
-# The release .deb: it carries its own FFmpeg and the libraries of the radios OnAir drives itself; the SoapySDR modules add the rest.
-# libfaad2: the SBR and parametric stereo of DAB+ HE-AAC stations (found at run time). codec2 comes with OnAir; mbelib does not (docs/CODECS.md).
-# fonts-wqy-microhei: Chinese for the UI (one of the fonts OnAir looks for) in 5 MB, instead of the 90 MB of Noto CJK.
+# The release .deb: it carries its own FFmpeg and the libraries of the radios Eye of ZorCom drives itself; the SoapySDR modules add the rest.
+# libfaad2: the SBR and parametric stereo of DAB+ HE-AAC stations (found at run time). codec2 comes with Eye of ZorCom; mbelib does not (docs/CODECS.md).
+# fonts-wqy-microhei: Chinese for the UI (one of the fonts Eye of ZorCom looks for) in 5 MB, instead of the 90 MB of Noto CJK.
 # debs/ in the build context (the release workflow puts its own build there: the release is still a draft then, which has no anonymous download) wins over the download.
 RUN --mount=type=bind,source=.,target=/ctx set -eux; \
     apt-get update; \
     arch="${TARGETARCH:-$(dpkg --print-architecture)}"; \
-    if ls /ctx/debs/onair_*_"$arch".deb >/dev/null 2>&1; then cp /ctx/debs/onair_*_"$arch".deb /tmp/onair.deb; else \
-    curl -fsSL --retry 8 --retry-all-errors --retry-delay 30 -o /tmp/onair.deb \
-      "https://github.com/adswill/OnAir/releases/download/v${ONAIR_VERSION}/onair_${ONAIR_VERSION}_${arch}.deb"; fi; \
-    apt-get install -y --no-install-recommends /tmp/onair.deb zenity soapysdr-module-all libfaad2 fonts-dejavu-core fonts-wqy-microhei; \
+    if ls /ctx/debs/zorcom_*_"$arch".deb >/dev/null 2>&1; then cp /ctx/debs/zorcom_*_"$arch".deb /tmp/zorcom.deb; else \
+    curl -fsSL --retry 8 --retry-all-errors --retry-delay 30 -o /tmp/zorcom.deb \
+      "https://github.com/AxolDad/OnAir-SDR-Suite/releases/download/v${ZORCOM_VERSION}/zorcom_${ZORCOM_VERSION}_${arch}.deb"; fi; \
+    apt-get install -y --no-install-recommends /tmp/zorcom.deb zenity soapysdr-module-all libfaad2 fonts-dejavu-core fonts-wqy-microhei; \
     # Docker Engine (the base image can run Docker inside), the compiler tool chain, every locale at once (the one LANG names is
-    # made at the start instead, init-onair) and Noto CJK. Matched by name so that the same list works on x86-64 and arm64.
+    # made at the start instead, init-zorcom) and Noto CJK. Matched by name so that the same list works on x86-64 and arm64.
     dpkg-query -W -f='${Package}\n' | grep -E '^(docker-ce(-cli)?|docker-(buildx|compose)-plugin|containerd\.io|iptables|nftables|cmake(-data)?|git(-man)?|locales-all|fonts-noto-cjk|(gcc|g\+\+)(-[0-9]+)?(-[a-z0-9_-]+-linux-gnu)?|lib(stdc\+\+|gcc)-[0-9]+-dev|libc6-dev|libc-dev-bin|linux-libc-dev|lib(asan|tsan|lsan|ubsan|hwasan)[0-9]+|binutils(-common|-[a-z0-9_-]+-linux-gnu)?|libbinutils|libgprofng0|libctf0|libctf-nobfd0|libsframe1)$' | xargs -r apt-get purge -y; \
     locale-gen en_US.UTF-8; \
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/* /var/log/apt/* /var/log/dpkg.log /usr/share/man/* /usr/share/info/*; \
-    find /usr/share/doc -type f ! -name 'copyright' ! -ipath '/usr/share/doc/onair/*' -delete; find /usr/share/doc -xtype l -delete; find /usr/share/doc -type d -empty -delete
+    find /usr/share/doc -type f ! -name 'copyright' ! -ipath '/usr/share/doc/zorcom/*' -delete; find /usr/share/doc -xtype l -delete; find /usr/share/doc -type d -empty -delete
 
 COPY root/ /
 
@@ -33,9 +33,9 @@ COPY root/ /
 FROM scratch
 COPY --from=full / /
 
-LABEL org.opencontainers.image.title="OnAir" \
-      org.opencontainers.image.description="OnAir software-defined radio receiver, its full GUI in the browser" \
-      org.opencontainers.image.source="https://github.com/adswill/OnAir" \
+LABEL org.opencontainers.image.title="Eye of ZorCom" \
+      org.opencontainers.image.description="Eye of ZorCom software-defined radio receiver, its full GUI in the browser" \
+      org.opencontainers.image.source="https://github.com/AxolDad/OnAir-SDR-Suite" \
       org.opencontainers.image.licenses="GPL-3.0-or-later"
 
 # The settings of the base image (docker image inspect ghcr.io/linuxserver/baseimage-selkies:ubuntunoble): a single-layer image does
@@ -58,14 +58,14 @@ ENV PATH=/lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bi
     DISABLE_ZINK=false \
     DISABLE_DRI3=false \
     SELKIES_ENCODER=x264enc,jpeg \
-    TITLE=OnAir \
-    SELKIES_UI_TITLE=OnAir \
+    TITLE="Eye of ZorCom" \
+    SELKIES_UI_TITLE="Eye of ZorCom" \
     MAX_RES=3840x2160 \
-    ONAIR_NO_UPDATE_CHECK=1
+    ZORCOM_NO_UPDATE_CHECK=1
 
 EXPOSE 3000 3001
 VOLUME /config
-# s6-overlay starts as root on purpose: its init steps need it (init-onair: chgrp of the radios, locale-gen), and the base image
-# starts every long-running service as the user abc (s6-setuidgid abc): Xvfb, the desktop and OnAir. A USER line would stop s6.
+# s6-overlay starts as root on purpose: its init steps need it (init-zorcom: chgrp of the radios, locale-gen), and the base image
+# starts every long-running service as the user abc (s6-setuidgid abc): Xvfb, the desktop and Eye of ZorCom. A USER line would stop s6.
 # nosemgrep: dockerfile.security.missing-user-entrypoint.missing-user-entrypoint
 ENTRYPOINT ["/init"]

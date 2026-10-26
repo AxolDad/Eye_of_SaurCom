@@ -1,5 +1,5 @@
 // Deep Space Network Now: what NASA's DSN dishes at Goldstone, Madrid and Canberra are doing, from the public XML behind
-// eyes.nasa.gov/apps/dsn-now (refreshed about every 5 s). The Rust crate rust/onair_dsn reads the XML; this turns its fixed tables into a
+// eyes.nasa.gov/apps/dsn-now (refreshed about every 5 s). The Rust crate rust/zorcom_dsn reads the XML; this turns its fixed tables into a
 // tree of stations, dishes, targets and signals, with the spacecraft names, dish sizes and site positions of the configuration file.
 #pragma once
 #include <cstdint>
@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-struct OnairDsnConfig;
+struct ZorcomDsnConfig;
 
 namespace dect2 {
 namespace dsn {
@@ -67,7 +67,7 @@ public:
     bool site(const std::string& name, double& lat, double& lon) const;
     size_t spacecraftCount() const;
 private:
-    std::unique_ptr<OnairDsnConfig> c_;
+    std::unique_ptr<ZorcomDsnConfig> c_;
     bool loaded_ = false;
 };
 

@@ -139,7 +139,7 @@ bool TimeMachine::trigger(const std::string& path, double preSeconds, double pos
     {
         std::lock_guard<std::mutex> lk(mu_);
         error_.clear();
-        worker_ = dect2::namedThread("onair-tmsave", [this, r, path, start, end, centerHz, sigmf] { saveLoop(r, path, start, end, centerHz, sigmf); });
+        worker_ = dect2::namedThread("zorcom-tmsave", [this, r, path, start, end, centerHz, sigmf] { saveLoop(r, path, start, end, centerHz, sigmf); });
     }
     return true;
 }

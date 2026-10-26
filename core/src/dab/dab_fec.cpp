@@ -334,7 +334,7 @@ bool uepPuncture(const uint8_t* mother, int index, uint8_t* out) {
     return ok && have - k < 64;
 }
 
-// ------------------------------------------------------------------ Reed-Solomon (120,110): core/src/fec/fec_proto.cpp (C++) or the Rust crate onair_fec
+// ------------------------------------------------------------------ Reed-Solomon (120,110): core/src/fec/fec_proto.cpp (C++) or the Rust crate zorcom_fec
 void rsEncode120(const uint8_t* data, uint8_t* cw) { fecp::rs120Encode(data, cw); }
 int rsDecode120(uint8_t* cw) { return fecp::rs120Decode(cw); }
 

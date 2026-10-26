@@ -4,7 +4,7 @@
 // tests, synthetic bytes). Layers, bottom up:
 //   * PHY frame = 4 LDPC blocks of blockPayloadBytes (178; 118 robust), each with its own CRC-16 -> a block is a "cell" (lost when its CRC fails);
 //   * cell = 1 byte "offset of the first packet that starts in this cell" (0xFF = none) + (cellBytes - 1) bytes of stream;
-//   * FEC group = G data cells + P parity cells (Reed-Solomon erasure code over GF(256), Cauchy matrix; any G of the G + P cells restore the group; the erasure code is Rust: rust/onair_kris/src/erasure.rs). N = G + P is a power
+//   * FEC group = G data cells + P parity cells (Reed-Solomon erasure code over GF(256), Cauchy matrix; any G of the G + P cells restore the group; the erasure code is Rust: rust/zorcom_kris/src/erasure.rs). N = G + P is a power
 //     of two times 4... (4, 8, 16, 32, 64) so a group is a whole number of frames and the 16-bit frame sequence number wraps on a group boundary;
 //   * packets: [type:4 | stream:4][seq:16][len:16][payload][CRC-32 over header + payload] (KAAL section 6.2), packed one after the other into the data cells of a group;
 //     a packet never crosses a group; the rest of a group is filled with 0xFF (type 15 stream 15 = fill);

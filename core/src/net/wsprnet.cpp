@@ -12,8 +12,8 @@
 #include <thread>
 #include "dect2/common/timecompat.h"
 
-#ifndef ONAIR_VERSION
-#define ONAIR_VERSION "dev"
+#ifndef ZORCOM_VERSION
+#define ZORCOM_VERSION "dev"
 #endif
 
 namespace dect2 {
@@ -139,7 +139,7 @@ struct WsprNet::Impl {
     bool credsOk() const { return pskr::validCallsign(cfg.call) && pskr::validLocator(cfg.locator); }
 
     void sendOne(const wsprnet::SpotFields& spot) {
-        const std::string ver = std::string("OnAir-") + ONAIR_VERSION;
+        const std::string ver = std::string("ZorCom-") + ZORCOM_VERSION;
         const std::string body = wsprnet::encodeSpotBody(spot, ver);
         int code = 0;
         std::string err;
@@ -197,7 +197,7 @@ void WsprNet::configure(const WsprNetConfig& c) {
         start = cc.on && !p.th.joinable();
         if (start) p.quit = false;
     }
-    if (start) p.th = dect2::namedThread("onair-wspr", [&p] { p.run(); });
+    if (start) p.th = dect2::namedThread("zorcom-wspr", [&p] { p.run(); });
     p.cv.notify_all();
 }
 

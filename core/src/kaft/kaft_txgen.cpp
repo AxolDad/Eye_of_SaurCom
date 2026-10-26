@@ -167,7 +167,7 @@ bool kaftFromRequest(const TxRequest& r, std::string& fileName, std::vector<uint
     callsign.clear();
     for (char c : r.callsign) callsign += (char)std::toupper((unsigned char)c);
     while (!callsign.empty() && callsign.back() == ' ') callsign.pop_back();
-    if (callsign.empty()) callsign = "ONAIR";
+    if (callsign.empty()) callsign = "ZORCOM";
     if (callsign.size() > 6) { err = "KAFT: the callsign is at most 6 characters"; return false; }
     for (char c : callsign) {
         if (!(c == '/' || c == '-' || c == '.' || (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z'))) { err = "KAFT: the callsign may hold only letters, digits and / - ."; return false; }
@@ -187,9 +187,9 @@ bool kaftFromRequest(const TxRequest& r, std::string& fileName, std::vector<uint
         if (data.size() > kMaxFile) { err = "KAFT: a file is at most 256 MiB"; return false; }
         fileName = baseOf(r.file);
     } else {
-        const std::string t = "OnAir KAFT demo file.\nA file sent one-way in frames of LDPC blocks, each with its own CRC-32.\n";
+        const std::string t = "ZorCom KAFT demo file.\nA file sent one-way in frames of LDPC blocks, each with its own CRC-32.\n";
         data.assign(t.begin(), t.end());
-        fileName = "onair-kaft-demo.txt";
+        fileName = "zorcom-kaft-demo.txt";
     }
     if (fileName.size() > 90) fileName = fileName.substr(fileName.size() - 90);
     return true;

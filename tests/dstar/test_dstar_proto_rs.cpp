@@ -1,6 +1,6 @@
-// Golden-vector test of the Rust D-STAR frame layer (rust/onair_dstar, dect2::dstar): CRC, header pack / unpack, flag texts, the header FEC (interleaver,
+// Golden-vector test of the Rust D-STAR frame layer (rust/zorcom_dstar, dect2::dstar): CRC, header pack / unpack, flag texts, the header FEC (interleaver,
 // scrambler, convolutional code, soft Viterbi with noisy / NaN input), the AMBE order, NMEA and D-PRS lines built, mutated and corrupted (the fix of a rejected
-// line too), over ONAIR_DIFF_ITERS (default 200000) seeded inputs per family. Every result goes into a digest (tests/common/golden.h; doubles rounded to 1e-6,
+// line too), over ZORCOM_DIFF_ITERS (default 200000) seeded inputs per family. Every result goes into a digest (tests/common/golden.h; doubles rounded to 1e-6,
 // floats widened) compared with the one recorded from the C++ layer the Rust code replaced.
 #include "dect2/dstar/dstar_proto.h"
 #include "../common/golden.h"
@@ -87,7 +87,7 @@ static std::string dprsLine(bool fixCrc) {
 }
 
 int main() {
-    const char* it = getenv("ONAIR_DIFF_ITERS");
+    const char* it = getenv("ZORCOM_DIFF_ITERS");
     const long iters = it ? atol(it) : 200000;
 
     addBytes(A::kFrameSync, 15); addBytes(A::kDataSync, 24); addBytes(A::kEndPattern, 48); addBytes(A::kSlowScramble, 3);

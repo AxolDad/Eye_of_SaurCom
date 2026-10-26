@@ -231,7 +231,7 @@ void PskReporter::configure(const PskReporterConfig& c) {
         start = cc.on && !p.th.joinable();
         if (start) p.quit = false;
     }
-    if (start) p.th = dect2::namedThread("onair-psk", [&p] { p.run(); });
+    if (start) p.th = dect2::namedThread("zorcom-psk", [&p] { p.run(); });
     p.cv.notify_all();
 }
 PskReporterConfig PskReporter::config() const { std::lock_guard<std::mutex> lk(impl_->mu); return impl_->cfg; }

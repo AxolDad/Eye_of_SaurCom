@@ -209,7 +209,6 @@ New interface	Nowy interfejs
 Try the new interface. You can switch back at any time.	Wypróbuj nowy interfejs. W każdej chwili możesz wrócić do poprzedniego.
 Guided tour	Wycieczka z przewodnikiem
 Tour	Wycieczka
-by: Kristijonas Adomaitis, made with help from the community	autor: Kristijonas Adomaitis, przy pomocy społeczności
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Dziękujemy wszystkim, którzy zgłaszali błędy, przesyłali nagrania i wysyłali pull requesty.
 Source	Źródło
 source	źródło
@@ -1060,8 +1059,6 @@ GNSS NMEA RMC/GGA (UDP)	GNSS NMEA RMC/GGA (UDP)
 Bluetooth LE advertisements, JSON (UDP)	Reklamy Bluetooth LE, JSON (UDP)
 LoRa / LoRaWAN / Meshtastic, JSON (UDP)	LoRa / LoRaWAN / Meshtastic, JSON (UDP)
 JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent.	Linie JSON (jeden obiekt na linię), oprócz GNSS, które jest NMEA. Wyłączone, dopóki nie włączysz kanału. Wysyłane są tylko tryby, które już mają uporządkowane komunikaty.
-Support	Support
-Support Eye of ZorCom on Ko-fi	Support Eye of ZorCom on Ko-fi
 Documentation	Dokumentacja
 Troubleshooting	Rozwiązywanie problemów
 Website	Strona internetowa
@@ -1092,10 +1089,6 @@ Amber: DFS channels (radar sharing).	Bursztyn: kanały DFS (współdzielone z ra
 Bright numbers: preferred scanning channels (PSC), where FILS discovery is sent.	Jasne liczby: preferowane kanały skanowania (PSC), na których nadawane jest FILS discovery.
 start the receiver to see the channels	uruchom odbiornik, aby zobaczyć kanały
 # map server start-up question
-Keep sending positions	Dalej wysyłaj pozycje
-Eye of ZorCom asks this question at every start. "No, do not ask again" stops it until Eye of ZorCom is updated.	Eye of ZorCom zadaje to pytanie przy każdym uruchomieniu. „Nie, nie pytaj ponownie” wyłącza je do następnej aktualizacji Eye of ZorCom.
-Nothing is sent in this session. Eye of ZorCom asks again the next time it starts.	W tej sesji nic nie jest wysyłane. Eye of ZorCom zapyta ponownie przy następnym uruchomieniu.
-Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu.	Nic nie jest wysyłane, a to pytanie nie pojawi się do następnej aktualizacji Eye of ZorCom. Nadal możesz to włączyć później w menu Serwer.
 #  Wi-Fi HaLow
 (hidden)	(ukryta)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	Radio pracuje z %.1f Msps: kanały %d MHz wymagają co najmniej %.0f Msps (zalecane %.0f). Wybierz SZYBKOŚĆ na górnym pasku albo inną szerokość odbioru.
@@ -1347,16 +1340,6 @@ Project	Project
 Author	Author
 Licence	Licence
 Used for	Used for
-Update source	Źródło aktualizacji
-Automatic: GitHub	Automatyczne: GitHub
-GitHub only	Tylko GitHub
-Mirror only	Tylko serwer lustrzany
-Use the mirror when GitHub cannot be reached	Użyj serwera lustrzanego, gdy GitHub jest niedostępny
-Mirror address (https://host/{url} or a base address)	Adres serwera lustrzanego (https://host/{url} lub adres bazowy)
-A mirror is a third-party web address you chose. It sees that you check for updates and which version you run. It is used only after GitHub fails (not at all with GitHub only), the package is checked against the checksum from GitHub when GitHub can be reached, and nothing is installed from a mirror without your confirmation.	Serwer lustrzany to wybrany przez Ciebie adres internetowy osoby trzeciej. Widzi, że sprawdzasz aktualizacje i jakiej wersji używasz. Jest używany tylko po niepowodzeniu GitHub (nigdy przy „Tylko GitHub”), pakiet jest sprawdzany sumą kontrolną z GitHub, gdy GitHub jest osiągalny, a nic z serwera lustrzanego nie jest instalowane bez Twojego potwierdzenia.
-The list of versions came through the mirror and GitHub could not be reached to confirm the checksum: only the mirror vouches for this package. Nothing is installed without your confirmation.	Lista wersji przyszła przez serwer lustrzany, a GitHub był niedostępny, by potwierdzić sumę kontrolną: za ten pakiet ręczy tylko serwer lustrzany. Nic nie zostanie zainstalowane bez Twojego potwierdzenia.
-I understand, download it anyway	Rozumiem, pobierz mimo to
-The list came through the mirror; the checksum was confirmed by GitHub.	Lista przyszła przez serwer lustrzany; sumę kontrolną potwierdził GitHub.
 Noise remover (neural)##gennr	Usuwanie szumu (neuronowe)##gennr
 Mix of cleaned and original audio: right removes more noise, left keeps more of the original. Adds about 20 ms of delay.	Mieszanka dźwięku oczyszczonego i oryginalnego: w prawo usuwa więcej szumu, w lewo zostaje więcej oryginału. Dodaje około 20 ms opóźnienia.
 Speech only; do not use on music or data modes.	Tylko mowa; nie używaj przy muzyce ani trybach danych.
@@ -1469,9 +1452,6 @@ ACARS messages	Wiadomości ACARS
 %d ACARS messages	%d wiadomości ACARS
 Copy these messages as text	Skopiuj te wiadomości jako tekst
 No ACARS messages heard from this aircraft	Nie odebrano wiadomości ACARS od tego statku powietrznego
-Also share interesting ACARS messages (text becomes public on the map)	Udostępniaj także ciekawe wiadomości ACARS (tekst staje się publiczny na mapie)
-Messages an aircraft sent by ACARS (free text, crew, operations, company and maintenance messages), shown on that aircraft's card on the public map for 48 hours. Phone numbers and e-mail addresses are removed first. Position reports and link tests are not part of this. You can turn it off at any time.	Wiadomości wysłane przez statek powietrzny przez ACARS (dowolny tekst oraz wiadomości załogi, operacyjne, linii i serwisowe) są pokazywane przez 48 godzin na karcie tego statku na publicznej mapie. Numery telefonów i adresy e-mail są wcześniej usuwane. Raporty pozycji i testy łącza nie wchodzą w to. Możesz to wyłączyć w każdej chwili.
-Messages that aircraft send by ACARS (free text and crew, operations, company and maintenance messages) can be shown on the aircraft's card as well, with phone numbers and e-mail addresses removed. This is a separate choice that you can change in the Server menu.	Wiadomości wysyłane przez statki powietrzne przez ACARS (dowolny tekst oraz wiadomości załogi, operacyjne, linii i serwisowe) mogą być też pokazane na karcie statku, bez numerów telefonów i adresów e-mail. To osobny wybór, który możesz zmienić w menu Serwer.
 #  sweep scanner
 %.0f MHz/s, %d hops, %d averages, %.0f ms per sweep	%.0f MHz/s, %d skoków, %d uśrednień, %.0f ms na przemiatanie
 pick a radio first (the test signal and files cannot sweep)	najpierw wybierz radio (sygnał testowy i pliki nie mogą być przemiatane)
@@ -1577,7 +1557,6 @@ Mode panel	Panel trybu
 Memory and frequencies	Pamięć i częstotliwości
 Receivers	Odbiorniki
 Audio	Dźwięk
-Server and support	Serwer i wsparcie
 Take the guided tour	Uruchom przewodnik
 Choose the radio or recording that supplies samples. Record IQ saves the raw signal for later playback.	Wybierz radio lub nagranie, które dostarcza próbki. Record IQ zapisuje surowy sygnał do późniejszego odtworzenia.
 Set the frequency, band and sample rate here. Gain and AGC set the input level; Second mode decodes another mode from the same capture.	Tu ustawisz częstotliwość, pasmo i częstotliwość próbkowania. Wzmocnienie i AGC wyznaczają poziom wejściowy; Drugi tryb dekoduje inny tryb z tego samego zapisu.
@@ -1587,7 +1566,6 @@ Each mode has its own tabs for decoded output, settings and tools. They change w
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Pamięć przechowuje częstotliwości wraz z trybem i ustawieniami. Częstotliwości i plany pasm pokazują, co jest na antenie, dla każdego trybu.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Każdy odbiornik łączy radio z trybem. Ten pasek przełącza między nimi i wybiera, który odtwarza dźwięk.
 Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen odtwarza zdemodulowany sygnał. Głośność i wyciszenie są tutaj; Record audio zapisuje dźwięk do pliku.
-Server sends decoded positions to the public map. Support helps fund development.	Serwer wysyła zdekodowane pozycje na publiczną mapę. Wsparcie pomaga finansować rozwój.
 Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Tu znajdziesz dokumentację, rozwiązywanie problemów, podziękowania i licencje. Przewodnik uruchamia tę wycieczkę ponownie.
 Monitor audio	Podsłuch audio
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Słuchaj dostrojonego kanału w dowolnym trybie, by rozpoznać sygnał: próbki radia są demodulowane jako USB, LSB, wąskie FM lub AM. Cisza, gdy tryb gra własny dźwięk.
@@ -1634,7 +1612,6 @@ translation	tłumaczenie
 testing	testy
 idea	pomysł
 Thank you to everyone who sent fixes, reported bugs, shared recordings, translated or suggested ideas. The author is Kristijonas Adomaitis.	Dziękujemy wszystkim, którzy przysłali poprawki, zgłosili błędy, udostępnili nagrania, tłumaczyli lub podsunęli pomysły. Autorem jest Kristijonas Adomaitis.
-Want your name changed or removed? Tell us on Discord or open an issue.	Chcesz zmienić lub usunąć swoje imię? Napisz do nas na Discordzie albo otwórz zgłoszenie (issue).
 # airband: airport search, band watch
 Airport data updated: %s	Dane lotnisk zaktualizowane: %s
 Airport data not updated: %s	Dane lotnisk nie zostały zaktualizowane: %s
@@ -1752,9 +1729,6 @@ SNR per channel	SNR na kanał
 Second transmitter	Drugi nadajnik
 Second bearing	Drugi namiar
 Position fix	Wyznaczanie pozycji
-Sharing	Udostępnianie
-Share my bearing on the map server	Udostępnij mój namiar serwerowi mapy
-Needs Server > Send data to map server. Only the bearing, its uncertainty, the frequency and your station position go up; the map shows where bearings from several stations cross.	Wymaga Serwer > Wysyłaj dane na serwer mapy. Wysyłany jest tylko namiar, jego niepewność, częstotliwość i pozycja Twojej stacji; mapa pokazuje, gdzie przecinają się namiary z kilku stacji.
 Bearing and position of a transmitter from an antenna array such as the KrakenSDR	Namiar i pozycja nadajnika z szyku anten, takiego jak KrakenSDR
 Decoded only	Tylko zdekodowane
 Hides tone-only pages and pages whose text could not be decoded.	Ukrywa wywołania samym tonem oraz wiadomości, których tekstu nie udało się zdekodować.
@@ -1763,7 +1737,7 @@ Hides tone-only pages and pages whose text could not be decoded.	Ukrywa wywołan
 hidden	ukryto
 # LBJ (Chinese railway train warning)
 What LBJ carries	Co nadaje LBJ
-LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nOnAir decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ to chiński system ostrzegania o zbliżaniu się pociągu na około 821,2375 MHz. Każda lokomotywa wysyła numeryczne strony POCSAG 1200 bit/s: co kilka sekund krótką wiadomość z numerem pociągu, prędkością (km/h) i kilometrem, oraz dłuższe wiadomości z typem i numerem lokomotywy i trasą.\n\nOnAir sam dekoduje strony (tylko odbiór). Pusta wartość miała uszkodzone cyfry; szary wiersz zawierał poprawione błędy, więc porównaj go z następną wiadomością tego samego pociągu.
+LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of ZorCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ to chiński system ostrzegania o zbliżaniu się pociągu na około 821,2375 MHz. Każda lokomotywa wysyła numeryczne strony POCSAG 1200 bit/s: co kilka sekund krótką wiadomość z numerem pociągu, prędkością (km/h) i kilometrem, oraz dłuższe wiadomości z typem i numerem lokomotywy i trasą.\n\nEye of ZorCom sam dekoduje strony (tylko odbiór). Pusta wartość miała uszkodzone cyfry; szary wiersz zawierał poprawione błędy, więc porównaj go z następną wiadomością tego samego pociągu.
 tune to about 821.2375 MHz and start the receiver	ustaw około 821,2375 MHz i uruchom odbiornik
 FM, 1200 bit/s FSK, %.2f Msps	FM, FSK 1200 bit/s, %.2f Msps
 %llu messages, %llu sync words, %llu blank, %llu failed checks	%llu wiadomości, %llu słów synchronizacji, %llu pustych, %llu nieudanych kontroli
@@ -1895,8 +1869,6 @@ Sure	Pewność
 Speaker (a guess from the wording)	Mówiący (domysł na podstawie słów)
 Click to copy this line	Kliknij, aby skopiować ten wiersz
 Aircraft on the screen	Statek powietrzny na ekranie
-Also share transcripts of aircraft radio calls (text becomes public on the map)	Udostępniaj też transkrypcje rozmów radiowych statków powietrznych (tekst staje się publiczny na mapie)
-The text of airband radio calls that a speech engine on this computer made from what you receive (Transcripts window), linked to the aircraft by the callsign spoken in it, shown on that aircraft's card on the public map for 48 hours. It can contain mistakes. Phone numbers are removed first. Only airband is shared, never marine, amateur or other channels. Off until you choose it, and you can turn it off at any time.	Tekst rozmów radiowych z pasma lotniczego, który silnik mowy na tym komputerze utworzył z tego, co odbierasz (okno Transkrypcje), powiązany ze statkiem powietrznym przez wypowiedziany znak wywoławczy i pokazywany publicznie na jego karcie na mapie przez 48 godzin. Może zawierać błędy. Numery telefonów są wcześniej usuwane. Udostępniane jest tylko pasmo lotnicze, nigdy łączność morska, krótkofalarska ani inne kanały. Wyłączone, dopóki tego nie wybierzesz, i możesz wyłączyć w każdej chwili.
 Transcripts ...	Transkrypcje ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	To, co mówi się w paśmie lotniczym i na innych kanałach głosowych, jako tekst: napisy na żywo, wyszukiwanie, eksport. Wyłączone, dopóki nie włączysz.
 # Automations window
@@ -2211,7 +2183,7 @@ Kind	Rodzaj
 Map points	Punkty na mapie
 Modes (in the mode list, group PLUGINS)	Tryby (na liście trybów, grupa PLUGINS)
 Network: talk to other computers	Sieć: komunikacja z innymi komputerami
-No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .onairplugin file.	Brak zainstalowanych wtyczek. Użyj „Zainstaluj z pliku” lub skopiuj folder wtyczki do folderu wtyczek. Wtyczka to plik .onairplugin.
+No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .zorcomplugin file.	Brak zainstalowanych wtyczek. Użyj „Zainstaluj z pliku” lub skopiuj folder wtyczki do folderu wtyczek. Wtyczka to plik .zorcomplugin.
 Not installed	Nie zainstalowano
 Open its folder	Otwórz jej folder
 PLUGINS	WTYCZKI
@@ -2412,8 +2384,6 @@ grey: predicted by the downloaded elements, blue: refined, green: measured, ambe
 residual %.1f Hz -> %.1f Hz (%d used, %d rejected); receiver offset %+.0f Hz	reszta %.1f Hz -> %.1f Hz (użyto %d, odrzucono %d); przesunięcie odbiornika %+.0f Hz
 mean anomaly %+.3f deg, mean motion %+.5f rev/day, inclination %+.4f deg, RAAN %+.4f deg	anomalia średnia %+.3f stopnia, ruch średni %+.5f obr./dobę, inklinacja %+.4f stopnia, RAAN %+.4f stopnia
 estimated timing error of the prediction: %.1f s before, %.1f s after (1 sigma)	szacowany błąd czasu prognozy: %.1f s przed, %.1f s po (1 sigma)
-Also share GPS interference cells (counts per area, no aircraft)	Udostępniaj także komórki zakłóceń GPS (liczby na obszar, bez statków powietrznych)
-For every 0.5 degree square (about 55 km) around your ADS-B receiver: how many aircraft were heard in the last hour and how many of them reported a poor GPS position. Only these two numbers per square are sent, never aircraft identities, tracks or your location. It feeds the GPS interference layer of the public map and is an indicator, not proof of jamming. Off until you choose it.	Dla każdego kwadratu 0,5 stopnia (około 55 km) wokół odbiornika ADS-B: ile statków powietrznych usłyszano w ostatniej godzinie i ile z nich zgłosiło słabą pozycję GPS. Dla kwadratu wysyłane są tylko te dwie liczby, nigdy tożsamości statków, ślady ani Twoja lokalizacja. Zasilają warstwę zakłóceń GPS na publicznej mapie i są wskazówką, nie dowodem zagłuszania. Wyłączone, dopóki tego nie wybierzesz.
 Calibrate...	Kalibruj...
 Measure this radio's frequency error against an FM station or a carrier of known frequency	Zmierz błąd częstotliwości tego radia względem stacji FM lub nośnej o znanej częstotliwości
 Frequency calibration	Kalibracja częstotliwości
@@ -2464,26 +2434,6 @@ to (kHz)	do (kHz)
 Translate to English	Tłumacz na angielski
 Speech in another language is also translated to English, offline, next to the original. Needs a multilingual model and costs about 1.5 times more processor time; it is skipped when the engine cannot keep up. Nothing is sent anywhere. Translation into other languages is not available.	Mowa w innym języku jest dodatkowo tłumaczona na angielski, offline, obok oryginału. Wymaga modelu wielojęzycznego i zużywa około 1,5 raza więcej czasu procesora; pomijane, gdy silnik nie nadąża. Nic nie jest wysyłane. Tłumaczenie na inne języki nie jest dostępne.
 The loaded model is English only: translation needs a multilingual model.	Załadowany model jest tylko angielski: tłumaczenie wymaga modelu wielojęzycznego.
-Live: stop the room	Na żywo: zatrzymaj pokój
-Copy room link	Kopiuj link do pokoju
-Host PIN (to moderate on the room page):	PIN gospodarza (do moderowania na stronie pokoju):
-Go live (Live rooms)...	Rozpocznij transmisję (Pokoje na żywo)...
-Could not create the room	Nie udało się utworzyć pokoju
-Lost the connection to the rooms server	Utracono połączenie z serwerem pokoi
-The live rooms server is not available yet.	Serwer pokoi na żywo nie jest jeszcze dostępny.
-No internet connection.	Brak połączenia z internetem.
-The live rooms server did not answer in time.	Serwer pokoi na żywo nie odpowiedział na czas.
-The live rooms server is full right now. Try again later.	Serwer pokoi na żywo jest teraz pełny. Spróbuj ponownie później.
-Too many rooms were started from here. Try again in a few minutes.	Z tego miejsca uruchomiono zbyt wiele pokoi. Spróbuj ponownie za kilka minut.
-The live rooms server refused the request.	Serwer pokoi na żywo odrzucił żądanie.
-The live rooms server sent an answer Eye of ZorCom does not understand.	Serwer pokoi na żywo wysłał odpowiedź, której Eye of ZorCom nie rozumie.
-Checking the live rooms server...	Sprawdzanie serwera pokoi na żywo...
-Check the live rooms server again	Sprawdź serwer pokoi na żywo ponownie
-Live rooms: while you are live, anyone with the room link can watch this receiver's waterfall, the mode and the frequency you are tuned to, and chat with each other. The room list on the web also shows its title. Nothing is sent before you press Go live, and nothing is stored after the room ends. Your location, your name and the audio are never sent.	Pokoje na żywo: dopóki transmitujesz, każdy z linkiem do pokoju może oglądać wodospad tego odbiornika, tryb i ustawioną częstotliwość oraz czatować z innymi. Lista pokoi w sieci pokazuje też jego tytuł. Nic nie jest wysyłane przed naciśnięciem Rozpocznij transmisję i nic nie jest przechowywane po zakończeniu pokoju. Twoja lokalizacja, imię i dźwięk nigdy nie są wysyłane.
-Room title	Tytuł pokoju
-Also show decoded ACARS text in the room (public)	Pokazuj w pokoju także zdekodowany tekst ACARS (publicznie)
-Needs Server > Send data to map server and Also share interesting ACARS messages.	Wymaga: Serwer > Wysyłaj dane na serwer mapy oraz Udostępniaj także ciekawe wiadomości ACARS.
-Go live	Rozpocznij transmisję
 Schedule passes by itself	Planuj przeloty automatycznie
 Takes the passes of the ticked groups one at a time, highest priority first, and starts, tunes and records each one without you. Overlapping passes are trimmed or skipped; a receiver you started yourself is left alone.	Bierze przeloty zaznaczonych grup po kolei, od najwyższego priorytetu, i sam uruchamia, stroi i nagrywa każdy z nich. Nakładające się przeloty są skracane lub pomijane; odbiornik uruchomiony przez Ciebie pozostaje nietknięty.
 Priority (higher wins)	Priorytet (wyższy wygrywa)
@@ -3084,7 +3034,7 @@ Tone decoders	Dekodery tonów
 The test signal repeats every 40 s: CTCSS 123.0 Hz under speech-like noise, DCS D023N, DTMF 159#, a ZVEI1 call 12345, SELCAL AM-CP and a two-tone page.	Sygnał testowy powtarza się co 40 s: CTCSS 123,0 Hz pod szumem podobnym do mowy, DCS D023N, DTMF 159#, wywołanie ZVEI1 12345, SELCAL AM-CP i wywołanie dwutonowe.
 CTCSS, DCS, DTMF, selcall	CTCSS, DCS, DTMF, wywołanie selektywne
 # COSPAS-SARSAT 406 MHz
-A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nOnAir only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	Radiopława ratunkowa 406 MHz (EPIRB na łodzi, ELT w statku powietrznym, PLB noszona przez osobę) co około 50 sekund nadaje impuls trwający około pół sekundy: niemodulowaną nośną, potem 112 lub 144 bity z szybkością 400 bit/s. Wiadomość zawiera 15-cyfrowy identyfikator szesnastkowy, unikalny dla radiopławy, kraj, rodzaj radiopławy i często pozycję (w krótkiej wiadomości zaokrągloną do 15 minut, w długiej do 4 sekund). Wiadomość chronią dwie kontrole BCH; do trzech uszkodzonych bitów pierwszego pola jest naprawianych.\n\nOnAir tylko odbiera. Radiopławy testowe i impulsy autotestu są oznaczone. Jeśli uważasz, że usłyszałeś prawdziwą, powiadom centrum koordynacji ratownictwa w swoim kraju; nie polegaj na tym programie, jeśli chodzi o bezpieczeństwo.
+A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of ZorCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	Radiopława ratunkowa 406 MHz (EPIRB na łodzi, ELT w statku powietrznym, PLB noszona przez osobę) co około 50 sekund nadaje impuls trwający około pół sekundy: niemodulowaną nośną, potem 112 lub 144 bity z szybkością 400 bit/s. Wiadomość zawiera 15-cyfrowy identyfikator szesnastkowy, unikalny dla radiopławy, kraj, rodzaj radiopławy i często pozycję (w krótkiej wiadomości zaokrągloną do 15 minut, w długiej do 4 sekund). Wiadomość chronią dwie kontrole BCH; do trzech uszkodzonych bitów pierwszego pola jest naprawianych.\n\nEye of ZorCom tylko odbiera. Radiopławy testowe i impulsy autotestu są oznaczone. Jeśli uważasz, że usłyszałeś prawdziwą, powiadom centrum koordynacji ratownictwa w swoim kraju; nie polegaj na tym programie, jeśli chodzi o bezpieczeństwo.
 EPIRB (boat)	EPIRB (łódź)
 ELT (aircraft)	ELT (statek powietrzny)
 PLB (person)	PLB (osoba)

@@ -8,10 +8,10 @@ set -e
 cd "$(dirname "$0")/../.."
 # PLATFORM=linux/amd64 runs the x86-64 build under emulation (checks correctness of the SSE/AVX paths; the timing means nothing).
 PLATFORM=${PLATFORM:-}
-IMAGE=onair-linux-dev
-VOL=onair-build
+IMAGE=zorcom-linux-dev
+VOL=zorcom-build
 PF=
-if [ -n "$PLATFORM" ]; then IMAGE=onair-linux-dev-x86; VOL=onair-build-x86; PF="--platform $PLATFORM"; fi
+if [ -n "$PLATFORM" ]; then IMAGE=zorcom-linux-dev-x86; VOL=zorcom-build-x86; PF="--platform $PLATFORM"; fi
 if ! docker image inspect $IMAGE >/dev/null 2>&1; then
   docker build ${PLATFORM:+--platform $PLATFORM} -t $IMAGE -f tools/dev/Dockerfile.linux tools/dev
 fi

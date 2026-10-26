@@ -72,17 +72,4 @@ std::vector<GpsJamCell> GpsJamGrid::cells(double now, int minAircraft) {
 
 void GpsJamGrid::clear() { cell_.clear(); last_.clear(); }
 
-std::string GpsJamGrid::toJson(const std::string& station, const std::vector<GpsJamCell>& cells) {
-    if (cells.empty() || station.empty()) return std::string();
-    std::string j = "{\"station\":\"" + station + "\",\"cell\":0.5,\"cells\":[";
-    int n = 0;
-    for (const auto& c : cells) {
-        if (n >= kGpsJamMaxCells) break;
-        char b[64];
-        snprintf(b, sizeof b, "%s[%d,%d,%d,%d]", n ? "," : "", c.latIdx, c.lonIdx, std::min(c.aircraft, 300), std::min(c.degraded, std::min(c.aircraft, 300)));
-        j += b; n++;
-    }
-    return j + "]}";
-}
-
 } // namespace dect2

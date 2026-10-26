@@ -1,18 +1,18 @@
-# OnAir in a browser (README.md here). In this folder: put ONAIR_PASSWORD=<a password> into a file named .env, then
-# docker compose up -d --build and open https://<this computer>:3001 (log in as onair).
+# Eye of ZorCom in a browser (README.md here). In this folder: put ZORCOM_PASSWORD=<a password> into a file named .env, then
+# docker compose up -d --build and open https://<this computer>:3001 (log in as zorcom).
 services:
-  onair:
+  zorcom:
     build: .
-    image: onair
-    container_name: onair
+    image: zorcom
+    container_name: zorcom
     restart: unless-stopped
     environment:
-      PUID: "1000"              # the owner of the files OnAir writes into the config volume
+      PUID: "1000"              # the owner of the files Eye of ZorCom writes into the config volume
       PGID: "1000"
       TZ: Etc/UTC               # the time zone the clocks and logs show
       # the login of the page, which is the whole desktop: compose stops with this message until .env sets a password
-      CUSTOM_USER: ${ONAIR_USER:-onair}
-      PASSWORD: ${ONAIR_PASSWORD:?set ONAIR_PASSWORD=<a password> in the file .env next to compose.yaml}
+      CUSTOM_USER: ${ZORCOM_USER:-zorcom}
+      PASSWORD: ${ZORCOM_PASSWORD:?set ZORCOM_PASSWORD=<a password> in the file .env next to compose.yaml}
       # DRINODE: /dev/dri/renderD128    # Intel / AMD graphics: draw the GUI and encode the stream on the GPU (with the device below)
       # DRI_NODE: /dev/dri/renderD128
     ports:
@@ -22,7 +22,7 @@ services:
       - /dev/bus/usb:/dev/bus/usb   # the USB radios; restart the container after plugging one in
       # - /dev/dri/renderD128:/dev/dri/renderD128
     volumes:
-      - onair-config:/config    # settings, recordings and onair.log
+      - zorcom-config:/config    # settings, recordings and zorcom.log
 
 volumes:
-  onair-config:
+  zorcom-config:

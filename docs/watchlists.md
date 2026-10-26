@@ -1,6 +1,6 @@
 # Watchlists and alerts
 
-View > Watchlists. Make lists of what you want to hear about, and say how OnAir tells you.
+View > Watchlists. Make lists of what you want to hear about, and say how Eye of ZorCom tells you.
 
 ## Lists
 

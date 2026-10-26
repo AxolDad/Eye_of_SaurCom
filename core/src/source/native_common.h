@@ -59,7 +59,7 @@ struct DynLib {
             }
             return false;
         }
-        // The outcome always goes to the log (stderr; onair.log on Windows): when a radio does not show up, this says which library was used or why none was
+        // The outcome always goes to the log (stderr; zorcom.log on Windows): when a radio does not show up, this says which library was used or why none was
         for (const auto& n : names) if (tryOpen(n)) { fprintf(stderr, "radio library: %s\n", n.c_str()); fflush(stderr); return true; }
 #if defined(__APPLE__)
         // a bare name is looked up in /usr/local/lib and /usr/lib only: Homebrew on Apple silicon installs to /opt/homebrew/lib
@@ -240,11 +240,11 @@ inline std::vector<std::string> libNames(const char* stem, std::initializer_list
 
 // ------------------------------------------------------------------ voice and audio codecs the user installs (docs/CODECS.md)
 
-// The Eye of ZorCom "codecs" folders, where a user can put a codec library that Eye of ZorCom does not ship: next to the program (macOS: next to OnAir.app,
-// and Contents/MacOS/codecs inside it) and in the user data folder (%LOCALAPPDATA%\OnAir\codecs, ~/Library/Application Support/OnAir/codecs,
-// $XDG_DATA_HOME/onair/codecs or ~/.local/share/onair/codecs). Each ends with the path separator.
+// The Eye of ZorCom "codecs" folders, where a user can put a codec library that Eye of ZorCom does not ship: next to the program (macOS: next to ZorCom.app,
+// and Contents/MacOS/codecs inside it) and in the user data folder (%LOCALAPPDATA%\ZorCom\codecs, ~/Library/Application Support/ZorCom/codecs,
+// $XDG_DATA_HOME/zorcom/codecs or ~/.local/share/zorcom/codecs). Each ends with the path separator.
 // Between the two come the places the libraries SHIPPED with Eye of ZorCom are in (codec2, built from third_party/codec2): the program's own folder,
-// on macOS Contents/Frameworks and Contents/Resources of the app, on Linux ../lib/onair and ../lib of the program (the .deb and the portable
+// on macOS Contents/Frameworks and Contents/Resources of the app, on Linux ../lib/zorcom and ../lib of the program (the .deb and the portable
 // package). The user data folder stays last: it is where the "Open codecs folder" button goes.
 inline std::vector<std::string> codecFolders() {
     std::vector<std::string> v;
@@ -255,7 +255,7 @@ inline std::vector<std::string> codecFolders() {
         const size_t cut = d.find_last_of("\\/");
         if (cut != std::string::npos) { v.push_back(d.substr(0, cut + 1) + "codecs\\"); v.push_back(d.substr(0, cut + 1)); }
     }
-    if (const char* la = getenv("LOCALAPPDATA")) if (*la) v.push_back(std::string(la) + "\\OnAir\\codecs\\");
+    if (const char* la = getenv("LOCALAPPDATA")) if (*la) v.push_back(std::string(la) + "\\ZorCom\\codecs\\");
 #else
     std::string exe;
     char path[4096];
@@ -272,25 +272,25 @@ inline std::vector<std::string> codecFolders() {
         v.push_back(dir + "codecs/");
 #if defined(__APPLE__)
         const size_t at = dir.rfind(".app/Contents/MacOS/");
-        if (at != std::string::npos) {   // the folder that holds OnAir.app
+        if (at != std::string::npos) {   // the folder that holds ZorCom.app
             const size_t up = dir.find_last_of('/', at);
             if (up != std::string::npos) v.push_back(dir.substr(0, up + 1) + "codecs/");
         }
         v.push_back(dir + "../Frameworks/");
         v.push_back(dir + "../Resources/");
 #else
-        v.push_back(dir + "../lib/onair/");
+        v.push_back(dir + "../lib/zorcom/");
         v.push_back(dir + "../lib/");
 #endif
         v.push_back(dir);
     }
     const char* home = getenv("HOME");
 #if defined(__APPLE__)
-    if (home && *home) v.push_back(std::string(home) + "/Library/Application Support/OnAir/codecs/");
+    if (home && *home) v.push_back(std::string(home) + "/Library/Application Support/ZorCom/codecs/");
 #else
     const char* x = getenv("XDG_DATA_HOME");
-    if (x && *x) v.push_back(std::string(x) + "/onair/codecs/");
-    else if (home && *home) v.push_back(std::string(home) + "/.local/share/onair/codecs/");
+    if (x && *x) v.push_back(std::string(x) + "/zorcom/codecs/");
+    else if (home && *home) v.push_back(std::string(home) + "/.local/share/zorcom/codecs/");
 #endif
 #endif
     return v;
@@ -491,7 +491,7 @@ protected:
 
     void startStream() {
         run_ = true;
-        th_ = dect2::namedThread("onair-sdr-rx", [this] { streamThread(); });
+        th_ = dect2::namedThread("zorcom-sdr-rx", [this] { streamThread(); });
     }
     void stopStream() {
         if (!th_.joinable()) return;

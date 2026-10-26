@@ -1,6 +1,6 @@
 // Seeded mutation run of the DAB data layers, meant for DECT2_SANITIZE=ON: every FIG / MOT / PAD / Journaline / packet
 // parser must never crash or hang on any bytes at any length (the input is copied to an exactly sized heap block). Also the MotDecoder and DabPadDecoder classes
-// are fed the same bytes. Also a libFuzzer target with -DONAIR_LIBFUZZER.
+// are fed the same bytes. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
 #include "dect2/dab/dab_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -36,11 +36,11 @@ static void one(const uint8_t* d, size_t n) {
     free(p);
 }
 
-#ifdef ONAIR_LIBFUZZER
+#ifdef ZORCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const long iters = getenv("ONAIR_FUZZ_ITERS") ? atol(getenv("ONAIR_FUZZ_ITERS")) : 100000;
+    const long iters = getenv("ZORCOM_FUZZ_ITERS") ? atol(getenv("ZORCOM_FUZZ_ITERS")) : 100000;
     std::mt19937 g(8642);
     std::vector<uint8_t> seed = {0x00, 0xC1, 0x01, 0x03, 0x00, 0x00, 0xC0, 0x01, 0x20, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x00, 0x00, 0x00, 0x00, 0x30, 0x00, 0x04, 0x40, 0x80, 0x01};
     for (long it = 0; it < iters; it++) {

@@ -23,10 +23,10 @@ LoraRawGenFrame mk(int sf, double bw, int cr, bool crc, const char* text, int sy
 
 std::vector<LoraRawGenFrame> loraRawTestSchedule(int sync) {
     std::vector<LoraRawGenFrame> v;
-    v.push_back(mk(7, 125e3, 5, true, "OnAir LoRa raw SF7 125k", sync, 0, 1500));
-    v.push_back(mk(8, 125e3, 6, true, "OnAir LoRa raw SF8 125k cr4/6", sync, 0, -2200));
-    v.push_back(mk(9, 250e3, 5, true, "OnAir raw SF9 250k", sync, 3, 3100));
-    v.push_back(mk(10, 500e3, 8, false, "OnAir raw SF10 500k cr4/8 no crc", sync, 6, -800));
+    v.push_back(mk(7, 125e3, 5, true, "ZorCom LoRa raw SF7 125k", sync, 0, 1500));
+    v.push_back(mk(8, 125e3, 6, true, "ZorCom LoRa raw SF8 125k cr4/6", sync, 0, -2200));
+    v.push_back(mk(9, 250e3, 5, true, "ZorCom raw SF9 250k", sync, 3, 3100));
+    v.push_back(mk(10, 500e3, 8, false, "ZorCom raw SF10 500k cr4/8 no crc", sync, 6, -800));
     v.push_back(mk(7, 500e3, 7, true, "SF7 500k cr4/7", sync, 6, 400));
     v.push_back(mk(11, 125e3, 5, true, "{\"t\":21.5,\"h\":48}", sync, 0, 1200));
     v.push_back(mk(12, 125e3, 5, true, "Hello from SF12", sync, 0, -900));

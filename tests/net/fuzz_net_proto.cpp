@@ -1,6 +1,6 @@
 // Seeded mutation run of the network protocol layers, meant for DECT2_SANITIZE=ON: every parser must never crash or hang on any bytes
 // (WebSocket frames, request heads, flat JSON, URL text, rtl_tcp / SpyServer / SDR++ messages, the menu draw list, the radio list text). Buffers are exact-size heap
-// blocks so a sanitizer sees a read or write past the end. Also a libFuzzer target with -DONAIR_LIBFUZZER.
+// blocks so a sanitizer sees a read or write past the end. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
 #include "dect2/net/net_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -43,11 +43,11 @@ static void one(const uint8_t* d, size_t n) {
     free(e);
 }
 
-#ifdef ONAIR_LIBFUZZER
+#ifdef ZORCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const long iters = getenv("ONAIR_FUZZ_ITERS") ? atol(getenv("ONAIR_FUZZ_ITERS")) : 100000;
+    const long iters = getenv("ZORCOM_FUZZ_ITERS") ? atol(getenv("ZORCOM_FUZZ_ITERS")) : 100000;
     std::mt19937 g(1357);
     for (long it = 0; it < iters; it++) {
         std::vector<uint8_t> b(g() % 3 == 0 ? g() % 40 : g() % 600);

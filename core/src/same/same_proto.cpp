@@ -20,7 +20,7 @@ struct Counties {
 Counties& counties() { static Counties c; return c; }
 } // namespace
 
-// Parses county CSV text into the table's rows (same_proto_rs.cpp, over rust/onair_same)
+// Parses county CSV text into the table's rows (same_proto_rs.cpp, over rust/zorcom_same)
 std::map<int, std::string> parseCountyCsv(const std::string& text);
 
 size_t loadCountyCsv(const std::string& text, std::string* err) {

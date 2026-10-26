@@ -173,7 +173,7 @@ void startRecording(App& a) {
     char ts[32];
     std::strftime(ts, sizeof ts, "%Y%m%d-%H%M%S", std::localtime(&now));
     char name[128];
-    snprintf(name, sizeof name, "/onair_%s_%.4fMHz_%s.%s", dect2::generalDemodName(S.demod), listenHz(a) / 1e6, ts, S.mp3 ? "mp3" : S.flac ? "flac" : "wav");
+    snprintf(name, sizeof name, "/zorcom_%s_%.4fMHz_%s.%s", dect2::generalDemodName(S.demod), listenHz(a) / 1e6, ts, S.mp3 ? "mp3" : S.flac ? "flac" : "wav");
     a.engine.general().setRecordFormat(S.flac, recTags(a, listenHz(a))); a.engine.general().setRecordMp3(S.mp3);
     if (!a.engine.general().startRecording(dir + name)) S.recErr = "cannot write " + dir + name;
     else S.recErr.clear();

@@ -1,5 +1,5 @@
 // A fake "vendor library" that exports the functions of librtlsdr, libairspy, libbladeRF, LimeSuite, libiio, UHD, the SDRplay API, libairspyhf and
-// libfobos-sdr-agile that OnAir uses, and streams a known tone. The test copies this one file under the real library names. It checks OnAir's driver code (what it asks the
+// libfobos-sdr-agile that ZorCom uses, and streams a known tone. The test copies this one file under the real library names. It checks ZorCom's driver code (what it asks the
 // libraries to do and how it converts the samples), not the real libraries.
 #include <algorithm>
 #include <atomic>
@@ -75,7 +75,7 @@ EXPORT int rtlsdr_cancel_async(rtl_dev* d) { d->cancel = true; return 0; }
 static void count(const char* k) { std::lock_guard<std::mutex> lk(gMu); auto& v = gState[k]; v = v < 0 ? 1 : v + 1; }
 EXPORT int rtlsdr_set_freq_correction(rtl_dev*, int ppm) { rec("rtl.ppm", ppm); count("rtl.ppmCalls"); return 0; }
 EXPORT int rtlsdr_set_offset_tuning(rtl_dev*, int on) { rec("rtl.offset", on); count("rtl.offsetCalls"); return 0; }
-// (OnAir reads block by block on macOS, see RtlSource::streamLoop)
+// (ZorCom reads block by block on macOS, see RtlSource::streamLoop)
 EXPORT int rtlsdr_read_sync(rtl_dev*, void* buf, int len, int* n) {
     if (fake_state("rtl.gone") == 1) return -4;   // LIBUSB_ERROR_NO_DEVICE
     auto* b = static_cast<unsigned char*>(buf);
@@ -333,7 +333,7 @@ EXPORT int uhd_rx_streamer_recv(void*, void** bufs, size_t n, void**, double, bo
     *got = n; pace(); return 0;
 }
 
-// ------------------------------------------------------------------ SDRplay API 3.x (an RSP1B; the structs come from OnAir's own copy of
+// ------------------------------------------------------------------ SDRplay API 3.x (an RSP1B; the structs come from ZorCom's own copy of
 // the API's layouts, which sdrplay_api_min.h checks against the official headers' sizes)
 #include "../../core/src/source/sdrplay_api_min.h"
 namespace sp = dect2::sdrplay;

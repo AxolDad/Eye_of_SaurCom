@@ -1,4 +1,4 @@
-// Deep Space Network Now (core/src/net/dsn.cpp over the Rust crate onair_dsn): the recorded report and configuration of 2026-10-23
+// Deep Space Network Now (core/src/net/dsn.cpp over the Rust crate zorcom_dsn): the recorded report and configuration of 2026-10-23
 // turned into stations, dishes, targets and signals with names, and the text helpers.
 #include "dect2/net/dsn.h"
 #include <cmath>
@@ -15,7 +15,7 @@ static std::string readFile(const std::string& p) {
 }
 
 int main() {
-    const std::string dir = ONAIR_DSN_TESTDATA;
+    const std::string dir = ZORCOM_DSN_TESTDATA;
     const std::string feed = readFile(dir + "/dsn_sample.xml"), config = readFile(dir + "/config_sample.xml");
     CHECK(!feed.empty() && !config.empty(), "test data in %s", dir.c_str());
     Names names;

@@ -152,7 +152,7 @@ void threadBody() {
                     b.error = err.empty() ? "could not build the address" : err;
                 } else {
                     const std::string file = plat::cacheDir() + "/adsbapi_" + v.id + ".json";
-                    const std::string ua = std::string("OnAir/") + ONAIR_VERSION + " (ADS-B API)";
+                    const std::string ua = std::string("ZorCom/") + ZORCOM_VERSION + " (ADS-B API)";
                     std::string body;
                     if (!plat::fetchUrl(url, file, ua)) {
                         b.ok = false;
@@ -183,7 +183,7 @@ void threadBody() {
 void startThread() {
     if (S.th.joinable()) return;
     S.stop.store(false);
-    S.th = dect2::namedThread("onair-adsbapi", threadBody);
+    S.th = dect2::namedThread("zorcom-adsbapi", threadBody);
 }
 
 void stopThread() {

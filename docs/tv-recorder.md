@@ -1,14 +1,14 @@
 # TV recorder: programme guide, recordings, timeshift, subtitles
 
-Works on the DVB transport stream that OnAir already decodes (DVB-T/T2, DVB-C, DVB-S/S2, ISDB-T, DTMB and the others that deliver an MPEG-TS). Everything is in the TV tab: **Player**, **Guide**, **Recordings**, **Teletext**.
+Works on the DVB transport stream that Eye of ZorCom already decodes (DVB-T/T2, DVB-C, DVB-S/S2, ISDB-T, DTMB and the others that deliver an MPEG-TS). Everything is in the TV tab: **Player**, **Guide**, **Recordings**, **Teletext**.
 
 ## Legal note
 
-Recording is for personal use. Scrambled (encrypted) services are recorded as they arrive and are never decoded; OnAir has no decryption. A programme whose video OnAir cannot decode (AVS+, AVS2/3, see CODECS.md) still records and still appears in the guide, and plays in other players that support the codec.
+Recording is for personal use. Scrambled (encrypted) services are recorded as they arrive and are never decoded; Eye of ZorCom has no decryption. A programme whose video Eye of ZorCom cannot decode (AVS+, AVS2/3, see CODECS.md) still records and still appears in the guide, and plays in other players that support the codec.
 
-## Recordings run only while OnAir runs
+## Recordings run only while Eye of ZorCom runs
 
-The recorder is part of the application. It records only while OnAir is open, the computer is awake (a sleeping computer records nothing) and the receiver is tuned to the multiplex the programme is on. The "Tune to a scheduled recording's channel when it starts" option lets the recorder tune the receiver to a saved channel by itself; it does not wake the computer. A job whose window passes without the receiver on the right multiplex is marked **missed**, with the reason.
+The recorder is part of the application. It records only while Eye of ZorCom is open, the computer is awake (a sleeping computer records nothing) and the receiver is tuned to the multiplex the programme is on. The "Tune to a scheduled recording's channel when it starts" option lets the recorder tune the receiver to a saved channel by itself; it does not wake the computer. A job whose window passes without the receiver on the right multiplex is marked **missed**, with the reason.
 
 ## Programme guide (EPG)
 
@@ -56,7 +56,7 @@ Play on a recording opens the file (the whole file is scanned once for the time 
 
 * The multi-channel receiver delivers one selected channel to the recorder and the guide; recordings from the other channels of a wide capture need that channel selected.
 * No wake-up of a sleeping computer, no remote scheduling.
-* Services on a multiplex OnAir has not been tuned to yet cannot be scheduled from the "other" EIT (the frequency is unknown); tune to that multiplex once and it is remembered (`<data>/tv/muxes.json`).
+* Services on a multiplex Eye of ZorCom has not been tuned to yet cannot be scheduled from the "other" EIT (the frequency is unknown); tune to that multiplex once and it is remembered (`<data>/tv/muxes.json`).
 
 ## Code
 

@@ -85,8 +85,8 @@ int main() {
         Result r = run(c, 1.0);
         report("D2-MAC 40 dB", r);
         CHECK(r.t.state == 2 && r.t.variant == 0, "state %d variant %d", r.t.state, r.t.variant);
-        CHECK(r.t.channelName == "ONAIR TV", "name '%s'", r.t.channelName.c_str());
-        CHECK(r.t.networkName == "ONAIR SATELLITE" && r.t.country == "LITHUANIA", "network '%s' country '%s'", r.t.networkName.c_str(), r.t.country.c_str());
+        CHECK(r.t.channelName == "ZORCOM TV", "name '%s'", r.t.channelName.c_str());
+        CHECK(r.t.networkName == "ZORCOM SATELLITE" && r.t.country == "LITHUANIA", "network '%s' country '%s'", r.t.networkName.c_str(), r.t.country.c_str());
         CHECK(!r.t.scrambled && r.t.aspectKnown && !r.t.wide, "flags scrambled %d wide %d", r.t.scrambled, r.t.wide);
         CHECK(std::fabs(toneHz(r.audio) - 1000) < 5, "tone %.1f Hz", toneHz(r.audio));
         CHECK(r.frame && r.frame->width == 768 && barsError(*r.frame) < 14, "picture: bars error %.1f", r.frame ? barsError(*r.frame) : -1.0);
@@ -98,7 +98,7 @@ int main() {
         MacGenConfig c; c.snrDb = 30; c.cfoHz = cfo; c.toneHz = 1500; c.seed = 3;
         Result r = run(c, 1.0);
         report(cfo > 0 ? "D2-MAC +200 kHz" : "D2-MAC -200 kHz", r);
-        CHECK(r.t.state == 2 && r.t.channelName == "ONAIR TV", "%+.0f kHz: state %d name '%s'", cfo / 1e3, r.t.state, r.t.channelName.c_str());
+        CHECK(r.t.state == 2 && r.t.channelName == "ZORCOM TV", "%+.0f kHz: state %d name '%s'", cfo / 1e3, r.t.state, r.t.channelName.c_str());
         CHECK(std::fabs(r.t.cfoHz - cfo) < 20e3, "offset measured %.1f kHz", r.t.cfoHz / 1e3);
         CHECK(std::fabs(toneHz(r.audio) - 1500) < 8, "tone %.1f Hz", toneHz(r.audio));
         CHECK(r.frame && barsError(*r.frame) < 16, "picture: bars error %.1f", r.frame ? barsError(*r.frame) : -1.0);
@@ -108,7 +108,7 @@ int main() {
         MacGenConfig c; c.snrDb = 18; c.seed = 5;
         Result r = run(c, 1.5);
         report("D2-MAC 18 dB", r);
-        CHECK(r.t.state == 2 && r.t.channelName == "ONAIR TV", "18 dB: state %d name '%s'", r.t.state, r.t.channelName.c_str());
+        CHECK(r.t.state == 2 && r.t.channelName == "ZORCOM TV", "18 dB: state %d name '%s'", r.t.state, r.t.channelName.c_str());
         CHECK(std::fabs(toneHz(r.audio) - 1000) < 8, "18 dB: tone %.1f Hz", toneHz(r.audio));
         CHECK(r.frame && barsError(*r.frame) < 22, "18 dB: bars error %.1f", r.frame ? barsError(*r.frame) : -1.0);
     }
@@ -128,7 +128,7 @@ int main() {
         CHECK(r.t.state == 2 && r.t.scrambled && r.t.caSystem == "EuroCrypt", "scrambled %d ca '%s'", r.t.scrambled, r.t.caSystem.c_str());
         CHECK(r.t.controlledAccess && r.t.soundScrambled && r.t.ecmPackets > 0 && r.audio.empty(), "controlled %d sound scrambled %d ECM %llu audio %zu", r.t.controlledAccess,
               r.t.soundScrambled, (unsigned long long)r.t.ecmPackets, r.audio.size());
-        CHECK(r.t.channelName == "ONAIR TV", "the name is clear: '%s'", r.t.channelName.c_str());
+        CHECK(r.t.channelName == "ZORCOM TV", "the name is clear: '%s'", r.t.channelName.c_str());
     }
     // ---- spectrum inverted (I and Q swapped)
     {
@@ -143,7 +143,7 @@ int main() {
         Result r = run(c, 1.0);
         report("D-MAC 35 dB", r);
         CHECK(r.t.state == 2 && r.t.variant == 1, "D-MAC: state %d variant %d", r.t.state, r.t.variant);
-        CHECK(r.t.channelName == "ONAIR TV", "D-MAC: name '%s'", r.t.channelName.c_str());
+        CHECK(r.t.channelName == "ZORCOM TV", "D-MAC: name '%s'", r.t.channelName.c_str());
         CHECK(std::fabs(toneHz(r.audio) - 800) < 5, "D-MAC: tone %.1f Hz", toneHz(r.audio));
         CHECK(r.frame && barsError(*r.frame) < 16, "D-MAC: bars error %.1f", r.frame ? barsError(*r.frame) : -1.0);
     }
@@ -152,7 +152,7 @@ int main() {
         MacGenConfig c; c.variant = 1; c.snrDb = 20; c.cfoHz = 200e3; c.seed = 10;
         Result r = run(c, 1.2);
         report("D-MAC 20 dB +200 kHz", r);
-        CHECK(r.t.state == 2 && r.t.channelName == "ONAIR TV" && std::fabs(toneHz(r.audio) - 1000) < 8, "D-MAC 20 dB: state %d name '%s' tone %.1f", r.t.state, r.t.channelName.c_str(), toneHz(r.audio));
+        CHECK(r.t.state == 2 && r.t.channelName == "ZORCOM TV" && std::fabs(toneHz(r.audio) - 1000) < 8, "D-MAC 20 dB: state %d name '%s' tone %.1f", r.t.state, r.t.channelName.c_str(), toneHz(r.audio));
     }
     // ---- the radio's clock off by +-60 ppm, other sample rates
     for (double ppm : {60.0, -60.0}) {
@@ -160,7 +160,7 @@ int main() {
         Result r = run(c, 1.0, 20e6);
         char lb[40]; snprintf(lb, sizeof lb, "D2-MAC clock %+.0f ppm", ppm);
         report(lb, r);
-        CHECK(r.t.state == 2 && r.t.channelName == "ONAIR TV" && std::fabs(r.t.lineErrPpm + ppm) < 10, "%+.0f ppm: state %d, line rate %+.1f ppm", ppm, r.t.state, r.t.lineErrPpm);
+        CHECK(r.t.state == 2 && r.t.channelName == "ZORCOM TV" && std::fabs(r.t.lineErrPpm + ppm) < 10, "%+.0f ppm: state %d, line rate %+.1f ppm", ppm, r.t.state, r.t.lineErrPpm);
         CHECK(r.frame && barsError(*r.frame) < 16 && std::fabs(toneHz(r.audio) - 1000 * (1 + ppm * 1e-6)) < 8, "%+.0f ppm: bars %.1f tone %.1f", ppm, r.frame ? barsError(*r.frame) : -1.0, toneHz(r.audio));
     }
     for (double fs : {16e6, 25e6}) {
@@ -170,7 +170,7 @@ int main() {
             char lb[40]; snprintf(lb, sizeof lb, "%s %.0f Msps", v ? "D-MAC" : "D2-MAC", fs / 1e6);
             report(lb, r);
             const bool needOk = !(v == 1 && fs < 20e6);   // D-MAC's 20.25 Mbit/s burst does not fit 16 Msps
-            if (needOk) CHECK(r.t.state == 2 && r.t.channelName == "ONAIR TV" && r.frame && barsError(*r.frame) < 18, "%s: state %d name '%s' bars %.1f", lb, r.t.state,
+            if (needOk) CHECK(r.t.state == 2 && r.t.channelName == "ZORCOM TV" && r.frame && barsError(*r.frame) < 18, "%s: state %d name '%s' bars %.1f", lb, r.t.state,
                               r.t.channelName.c_str(), r.frame ? barsError(*r.frame) : -1.0);
         }
     }

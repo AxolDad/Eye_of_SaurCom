@@ -571,9 +571,9 @@ bool txOpenMpegTs(const std::string& path, std::function<void(uint8_t*)>& outTs,
     }
     char tmp[512];
 #ifdef _WIN32
-    snprintf(tmp, sizeof tmp, "%s\\onair_tx_remux.ts", getenv("TEMP") ? getenv("TEMP") : ".");
+    snprintf(tmp, sizeof tmp, "%s\\zorcom_tx_remux.ts", getenv("TEMP") ? getenv("TEMP") : ".");
 #else
-    snprintf(tmp, sizeof tmp, "/tmp/onair_tx_remux_%d.ts", (int)getpid());
+    snprintf(tmp, sizeof tmp, "/tmp/zorcom_tx_remux_%d.ts", (int)getpid());
 #endif
     std::string err;
     if (!remuxToMpegTs(path, tmp, err)) { note = err; return false; }
@@ -997,8 +997,8 @@ bool TxSession::start(std::unique_ptr<TxSink> sink, const TxRequest& r, const Tx
              r.loop ? "until stopped" : (std::to_string(r.onceSeconds).substr(0, std::to_string(r.onceSeconds).find('.') + 2) + " s, one pass").c_str());
     note(b);
     if (req_.carrierTune) note("CARRIER TUNE (unmodulated, for adjusting the transmission — not a message)");
-    gen_t_ = dect2::namedThread("onair-txgen", [this] { generatorLoop(); });
-    send_t_ = dect2::namedThread("onair-txsend", [this] { senderLoop(); });
+    gen_t_ = dect2::namedThread("zorcom-txgen", [this] { generatorLoop(); });
+    send_t_ = dect2::namedThread("zorcom-txsend", [this] { senderLoop(); });
     return true;
 }
 

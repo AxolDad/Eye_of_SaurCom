@@ -19,12 +19,12 @@ static int fails = 0;
 
 int main(int argc, char** argv) {
     if (argc > 1) setenv("SOAPY_SDR_PLUGIN_PATH", argv[1], 1);
-    setenv("ONAIR_TEST_PACE", "0.5", 1);              // half speed: independent of how fast the machine is
-    setenv("ONAIR_TEST_DEAD_REOPEN_MS", "300", 1);    // a stream started within 0.3 s of the last one ending stays silent
+    setenv("ZORCOM_TEST_PACE", "0.5", 1);              // half speed: independent of how fast the machine is
+    setenv("ZORCOM_TEST_DEAD_REOPEN_MS", "300", 1);    // a stream started within 0.3 s of the last one ending stays silent
     std::string err;
     DeviceInfo radio;
     bool found = false;
-    for (auto& d : listSoapyDevices(err)) if (d.board == "onairtest") { radio = d; found = true; }
+    for (auto& d : listSoapyDevices(err)) if (d.board == "zorcomtest") { radio = d; found = true; }
     CHECK(found, "fake radio not listed (%s)", err.c_str());
     if (!found) { printf("scan soapy: FAILED\n"); return 1; }
 
@@ -47,8 +47,8 @@ int main(int argc, char** argv) {
     for (int i = 0; i < 1200 && (s.progress().running || i < 5); i++) std::this_thread::sleep_for(std::chrono::milliseconds(100));
     const ScanProgress pr = s.progress();
     const auto res = s.results();
-    printf("  scan: %s (silent streams the radio started: %s)\n", pr.phase.c_str(), getenv("ONAIR_TEST_DEAD_STREAMS") ? getenv("ONAIR_TEST_DEAD_STREAMS") : "0");
-    CHECK(getenv("ONAIR_TEST_DEAD_STREAMS"), "the radio never started a silent stream: the test does not test the hand-over");
+    printf("  scan: %s (silent streams the radio started: %s)\n", pr.phase.c_str(), getenv("ZORCOM_TEST_DEAD_STREAMS") ? getenv("ZORCOM_TEST_DEAD_STREAMS") : "0");
+    CHECK(getenv("ZORCOM_TEST_DEAD_STREAMS"), "the radio never started a silent stream: the test does not test the hand-over");
     CHECK(!pr.running && pr.phase == "finished", "the scan finished");
     CHECK(res.size() == 2, "two channels were scanned (%zu)", res.size());
     for (const auto& r : res) {

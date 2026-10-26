@@ -24,7 +24,7 @@ In the numeric alphabet the codes 10 to 15 are `*` `U` space `-` `)` `(`. A lost
 
 ## Not verified
 
-* The OnAir IQ recordings used for the original modem tests contain no long or time messages. Their application fields are now ported from railair-terminal and checked by `test_lbj_fields`; see [railway.md](railway.md) for the fixed offsets and pairing rules. GBK route text uses iconv on Unix and Windows code page 936 on Windows. Hardware testing of this port remains to be done.
+* The Eye of ZorCom IQ recordings used for the original modem tests contain no long or time messages. Their application fields are now ported from railair-terminal and checked by `test_lbj_fields`; see [railway.md](railway.md) for the fixed offsets and pairing rules. GBK route text uses iconv on Unix and Windows code page 936 on Windows. Hardware testing of this port remains to be done.
 * Weak bursts: in the second recording (`...170033.cs8`) only one burst decodes (the blank frame in Python analysis); the C++ chain finds the LBJ address in two bursts but not a clean message. That file is weaker than the first.
 
 ## Test signal and tests

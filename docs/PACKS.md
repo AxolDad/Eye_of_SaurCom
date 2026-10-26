@@ -1,7 +1,7 @@
 # Data packs (work without internet)
 
-View > Data packs lists data you can download once and then use offline: map tiles (a region or the area around your station), satellite elements (CelesTrak),
-airports and their frequencies (OurAirports), DAB transmitter lists (OnAir-channels). Each row shows size, source, licence (hover for the credit that has to
+View > Data packs lists data you can download once and then use offline: map tiles (a region or the area around your station), satellite elements (CelesTrak)
+and airports and their frequencies (OurAirports). Each row shows size, source, licence (hover for the credit that has to
 stay visible) and the date of the last download.
 
 - Nothing is downloaded by itself. A pack starts only when you click Download (or Update) on it.

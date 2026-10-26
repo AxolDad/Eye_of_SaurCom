@@ -89,7 +89,7 @@ int main() {
     CHECK(eof && cnt == 17 && !memcmp(ch, ch2, 25), "packet frame");
     // text META
     uint8_t meta[14];
-    m17::textBlockPack("Hello M17 world, 73 from OnAir", 1, meta);
+    m17::textBlockPack("Hello M17 world, 73 from ZorCom", 1, meta);
     CHECK(meta[0] == 0x72 && meta[1] == 'l' && meta[2] == 'd', "text block control %02X", meta[0]);
     // sync bursts (spec table)
     int8_t s[8];

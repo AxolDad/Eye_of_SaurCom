@@ -81,7 +81,7 @@ const PreviewData& previewFor(TxUi& s, const TxModeSpec& mode, const DeviceInfo*
     }
     if (!gJob.fut.valid() && gShownKey != gWantKey && now - gWantSince > 0.35) {
         gJob.key = gWantKey;
-        gJob.fut = std::async(std::launch::async, [r, &mode, rate] { dect2::setThreadName("onair-txprev"); return make(r, &mode, rate); });
+        gJob.fut = std::async(std::launch::async, [r, &mode, rate] { dect2::setThreadName("zorcom-txprev"); return make(r, &mode, rate); });
     }
     gData.busy = gJob.fut.valid() || gShownKey != gWantKey;
     return gData;

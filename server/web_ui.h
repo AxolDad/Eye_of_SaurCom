@@ -1,7 +1,7 @@
 // The page the headless server serves at GET /: a spectrum and waterfall, the receiver's controls, a Listen button and the telemetry, in one file with no
 // external script, font or image (the server's Content-Security-Policy allows none). It talks to the remote-control API of the same server.
 #pragma once
-namespace onair_server {
+namespace zorcom_server {
 
 static const char* const kIndexHtml = R"HTML(<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -91,4 +91,4 @@ Promise.all([api("/modes"),api("/devices")]).then(function(r){modes=r[0];fillMod
 </script></body></html>
 )HTML";
 
-} // namespace onair_server
+} // namespace zorcom_server

@@ -3,22 +3,22 @@
 # TV driver off RTL-SDR dongles and its Mirics driver off SDRplay RSPs. Run it once with sudo; then replug the radio (or reboot).   sudo ./install-udev-rules.sh
 set -e
 HERE=$(cd "$(dirname "$0")" && pwd)
-RULES=$HERE/udev/60-onair-sdr.rules
-BLACKLIST=$HERE/udev/onair-rtlsdr-blacklist.conf
-BLACKLIST_SDRPLAY=$HERE/udev/onair-sdrplay-blacklist.conf
+RULES=$HERE/udev/60-zorcom-sdr.rules
+BLACKLIST=$HERE/udev/zorcom-rtlsdr-blacklist.conf
+BLACKLIST_SDRPLAY=$HERE/udev/zorcom-sdrplay-blacklist.conf
 if [ "$(id -u)" != 0 ]; then
     if command -v sudo >/dev/null 2>&1; then exec sudo "$0" "$@"; fi
     echo "Run this as root (sudo $0)."; exit 1
 fi
 for f in "$RULES" "$BLACKLIST"; do [ -f "$f" ] || { echo "Missing $f"; exit 1; }; done
 install -d /etc/udev/rules.d /etc/modprobe.d
-install -m 644 "$RULES" /etc/udev/rules.d/60-onair-sdr.rules
-echo "Installed /etc/udev/rules.d/60-onair-sdr.rules (radios can be opened without root)"
-install -m 644 "$BLACKLIST" /etc/modprobe.d/onair-rtlsdr-blacklist.conf
-echo "Installed /etc/modprobe.d/onair-rtlsdr-blacklist.conf (the kernel's TV driver stays off RTL-SDR dongles)"
+install -m 644 "$RULES" /etc/udev/rules.d/60-zorcom-sdr.rules
+echo "Installed /etc/udev/rules.d/60-zorcom-sdr.rules (radios can be opened without root)"
+install -m 644 "$BLACKLIST" /etc/modprobe.d/zorcom-rtlsdr-blacklist.conf
+echo "Installed /etc/modprobe.d/zorcom-rtlsdr-blacklist.conf (the kernel's TV driver stays off RTL-SDR dongles)"
 if [ -f "$BLACKLIST_SDRPLAY" ]; then
-    install -m 644 "$BLACKLIST_SDRPLAY" /etc/modprobe.d/onair-sdrplay-blacklist.conf
-    echo "Installed /etc/modprobe.d/onair-sdrplay-blacklist.conf (the kernel's Mirics driver stays off SDRplay RSPs)"
+    install -m 644 "$BLACKLIST_SDRPLAY" /etc/modprobe.d/zorcom-sdrplay-blacklist.conf
+    echo "Installed /etc/modprobe.d/zorcom-sdrplay-blacklist.conf (the kernel's Mirics driver stays off SDRplay RSPs)"
 fi
 if command -v udevadm >/dev/null 2>&1; then
     udevadm control --reload-rules && udevadm trigger --subsystem-match=usb && echo "Reloaded the udev rules for the radios that are plugged in"
@@ -38,4 +38,4 @@ fi
 if getent group plugdev >/dev/null 2>&1 && [ -n "$SUDO_USER" ] && ! id -nG "$SUDO_USER" | grep -qw plugdev; then
     echo "To open radios from a remote or text login too: sudo usermod -aG plugdev $SUDO_USER (then log in again)"
 fi
-echo "Done. Replug the radio if OnAir does not see it yet."
+echo "Done. Replug the radio if Eye of ZorCom does not see it yet."

@@ -10,18 +10,18 @@ namespace dsn {
 
 namespace {
 struct AbiCheck {
-    AbiCheck() { rsAbiCheck("onair_dsn", {onair_dsn_feed_size(), onair_dsn_config_size()}, {sizeof(OnairDsnFeed), sizeof(OnairDsnConfig)}); }
+    AbiCheck() { rsAbiCheck("zorcom_dsn", {zorcom_dsn_feed_size(), zorcom_dsn_config_size()}, {sizeof(ZorcomDsnFeed), sizeof(ZorcomDsnConfig)}); }
 } abiCheck;
 
 const uint8_t* u8(const std::string& s) { return reinterpret_cast<const uint8_t*>(s.data()); }
 } // namespace
 
-Names::Names() : c_(new OnairDsnConfig()) {}
+Names::Names() : c_(new ZorcomDsnConfig()) {}
 Names::~Names() = default;
 
 bool Names::load(const std::string& xml) {
-    auto c = std::make_unique<OnairDsnConfig>();
-    if (!onair_dsn_parse_config(u8(xml), xml.size(), c.get())) return false;
+    auto c = std::make_unique<ZorcomDsnConfig>();
+    if (!zorcom_dsn_parse_config(u8(xml), xml.size(), c.get())) return false;
     c_ = std::move(c);
     loaded_ = true;
     return true;
@@ -30,18 +30,18 @@ bool Names::load(const std::string& xml) {
 std::string Names::spacecraft(const std::string& call) const {
     if (!loaded_) return "";
     char b[80];
-    return onair_dsn_spacecraft_name(c_.get(), u8(call), call.size(), reinterpret_cast<uint8_t*>(b), sizeof b) ? std::string(b) : "";
+    return zorcom_dsn_spacecraft_name(c_.get(), u8(call), call.size(), reinterpret_cast<uint8_t*>(b), sizeof b) ? std::string(b) : "";
 }
 
 std::string Names::dishType(const std::string& dish) const {
     if (!loaded_) return "";
-    const int i = onair_dsn_dish_index(c_.get(), u8(dish), dish.size());
+    const int i = zorcom_dsn_dish_index(c_.get(), u8(dish), dish.size());
     return i >= 0 ? std::string(c_->dishes[i].kind) : "";
 }
 
 bool Names::site(const std::string& name, double& lat, double& lon) const {
     if (!loaded_) return false;
-    for (uint32_t i = 0; i < c_->n_sites && i < ONAIR_DSN_MAX_SITES; i++)
+    for (uint32_t i = 0; i < c_->n_sites && i < ZORCOM_DSN_MAX_SITES; i++)
         if (name == c_->sites[i].name) { lat = c_->sites[i].latitude; lon = c_->sites[i].longitude; return true; }
     return false;
 }
@@ -50,8 +50,8 @@ size_t Names::spacecraftCount() const { return loaded_ ? c_->n_spacecraft : 0; }
 
 bool parseReport(const std::string& xml, const Names* names, Report& out) {
     out = Report();
-    auto f = std::make_unique<OnairDsnFeed>();
-    if (!onair_dsn_parse(u8(xml), xml.size(), f.get())) return false;
+    auto f = std::make_unique<ZorcomDsnFeed>();
+    if (!zorcom_dsn_parse(u8(xml), xml.size(), f.get())) return false;
     out.timestampMs = f->timestamp_ms;
     for (uint32_t i = 0; i < f->n_stations; i++) {
         Station s;
@@ -64,7 +64,7 @@ bool parseReport(const std::string& xml, const Names* names, Report& out) {
     if (out.stations.empty()) { out.stations.emplace_back(); out.stations.back().friendly = "?"; out.stations.back().lat = out.stations.back().lon = NAN; }
     std::vector<std::pair<int, int>> where(f->n_dishes);   // dish index -> (station, position in it)
     for (uint32_t i = 0; i < f->n_dishes; i++) {
-        const OnairDsnDish& r = f->dishes[i];
+        const ZorcomDsnDish& r = f->dishes[i];
         Dish d;
         d.name = r.name; d.activity = r.activity;
         if (names) d.type = names->dishType(d.name);
@@ -75,7 +75,7 @@ bool parseReport(const std::string& xml, const Names* names, Report& out) {
         out.stations[st].dishes.push_back(std::move(d));
     }
     for (uint32_t i = 0; i < f->n_targets; i++) {
-        const OnairDsnTarget& r = f->targets[i];
+        const ZorcomDsnTarget& r = f->targets[i];
         if (r.dish < 0 || r.dish >= (int)where.size()) continue;
         Target t;
         t.call = r.name; t.id = r.id;
@@ -84,7 +84,7 @@ bool parseReport(const std::string& xml, const Names* names, Report& out) {
         out.stations[where[r.dish].first].dishes[where[r.dish].second].targets.push_back(std::move(t));
     }
     for (uint32_t i = 0; i < f->n_signals; i++) {
-        const OnairDsnSignal& r = f->signals[i];
+        const ZorcomDsnSignal& r = f->signals[i];
         if (r.dish < 0 || r.dish >= (int)where.size()) continue;
         Signal s;
         s.spacecraft = r.spacecraft; s.up = r.up; s.active = r.active; s.kind = r.kind; s.band = (char)r.band;

@@ -1,0 +1,10 @@
+[package]
+name = "zorcom_engine"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of ZorCom engine core (empty skeleton)"
+
+[dependencies]
+zorcom_common = { path = "../zorcom_common" }

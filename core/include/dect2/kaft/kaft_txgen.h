@@ -3,7 +3,7 @@
 // FINISH; the whole file is sent `kaft.repeat` times, so a receiver that missed blocks gets them on the next pass, and one that has the file ignores
 // the repeat. The file is sent raw (no compression codec is built in) at one fixed profile (there is no return link for the ladder to follow).
 // Options: opt "kaft.profile" (0 .. 9, default 2 = QPSK 1/2), opt "kaft.width" (0 = 1 MHz, 1 = 500 kHz, 2 = 200 kHz, default 2), opt "kaft.repeat"
-// (1 .. 9 passes, default 2), opt "kaft.session" (1 .. 65000, default: from the clock; a receiver tells two transfers of one file apart by it). The callsign is up to 6 characters of A-Z 0-9 / - . (lower case is raised); empty is the demo identity ONAIR.
+// (1 .. 9 passes, default 2), opt "kaft.session" (1 .. 65000, default: from the clock; a receiver tells two transfers of one file apart by it). The callsign is up to 6 characters of A-Z 0-9 / - . (lower case is raised); empty is the demo identity ZORCOM.
 // The rate must carry the width: at least 1.25 Msps for 1 MHz, 625 ksps for 500 kHz, 250 ksps for 200 kHz.
 // The generator is finite: finished() is true after the last pass and a session ends then. Nothing about mode, frequency or power is limited here.
 #pragma once

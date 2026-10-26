@@ -94,7 +94,7 @@ static int replay(const std::string& path, const IqFileInfo& info) {
 }
 
 int main() {
-    const fs::path dir = fs::temp_directory_path() / "onair_sigmf_test";
+    const fs::path dir = fs::temp_directory_path() / "zorcom_sigmf_test";
     fs::remove_all(dir);
     fs::create_directories(dir);
 

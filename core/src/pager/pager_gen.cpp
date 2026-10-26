@@ -39,9 +39,9 @@ std::vector<pager::PocsagPage> pocsagPages(int speed) {
     using pager::PocsagPage;
     auto page = [](uint32_t ric, int fn, int type, const std::string& t) { PocsagPage p; p.ric = ric; p.fn = fn; p.type = type; p.text = t; return p; };
     switch (speed) {
-    case kPocsag512:  return {page(1234561, 0, kPagerNumeric, "555-0123 U 45"), page(1234563, 3, kPagerAlpha, "OnAir test 512: hello")};
-    case kPocsag1200: return {page(1234561, 0, kPagerNumeric, "12345 U 678"), page(1234562, 2, kPagerTone, ""), page(1234567, 3, kPagerAlpha, "OnAir test 1200: hello")};
-    default:          return {page(1234561, 0, kPagerNumeric, "2400-9876"), page(1234563, 3, kPagerAlpha, "OnAir test 2400: hello")};
+    case kPocsag512:  return {page(1234561, 0, kPagerNumeric, "555-0123 U 45"), page(1234563, 3, kPagerAlpha, "ZorCom test 512: hello")};
+    case kPocsag1200: return {page(1234561, 0, kPagerNumeric, "12345 U 678"), page(1234562, 2, kPagerTone, ""), page(1234567, 3, kPagerAlpha, "ZorCom test 1200: hello")};
+    default:          return {page(1234561, 0, kPagerNumeric, "2400-9876"), page(1234563, 3, kPagerAlpha, "ZorCom test 2400: hello")};
     }
 }
 
@@ -49,7 +49,7 @@ std::vector<pager::FlexPage> flexPages(int speed) {
     using pager::FlexPage;
     const std::string name = std::string(pagerSpeedName(speed)).substr(5);       // "1600/2" from "FLEX 1600/2"
     auto page = [](uint32_t cap, int type, const std::string& t) { FlexPage p; p.cap = cap; p.type = type; p.text = t; return p; };
-    return {page(1234567, kPagerAlpha, "OnAir test " + name + ": hello"), page(1234568, kPagerNumeric, "555-0123 U 45"), page(1234569, kPagerTone, ""),
+    return {page(1234567, kPagerAlpha, "ZorCom test " + name + ": hello"), page(1234568, kPagerNumeric, "555-0123 U 45"), page(1234569, kPagerTone, ""),
             page(1234570, kPagerAlpha, "Second page " + name)};
 }
 

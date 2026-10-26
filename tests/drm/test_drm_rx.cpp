@@ -28,7 +28,7 @@ static void checkDefault(const char* what, const Result& r, int mode, int occ, i
     CHECK(t.services.size() == 1, "%s: %zu services", what, t.services.size());
     if (t.services.size() == 1) {
         const DrmService& s = t.services[0];
-        CHECK(s.label == "OnAir DRM", "%s: label '%s'", what, s.label.c_str());
+        CHECK(s.label == "ZorCom DRM", "%s: label '%s'", what, s.label.c_str());
         CHECK(s.id == 0xE12345, "%s: service id %06X", what, s.id);
         CHECK(s.audio && s.language == 5 && s.languageName == "eng", "%s: language %d '%s'", what, s.language, s.languageName.c_str());
         CHECK(s.country == "ae", "%s: country '%s'", what, s.country.c_str());
@@ -36,7 +36,7 @@ static void checkDefault(const char* what, const Result& r, int mode, int occ, i
         CHECK(s.audioCoding == 0 && s.audioRateHz == 24000 && s.audioMode == 0, "%s: audio %d %d Hz mode %d", what, s.audioCoding, s.audioRateHz, s.audioMode);
     }
     CHECK(t.timeValid && t.year == 2026 && t.month == 10 && t.day == 6 && t.hour == 12, "%s: time %04d-%02d-%02d %02d:%02d", what, t.year, t.month, t.day, t.hour, t.minute);
-    CHECK(t.textMessage == "OnAir DRM test signal", "%s: text message '%s'", what, t.textMessage.c_str());
+    CHECK(t.textMessage == "ZorCom DRM test signal", "%s: text message '%s'", what, t.textMessage.c_str());
     CHECK(t.facBad == 0 && t.sdcBad == 0, "%s: FAC %llu bad, SDC %llu bad", what, (unsigned long long)t.facBad, (unsigned long long)t.sdcBad);
     CHECK(t.blocksOk > 0 && t.blocksBad == 0, "%s: audio frames %llu ok %llu bad", what, (unsigned long long)t.blocksOk, (unsigned long long)t.blocksBad);
     CHECK(r.exact >= 8 && r.bad == 0 && r.gaps == 0, "%s: %llu frames exact, %llu bad, %llu gaps", what, (unsigned long long)r.exact, (unsigned long long)r.bad, (unsigned long long)r.gaps);
@@ -81,9 +81,9 @@ static void testModes() {
         const DrmTelemetry& t = r.tel;
         CHECK(t.state == 2 && t.dataValid, "%s: not decoding (state %d)", c.name, t.state);
         CHECK(t.mode == c.mode && t.occupancy == c.occ && t.mscQam == c.qam, "%s: mode %d occupancy %d %d-QAM", c.name, t.mode, t.occupancy, t.mscQam);
-        CHECK(t.services.size() == 1 && t.services[0].label == "OnAir DRM", "%s: label", c.name);
+        CHECK(t.services.size() == 1 && t.services[0].label == "ZorCom DRM", "%s: label", c.name);
         CHECK(r.exact >= 6 && r.bad == 0 && r.gaps == 0, "%s: %llu exact, %llu bad, %llu gaps", c.name, (unsigned long long)r.exact, (unsigned long long)r.bad, (unsigned long long)r.gaps);
-        CHECK(t.textMessage == "OnAir DRM test signal" || r.exact < 12, "%s: text '%s'", c.name, t.textMessage.c_str());
+        CHECK(t.textMessage == "ZorCom DRM test signal" || r.exact < 12, "%s: text '%s'", c.name, t.textMessage.c_str());
     });
 }
 

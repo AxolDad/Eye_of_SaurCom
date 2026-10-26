@@ -257,36 +257,4 @@ void AcarsLog::prune(int64_t nowWall) {
     }
 }
 
-std::string acarsJsonEscape(const std::string& s) {
-    std::string o;
-    const size_t n = s.size();
-    for (size_t i = 0; i < n;) {
-        const unsigned char c = (unsigned char)s[i];
-        if (c == '"' || c == '\\') { o += '\\'; o += (char)c; i++; }
-        else if (c < 0x20 || c == 0x7f) { char b[8]; snprintf(b, sizeof b, "\\u%04x", c); o += b; i++; }
-        else if (c < 0x80) { o += (char)c; i++; }
-        else {
-            int len = c >= 0xF0 && c < 0xF5 ? 4 : c >= 0xE0 ? 3 : c >= 0xC2 ? 2 : 0;
-            bool ok = len > 0 && i + (size_t)len <= n;
-            for (int k = 1; ok && k < len; k++) if (((unsigned char)s[i + (size_t)k] & 0xC0) != 0x80) ok = false;
-            if (ok) { o.append(s, i, (size_t)len); i += (size_t)len; }
-            else { o += '?'; i++; }
-        }
-    }
-    return o;
-}
-
-std::string acarsEntryJson(const AcarsLogEntry& e) {
-    char b[96];
-    std::string j = "{";
-    snprintf(b, sizeof b, "\"t\":%lld,\"m\":\"", (long long)e.wall);
-    j += b; j += acarsJsonEscape(e.mode);
-    if (e.freqMHz > 0) { snprintf(b, sizeof b, "\",\"f\":%.3f", e.freqMHz); j += b; } else j += "\"";
-    j += ",\"l\":\""; j += acarsJsonEscape(e.label);
-    j += "\",\"c\":\""; j += acarsCatKey(e.cat);
-    j += "\",\"x\":\""; j += acarsJsonEscape(e.text);
-    j += "\"}";
-    return j;
-}
-
 } // namespace dect2

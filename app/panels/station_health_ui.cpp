@@ -94,7 +94,7 @@ void startRun(App& a) {
     t.centerHz = c.bands.front().startHz;
     S.cancel = false; S.running = true; S.msg.clear();
     gainOf(a, S.gainDb, S.gainMaxDb);
-    S.th = dect2::namedThread("onair-health", worker, dev, t, c, (double)S.carrierMhz * 1e6);
+    S.th = dect2::namedThread("zorcom-health", worker, dev, t, c, (double)S.carrierMhz * 1e6);
 }
 
 std::string findingText(const Finding& f) {

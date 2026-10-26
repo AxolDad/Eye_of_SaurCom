@@ -92,19 +92,5 @@ int main() {
     AcarsLog lg; lg.add(byIcao, longE);
     CHECK(lg.messagesFor(a, T + 1)[0].text.size() == kAcarsLogTextMax, "text cap");
 
-    // JSON
-    const std::string weird = "quote\" back\\ tab\t nl\n ctl\x01 del\x7f uni \xC3\xA9\xE2\x82\xAC\xF0\x9F\x98\x80 bad\xFF\xC3 end";
-    const std::string esc = acarsJsonEscape(weird);
-    CHECK(esc.find('\n') == std::string::npos && esc.find('\t') == std::string::npos && esc.find('\x01') == std::string::npos, "no raw controls");
-    CHECK(esc.find("\\\"") != std::string::npos && esc.find("\\\\") != std::string::npos && esc.find("\\u000a") != std::string::npos, "escapes: %s", esc.c_str());
-    CHECK(esc.find("\xC3\xA9\xE2\x82\xAC\xF0\x9F\x98\x80") != std::string::npos, "valid UTF-8 kept");
-    CHECK(esc.find("bad?? end") != std::string::npos || esc.find("bad??") != std::string::npos, "invalid bytes replaced: %s", esc.c_str());
-    AcarsLogEntry e = mk(T, "H1", "x"); e.text = weird; e.cat = AcarsCat::Crew;
-    const std::string j = acarsEntryJson(e);
-    CHECK(j.front() == '{' && j.back() == '}' && j.find("\"c\":\"crew\"") != std::string::npos && j.find("\"f\":136.975") != std::string::npos, "entry json: %s", j.c_str());
-    // every quote in the JSON is either structural or escaped: count unescaped quotes (10 for five string/number-key pairs... keys t m f l c x)
-    int q = 0;
-    for (size_t i = 0; i < j.size(); i++) { if (j[i] == '\\') { i++; continue; } if (j[i] == '"') q++; }
-    CHECK(q == 2 * 6 + 2 * 4, "balanced quotes: %d", q);   // 6 keys, 4 string values (m, l, c, x)
     return testSummary("acars_log");
 }

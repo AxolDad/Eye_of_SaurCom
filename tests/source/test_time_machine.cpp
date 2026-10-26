@@ -45,7 +45,7 @@ static std::vector<int8_t> slurp(const fs::path& p) {
 }
 
 int main() {
-    const fs::path dir = fs::temp_directory_path() / "onair_time_machine_test";
+    const fs::path dir = fs::temp_directory_path() / "zorcom_time_machine_test";
     fs::remove_all(dir);
     fs::create_directories(dir);
     const double kRate = 1e6;

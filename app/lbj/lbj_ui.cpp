@@ -15,7 +15,7 @@ State S;
 const char* kHelp = N_(
     "LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short "
     "message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and "
-    "number and the route.\n\nOnAir decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors "
+    "number and the route.\n\nEye of ZorCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors "
     "that were corrected, so check it against the next message of the same train.");
 
 bool live(const App& a) { return a.rx.standard == 82; }

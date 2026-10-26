@@ -18,7 +18,7 @@
 
 using namespace dect2;
 
-namespace onair_server {
+namespace zorcom_server {
 
 static double nowSec() { return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
 
@@ -138,7 +138,7 @@ void ServerHost::init() {
     const int dm = demodFromName(cfg_.get("audio_demod", "auto"));
     demod_ = dm < 0 ? 4 : dm;
     wantRun_ = cfg_.flag("autostart", false);
-    snapTh_ = dect2::namedThread("onair-snap", [this] { snapLoop(); });
+    snapTh_ = dect2::namedThread("zorcom-snap", [this] { snapLoop(); });
 }
 
 // ---------------------------------------------------------------- tuning and start
@@ -260,14 +260,14 @@ void ServerHost::supervise(const std::string& path) {
             devicesAt_ = -1e9;
             refreshDevices(false);
             std::string err;
-            if (!startLocked(err)) { if (err != err_) fprintf(stderr, "onair-server: %s (trying again every 10 s)\n", err.c_str()); err_ = err; }
+            if (!startLocked(err)) { if (err != err_) fprintf(stderr, "zorcom-server: %s (trying again every 10 s)\n", err.c_str()); err_ = err; }
             else err_.clear();
         }
     }
     if (dirty_.exchange(false)) {
         std::string err;
         std::lock_guard<std::mutex> lk(mu_);
-        if (!cfg_.save(path, err)) fprintf(stderr, "onair-server: %s\n", err.c_str());
+        if (!cfg_.save(path, err)) fprintf(stderr, "zorcom-server: %s\n", err.c_str());
     }
 }
 
@@ -511,7 +511,7 @@ std::string ServerHost::indexHtml() { return kIndexHtml; }
 int ServerHost::handleExtra(const std::string& method, const std::string& path, const std::map<std::string, JsonVal>& body, std::string& json) {
     if (path == "/api/v1/x/server" && method == "GET") {
         std::lock_guard<std::mutex> lk(mu_);
-        json = std::string("{\"name\":\"Eye of ZorCom headless server\",\"version\":\"") + ONAIR_SERVER_VERSION + "\",\"demod\":\"" + demodName(demod_) + "\",\"autostart\":" + (cfg_.flag("autostart", false) ? "true" : "false") + "}";
+        json = std::string("{\"name\":\"Eye of ZorCom headless server\",\"version\":\"") + ZORCOM_SERVER_VERSION + "\",\"demod\":\"" + demodName(demod_) + "\",\"autostart\":" + (cfg_.flag("autostart", false) ? "true" : "false") + "}";
         return 200;
     }
     if (path == "/api/v1/x/demod" && method == "POST") {
@@ -537,4 +537,4 @@ int ServerHost::handleExtra(const std::string& method, const std::string& path, 
     return 0;
 }
 
-} // namespace onair_server
+} // namespace zorcom_server

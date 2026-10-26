@@ -1,4 +1,4 @@
-{"format":"onair-bandplans-1",
+{"format":"zorcom-bandplans-1",
 "description":"Built-in band plans. A template is a shared list of bands (with its source); a plan lists the templates it uses plus its own extra bands. Frequencies are in Hz.",
 "templates":{
 "tv-eu-vhf3":{"source":"CEPT/ITU-R BT.470 channel plan (VHF band III ch 5-12 at 7 MHz, UHF ch 21-69 at 8 MHz); EU Decision 2017/899 leaves ch 21-48 (470-694 MHz) to broadcasting",

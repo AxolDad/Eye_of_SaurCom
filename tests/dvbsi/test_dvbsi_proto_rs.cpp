@@ -1,6 +1,6 @@
-// Golden-vector test of the DVB service information layers (the Rust crate onair_dvbsi behind dect2::text, dect2::dvbsi and the teletext / DVB subtitle decoders):
+// Golden-vector test of the DVB service information layers (the Rust crate zorcom_dvbsi behind dect2::text, dect2::dvbsi and the teletext / DVB subtitle decoders):
 // broadcast character sets and the DVB text field, Hamming codes, G0 subsets, teletext data units, the page renderer and a whole TeletextDecoder fed with PES
-// packets, DVB subtitle segment parsers, colours, run-length pixel strings, blending and a whole DvbSubDecoder fed with PES packets, over ONAIR_DIFF_ITERS
+// packets, DVB subtitle segment parsers, colours, run-length pixel strings, blending and a whole DvbSubDecoder fed with PES packets, over ZORCOM_DIFF_ITERS
 // (default 200000) seeded inputs per family. Every result goes into a digest (tests/common/golden.h; doubles rounded to 1e-6) compared with the one recorded from
 // the C++ layers the Rust code replaced.
 #include "dect2/common/text_charset.h"
@@ -73,7 +73,7 @@ static void testText() {
         dig.add(AT::ebuLatin(one, 2), AT::iso6937(one, 2), AT::ucs2be(one, 2));
     }
     dig.add(AT::ebuLatin(nullptr, 0), AT::clean(""));
-    long iters = getenv("ONAIR_DIFF_ITERS") ? atol(getenv("ONAIR_DIFF_ITERS")) : 200000;
+    long iters = getenv("ZORCOM_DIFF_ITERS") ? atol(getenv("ZORCOM_DIFF_ITERS")) : 200000;
     for (long i = 0; i < iters; i++) {
         const Buf b = textBytes(false);
         exact(b, [&](const uint8_t* p, size_t n) {
@@ -139,7 +139,7 @@ static Buf teletextPes(const std::vector<Buf>& units) {
 static void testTeletext() {
     for (int b = 0; b < 256; b++) dig.add(A::ttxHamming84((uint8_t)b), A::ttxReverse8((uint8_t)b));
     for (int c = 0; c < 256; c++) for (int n = -2; n < 10; n++) dig.add(A::ttxG0((uint8_t)c, n));
-    const long iters = getenv("ONAIR_DIFF_ITERS") ? atol(getenv("ONAIR_DIFF_ITERS")) : 200000;
+    const long iters = getenv("ZORCOM_DIFF_ITERS") ? atol(getenv("ZORCOM_DIFF_ITERS")) : 200000;
     for (long i = 0; i < iters; i++) {
         uint8_t w[3] = {(uint8_t)r32(), (uint8_t)r32(), (uint8_t)r32()};
         dig.add(A::ttxHamming2418(w));
@@ -260,7 +260,7 @@ static Buf subtitlePes(int page) {
 }
 
 static void testSubs() {
-    const long iters = getenv("ONAIR_DIFF_ITERS") ? atol(getenv("ONAIR_DIFF_ITERS")) : 200000;
+    const long iters = getenv("ZORCOM_DIFF_ITERS") ? atol(getenv("ZORCOM_DIFF_ITERS")) : 200000;
     { uint32_t a2[4], a4[16], a8[256]; A::dvbSubDefaultClut(a2, a4, a8); dig.bytes(a2, sizeof a2); dig.bytes(a4, sizeof a4); dig.bytes(a8, sizeof a8); }
     for (int y = 0; y < 256; y += 1) for (int cr = 0; cr < 256; cr += 17) for (int cb = 0; cb < 256; cb += 15) { const int t = (y * 7 + cr) & 0xFF; dig.add(A::dvbSubYcrcb(y, cr, cb, t)); }
     for (long i = 0; i < iters; i++) {
@@ -353,7 +353,7 @@ int main() {
     testSubs();
     printf("dvbsi proto: non-empty text %ld %ld, 2418 ok %ld, units %ld %ld %ld, pes %ld, decoder pages %ld, sub pes %ld page %ld region %ld clut %ld object %ld, decoder displays with regions %ld\n",
            rsStat[0], rsStat[1], rsStat[2], rsStat[3], rsStat[4], rsStat[5], rsStat[6], rsStat[7], rsStat[8], rsStat[9], rsStat[10], rsStat[11], rsStat[12], rsStat[13]);
-    const bool def = !getenv("ONAIR_DIFF_ITERS");
+    const bool def = !getenv("ZORCOM_DIFF_ITERS");
     int rc = golden::check("dvbsi_proto_rs (without iconv text)", dig.portable, 0xb59f514d9ea18de6ull, def);
 #ifdef __APPLE__
     rc |= golden::check("dvbsi_proto_rs", dig.all, 0xc1f39019e0da1992ull, def);

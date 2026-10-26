@@ -1,0 +1,10 @@
+[package]
+name = "zorcom_dvbsi"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of ZorCom DVB service information text (character sets), teletext (EN 300 706) and DVB subtitle (EN 300 743) decoding"
+
+[dependencies]
+zorcom_common = { path = "../zorcom_common" }

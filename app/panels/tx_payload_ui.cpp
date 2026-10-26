@@ -247,7 +247,7 @@ void payloadPanel(TxUi& s, const TxModeSpec& mode, bool running) {
         }
         ImGui::SetNextItemWidth(200 * gUi);
         ImGui::InputText(tr("Ident on the card"), s.name, sizeof s.name);
-        ImGui::TextDisabled("%s", tr("Empty: ONAIR TEST. This is the station name drawn on the picture, not a file."));
+        ImGui::TextDisabled("%s", tr("Empty: ZORCOM TEST. This is the station name drawn on the picture, not a file."));
         const char* sndn[] = {"1 kHz tone (with gaps)", "melody", "sound carrier only", "no sound carrier", "microphone", "WAV / MP3 file"};
         int snd = s.audioSrc == 0 ? 4 : s.audioSrc == 1 ? 5 : std::max(0, std::min(3, s.synth.modeOpt[3]));
         ImGui::SetNextItemWidth(220 * gUi);

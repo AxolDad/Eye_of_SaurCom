@@ -347,12 +347,10 @@ void receiversFrame(App& first, ImVec2 disp) {
     drawWarning(first);
     acarslog::tick(first);
     tx::tick(first);
-    mapSendTick(first);
 }
 
 void receiversShutdown(App& first) {
     tx::shutdown();
-    mapSendShutdown();
     for (int id = 2; id <= kMaxReceivers; id++) if (App* r = gExtra[id - 2].get()) {
         { PrefScope ps(id); savePrefs(*r); }
         r->engine.stop();

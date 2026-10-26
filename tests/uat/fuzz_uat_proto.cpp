@@ -1,5 +1,5 @@
 // Seeded mutation run of the UAT message decoder, meant for DECT2_SANITIZE=ON: downlink and uplink decodes of any bytes
-// (full-size buffers, as the callers have) must never crash or hang. Also a libFuzzer target with -DONAIR_LIBFUZZER.
+// (full-size buffers, as the callers have) must never crash or hang. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
 #include "dect2/uat/uat_decode_c.h"
 #include "dect2/uat/uat_frame.h"
 #include <cstdio>
@@ -26,11 +26,11 @@ static void one(const uint8_t* d, size_t n) {
     }
 }
 
-#ifdef ONAIR_LIBFUZZER
+#ifdef ZORCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* it = getenv("ONAIR_FUZZ_ITERS");
+    const char* it = getenv("ZORCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 50000;
     std::mt19937 g(4242);
     for (long i = 0; i < iters; i++) {

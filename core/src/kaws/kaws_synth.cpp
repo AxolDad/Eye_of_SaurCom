@@ -14,10 +14,10 @@ std::unique_ptr<ModeSynth> makeKawsSynth(const SynthConfig& s, double sampleRate
     auto synth = std::make_unique<TxLoopSynth>(rate, -kawsTuning().tuneOffsetHz + 30.0 + s.cfoHz, s.snrDb, 0.0, [rate, profile](int pass) -> std::unique_ptr<TxGenerator> {
     TxRequest r;
     r.modeId = "kaws";
-    r.callsign = "ONAIR";
+    r.callsign = "ZORCOM";
     r.grid = "KO24RM";
     r.dest = "CQ";
-    r.text = "OnAir KAWS test signal: chat from the real transmitter.";
+    r.text = "ZorCom KAWS test signal: chat from the real transmitter.";
     r.opt["kaws.kind"] = (pass % 2 == 0) ? 0 : 1;   // chat, then a short beacon
     r.opt["kaws.profile"] = profile;
     r.opt["kaws.repeat"] = 1;

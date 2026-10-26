@@ -197,7 +197,7 @@ int main() {
         CHECK(d4.toJson() == js, "json stable");
         CHECK(!d4.fromJson("{not json") && d4.count() == 4, "bad json leaves the database alone");
         CHECK(!d4.fromJson("{\"services\":5}") && d4.count() == 4, "wrong shape");
-        const std::string path = (std::filesystem::temp_directory_path() / "onair_epg_test.json").string();
+        const std::string path = (std::filesystem::temp_directory_path() / "zorcom_epg_test.json").string();
         CHECK(d3.save(path), "save");
         EpgDb d5; CHECK(d5.load(path) && d5.count() == 4, "load");
         std::filesystem::remove(path);

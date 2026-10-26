@@ -1,4 +1,4 @@
-// onair-server: Eye of ZorCom without a window. The radio is attached to this computer (a Raspberry Pi, a Linux box, a Windows PC with no screen); it is
+// zorcom-server: Eye of ZorCom without a window. The radio is attached to this computer (a Raspberry Pi, a Linux box, a Windows PC with no screen); it is
 // controlled from a web browser (the page this program serves) or by any program that speaks the remote-control API (docs/headless-server.md).
 // No cloud and no relay: the browser connects straight to this program. Access from other computers needs a token; TLS is optional.
 #include "dect2/common/platform.h"
@@ -16,14 +16,14 @@
 #include <string>
 #include <thread>
 
-using namespace onair_server;
+using namespace zorcom_server;
 
 static std::atomic<bool> gQuit{false};
 static void onSignal(int) { gQuit = true; }
 
 static void usage() {
-    printf("onair-server %s: Eye of ZorCom with no window, controlled from a web browser or the remote-control API\n\n"
-           "  onair-server [--config FILE] [options]\n\n"
+    printf("zorcom-server %s: Eye of ZorCom with no window, controlled from a web browser or the remote-control API\n\n"
+           "  zorcom-server [--config FILE] [options]\n\n"
            "  --config FILE      settings file (default %s)\n"
            "  --port N           web / API port (default 8765)\n"
            "  --lan              accept other computers (needs a token; made and printed when there is none)\n"
@@ -37,7 +37,7 @@ static void usage() {
            "  --share-rtltcp [PORT]   also share the raw samples as an rtl_tcp server (default port 1234) for SDR++, SDR# or another Eye of ZorCom; no access control: trusted networks only\n"
            "  --version, --help\n\n"
            "Settings file: plain key=value lines (see docs/headless-server.md).\n",
-           ONAIR_SERVER_VERSION, defaultConfigPath().c_str());
+           ZORCOM_SERVER_VERSION, defaultConfigPath().c_str());
 }
 
 int main(int argc, char** argv) {
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
         const std::string a = argv[i];
         if (a == "--help" || a == "-h") { usage(); return 0; }
-        if (a == "--version") { printf("onair-server %s\n", ONAIR_SERVER_VERSION); return 0; }
+        if (a == "--version") { printf("zorcom-server %s\n", ZORCOM_SERVER_VERSION); return 0; }
         if (a == "--config" && i + 1 < argc) path = argv[++i];
     }
     ConfigFile cfg;
@@ -88,36 +88,36 @@ int main(int argc, char** argv) {
         api.token = dect2::remoteApiNewToken();
         cfg.set("token", api.token);
         saveCfg = true;
-        fprintf(stderr, "onair-server: new access token %s (saved in %s)\n", api.token.c_str(), path.c_str());
+        fprintf(stderr, "zorcom-server: new access token %s (saved in %s)\n", api.token.c_str(), path.c_str());
     }
-    if (api.token.size() > 0 && api.token.size() < 16) { fprintf(stderr, "onair-server: the token must have 16 characters or more\n"); return 2; }
+    if (api.token.size() > 0 && api.token.size() < 16) { fprintf(stderr, "zorcom-server: the token must have 16 characters or more\n"); return 2; }
     if (saveCfg) {
         std::string err;
-        if (!cfg.save(path, err)) fprintf(stderr, "onair-server: %s (the settings will not be saved)\n", err.c_str());
+        if (!cfg.save(path, err)) fprintf(stderr, "zorcom-server: %s (the settings will not be saved)\n", err.c_str());
     }
 
     ServerHost host(cfg);
     host.init();
     dect2::RemoteApiServer server(host);
     if (!server.configure(api)) {
-        fprintf(stderr, "onair-server: %s\n", server.status().lastError.c_str());
+        fprintf(stderr, "zorcom-server: %s\n", server.status().lastError.c_str());
         return 1;
     }
     const dect2::RemoteApiConfig live = server.config();
     const char* scheme = server.status().tls ? "https" : "http";
     if (api.lan) {
-        printf("onair-server: listening on all interfaces, port %d. Open %s://<this computer>:%d/?token=<token from %s>\n", live.port, scheme, live.port, path.c_str());
-        if (!server.status().tls) fprintf(stderr, "onair-server: no TLS: the token and the page travel unencrypted. Use it on a network you trust, or set tls_cert / tls_key (or a reverse proxy).\n");
+        printf("zorcom-server: listening on all interfaces, port %d. Open %s://<this computer>:%d/?token=<token from %s>\n", live.port, scheme, live.port, path.c_str());
+        if (!server.status().tls) fprintf(stderr, "zorcom-server: no TLS: the token and the page travel unencrypted. Use it on a network you trust, or set tls_cert / tls_key (or a reverse proxy).\n");
     } else {
-        printf("onair-server: listening on this computer only: %s://127.0.0.1:%d/ (use --lan to let other computers in)\n", scheme, live.port);
+        printf("zorcom-server: listening on this computer only: %s://127.0.0.1:%d/ (use --lan to let other computers in)\n", scheme, live.port);
     }
     if (share) {
         dect2::ShareConfig sc;
         sc.on = true; sc.port = sharePort; sc.lan = api.lan; sc.allowControl = false;
         dect2::ShareServer::get().configure(sc);
         const dect2::ShareStatus ss = dect2::ShareServer::get().status();
-        if (!ss.listening) fprintf(stderr, "onair-server: rtl_tcp share: %s\n", ss.lastError.c_str());
-        else printf("onair-server: sharing the samples as rtl_tcp on port %d (%s; no password)\n", sharePort, api.lan ? "whole network" : "this computer only");
+        if (!ss.listening) fprintf(stderr, "zorcom-server: rtl_tcp share: %s\n", ss.lastError.c_str());
+        else printf("zorcom-server: sharing the samples as rtl_tcp on port %d (%s; no password)\n", sharePort, api.lan ? "whole network" : "this computer only");
     }
     signal(SIGINT, onSignal);
     signal(SIGTERM, onSignal);
@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
         host.supervise(path);
         for (int i = 0; i < 10 && !gQuit; i++) std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    printf("onair-server: stopping\n");
+    printf("zorcom-server: stopping\n");
     host.supervise(path);
     host.shutdown();   // the receiver stops; the saved "autostart" keeps what the user last chose, so a restart brings it back
     dect2::ShareServer::get().configure(dect2::ShareConfig{});

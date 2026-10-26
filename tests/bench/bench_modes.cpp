@@ -1,4 +1,4 @@
-// Per-mode cost benchmark: every OnAir mode through the real receiver path (Engine, file source, no sound, no pacing), measured in CPU time.
+// Per-mode cost benchmark: every ZorCom mode through the real receiver path (Engine, file source, no sound, no pacing), measured in CPU time.
 //
 //   bench_modes [--list] [--mode id[,id..]] [--seconds N] [--rates default|both|<Msps>[,<Msps>]] [--timeout CPU_S] [--wall-timeout S]
 //               [--out path-prefix] [--spectrum] [--tmp dir]

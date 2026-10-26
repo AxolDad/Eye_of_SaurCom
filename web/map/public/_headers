@@ -1,5 +1,0 @@
-# Static files are served by Workers Assets (free); a short cache saves the revalidation round trip on every page load.
-/*.js
-  Cache-Control: public, max-age=300
-/*.css
-  Cache-Control: public, max-age=300

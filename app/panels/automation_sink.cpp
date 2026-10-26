@@ -55,7 +55,7 @@ void hookWorker() {
             job = gHookQ.front();
             gHookQ.pop_front();
         }
-        const bool ok = plat::postJson(job.first, job.second, std::string("OnAir/") + ONAIR_VERSION + " (automation)");
+        const bool ok = plat::postJson(job.first, job.second, std::string("ZorCom/") + ZORCOM_VERSION + " (automation)");
         char b[240];
         std::string host = job.first.substr(0, 60);
         snprintf(b, sizeof b, "%s %s", ok ? "webhook sent:" : "webhook failed:", host.c_str());
@@ -209,7 +209,7 @@ std::pair<bool, std::string> doOnUi(App& a, const Pending& p) {
         fs::create_directories(fs::path(reinterpret_cast<const char8_t*>((plat::dataDir() + "/screenshots").c_str())), ec);
         char b[64];
         const time_t t = time(nullptr);
-        strftime(b, sizeof b, "onair_%Y%m%d-%H%M%S.png", localtime(&t));
+        strftime(b, sizeof b, "zorcom_%Y%m%d-%H%M%S.png", localtime(&t));
         gAutomationShotPath = plat::dataDir() + "/screenshots/" + b;
         return {true, "saved as " + gAutomationShotPath};
     }
@@ -224,7 +224,7 @@ public:
             if (u == p.end() || b == p.end()) { detail = "no address"; return false; }
             {
                 std::lock_guard<std::mutex> lk(gHookMu);
-                if (!gHookTh.joinable()) gHookTh = dect2::namedThread("onair-hook", hookWorker);
+                if (!gHookTh.joinable()) gHookTh = dect2::namedThread("zorcom-hook", hookWorker);
                 if (gHookQ.size() >= 50) { detail = "too many webhooks waiting"; return false; }
                 gHookQ.push_back({u->second, b->second});
             }

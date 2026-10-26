@@ -16,7 +16,7 @@
 
 namespace {
 
-constexpr const char* kDocUrl = "https://github.com/adswill/OnAir/blob/main/docs/CODECS.md";
+constexpr const char* kDocUrl = "https://github.com/AxolDad/OnAir-SDR-Suite/blob/main/docs/CODECS.md";
 
 // mbelib is built from source by the user (patented codec: Eye of ZorCom ships none). Plain steps; the full text is docs/CODECS.md.
 constexpr const char* kMbeMac =
@@ -51,11 +51,11 @@ Text textOf(CodecHelp c) {
                 "M17 speech works with nothing to install. This help only matters when it says \"not found\" above: then this copy of Eye of ZorCom is "
                 "incomplete.",
 #if defined(__APPLE__)
-                "Normally nothing to do: the library is inside OnAir.app. If it is not found, download the Eye of ZorCom disk image again and copy "
-                "OnAir.app to Applications; or install it yourself with Homebrew (brew.sh):\n  brew install codec2",
+                "Normally nothing to do: the library is inside ZorCom.app. If it is not found, download the Eye of ZorCom disk image again and copy "
+                "ZorCom.app to Applications; or install it yourself with Homebrew (brew.sh):\n  brew install codec2",
 #elif defined(_WIN32)
-                "Normally nothing to do: libcodec2.dll is in the same folder as OnAir.exe. If it is not found, unpack the whole Eye of ZorCom zip again "
-                "(do not copy OnAir.exe alone) or use the setup program. To use your own codec2 instead, put codec2.dll or libcodec2.dll into the "
+                "Normally nothing to do: libcodec2.dll is in the same folder as ZorCom.exe. If it is not found, unpack the whole Eye of ZorCom zip again "
+                "(do not copy ZorCom.exe alone) or use the setup program. To use your own codec2 instead, put codec2.dll or libcodec2.dll into the "
                 "codecs folder below (MSYS2: pacman -S mingw-w64-x86_64-codec2).",
 #else
                 "Normally nothing to do: libcodec2 is in the Eye of ZorCom package (the lib folder next to bin). If it is not found, install the Eye of ZorCom "
@@ -65,7 +65,7 @@ Text textOf(CodecHelp c) {
                 true};
     case CodecHelp::DmrAmbe:
         return {"AMBE+2 (DMR voice)",
-                "DMR voice uses AMBE+2, a patented vocoder. Eye of ZorCom does not ship it. Put a codec plug-in (onair-codec-ambe2, built around a library such as mbelib; "
+                "DMR voice uses AMBE+2, a patented vocoder. Eye of ZorCom does not ship it. Put a codec plug-in (zorcom-codec-ambe2, built around a library such as mbelib; "
                 "docs/CODECS.md has the ABI and a small example wrapper) or the libmbe library itself in the codecs folder, and Eye of ZorCom decodes and plays the voice of one "
                 "time slot (choose slot 1, slot 2 or the first heard). Encrypted calls are never decoded. Check the patent and radio rules where you live first.",
 #if defined(__APPLE__)
@@ -107,24 +107,24 @@ Text textOf(CodecHelp c) {
                 "CDR sound is coded with DRA+. Eye of ZorCom does not include a DRA+ decoder: the codec's patent and licence status is unclear, and the decoder "
                 "Eye of ZorCom was tested with was written by a third party (maliwen2015, github.com/maliwen2015/ffmpeg_cavs_dra, MIT as published there), "
                 "so it is an add-on you install yourself, like the HD Radio and voice codecs. Without it the CDR services, signal information and "
-                "data still work, and the raw sound can be saved to a .dra file. With the add-on (libonair_dra) in the codecs folder Eye of ZorCom plays the "
+                "data still work, and the raw sound can be saved to a .dra file. With the add-on (libzorcom_dra) in the codecs folder Eye of ZorCom plays the "
                 "service you select. Whether you may use it depends on the patent and licence rules where you live: check them first.",
 #if defined(__APPLE__)
                 "Build the add-on yourself (full steps in docs/CODECS.md; the Eye of ZorCom source has tools/addons/dra):\n"
-                "  brew install cmake git python3\n  git clone https://github.com/adswill/OnAir && cd OnAir/tools/addons/dra\n"
+                "  brew install cmake git python3\n  git clone https://github.com/AxolDad/OnAir-SDR-Suite && cd OnAir-SDR-Suite/tools/addons/dra\n"
                 "  python3 extract_dra.py\n  cmake -S . -B build -DDRA_SRC=dra_src && cmake --build build\n"
-                "Copy libonair_dra.dylib from the build folder into the codecs folder below.",
+                "Copy libzorcom_dra.dylib from the build folder into the codecs folder below.",
 #elif defined(_WIN32)
                 "Build the add-on yourself (full steps in docs/CODECS.md; the Eye of ZorCom source has tools/addons/dra). In MSYS2 MINGW64:\n"
                 "  pacman -S --needed git python mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake make\n"
-                "  git clone https://github.com/adswill/OnAir && cd OnAir/tools/addons/dra\n"
+                "  git clone https://github.com/AxolDad/OnAir-SDR-Suite && cd OnAir-SDR-Suite/tools/addons/dra\n"
                 "  python extract_dra.py\n  cmake -S . -B build -G \"MSYS Makefiles\" -DDRA_SRC=dra_src && cmake --build build\n"
-                "Copy onair_dra.dll into the codecs folder below. Use 64-bit if Eye of ZorCom is 64-bit.",
+                "Copy zorcom_dra.dll into the codecs folder below. Use 64-bit if Eye of ZorCom is 64-bit.",
 #else
                 "Build the add-on yourself (full steps in docs/CODECS.md; the Eye of ZorCom source has tools/addons/dra):\n"
-                "  sudo apt install git python3 cmake build-essential\n  git clone https://github.com/adswill/OnAir && cd OnAir/tools/addons/dra\n"
+                "  sudo apt install git python3 cmake build-essential\n  git clone https://github.com/AxolDad/OnAir-SDR-Suite && cd OnAir-SDR-Suite/tools/addons/dra\n"
                 "  python3 extract_dra.py\n  cmake -S . -B build -DDRA_SRC=dra_src && cmake --build build\n"
-                "Copy libonair_dra.so from the build folder into the codecs folder below.",
+                "Copy libzorcom_dra.so from the build folder into the codecs folder below.",
 #endif
                 true};
     case CodecHelp::AeroAmbe:

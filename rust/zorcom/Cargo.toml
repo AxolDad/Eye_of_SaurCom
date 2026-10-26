@@ -1,0 +1,48 @@
+[package]
+name = "zorcom"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of ZorCom Rust code as ONE static library (libzorcom_rs.a): re-exports every module's extern \"C\" functions"
+
+[lib]
+name = "zorcom_rs"
+crate-type = ["staticlib", "rlib"]
+
+[features]
+bare = []
+
+[dependencies]
+zorcom_common = { path = "../zorcom_common" }
+zorcom_proto = { path = "../zorcom_proto" }
+zorcom_adsb = { path = "../zorcom_adsb" }
+zorcom_acars = { path = "../zorcom_acars" }
+zorcom_same = { path = "../zorcom_same" }
+zorcom_pager = { path = "../zorcom_pager" }
+zorcom_ax25 = { path = "../zorcom_ax25" }
+zorcom_dmr = { path = "../zorcom_dmr" }
+zorcom_p25 = { path = "../zorcom_p25" }
+zorcom_nxdn = { path = "../zorcom_nxdn" }
+zorcom_dstar = { path = "../zorcom_dstar" }
+zorcom_tetra = { path = "../zorcom_tetra" }
+zorcom_vdl2 = { path = "../zorcom_vdl2" }
+zorcom_hfdl = { path = "../zorcom_hfdl" }
+zorcom_mesh = { path = "../zorcom_mesh" }
+zorcom_wisun = { path = "../zorcom_wisun" }
+zorcom_uat = { path = "../zorcom_uat" }
+zorcom_ts = { path = "../zorcom_ts" }
+zorcom_dvbsi = { path = "../zorcom_dvbsi" }
+zorcom_dab = { path = "../zorcom_dab" }
+zorcom_drm = { path = "../zorcom_drm" }
+zorcom_files = { path = "../zorcom_files" }
+zorcom_net = { path = "../zorcom_net" }
+zorcom_engine = { path = "../zorcom_engine" }
+zorcom_fec = { path = "../zorcom_fec" }
+zorcom_usb = { path = "../zorcom_usb" }
+zorcom_ring = { path = "../zorcom_ring" }
+zorcom_kris = { path = "../zorcom_kris" }
+zorcom_kaws = { path = "../zorcom_kaws" }
+zorcom_cot = { path = "../zorcom_cot" }
+zorcom_wifisense = { path = "../zorcom_wifisense" }
+zorcom_dsn = { path = "../zorcom_dsn" }

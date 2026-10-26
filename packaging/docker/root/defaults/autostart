@@ -1,6 +1,6 @@
 #!/bin/sh
 # Started by the desktop session. Selkies preloads a stand-in libudev (for its virtual gamepads) into the session; libusb lists the
-# USB devices through libudev, so with it OnAir finds no radio. OnAir needs no gamepad: start it without the preload.
+# USB devices through libudev, so with it Eye of ZorCom finds no radio. Eye of ZorCom needs no gamepad: start it without the preload.
 unset LD_PRELOAD
-# the log a bug report needs (radio scan, errors): /config/onair.log, started afresh at every start
-exec onair > /config/onair.log 2>&1
+# the log a bug report needs (radio scan, errors): /config/zorcom.log, started afresh at every start
+exec zorcom > /config/zorcom.log 2>&1

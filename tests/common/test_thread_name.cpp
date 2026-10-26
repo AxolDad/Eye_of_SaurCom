@@ -7,23 +7,23 @@ static int fails = 0;
 #define CHECK(c) do { if (!(c)) { std::printf("FAIL %s:%d %s\n", __FILE__, __LINE__, #c); fails++; } } while (0)
 
 int main() {
-    CHECK(dect2::clipThreadName("onair-short") == "onair-short");
-    CHECK(dect2::clipThreadName("onair-a-very-long-thread-name", 15) == "onair-a-very-lo");
+    CHECK(dect2::clipThreadName("zorcom-short") == "zorcom-short");
+    CHECK(dect2::clipThreadName("zorcom-a-very-long-thread-name", 15) == "zorcom-a-very-l");
     CHECK(dect2::clipThreadName(nullptr).empty());
 #if !defined(_WIN32)
     std::string seen;
-    std::thread t = dect2::namedThread("onair-test", [&seen](int) { seen = dect2::currentThreadName(); }, 1);
+    std::thread t = dect2::namedThread("zorcom-test", [&seen](int) { seen = dect2::currentThreadName(); }, 1);
     t.join();
-    CHECK(seen == "onair-test");
+    CHECK(seen == "zorcom-test");
     std::string longSeen;
-    std::thread u = dect2::namedThread("onair-this-name-is-way-too-long-for-linux-and-macos-limits-both-xxxxxxxxxxxxxxxxxxxxxxxx", [&] { longSeen = dect2::currentThreadName(); });
+    std::thread u = dect2::namedThread("zorcom-this-name-is-way-too-long-for-linux-and-macos-limits-both-xxxxxxxxxxxxxxxxxxxxxxxx", [&] { longSeen = dect2::currentThreadName(); });
     u.join();
     CHECK(!longSeen.empty() && longSeen.size() <= dect2::kThreadNameMax);   // cut, never dropped
-    CHECK(longSeen.rfind("onair-this-na", 0) == 0);
-    dect2::setThreadName("onair-main");
-    CHECK(dect2::currentThreadName() == "onair-main");
+    CHECK(longSeen.rfind("zorcom-this-na", 0) == 0);
+    dect2::setThreadName("zorcom-main");
+    CHECK(dect2::currentThreadName() == "zorcom-main");
     dect2::setThreadName("");   // ignored
-    CHECK(dect2::currentThreadName() == "onair-main");
+    CHECK(dect2::currentThreadName() == "zorcom-main");
 #endif
     if (!fails) std::printf("thread_name OK\n");
     return fails ? 1 : 0;

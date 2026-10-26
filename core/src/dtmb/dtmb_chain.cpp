@@ -43,7 +43,7 @@ FecChain::FecChain(const Profile& p, Header h, int workers, double symRate)
     compute_.reset(new dvbs::ComputeChoice(&FecChain::gpuUsable));
     primed_ = (symDe_.totalDelay() + kDataSymbols - 1) / kDataSymbols;
     out_.reserve(16 * 188);
-    for (int i = 0; i < nWorkers_; i++) threads_.emplace_back(dect2::namedThread("onair-dtmb-w", [this] { workerLoop(); }));
+    for (int i = 0; i < nWorkers_; i++) threads_.emplace_back(dect2::namedThread("zorcom-dtmb-w", [this] { workerLoop(); }));
     reset();
 }
 

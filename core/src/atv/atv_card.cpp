@@ -130,7 +130,7 @@ void AtvCard::buildStatic() {
         }
         // the name of the test
         const int ts = textScale_;
-        const std::string title = title_.empty() ? std::string("ONAIR TEST") : title_;
+        const std::string title = title_.empty() ? std::string("ZORCOM TEST") : title_;
         c.text((W - textWidth((int)title.size(), ts)) / 2, Y(0.50), ts, title, white);
         // resolution wedge: a sine sweep from 12 pixels to 2.2 pixels a period
         const int wx0 = x0, wx1 = X(0.30), wy0 = Y(0.60), wy1 = Y(0.75);

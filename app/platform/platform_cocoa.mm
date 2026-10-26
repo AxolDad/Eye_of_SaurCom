@@ -7,13 +7,13 @@
 #import <CoreLocation/CoreLocation.h>
 #import <ImageIO/ImageIO.h>
 
-@interface OnAirLocator : NSObject <CLLocationManagerDelegate>
+@interface ZorComLocator : NSObject <CLLocationManagerDelegate>
 @property(nonatomic, strong) CLLocationManager* mgr;
 @property(nonatomic) int state;
 @property(nonatomic) double lat, lon, acc;
 @property(nonatomic, copy) NSString* msg;
 @end
-@implementation OnAirLocator
+@implementation ZorComLocator
 - (void)locationManager:(CLLocationManager*)m didUpdateLocations:(NSArray<CLLocation*>*)locs {
     CLLocation* l = locs.lastObject;
     if (!l) return;
@@ -35,11 +35,11 @@
 
 namespace plat {
 
-static OnAirLocator* gLoc = nil;
+static ZorComLocator* gLoc = nil;
 static double gLocStart = 0;
 
 void locateStart() {
-    if (!gLoc) { gLoc = [OnAirLocator new]; gLoc.mgr = [CLLocationManager new]; gLoc.mgr.delegate = gLoc; gLoc.mgr.desiredAccuracy = kCLLocationAccuracyHundredMeters; }
+    if (!gLoc) { gLoc = [ZorComLocator new]; gLoc.mgr = [CLLocationManager new]; gLoc.mgr.delegate = gLoc; gLoc.mgr.desiredAccuracy = kCLLocationAccuracyHundredMeters; }
     gLoc.state = 1; gLoc.msg = @"";
     gLocStart = CFAbsoluteTimeGetCurrent();
     if (![CLLocationManager locationServicesEnabled]) { gLoc.msg = @"location services are switched off"; gLoc.state = 3; return; }
@@ -54,15 +54,44 @@ int locateState(double& lat, double& lon, double& acc, std::string& msg) {
     return gLoc.state;
 }
 
+// The folders and settings of the program before it was renamed: moved or copied to the new names, once, when the new ones are not there
+// yet, so an earlier version's settings, recordings and downloads come along. These are the only places the old names are kept.
+static void adoptLegacy() {
+    static bool done = false;
+    if (done) return;
+    done = true;
+    NSString* const legacy = @"OnAir";   // the folder name before the rename
+    NSFileManager* fm = NSFileManager.defaultManager;
+    for (NSSearchPathDirectory dir : {NSCachesDirectory, NSApplicationSupportDirectory}) {
+        NSArray* a = NSSearchPathForDirectoriesInDomains(dir, NSUserDomainMask, YES);
+        if (!a.count) continue;
+        NSString* from = [a[0] stringByAppendingPathComponent:legacy], *to = [a[0] stringByAppendingPathComponent:@"ZorCom"];
+        if ([fm fileExistsAtPath:from] && ![fm fileExistsAtPath:to]) [fm moveItemAtPath:from toPath:to error:nil];
+    }
+    NSString* logs = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Logs"];
+    NSString* lf = [logs stringByAppendingPathComponent:legacy], *lt = [logs stringByAppendingPathComponent:@"ZorCom"];
+    if ([fm fileExistsAtPath:lf] && ![fm fileExistsAtPath:lt]) [fm moveItemAtPath:lf toPath:lt error:nil];
+    // the settings live under the bundle identifier, which changed with the name
+    NSString* me = NSBundle.mainBundle.bundleIdentifier;
+    NSUserDefaults* d = NSUserDefaults.standardUserDefaults;
+    if (me && ![d persistentDomainForName:me].count)
+        for (NSString* old in @[@"io.github.adswill.onair", @"org.onair.dect2"]) {
+            NSDictionary* v = [d persistentDomainForName:old];
+            if (v.count) { [d setPersistentDomain:v forName:me]; break; }
+        }
+}
+
 std::string cacheDir() {
+    adoptLegacy();
     NSArray* a = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-    NSString* d = [(a.count ? a[0] : NSTemporaryDirectory()) stringByAppendingPathComponent:@"OnAir"];
+    NSString* d = [(a.count ? a[0] : NSTemporaryDirectory()) stringByAppendingPathComponent:@"ZorCom"];
     [[NSFileManager defaultManager] createDirectoryAtPath:d withIntermediateDirectories:YES attributes:nil error:nil];
     return d.UTF8String;
 }
 
 std::string dataDir() {
-    // DECT2_DATA_DIR: another folder for everything OnAir writes (test runs keep away from the user's own data)
+    adoptLegacy();
+    // DECT2_DATA_DIR: another folder for everything Eye of ZorCom writes (test runs keep away from the user's own data)
     if (const char* o = getenv("DECT2_DATA_DIR"); o && *o) {
         std::error_code ec;
         std::filesystem::create_directories(std::filesystem::path(reinterpret_cast<const char8_t*>(o)), ec);
@@ -70,7 +99,7 @@ std::string dataDir() {
     }
     NSArray* a = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
     if (!a.count) return cacheDir();
-    NSString* d = [a[0] stringByAppendingPathComponent:@"OnAir"];
+    NSString* d = [a[0] stringByAppendingPathComponent:@"ZorCom"];
     [[NSFileManager defaultManager] createDirectoryAtPath:d withIntermediateDirectories:YES attributes:nil error:nil];
     return d.UTF8String;
 }
@@ -255,7 +284,7 @@ struct DefaultsPrefs : Prefs {
     std::string setAside() override {
         NSString* domain = NSBundle.mainBundle.bundleIdentifier ?: NSProcessInfo.processInfo.processName;
         NSDictionary* old = [d persistentDomainForName:domain];
-        NSString* dir = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Logs/OnAir"];
+        NSString* dir = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Logs/ZorCom"];
         [NSFileManager.defaultManager createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:nil];
         NSString* file = [dir stringByAppendingPathComponent:@"settings-crashed.plist"];
         const bool kept = old && [old writeToURL:[NSURL fileURLWithPath:file] error:nil];
@@ -281,7 +310,7 @@ void showFatalError(const char* title, const char* text) {
     }
 }
 
-Prefs& basePrefs() { static DefaultsPrefs p; return p; }
+Prefs& basePrefs() { adoptLegacy(); static DefaultsPrefs p; return p; }
 
 std::vector<std::string> uiFontCandidates() { return {"/System/Library/Fonts/Helvetica.ttc"}; }
 std::vector<std::string> cjkFontCandidates() { return {"/System/Library/Fonts/AppleSDGothicNeo.ttc", "/Library/Fonts/AppleGothic.ttf",

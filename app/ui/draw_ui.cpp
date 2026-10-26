@@ -40,7 +40,6 @@ static void tickReceiver(App& a) {
     dabScanStep(a);
     fmScanStep(a);
     harvestScan(a);
-    scanDbTick(a);
     if (a.engine.running() && glfwGetTime() - a.epgT > 1.0) {
         a.epg = a.engine.epg();
         if (a.fakeEpg) {
@@ -111,8 +110,6 @@ static void classicTopBar(App& a, ImVec2 disp) {
     const ImVec2 sw0 = ImGui::GetCursorScreenPos();
     standardSwitch(a);
     if (a.devices[a.devIdx].isRadio()) { ImGui::SameLine(disp.x - 64 - 410 * gUi); radioSettingsUi(a, false); }   // the top bar is full
-    ImGui::SameLine(disp.x - 64 - 370 * gUi);
-    supportButton();
     ImGui::SameLine(disp.x - 64 - 290 * gUi);
     updateButton(a);
     clearAllButton(a);
@@ -126,8 +123,6 @@ static void classicTopBar(App& a, ImVec2 disp) {
         ImGui::SameLine(std::max(ImGui::GetCursorPosX(), disp.x - 12 * gUi - w));
     }
     languageButton(a);
-    ImGui::SameLine();
-    mapSendButton(a);
     ImGui::SameLine();
     if (ImGui::SmallButton(tr("New interface"))) { a.newUi = true; savePrefs(a); }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Try the new interface. You can switch back at any time."));

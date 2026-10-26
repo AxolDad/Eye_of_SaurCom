@@ -25,7 +25,7 @@ QO-100 > **Conversations** view. SSB signals are grouped by frequency and time (
 * **Listen** tunes the listening channel to the conversation: upper sideband, 300 - 3000 Hz, dial = the voice's lower edge - 300 Hz, and follows its drift while it lasts. **Squelch** mutes the audio while only noise is there.
 * **Auto listen**: *the loudest conversation* or *the newest conversation*; it switches when the current one has gone quiet, or (loudest) another is 6 dB louder for 3 s.
 * **Record** writes a conversation to an 8 kHz WAV file in `<data folder>/qo100/` while it lasts.
-* Speech to text: `Qo100Receiver::setSpeechToText()` takes a function that gets 8 s chunks of a recorded conversation's audio and returns text. OnAir has no speech recognizer of its own yet, so nothing is wired to it; the callsign finder and the list are ready for it.
+* Speech to text: `Qo100Receiver::setSpeechToText()` takes a function that gets 8 s chunks of a recorded conversation's audio and returns text. Eye of ZorCom has no speech recognizer of its own yet, so nothing is wired to it; the callsign finder and the list are ready for it.
 
 ## Limits
 

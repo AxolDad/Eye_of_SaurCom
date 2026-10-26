@@ -39,7 +39,7 @@ const char* kHelp = N_(
     "A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated "
     "carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a "
     "position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first "
-    "field are repaired.\n\nOnAir only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination "
+    "field are repaired.\n\nEye of ZorCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination "
     "centre of your country; do not rely on this program for safety.");
 
 std::string clockText(int64_t wall) {

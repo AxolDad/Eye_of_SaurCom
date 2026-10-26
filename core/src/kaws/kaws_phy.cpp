@@ -8,7 +8,7 @@
 namespace dect2::kaws {
 
 int burstSamples(int profile, int nblocks) {
-    int n = onair_kaws_burst_len(profile, nblocks);
+    int n = zorcom_kaws_burst_len(profile, nblocks);
     return n < 0 ? 0 : n;
 }
 
@@ -20,10 +20,10 @@ std::vector<cf> buildBurst(int profile, const std::vector<Bits>& blocks) {
         if ((int)b.size() != K) return {};
         info.insert(info.end(), b.begin(), b.end());
     }
-    int n = onair_kaws_burst_len(profile, (int)blocks.size());
+    int n = zorcom_kaws_burst_len(profile, (int)blocks.size());
     if (n <= 0) return {};
     std::vector<float> iq((size_t)n * 2);
-    int got = onair_kaws_build_burst(profile, (int)blocks.size(), info.data(), iq.data(), n);
+    int got = zorcom_kaws_build_burst(profile, (int)blocks.size(), info.data(), iq.data(), n);
     if (got != n) return {};
     std::vector<cf> out((size_t)n);
     for (int i = 0; i < n; i++) out[(size_t)i] = cf(iq[(size_t)i * 2], iq[(size_t)i * 2 + 1]);
@@ -44,7 +44,7 @@ RxBurst receiveBurst(int profile, int nblocks, const std::vector<cf>& iq, int lo
     std::vector<uint8_t> info((size_t)nblocks * (size_t)K);
     r.iters.assign((size_t)nblocks, -1);
     double st[4] = {0, 0, 0, 0};
-    int rc = onair_kaws_rx_burst(profile, nblocks, f.data(), (int)iq.size(), lo, hi, info.data(), r.iters.data(), st);
+    int rc = zorcom_kaws_rx_burst(profile, nblocks, f.data(), (int)iq.size(), lo, hi, info.data(), r.iters.data(), st);
     r.sync = rc == 1;
     r.stat = st[0]; r.tau = st[1]; r.deltaHz = st[2]; r.snrDb = st[3];
     for (int b = 0; b < nblocks; b++) r.blocks.emplace_back(info.begin() + (long)b * K, info.begin() + (long)(b + 1) * K);
@@ -55,7 +55,7 @@ std::vector<cf> applyChannel(const std::vector<cf>& iq, Channel c, double snrDb,
     std::vector<float> f = flatten(iq);
     int cap = (int)iq.size() + (int)delay + tail + 64;
     std::vector<float> out((size_t)cap * 2);
-    int n = onair_kaws_channel(f.data(), (int)iq.size(), (int)c, snrDb, fo, drift, delay, tail, (uint32_t)seed, (uint32_t)(seed >> 32), out.data(), cap);
+    int n = zorcom_kaws_channel(f.data(), (int)iq.size(), (int)c, snrDb, fo, drift, delay, tail, (uint32_t)seed, (uint32_t)(seed >> 32), out.data(), cap);
     if (n < 0) return {};
     std::vector<cf> y((size_t)n);
     for (int i = 0; i < n; i++) y[(size_t)i] = cf(out[(size_t)i * 2], out[(size_t)i * 2 + 1]);
@@ -65,7 +65,7 @@ std::vector<cf> applyChannel(const std::vector<cf>& iq, Channel c, double snrDb,
 std::vector<float> toAudio12k(const std::vector<cf>& iq, float peak) {
     std::vector<float> f = flatten(iq);
     std::vector<float> a(iq.size() * 5);
-    int n = onair_kaws_to_audio(f.data(), (int)iq.size(), peak, a.data(), (int)a.size());
+    int n = zorcom_kaws_to_audio(f.data(), (int)iq.size(), peak, a.data(), (int)a.size());
     if (n < 0) return {};
     a.resize((size_t)n);
     return a;
@@ -73,7 +73,7 @@ std::vector<float> toAudio12k(const std::vector<cf>& iq, float peak) {
 
 std::vector<cf> fromAudio12k(const std::vector<float>& audio) {
     std::vector<float> o((audio.size() / 5 + 4) * 2);
-    int n = onair_kaws_from_audio(audio.data(), (int)audio.size(), o.data(), (int)o.size() / 2);
+    int n = zorcom_kaws_from_audio(audio.data(), (int)audio.size(), o.data(), (int)o.size() / 2);
     if (n < 0) return {};
     std::vector<cf> y((size_t)n);
     for (int i = 0; i < n; i++) y[(size_t)i] = cf(o[(size_t)i * 2], o[(size_t)i * 2 + 1]);

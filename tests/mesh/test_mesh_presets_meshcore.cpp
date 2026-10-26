@@ -15,7 +15,7 @@ static std::string slurp(const std::string& p) { std::ifstream f(p, std::ios::bi
 static void put(const std::string& p, const std::string& s) { std::ofstream f(p, std::ios::binary); f << s; }
 
 int main(int argc, char** argv) {
-    const char* env = getenv("ONAIR_TEST_DATA");
+    const char* env = getenv("ZORCOM_TEST_DATA");
     const std::string dir = argc > 1 ? argv[1] : env ? env : "tests/data";
     const std::string sample = slurp(dir + "/meshcore_config_sample.json");
     CHECK(!sample.empty(), "sample missing");

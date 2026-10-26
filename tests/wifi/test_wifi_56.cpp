@@ -58,16 +58,16 @@ static bool scene(const WifiTelemetry& t, int band, int ch, const char* what) {
     if (!a || !b || !c) { CHECK(false, "%s: APs %d %d %d of %zu (frames ok %llu, SIGNAL bad %llu, FCS bad %llu)", what, a != nullptr, b != nullptr, c != nullptr, t.aps.size(), (unsigned long long)t.blocksOk, (unsigned long long)t.ofdmSignalBad, (unsigned long long)t.ofdmBadFcs); return false; }
     const int w = blockCentreChannel(band, ch, 80) ? 80 : 20;
     if (band == Band5) {
-        CHECK(a->ssid == "OnAir-5G" && a->channel == ch && a->heardOn == ch && a->band == Band5 && a->widthMhz == w && a->standard == "a/n/ac/ax" && a->security == Wpa2Wpa3 && a->vendor == "Ubiquiti", "%s: 5 GHz AP A (%s ch %d w %d std %s)", what, a->ssid.c_str(), a->channel, a->widthMhz, a->standard.c_str()); ok &= a->channel == ch;
+        CHECK(a->ssid == "ZorCom-5G" && a->channel == ch && a->heardOn == ch && a->band == Band5 && a->widthMhz == w && a->standard == "a/n/ac/ax" && a->security == Wpa2Wpa3 && a->vendor == "Ubiquiti", "%s: 5 GHz AP A (%s ch %d w %d std %s)", what, a->ssid.c_str(), a->channel, a->widthMhz, a->standard.c_str()); ok &= a->channel == ch;
         CHECK(a->bssColor == 17 && a->twt && a->country == "DE " + std::string("I") && a->powerConstraint == 3 && a->mdid == 0x1234 && a->akms == "SAE, PSK" + std::string() + "" ? true : a->akms.find("SAE") != std::string::npos, "%s: AP A details", what);
         CHECK(a->neighbors.find("6 GHz ch 5") != std::string::npos && a->neighbors.find("co-located") != std::string::npos && a->neighbors.find("24:A4:3C:60:00:01") != std::string::npos, "%s: RNR '%s'", what, a->neighbors.c_str());
-        CHECK(b->ssid == "OnAir-Old" && b->standard == "a/n" && b->widthMhz == 20 && b->security == Wpa2 && b->channel == ch && b->vendor == "AVM", "%s: AP B (%s std %s)", what, b->ssid.c_str(), b->standard.c_str());
-        CHECK(c->ssid == "OnAir-ac" && c->standard == "a/n/ac" && c->security == Wpa2 && c->channel == ch, "%s: AP C (%s std %s)", what, c->ssid.c_str(), c->standard.c_str());
+        CHECK(b->ssid == "ZorCom-Old" && b->standard == "a/n" && b->widthMhz == 20 && b->security == Wpa2 && b->channel == ch && b->vendor == "AVM", "%s: AP B (%s std %s)", what, b->ssid.c_str(), b->standard.c_str());
+        CHECK(c->ssid == "ZorCom-ac" && c->standard == "a/n/ac" && c->security == Wpa2 && c->channel == ch, "%s: AP C (%s std %s)", what, c->ssid.c_str(), c->standard.c_str());
         CHECK(a->probeResps >= 1 && !a->fils && !a->unsolicited, "%s: probe response counted", what);
     } else {
-        CHECK(a->ssid == "OnAir-6E" && a->channel == ch && a->band == Band6 && a->widthMhz == w && a->standard == "ax/be" && a->security == Wpa3 && a->pmf == 2 && a->he6Reg == 0 && a->eht && a->akms == "SAE", "%s: 6 GHz AP A (%s ch %d w %d std %s)", what, a->ssid.c_str(), a->channel, a->widthMhz, a->standard.c_str());
+        CHECK(a->ssid == "ZorCom-6E" && a->channel == ch && a->band == Band6 && a->widthMhz == w && a->standard == "ax/be" && a->security == Wpa3 && a->pmf == 2 && a->he6Reg == 0 && a->eht && a->akms == "SAE", "%s: 6 GHz AP A (%s ch %d w %d std %s)", what, a->ssid.c_str(), a->channel, a->widthMhz, a->standard.c_str());
         CHECK(a->fils && a->filsFrames >= 1 && a->unsolicited && a->bssColor == 17 && a->twt, "%s: FILS %d unsolicited %d", what, a->fils, a->unsolicited);
-        CHECK(b->ssid == "OnAir-6E-Open" && b->security == Owe && b->standard == "ax" && b->bssColor == 33 && b->pmf == 2 && b->akms == "OWE", "%s: 6 GHz AP B", what);
+        CHECK(b->ssid == "ZorCom-6E-Open" && b->security == Owe && b->standard == "ax" && b->bssColor == 33 && b->pmf == 2 && b->akms == "OWE", "%s: 6 GHz AP B", what);
         CHECK(c->hidden && c->security == Wpa3 && c->ssid.empty() ? true : c->security == Wpa3, "%s: 6 GHz hidden AP", what);
     }
     CHECK(t.band == band && t.channel == ch && t.ofdmFrames >= 6 && t.ofdmBadFcs == 0, "%s: band %d ch %d, %llu OFDM frames, %llu bad FCS", what, t.band, t.channel, (unsigned long long)t.ofdmFrames, (unsigned long long)t.ofdmBadFcs);

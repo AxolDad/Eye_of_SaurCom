@@ -77,7 +77,7 @@ public:
         rate_ = baseRate_ * factor_;
         ring_ = &ring;
         run_ = true;
-        th_ = dect2::namedThread("onair-srcaud", [this] { loop(); });
+        th_ = dect2::namedThread("zorcom-srcaud", [this] { loop(); });
         return true;
     }
 

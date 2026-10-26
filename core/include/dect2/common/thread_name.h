@@ -1,11 +1,11 @@
 // Names the threads of the app so profilers, debuggers, Activity Monitor, htop and crash reports show what each one does.
 //
-//   setThreadName("onair-dec")        names the calling thread (call first thing inside a thread function)
-//   namedThread("onair-rec", fn, a..) std::thread that runs fn(a...) and is named before it starts working
+//   setThreadName("zorcom-dec")        names the calling thread (call first thing inside a thread function)
+//   namedThread("zorcom-rec", fn, a..) std::thread that runs fn(a...) and is named before it starts working
 //
 // Linux keeps 15 characters (the kernel limit; longer names would make pthread_setname_np fail, so they are cut), macOS 63, Windows uses
 // SetThreadDescription (Windows 10 1607+, looked up at run time so older systems just skip it), Android is Linux. Use short stable names
-// "onair-<what>", with the receiver number appended where several run ("onair-rx2"). No behaviour change: naming never fails or throws.
+// "zorcom-<what>", with the receiver number appended where several run ("zorcom-rx2"). No behaviour change: naming never fails or throws.
 #pragma once
 #include <cstddef>
 #include <string>

@@ -59,7 +59,7 @@ def check_bundle(app):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        sys.exit("Usage: check_macos_target.py OnAir.app")
+        sys.exit("Usage: check_macos_target.py ZorCom.app")
     try:
         print(check_bundle(sys.argv[1]))
     except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as error:

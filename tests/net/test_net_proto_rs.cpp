@@ -1,9 +1,9 @@
-// Golden-vector test of the network protocol layers (dect2::netp, the Rust crate onair_net): SHA-1 / base64 / WebSocket accept key and server frames, client WebSocket
+// Golden-vector test of the network protocol layers (dect2::netp, the Rust crate zorcom_net): SHA-1 / base64 / WebSocket accept key and server frames, client WebSocket
 // frames (valid, unmasked, fragmented, odd opcodes, every length class, cut short), URL text (percent decoding, query strings, Host headers, loopback names, constant
 // time compare, reason phrases), flat JSON bodies (built from random members, mutated, truncated, odd numbers and escapes), HTTP request heads (request lines, header
 // fields, Content-Length, chunked, duplicates, control characters), rtl_tcp greetings / commands / address strings, SpyServer words / commands / headers / rates, the
 // SDR++ draw list (random menus, mutated, truncated), labels from ids, rate texts, command packets, and the list of network radios (parse, format, host clean-up).
-// ONAIR_DIFF_ITERS (default 100000) inputs per family. Buffers are exactly as long as their content so a sanitizer sees a read past the end. The Rust C ABI is also
+// ZORCOM_DIFF_ITERS (default 100000) inputs per family. Buffers are exactly as long as their content so a sanitizer sees a read past the end. The Rust C ABI is also
 // called with null pointers and short arrays. Every result goes into a digest (tests/common/golden.h; doubles rounded to 1e-6) compared with the one recorded from the
 // C++ layer the Rust code replaced.
 #include "dect2/net/net_proto.h"
@@ -372,67 +372,67 @@ static void radiosFamily(long iters) {
 // ------------------------------------------------------------------------------------------------------------------------------ the C ABI with misuse
 static void abiMisuse() {
     uint8_t tiny[1];
-    CHECK(onair_net_base64((const uint8_t*)"abcd", 4, tiny, 1) == (size_t)-1, "base64 small buffer");
-    CHECK(onair_net_base64(nullptr, 0, nullptr, 0) == 0, "base64 empty");
-    CHECK(onair_net_ws_frame(1, (const uint8_t*)"abc", 3, tiny, 1) == (size_t)-1, "frame small buffer");
-    onair_net_sha1(nullptr, 0, nullptr);
-    onair_net_ws_accept(nullptr, 0, nullptr);
-    OnairNetWsClient c;
-    CHECK(onair_net_ws_parse_client(nullptr, 0, nullptr, 0, &c) == 0, "ws null");
+    CHECK(zorcom_net_base64((const uint8_t*)"abcd", 4, tiny, 1) == (size_t)-1, "base64 small buffer");
+    CHECK(zorcom_net_base64(nullptr, 0, nullptr, 0) == 0, "base64 empty");
+    CHECK(zorcom_net_ws_frame(1, (const uint8_t*)"abc", 3, tiny, 1) == (size_t)-1, "frame small buffer");
+    zorcom_net_sha1(nullptr, 0, nullptr);
+    zorcom_net_ws_accept(nullptr, 0, nullptr);
+    ZorcomNetWsClient c;
+    CHECK(zorcom_net_ws_parse_client(nullptr, 0, nullptr, 0, &c) == 0, "ws null");
     const uint8_t big[] = {0x81, 0xfe, 0x0f, 0xff, 1, 2, 3, 4};   // 4095 bytes announced, payload buffer too small
     uint8_t pl[4];
     uint8_t whole[8 + 4095] = {0x81, 0xfe, 0x0f, 0xff};
-    CHECK(onair_net_ws_parse_client(whole, sizeof whole, pl, sizeof pl, &c) == 1 && c.code == 1009, "ws small payload buffer");
+    CHECK(zorcom_net_ws_parse_client(whole, sizeof whole, pl, sizeof pl, &c) == 1 && c.code == 1009, "ws small payload buffer");
     (void)big;
-    CHECK(onair_net_url_decode(nullptr, 0, nullptr, 0) == 0, "url null");
-    CHECK(onair_net_url_decode((const uint8_t*)"a%41b", 5, tiny, 1) == 3 && tiny[0] == 'a', "url short buffer");
+    CHECK(zorcom_net_url_decode(nullptr, 0, nullptr, 0) == 0, "url null");
+    CHECK(zorcom_net_url_decode((const uint8_t*)"a%41b", 5, tiny, 1) == 3 && tiny[0] == 'a', "url short buffer");
     bool found = true;
-    CHECK(onair_net_query_param(nullptr, 0, (const uint8_t*)"a", 1, nullptr, 0, &found) == 0 && !found, "query null");
-    CHECK(onair_net_flatjson_parse(nullptr, 0, nullptr, 0, nullptr, 0) == -1, "json null");
-    OnairNetJsonEntry e[1];
+    CHECK(zorcom_net_query_param(nullptr, 0, (const uint8_t*)"a", 1, nullptr, 0, &found) == 0 && !found, "query null");
+    CHECK(zorcom_net_flatjson_parse(nullptr, 0, nullptr, 0, nullptr, 0) == -1, "json null");
+    ZorcomNetJsonEntry e[1];
     uint8_t ar[8];
-    CHECK(onair_net_flatjson_parse((const uint8_t*)"{\"a\":1,\"b\":2}", 13, e, 1, ar, 8) == -1, "json short entries");
-    onair_net_http_parse(nullptr, 0, nullptr, 0, nullptr);
-    OnairNetHead hd;
-    OnairNetField f[1];
+    CHECK(zorcom_net_flatjson_parse((const uint8_t*)"{\"a\":1,\"b\":2}", 13, e, 1, ar, 8) == -1, "json short entries");
+    zorcom_net_http_parse(nullptr, 0, nullptr, 0, nullptr);
+    ZorcomNetHead hd;
+    ZorcomNetField f[1];
     const char* two = "GET / HTTP/1.1\r\nA: 1\r\nB: 2";
-    onair_net_http_parse((const uint8_t*)two, strlen(two), f, 1, &hd);
+    zorcom_net_http_parse((const uint8_t*)two, strlen(two), f, 1, &hd);
     CHECK(hd.err == 3, "http short field array");
     uint32_t st = 1;
-    CHECK(onair_net_http_error(99, &st, nullptr, 0) == 0 && st == 0, "http error unknown");
-    OnairNetGreeting gr;
-    CHECK(!onair_net_rtltcp_greeting(nullptr, 0, &gr) && !onair_net_rtltcp_greeting((const uint8_t*)"RTL0", 4, &gr), "greeting short");
-    CHECK(onair_net_rtltcp_gains(5, nullptr, 0) == 29, "gains count");
-    onair_net_rtltcp_command(1, 2, nullptr);
-    CHECK(!onair_net_split_host_port(nullptr, 0, nullptr, nullptr), "split null");
-    onair_net_spy_device_info(nullptr, 0, nullptr);
-    onair_net_spy_client_sync(nullptr, 0, nullptr);
-    CHECK(onair_net_spy_command(0, nullptr, 0, tiny, 1) == (size_t)-1 && onair_net_spy_hello(tiny, 1) == (size_t)-1, "spy small buffer");
+    CHECK(zorcom_net_http_error(99, &st, nullptr, 0) == 0 && st == 0, "http error unknown");
+    ZorcomNetGreeting gr;
+    CHECK(!zorcom_net_rtltcp_greeting(nullptr, 0, &gr) && !zorcom_net_rtltcp_greeting((const uint8_t*)"RTL0", 4, &gr), "greeting short");
+    CHECK(zorcom_net_rtltcp_gains(5, nullptr, 0) == 29, "gains count");
+    zorcom_net_rtltcp_command(1, 2, nullptr);
+    CHECK(!zorcom_net_split_host_port(nullptr, 0, nullptr, nullptr), "split null");
+    zorcom_net_spy_device_info(nullptr, 0, nullptr);
+    zorcom_net_spy_client_sync(nullptr, 0, nullptr);
+    CHECK(zorcom_net_spy_command(0, nullptr, 0, tiny, 1) == (size_t)-1 && zorcom_net_spy_hello(tiny, 1) == (size_t)-1, "spy small buffer");
     uint32_t a1, a2, a3;
-    CHECK(!onair_net_spy_header(nullptr, 0, &a1, &a2, &a3), "spy header null");
-    CHECK(onair_net_spy_rates(10000000, 9, 0, nullptr, 0) == 9, "spy rates count");
-    OnairNetUiCounts uc;
-    onair_net_sdrpp_parse_ui(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &uc);
+    CHECK(!zorcom_net_spy_header(nullptr, 0, &a1, &a2, &a3), "spy header null");
+    CHECK(zorcom_net_spy_rates(10000000, 9, 0, nullptr, 0) == 9, "spy rates count");
+    ZorcomNetUiCounts uc;
+    zorcom_net_sdrpp_parse_ui(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &uc);
     CHECK(uc.ok == 1 && uc.widgets == 0, "empty menu");
     const uint8_t cb[] = {0, 0x8b, 0, 4, 1, 0, 'x', 1, 1};
-    onair_net_sdrpp_parse_ui(cb, sizeof cb, nullptr, 0, nullptr, 0, nullptr, 0, &uc);
+    zorcom_net_sdrpp_parse_ui(cb, sizeof cb, nullptr, 0, nullptr, 0, nullptr, 0, &uc);
     CHECK(uc.ok == 0, "menu with no room");
-    CHECK(onair_net_sdrpp_rate_text(nullptr) == 0, "rate null");
-    CHECK(onair_net_sdrpp_command(0, nullptr, 0, tiny, 1) == (size_t)-1 && onair_net_sdrpp_ui_action(nullptr, 0, 1, 0, 0, true, true, tiny, 1) == (size_t)-1, "sdrpp small buffer");
-    CHECK(!onair_net_sdrpp_packet_header(nullptr, 0, &a1, &a2) && onair_net_sdrpp_error_text(9, nullptr, 0) == (size_t)-1, "sdrpp null");
-    OnairNetRadio rr[1];
-    CHECK(onair_net_radios_parse((const uint8_t*)"rtltcp,a,1;rtltcp,b,2", 21, rr, 1, ar, 8) == (size_t)-1, "radios short arrays");
-    CHECK(onair_net_radios_parse(nullptr, 0, nullptr, 0, nullptr, 0) == 0, "radios empty");
-    CHECK(onair_net_radios_format(nullptr, 0, nullptr, 0, nullptr, 0) == 0, "radios format empty");
-    CHECK(onair_net_radio_clean_host((const uint8_t*)"a b", 3, tiny, 1) == (size_t)-1, "clean host small buffer");
+    CHECK(zorcom_net_sdrpp_rate_text(nullptr) == 0, "rate null");
+    CHECK(zorcom_net_sdrpp_command(0, nullptr, 0, tiny, 1) == (size_t)-1 && zorcom_net_sdrpp_ui_action(nullptr, 0, 1, 0, 0, true, true, tiny, 1) == (size_t)-1, "sdrpp small buffer");
+    CHECK(!zorcom_net_sdrpp_packet_header(nullptr, 0, &a1, &a2) && zorcom_net_sdrpp_error_text(9, nullptr, 0) == (size_t)-1, "sdrpp null");
+    ZorcomNetRadio rr[1];
+    CHECK(zorcom_net_radios_parse((const uint8_t*)"rtltcp,a,1;rtltcp,b,2", 21, rr, 1, ar, 8) == (size_t)-1, "radios short arrays");
+    CHECK(zorcom_net_radios_parse(nullptr, 0, nullptr, 0, nullptr, 0) == 0, "radios empty");
+    CHECK(zorcom_net_radios_format(nullptr, 0, nullptr, 0, nullptr, 0) == 0, "radios format empty");
+    CHECK(zorcom_net_radio_clean_host((const uint8_t*)"a b", 3, tiny, 1) == (size_t)-1, "clean host small buffer");
     size_t sizes[8];
-    onair_net_struct_sizes(sizes);
-    onair_net_struct_sizes(nullptr);
-    CHECK(onair_net_version() == 1, "version");
+    zorcom_net_struct_sizes(sizes);
+    zorcom_net_struct_sizes(nullptr);
+    CHECK(zorcom_net_version() == 1, "version");
 }
 
 int main() {
-    const long iters = getenv("ONAIR_DIFF_ITERS") ? atol(getenv("ONAIR_DIFF_ITERS")) : 100000;
+    const long iters = getenv("ZORCOM_DIFF_ITERS") ? atol(getenv("ZORCOM_DIFF_ITERS")) : 100000;
     hashFamily(iters);
     wsFamily(iters);
     urlFamily(iters);
@@ -444,5 +444,5 @@ int main() {
     radiosFamily(iters);
     abiMisuse();
     if (abiFails) return 1;
-    return golden::check("net_proto_rs", dig, 0xfcbb7b851760e7dcull, !getenv("ONAIR_DIFF_ITERS"));
+    return golden::check("net_proto_rs", dig, 0x114e7478b7be6a82ull, !getenv("ZORCOM_DIFF_ITERS"));
 }

@@ -235,7 +235,7 @@ static std::string slug(const std::string& s) {
 std::string fileStem(const Meta& m) {
     std::string f = freqText(m.freqHz);
     f.erase(std::remove(f.begin(), f.end(), ' '), f.end());
-    return "onair_" + slug(m.mode) + (f.empty() ? "" : "_" + f) + "_" + stampOf(m.t0);
+    return "zorcom_" + slug(m.mode) + (f.empty() ? "" : "_" + f) + "_" + stampOf(m.t0);
 }
 // radio text is untrusted: one short plain line, nothing Discord would turn into a ping, link, mention or format
 static std::string plainLine(const std::string& s, size_t maxLen) {

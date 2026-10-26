@@ -169,7 +169,7 @@ int main() {
 
     // ---- the user's registry
     namespace fs = std::filesystem;
-    const fs::path dir = fs::temp_directory_path() / "onair-bandplan-test";
+    const fs::path dir = fs::temp_directory_path() / "zorcom-bandplan-test";
     fs::remove_all(dir);
     {
         Registry r;

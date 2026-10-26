@@ -1,4 +1,4 @@
-// SAME / EAS protocol layer on top of the Rust crate rust/onair_same: the functions of same_proto.h; same_proto.cpp keeps the
+// SAME / EAS protocol layer on top of the Rust crate rust/zorcom_same: the functions of same_proto.h; same_proto.cpp keeps the
 // county table (state) and the file loader.
 #include "dect2/same/same_proto.h"
 #include "dect2/common/rs_abi.h"
@@ -12,14 +12,14 @@
 namespace dect2 {
 namespace same {
 
-static_assert(CountryUs == 0 && CountryCanada == 1, "Country values are mirrored in rust/onair_same/src/locate.rs");
+static_assert(CountryUs == 0 && CountryCanada == 1, "Country values are mirrored in rust/zorcom_same/src/locate.rs");
 
 namespace {
 struct AbiCheck {
     AbiCheck() {
         size_t m = 0, l = 0;
-        onair_same_struct_sizes(&m, &l);
-        dect2::rsAbiCheck("onair_same", {m, l}, {sizeof(OnairSameMsg), sizeof(OnairSameLoc)});
+        zorcom_same_struct_sizes(&m, &l);
+        dect2::rsAbiCheck("zorcom_same", {m, l}, {sizeof(ZorcomSameMsg), sizeof(ZorcomSameLoc)});
     }
 } abiCheck;
 
@@ -37,22 +37,22 @@ template <class F> std::string text(F f) {
 }
 } // namespace
 
-const char* originatorName(const std::string& org) { return cs(onair_same_originator_name(u8(org), org.size())); }
-const char* eventName(const std::string& code) { return cs(onair_same_event_name(u8(code), code.size())); }
-const char* pcaName(int d) { return cs(onair_same_pca_name(d)); }
-const char* stateName(int fips, Country c) { return cs(onair_same_state_name(fips, (int)c)); }
-std::string stateAbbr(int fips, Country c) { return cs(onair_same_state_abbr(fips, (int)c)); }
+const char* originatorName(const std::string& org) { return cs(zorcom_same_originator_name(u8(org), org.size())); }
+const char* eventName(const std::string& code) { return cs(zorcom_same_event_name(u8(code), code.size())); }
+const char* pcaName(int d) { return cs(zorcom_same_pca_name(d)); }
+const char* stateName(int fips, Country c) { return cs(zorcom_same_state_name(fips, (int)c)); }
+std::string stateAbbr(int fips, Country c) { return cs(zorcom_same_state_abbr(fips, (int)c)); }
 bool stateCentre(int fips, Country c, double& lat, double& lon) {
     double a = 0, b = 0;
-    if (!onair_same_state_centre(fips, (int)c, &a, &b)) return false;
+    if (!zorcom_same_state_centre(fips, (int)c, &a, &b)) return false;
     lat = a; lon = b;
     return true;
 }
-bool validChar(uint8_t c) { return onair_same_valid_char((uint32_t)c); }
+bool validChar(uint8_t c) { return zorcom_same_valid_char((uint32_t)c); }
 
 std::string trimMessage(const std::string& b) {
     size_t start = 0;
-    const size_t n = onair_same_trim_message(u8(b), b.size(), &start);
+    const size_t n = zorcom_same_trim_message(u8(b), b.size(), &start);
     return n ? b.substr(start, n) : std::string();
 }
 
@@ -69,8 +69,8 @@ Location locate(const std::string& code, Country c) {
             if (co) county = countyNameOf(st, co);
         }
     }
-    OnairSameLoc info;
-    l.text = text([&](uint8_t* out, size_t cap) { return onair_same_locate(u8(code), code.size(), (int)c, u8(county), county.size(), &info, out, cap); });
+    ZorcomSameLoc info;
+    l.text = text([&](uint8_t* out, size_t cap) { return zorcom_same_locate(u8(code), code.size(), (int)c, u8(county), county.size(), &info, out, cap); });
     if (!info.ok) return l;
     l.pca = info.pca; l.state = info.state; l.county = info.county;
     l.pcaName = pcaName(l.pca);
@@ -84,8 +84,8 @@ Location locate(const std::string& code, Country c) {
 Message parse(const std::string& text, Country c) {
     Message m;
     m.raw = text;
-    OnairSameMsg r;
-    onair_same_parse(u8(text), text.size(), &r);
+    ZorcomSameMsg r;
+    zorcom_same_parse(u8(text), text.size(), &r);
     m.valid = r.valid != 0;
     m.eom = r.eom != 0;
     m.err = cs(r.err);
@@ -99,17 +99,17 @@ Message parse(const std::string& text, Country c) {
     return m;
 }
 
-int64_t issueEpoch(int year, int day, int hour, int minute) { return onair_same_issue_epoch(year, day, hour, minute); }
+int64_t issueEpoch(int year, int day, int hour, int minute) { return zorcom_same_issue_epoch(year, day, hour, minute); }
 std::string issueText(int year, int day, int hour, int minute) {
-    return text([&](uint8_t* out, size_t cap) { return onair_same_issue_text(year, day, hour, minute, out, cap); });
+    return text([&](uint8_t* out, size_t cap) { return zorcom_same_issue_text(year, day, hour, minute, out, cap); });
 }
 std::string purgeText(int minutes) {
-    return text([&](uint8_t* out, size_t cap) { return onair_same_purge_text(minutes, out, cap); });
+    return text([&](uint8_t* out, size_t cap) { return zorcom_same_purge_text(minutes, out, cap); });
 }
 
 std::map<int, std::string> parseCountyCsv(const std::string& t) {
     std::string out(t.size() * 2 + 16, '\0'), scratch(t.size() + 1, '\0');
-    const size_t n = onair_same_read_county_csv(u8(t), t.size(), (uint8_t*)&out[0], out.size(), (uint8_t*)&scratch[0], scratch.size());
+    const size_t n = zorcom_same_read_county_csv(u8(t), t.size(), (uint8_t*)&out[0], out.size(), (uint8_t*)&scratch[0], scratch.size());
     std::map<int, std::string> rows;
     if (n == SIZE_MAX) return rows;
     for (size_t at = 0; at + 8 <= n;) {

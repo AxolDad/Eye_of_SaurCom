@@ -1,5 +1,5 @@
-// AIS frame layer under mutation: libFuzzer entry point (clang -fsanitize=fuzzer, -DONAIR_LIBFUZZER) or, by default, a deterministic run of seeded
-// mutations of valid frames and sentences (ONAIR_FUZZ_ITERS, default 200000). Meant to run under DECT2_SANITIZE=ON: any crash or UB report fails it.
+// AIS frame layer under mutation: libFuzzer entry point (clang -fsanitize=fuzzer, -DZORCOM_LIBFUZZER) or, by default, a deterministic run of seeded
+// mutations of valid frames and sentences (ZORCOM_FUZZ_ITERS, default 200000). Meant to run under DECT2_SANITIZE=ON: any crash or UB report fails it.
 #include "dect2/ais/ais_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -35,7 +35,7 @@ static void exercise(const uint8_t* d, size_t n) {
     sink += getU(bits, d[0], l) + (uint32_t)getS(bits, d[0], l) + getText(bits, d[0] % 64, d[n > 1 ? 1 : 0]).size();
 }
 
-#ifdef ONAIR_LIBFUZZER
+#ifdef ZORCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { if (n) exercise(d, n); return 0; }
 #else
 static Bits sample(std::mt19937& g, int type) {
@@ -47,7 +47,7 @@ static Bits sample(std::mt19937& g, int type) {
     return b;
 }
 int main() {
-    const char* e = getenv("ONAIR_FUZZ_ITERS");
+    const char* e = getenv("ZORCOM_FUZZ_ITERS");
     const long iters = e ? atol(e) : 200000;
     std::mt19937 g(12345);
     std::vector<std::vector<uint8_t>> seeds;

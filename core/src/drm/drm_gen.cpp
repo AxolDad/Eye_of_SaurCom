@@ -538,7 +538,7 @@ DrmTxConfig drmTxConfigFromSynth(const SynthConfig& sc) {
         tc.mscQam = sc.modeOpt[2] == 1 ? 4 : 16;
         tc.protB = sc.modeOpt[3] == 0 ? (tc.mscQam == 16 ? 2 : 1) : sc.modeOpt[3] - 1;
         tc.sdcMode = 0;
-        tc.label = "OnAir DRM+";
+        tc.label = "ZorCom DRM+";
     } else {
         tc.mscQam = sc.modeOpt[2] == 1 ? 16 : 64;
         tc.protB = sc.modeOpt[3] == 0 ? (tc.mscQam == 16 ? 0 : 1) : sc.modeOpt[3] - 1;

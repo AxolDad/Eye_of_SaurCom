@@ -1,5 +1,5 @@
-// Golden-vector test of the Rust ACARS block layer (rust/onair_acars): frames built by the transmitter, damaged frames (flipped bits, truncation,
-// random bytes), every label, texts of the Q labels and the media advisory, and ONAIR_DIFF_ITERS (default 200000) seeded random inputs per function
+// Golden-vector test of the Rust ACARS block layer (rust/zorcom_acars): frames built by the transmitter, damaged frames (flipped bits, truncation,
+// random bytes), every label, texts of the Q labels and the media advisory, and ZORCOM_DIFF_ITERS (default 200000) seeded random inputs per function
 // family. Every result goes into a digest (tests/common/golden.h) that is compared with the one recorded from the C++ block layer the Rust code replaced.
 #include "dect2/acars/acars_proto.h"
 #include "../common/golden.h"
@@ -86,7 +86,7 @@ static void checkParse(const std::vector<uint8_t>& t) {
 }
 
 int main() {
-    const char* it = getenv("ONAIR_DIFF_ITERS");
+    const char* it = getenv("ZORCOM_DIFF_ITERS");
     const long iters = it ? atol(it) : 200000;
 
     // labels: every pair of printable characters

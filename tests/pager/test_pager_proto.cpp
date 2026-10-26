@@ -35,7 +35,7 @@ static void bchTests() {
 
 static void pocsagTests() {
     std::vector<PocsagPage> pages;
-    PocsagPage a; a.ric = 1234567; a.fn = 3; a.type = kPagerAlpha; a.text = "OnAir test: hello, {world}!"; pages.push_back(a);
+    PocsagPage a; a.ric = 1234567; a.fn = 3; a.type = kPagerAlpha; a.text = "ZorCom test: hello, {world}!"; pages.push_back(a);
     PocsagPage n; n.ric = 1234560; n.fn = 0; n.type = kPagerNumeric; n.text = "123-456 U 789"; pages.push_back(n);
     PocsagPage t; t.ric = 7; t.fn = 1; t.type = kPagerTone; pages.push_back(t);
     const std::vector<uint8_t> bits = pocsagBits(pages);
@@ -80,7 +80,7 @@ static std::vector<PagerMessage> decodePocsag(const std::vector<PocsagPage>& pag
 }
 
 static void readModeTests() {
-    // Australian emergency paging: text sent with function 0. The numeric reading OnAir showed before:
+    // Australian emergency paging: text sent with function 0. The numeric reading ZorCom showed before:
     const std::string garbage = "1522- 63U 186*5]37UU ]6*3 260*969[ -]2UU9]";
     PocsagPage g; g.ric = 1000; g.fn = 0; g.type = kPagerNumeric; g.text = garbage;
     PocsagPage t; t.ric = 2000; t.fn = 0; t.type = kPagerAlpha; t.text = "QD4639 Segment01 Segment02 RESPOND STRUCTURE FIRE 12 MAIN ST";
@@ -145,7 +145,7 @@ static void flexTests() {
     CHECK(flexModeForCode(0xB068 ^ 0x0101, 3) && flexModeForCode(0xB068 ^ 0x0101, 3)->speed == kFlex3200_4, "mode for a damaged sync code");
     CHECK(!flexModeForCode(0x1234, 3), "a made-up code");
     std::vector<FlexPage> pages(4);
-    pages[0].cap = 1234567; pages[0].type = kPagerAlpha; pages[0].text = "OnAir test FLEX: hello";
+    pages[0].cap = 1234567; pages[0].type = kPagerAlpha; pages[0].text = "ZorCom test FLEX: hello";
     pages[1].cap = 1234568; pages[1].type = kPagerNumeric; pages[1].text = "555-0123 U 45";
     pages[2].cap = 1234569; pages[2].type = kPagerTone;
     pages[3].cap = 77; pages[3].type = kPagerAlpha; pages[3].text = "x";
@@ -222,7 +222,7 @@ static std::vector<PagerMessage> parseWithFlip(const std::vector<PocsagPage>& pa
 
 static void pocsagRoundTripTests() {
     // 512, 1200 and 2400 baud use the same code words: the bit layer carries the text, the baud only sets the symbol rate
-    const char* const texts[] = {"OnAir test 512: hello", "OnAir test 1200: hello", "OnAir test 2400: hello"};
+    const char* const texts[] = {"ZorCom test 512: hello", "ZorCom test 1200: hello", "ZorCom test 2400: hello"};
     const int bauds[] = {512, 1200, 2400};
     for (int s = 0; s < 3; s++) {
         PocsagPage a; a.ric = 1234563; a.fn = 3; a.type = kPagerAlpha; a.text = texts[s];
@@ -254,7 +254,7 @@ static void pocsagRoundTripTests() {
         CHECK(outMid.size() == 1 && outMid[0].type == kPagerAlpha && outMid[0].damaged, "%d baud: damaged page kept (%zu pages)", bauds[s], outMid.size());
         if (outMid.size() == 1) {
             // the characters after the lost word come back exactly; the lost word's 20 bits are a gap (characters 5 and 8 may be dropped)
-            CHECK(outMid[0].text.rfind("OnAir", 0) == 0, "%d baud: text before the gap '%s'", bauds[s], outMid[0].text.c_str());
+            CHECK(outMid[0].text.rfind("ZorCom", 0) == 0, "%d baud: text before the gap '%s'", bauds[s], outMid[0].text.c_str());
             CHECK(outMid[0].text.find(std::string(texts[s]).substr(9)) != std::string::npos, "%d baud: text after the gap '%s'", bauds[s], outMid[0].text.c_str());
         }
         CHECK(mid.failed == 1, "%d baud: %d failed words", bauds[s], mid.failed);

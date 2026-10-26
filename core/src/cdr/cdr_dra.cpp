@@ -6,9 +6,9 @@
 #include <cstdlib>
 #include <mutex>
 
-#define DECT2_DRA_STEM "onair_dra"
+#define DECT2_DRA_STEM "zorcom_dra"
 #define DECT2_DRA_SO {}
-#define DECT2_DRA_WIN {"onair_dra.dll", "libonair_dra.dll"}
+#define DECT2_DRA_WIN {"zorcom_dra.dll", "libzorcom_dra.dll"}
 
 namespace dect2 { namespace cdr {
 

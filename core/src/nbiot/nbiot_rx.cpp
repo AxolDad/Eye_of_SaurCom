@@ -68,7 +68,7 @@ struct NbiotReceiver::Impl {
     // results (under mu)
     NbiotTelemetry tel, pub;
 
-    Impl() { th = dect2::namedThread("onair-nbiot", [this] { run(); }); }
+    Impl() { th = dect2::namedThread("zorcom-nbiot", [this] { run(); }); }
     ~Impl() {
         { std::lock_guard<std::mutex> lk(mu); stop = true; }
         cv.notify_all();

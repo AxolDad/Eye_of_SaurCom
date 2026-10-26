@@ -72,7 +72,7 @@ void soapyLocateModules() {
             std::string dir = path;
             const size_t cut = dir.find_last_of('/');
             if (cut != std::string::npos) {
-                dir.resize(cut);   // .../OnAir.app/Contents/MacOS
+                dir.resize(cut);   // .../ZorCom.app/Contents/MacOS
                 const std::string mods = dir + "/../Frameworks/SoapySDR/modules";
                 if (access(mods.c_str(), R_OK) == 0) {
                     const char* old = getenv("SOAPY_SDR_PLUGIN_PATH");
@@ -376,7 +376,7 @@ public:
             return false;
         }
         run_ = true;
-        th_ = dect2::namedThread("onair-soapy", [this] { loop(); });
+        th_ = dect2::namedThread("zorcom-soapy", [this] { loop(); });
         return true;
     }
 

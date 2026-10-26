@@ -3,12 +3,12 @@
 // notice. See docs/CODECS.md. Nothing here knows any particular codec.
 //
 // Plug-in ABI (C, so it does not depend on the compiler): the file exports these functions. A codec is a shared library named
-// onair-codec-<id>.dll / .dylib / .so (speechCodecFileName).
+// zorcom-codec-<id>.dll / .dylib / .so (speechCodecFileName).
 //
-//   void*   onair_speech_open(void);                     // a new decoder state, nullptr on failure
-//   void    onair_speech_close(void* state);
-//   int     onair_speech_sample_rate(void);              // PCM sample rate in Hz, e.g. 8000
-//   int     onair_speech_decode(void* state, const uint8_t* coded, size_t nbytes,
+//   void*   zorcom_speech_open(void);                     // a new decoder state, nullptr on failure
+//   void    zorcom_speech_close(void* state);
+//   int     zorcom_speech_sample_rate(void);              // PCM sample rate in Hz, e.g. 8000
+//   int     zorcom_speech_decode(void* state, const uint8_t* coded, size_t nbytes,
 //                               int16_t* pcm, size_t max_samples);
 //                                                        // one coded frame in, PCM samples out; returns the count, -1 on error
 #pragma once
@@ -45,7 +45,7 @@ struct CodecLookup {
 
 // The legal notice the user accepts once per codec. English; the same text for every codec.
 std::string speechCodecNotice();
-// The file name a plug-in must have for this codec id on this OS, e.g. "onair-codec-tetra.dylib".
+// The file name a plug-in must have for this codec id on this OS, e.g. "zorcom-codec-tetra.dylib".
 std::string speechCodecFileName(const std::string& id);
 // Opens a plug-in file and returns its decoder, or nullptr with err set. Test code replaces it.
 using CodecOpener = std::function<std::unique_ptr<SpeechCodec>(const std::string& path, std::string& err)>;

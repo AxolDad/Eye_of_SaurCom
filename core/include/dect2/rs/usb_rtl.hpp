@@ -34,7 +34,7 @@ class RtlSdrRs {
 public:
     // Opens the dongle. `transport` must outlive the object. Returns null and sets *err (-95: unsupported Fitipower / FCI tuner) on failure.
     static std::unique_ptr<RtlSdrRs> open(RtlTransport& transport, int* err = nullptr) {
-        onair_usb_ops ops{};
+        zorcom_usb_ops ops{};
         ops.ctx = &transport;
         ops.control_in = [](void* c, uint8_t rt, uint8_t rq, uint16_t v, uint16_t i, uint8_t* d, uint16_t n, uint32_t t) -> int32_t {
             return static_cast<RtlTransport*>(c)->controlIn(rt, rq, v, i, d, n, t); };
@@ -44,9 +44,9 @@ public:
         ops.string_descriptor = [](void* c, int32_t w, uint8_t* o, int32_t cap) -> int32_t { return static_cast<RtlTransport*>(c)->stringDescriptor(w, o, cap); };
         ops.reset_device = [](void* c) -> int32_t { return static_cast<RtlTransport*>(c)->resetDevice(); };
         ops.delay_ms = [](void* c, uint32_t ms) { static_cast<RtlTransport*>(c)->delayMs(ms); };
-        const size_t size = onair_usb_rtl_size(), align = onair_usb_rtl_align();
+        const size_t size = zorcom_usb_rtl_size(), align = zorcom_usb_rtl_align();
         void* mem = ::operator new(size, std::align_val_t(align));
-        const int r = onair_usb_rtl_open(mem, size, &ops);
+        const int r = zorcom_usb_rtl_open(mem, size, &ops);
         if (r != 0) {
             ::operator delete(mem, std::align_val_t(align));
             if (err) *err = r;
@@ -55,31 +55,31 @@ public:
         return std::unique_ptr<RtlSdrRs>(new RtlSdrRs(mem, align));
     }
     ~RtlSdrRs() {
-        onair_usb_rtl_close(h_);
+        zorcom_usb_rtl_close(h_);
         ::operator delete(h_, std::align_val_t(align_));
     }
     RtlSdrRs(const RtlSdrRs&) = delete;
     RtlSdrRs& operator=(const RtlSdrRs&) = delete;
 
-    int setCenterFreq(uint32_t hz) { return onair_usb_rtl_set_center_freq(h_, hz); }
-    uint32_t centerFreq() { return onair_usb_rtl_get_center_freq(h_); }
-    int setSampleRate(uint32_t hz) { return onair_usb_rtl_set_sample_rate(h_, hz); }
-    uint32_t sampleRate() { return onair_usb_rtl_get_sample_rate(h_); }
-    int setFreqCorrection(int ppm) { return onair_usb_rtl_set_freq_correction(h_, ppm); }
-    int tunerType() { return onair_usb_rtl_get_tuner_type(h_); }
-    int tunerGains(int32_t* out, size_t n) { return onair_usb_rtl_get_tuner_gains(h_, out, n); }
-    int setTunerGainMode(int manual) { return onair_usb_rtl_set_tuner_gain_mode(h_, manual); }
-    int setTunerGain(int tenthsDb) { return onair_usb_rtl_set_tuner_gain(h_, tenthsDb); }
-    int setTunerBandwidth(uint32_t hz) { return onair_usb_rtl_set_tuner_bandwidth(h_, hz); }
-    int setAgcMode(bool on) { return onair_usb_rtl_set_agc_mode(h_, on); }
-    int setDirectSampling(int mode) { return onair_usb_rtl_set_direct_sampling(h_, mode); }
-    int setOffsetTuning(bool on) { return onair_usb_rtl_set_offset_tuning(h_, on); }
-    int setBiasTee(bool on) { return onair_usb_rtl_set_bias_tee(h_, on); }
-    int resetBuffer() { return onair_usb_rtl_reset_buffer(h_); }
-    int readSync(uint8_t* buf, size_t len) { return onair_usb_rtl_read_sync(h_, buf, len); }
+    int setCenterFreq(uint32_t hz) { return zorcom_usb_rtl_set_center_freq(h_, hz); }
+    uint32_t centerFreq() { return zorcom_usb_rtl_get_center_freq(h_); }
+    int setSampleRate(uint32_t hz) { return zorcom_usb_rtl_set_sample_rate(h_, hz); }
+    uint32_t sampleRate() { return zorcom_usb_rtl_get_sample_rate(h_); }
+    int setFreqCorrection(int ppm) { return zorcom_usb_rtl_set_freq_correction(h_, ppm); }
+    int tunerType() { return zorcom_usb_rtl_get_tuner_type(h_); }
+    int tunerGains(int32_t* out, size_t n) { return zorcom_usb_rtl_get_tuner_gains(h_, out, n); }
+    int setTunerGainMode(int manual) { return zorcom_usb_rtl_set_tuner_gain_mode(h_, manual); }
+    int setTunerGain(int tenthsDb) { return zorcom_usb_rtl_set_tuner_gain(h_, tenthsDb); }
+    int setTunerBandwidth(uint32_t hz) { return zorcom_usb_rtl_set_tuner_bandwidth(h_, hz); }
+    int setAgcMode(bool on) { return zorcom_usb_rtl_set_agc_mode(h_, on); }
+    int setDirectSampling(int mode) { return zorcom_usb_rtl_set_direct_sampling(h_, mode); }
+    int setOffsetTuning(bool on) { return zorcom_usb_rtl_set_offset_tuning(h_, on); }
+    int setBiasTee(bool on) { return zorcom_usb_rtl_set_bias_tee(h_, on); }
+    int resetBuffer() { return zorcom_usb_rtl_reset_buffer(h_); }
+    int readSync(uint8_t* buf, size_t len) { return zorcom_usb_rtl_read_sync(h_, buf, len); }
     // 1 when the manufacturer / product strings read at open equal these (NUL terminated), else 0
     int checkDongleModel(const char* manufact, const char* product) {
-        return onair_usb_rtl_check_dongle_model(h_, reinterpret_cast<const uint8_t*>(manufact), reinterpret_cast<const uint8_t*>(product)); }
+        return zorcom_usb_rtl_check_dongle_model(h_, reinterpret_cast<const uint8_t*>(manufact), reinterpret_cast<const uint8_t*>(product)); }
 
 private:
     RtlSdrRs(void* h, size_t align) : h_(h), align_(align) {}

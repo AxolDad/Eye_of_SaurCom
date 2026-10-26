@@ -311,7 +311,7 @@ bool Server::start(int fallbackPort, std::string& message, bool loopbackOnly, in
     m.sock = s; m.port = usedPort;
     { std::lock_guard<std::mutex> lk(m.mu); m.st = ServerStats(); }
     m.run = true;
-    m.th = dect2::namedThread("onair-ntp", [&m] { m.loop(); });
+    m.th = dect2::namedThread("zorcom-ntp", [&m] { m.loop(); });
     char b[320];
     if (usedPort == firstPort) snprintf(b, sizeof b, "NTP server on UDP %d", usedPort);
     else snprintf(b, sizeof b, "%s, so the NTP server listens on UDP %d instead: clients must be told that port (or forward 123 to it)", why.c_str(), usedPort);

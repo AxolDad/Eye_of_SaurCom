@@ -6,10 +6,10 @@
 #include <cmath>
 #include <dispatch/dispatch.h>
 
-@interface OnAirVideoSink : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface ZorComVideoSink : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
 @property dect2::VideoIn::Impl* impl;
 @end
-@implementation OnAirVideoSink
+@implementation ZorComVideoSink
 - (void)captureOutput:(AVCaptureVideoDataOutput*)output didOutputSampleBuffer:(CMSampleBufferRef)sb fromConnection:(AVCaptureConnection*)conn {
     (void)output; (void)conn;
     CVImageBufferRef img = CMSampleBufferGetImageBuffer(sb);
@@ -96,7 +96,7 @@ AVCaptureDevice* findDev(const std::string& id) {
 
 struct Cam {
     AVCaptureSession* sess = nil;
-    OnAirVideoSink* sink = nil;
+    ZorComVideoSink* sink = nil;
 };
 }
 
@@ -116,9 +116,9 @@ bool videoInCameraStart(VideoIn::Impl* I, const std::string& deviceId, std::stri
         AVCaptureVideoDataOutput* out = [[AVCaptureVideoDataOutput alloc] init];
         out.videoSettings = @{ (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA) };
         out.alwaysDiscardsLateVideoFrames = YES;
-        OnAirVideoSink* sink = [[OnAirVideoSink alloc] init];
+        ZorComVideoSink* sink = [[ZorComVideoSink alloc] init];
         sink.impl = I;
-        dispatch_queue_t q = dispatch_queue_create("onair.videoin", DISPATCH_QUEUE_SERIAL);
+        dispatch_queue_t q = dispatch_queue_create("zorcom.videoin", DISPATCH_QUEUE_SERIAL);
         [out setSampleBufferDelegate:sink queue:q];
         if (![sess canAddOutput:out]) { err = "could not attach a video output to this capture device"; return false; }
         [sess addOutput:out];

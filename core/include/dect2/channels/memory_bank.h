@@ -1,7 +1,7 @@
 // Memories: the frequencies a user keeps, with the mode and the receiver settings they were stored with ("memory channels" of a scanner or
 // a radio). Pure model, no UI and no engine: the Memory panel (app/memory) captures and recalls them, the tests drive the bank directly.
 //
-// File format (memories.json, version 1): {"format":"onair-memories","version":1,"memories":[{...}, ...]}; every field of an entry is optional
+// File format (memories.json, version 1): {"format":"zorcom-memories","version":1,"memories":[{...}, ...]}; every field of an entry is optional
 // except "freqHz". Unknown fields and entries without a usable frequency are skipped when loading (one log line each), so a file written by
 // a later version still opens. CSV: UTF-8, a header row naming the columns (memoryCsvColumns()); a file without a header is read as
 // "frequency,name" lines (frequency in MHz, or Hz / kHz when it is clearly one of those).

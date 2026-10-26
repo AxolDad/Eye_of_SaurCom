@@ -83,25 +83,6 @@ struct GnssSatPos {
 inline double gnssEphemerisValidS(int sys) { return sys == GnssGlonass ? 1800.0 : 4 * 3600.0; }
 inline bool gnssEphemerisStale(const GnssSatPos& s) { return s.ephAgeS < 0 || s.ephAgeS > gnssEphemerisValidS(s.sys); }
 
-// What goes to the public map for one satellite: only a position from a broadcast ephemeris that is still valid (never an almanac, never a guess).
-// No azimuth or elevation: with the sub-point they would give away where the receiver is.
-struct GnssMapRow {
-    std::string id, sub, extra;
-    double lat = 0, lon = 0, altKm = 0;
-};
-inline bool gnssMapRow(const GnssSatPos& s, GnssMapRow& r) {
-    if (!s.fromEphemeris || gnssEphemerisStale(s)) return false;
-    if (!(s.lat >= -90 && s.lat <= 90 && s.lon >= -180 && s.lon <= 180)) return false;
-    r.id = gnssSatName(s.sys, s.prn);
-    if (s.sys == GnssGlonass && s.prn == 0) return false;   // slot not known
-    r.sub = gnssSystemName(s.sys);
-    r.lat = s.lat; r.lon = s.lon; r.altKm = s.altKm;
-    char b[96];
-    snprintf(b, sizeof b, "from the broadcast ephemeris, %.1f h from its reference time%s", s.ephAgeS / 3600.0, s.health > 0 ? ", flagged unhealthy" : "");
-    r.extra = b;
-    return true;
-}
-
 // What the navigation message of one satellite has delivered
 struct GnssNavInfo {
     int sys = 0, prn = 0;

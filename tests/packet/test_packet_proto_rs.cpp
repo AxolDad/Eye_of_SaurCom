@@ -1,6 +1,6 @@
-// Golden-vector test of the Rust AX.25 / APRS layer (rust/onair_ax25, dect2::ax25 and dect2::aprs): FCS, frames built by the transmitter and damaged /
+// Golden-vector test of the Rust AX.25 / APRS layer (rust/zorcom_ax25, dect2::ax25 and dect2::aprs): FCS, frames built by the transmitter and damaged /
 // truncated / random, address and path text, frame type names, the HDLC receiver fed with transmissions with and without noise, APRS information fields of
-// every type with mutations, latitude / longitude text, ONAIR_DIFF_ITERS (default 200000) per family. Every result goes into a digest (tests/common/golden.h;
+// every type with mutations, latitude / longitude text, ZORCOM_DIFF_ITERS (default 200000) per family. Every result goes into a digest (tests/common/golden.h;
 // doubles rounded to 1e-6) compared with the one recorded from the C++ layers the Rust code replaced.
 #include "dect2/packet/packet_ax25.h"
 #include "dect2/packet/packet_aprs.h"
@@ -187,7 +187,7 @@ static void testAprs(long iters) {
 }
 
 int main() {
-    const char* it = getenv("ONAIR_DIFF_ITERS");
+    const char* it = getenv("ZORCOM_DIFF_ITERS");
     const long iters = it ? atol(it) : 200000;
     testFrames(iters);
     testHdlc(iters);

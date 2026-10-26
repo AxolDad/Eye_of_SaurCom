@@ -130,7 +130,7 @@ Player::Player() : p_(new Impl) {
     recFilter_.setStrict(true);
     ring_.setCapacityPackets((size_t)bufMb_ * 1024 * 1024 / 188);
     p_->owner = this;
-    th_ = dect2::namedThread("onair-tvdec", [this] { threadMain(); });
+    th_ = dect2::namedThread("zorcom-tvdec", [this] { threadMain(); });
 }
 
 Player::~Player() {

@@ -112,20 +112,20 @@ bool parseManifest(const std::string& text, Manifest& out, std::string& err, con
     };
     if (!text1("id", out.id, 64, true) || !text1("name", out.name, 80, true) || !text1("version", out.version, 32, true) || !text1("author", out.author, 120, true) ||
         !text1("license", out.license, 80, true) || !text1("homepage", out.homepage, 200, false) || !text1("description", out.description, 2000, false) ||
-        !text1("kind", out.kind, 16, true) || !text1("minimum_onair", out.minOnAir, 32, false))
+        !text1("kind", out.kind, 16, true) || !text1("minimum_zorcom", out.minZorCom, 32, false))
         return false;
     if (!validId(out.id)) { err = "\"id\" must be 1-64 characters of a-z 0-9 - _ . (starting with a letter or digit)"; return false; }
     if (!validVersion(out.version)) { err = "\"version\" must look like 1.2.3"; return false; }
     if (out.kind != "mode" && out.kind != "action" && out.kind != "source" && out.kind != "panel-lite") { err = "\"kind\" must be mode, action, source or panel-lite"; return false; }
     if (!out.homepage.empty() && out.homepage.compare(0, 8, "https://") != 0 && out.homepage.compare(0, 7, "http://") != 0) { err = "\"homepage\" must be an http(s) address"; return false; }
-    if (!out.minOnAir.empty() && !validVersion(out.minOnAir)) { err = "\"minimum_onair\" must look like 0.2.7"; return false; }
+    if (!out.minZorCom.empty() && !validVersion(out.minZorCom)) { err = "\"minimum_zorcom\" must look like 0.2.7"; return false; }
 
     double abi = 0;
     if (!root.get("abi_version")) { err = "missing \"abi_version\""; return false; }
     if (!numField(root, "abi_version", abi, 1, 1000000, err)) return false;
     out.abi = (uint32_t)abi;
     if (out.abi != kAbiVersion) { err = "built for plugin ABI " + std::to_string(out.abi) + ", this Eye of ZorCom speaks ABI " + std::to_string(kAbiVersion); return false; }
-    if (!hostVersion.empty() && !out.minOnAir.empty() && compareVersions(hostVersion, out.minOnAir) < 0) { err = "needs Eye of ZorCom " + out.minOnAir + " or newer (this is " + hostVersion + ")"; return false; }
+    if (!hostVersion.empty() && !out.minZorCom.empty() && compareVersions(hostVersion, out.minZorCom) < 0) { err = "needs Eye of ZorCom " + out.minZorCom + " or newer (this is " + hostVersion + ")"; return false; }
 
     if (const aj::Value* lib = root.get("library")) {
         if (lib->type == aj::Value::Str) out.libMac = out.libLinux = out.libWindows = lib->s;   // one name for all (unusual, but allowed)

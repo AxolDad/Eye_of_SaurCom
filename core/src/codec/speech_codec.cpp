@@ -15,7 +15,7 @@ namespace dect2::codec {
 
 namespace {
 
-constexpr const char* kDocUrl = "https://github.com/adswill/OnAir/blob/main/docs/CODECS.md";
+constexpr const char* kDocUrl = "https://github.com/AxolDad/OnAir-SDR-Suite/blob/main/docs/CODECS.md";
 constexpr size_t kMaxSamplesPerFrame = 16000;   // a bit over one second at 16 kHz: no coded frame is longer
 
 struct Api {
@@ -97,16 +97,16 @@ std::unique_ptr<SpeechCodec> openSharedLibrary(const std::string& path, std::str
     void* lib = openLibrary(path, err);
     if (!lib) return nullptr;
     Api a;
-    a.open = reinterpret_cast<decltype(a.open)>(symbol(lib, "onair_speech_open"));
-    a.close = reinterpret_cast<decltype(a.close)>(symbol(lib, "onair_speech_close"));
-    a.rate = reinterpret_cast<decltype(a.rate)>(symbol(lib, "onair_speech_sample_rate"));
-    a.decode = reinterpret_cast<decltype(a.decode)>(symbol(lib, "onair_speech_decode"));
+    a.open = reinterpret_cast<decltype(a.open)>(symbol(lib, "zorcom_speech_open"));
+    a.close = reinterpret_cast<decltype(a.close)>(symbol(lib, "zorcom_speech_close"));
+    a.rate = reinterpret_cast<decltype(a.rate)>(symbol(lib, "zorcom_speech_sample_rate"));
+    a.decode = reinterpret_cast<decltype(a.decode)>(symbol(lib, "zorcom_speech_decode"));
     if (!a.open || !a.close || !a.rate || !a.decode) {
         std::string miss;
-        if (!a.open) miss += " onair_speech_open";
-        if (!a.close) miss += " onair_speech_close";
-        if (!a.rate) miss += " onair_speech_sample_rate";
-        if (!a.decode) miss += " onair_speech_decode";
+        if (!a.open) miss += " zorcom_speech_open";
+        if (!a.close) miss += " zorcom_speech_close";
+        if (!a.rate) miss += " zorcom_speech_sample_rate";
+        if (!a.decode) miss += " zorcom_speech_decode";
         closeLibrary(lib);
         err = "it does not export the codec functions (missing:" + miss + ")";
         return nullptr;
@@ -139,7 +139,7 @@ std::string speechCodecFileName(const std::string& id) {
 #else
     const char* ext = ".so";
 #endif
-    return "onair-codec-" + id + ext;
+    return "zorcom-codec-" + id + ext;
 }
 
 CodecLookup loadSpeechCodec(const std::string& id, const std::string& folder, bool noticeAccepted,

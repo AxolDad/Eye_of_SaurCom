@@ -209,7 +209,6 @@ New interface	新しいインターフェース
 Try the new interface. You can switch back at any time.	新しいインターフェースを試せます。いつでも元に戻せます。
 Guided tour	ガイドツアー
 Tour	ツアー
-by: Kristijonas Adomaitis, made with help from the community	作者: Kristijonas Adomaitis、コミュニティの協力で制作
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	不具合の報告、録音の提供、プルリクエストをしてくださったみなさん、ありがとうございます。
 Source	ソース
 source	ソース
@@ -1060,8 +1059,6 @@ GNSS NMEA RMC/GGA (UDP)	GNSS NMEA RMC/GGA（UDP）
 Bluetooth LE advertisements, JSON (UDP)	Bluetooth LE アドバタイズ、JSON（UDP）
 LoRa / LoRaWAN / Meshtastic, JSON (UDP)	LoRa / LoRaWAN / Meshtastic、JSON（UDP）
 JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent.	JSON行（1行に1オブジェクト）。GNSSだけはNMEAです。フィードを入れるまでオフ。構造化されたメッセージがあるモードだけを送ります。
-Support	Support
-Support Eye of ZorCom on Ko-fi	Support Eye of ZorCom on Ko-fi
 Documentation	ドキュメント
 Troubleshooting	トラブルシューティング
 Website	ウェブサイト
@@ -1092,10 +1089,6 @@ Amber: DFS channels (radar sharing).	琥珀色：DFS チャンネル（レーダ
 Bright numbers: preferred scanning channels (PSC), where FILS discovery is sent.	明るい数字：優先スキャンチャンネル（PSC）。FILS ディスカバリが送られます。
 start the receiver to see the channels	受信機を起動するとチャンネルが表示されます
 # map server start-up question
-Keep sending positions	位置情報の送信を続ける
-Eye of ZorCom asks this question at every start. "No, do not ask again" stops it until Eye of ZorCom is updated.	Eye of ZorCom は起動のたびにこの質問をします。「いいえ、今後は尋ねない」を選ぶと、Eye of ZorCom が更新されるまで表示されません。
-Nothing is sent in this session. Eye of ZorCom asks again the next time it starts.	このセッションでは何も送信されません。次回の起動時に Eye of ZorCom が再度尋ねます。
-Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu.	何も送信されず、この質問は Eye of ZorCom が更新されるまで表示されません。あとでサーバーメニューからオンにできます。
 #  Wi-Fi HaLow
 (hidden)	(非表示)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	無線機は %.1f Msps で動作中です: %d MHz チャネルには少なくとも %.0f Msps が必要です(推奨 %.0f)。上部バーのレートか別の受信幅を選んでください。
@@ -1347,16 +1340,6 @@ Project	Project
 Author	Author
 Licence	Licence
 Used for	Used for
-Update source	更新の取得元
-Automatic: GitHub	自動: GitHub
-GitHub only	GitHub のみ
-Mirror only	ミラーのみ
-Use the mirror when GitHub cannot be reached	GitHub に接続できないときはミラーを使う
-Mirror address (https://host/{url} or a base address)	ミラーのアドレス (https://host/{url} またはベースアドレス)
-A mirror is a third-party web address you chose. It sees that you check for updates and which version you run. It is used only after GitHub fails (not at all with GitHub only), the package is checked against the checksum from GitHub when GitHub can be reached, and nothing is installed from a mirror without your confirmation.	ミラーはあなたが選んだ第三者の Web アドレスです。更新を確認していることと使用中のバージョンが分かります。GitHub が失敗した後にだけ使われ (「GitHub のみ」では使われません)、GitHub に接続できるときはパッケージを GitHub のチェックサムで検証し、ミラーからのものはあなたの確認なしにはインストールされません。
-The list of versions came through the mirror and GitHub could not be reached to confirm the checksum: only the mirror vouches for this package. Nothing is installed without your confirmation.	バージョン一覧はミラー経由で、GitHub に接続できずチェックサムを確認できませんでした。このパッケージを保証するのはミラーだけです。確認なしにはインストールしません。
-I understand, download it anyway	理解しました。それでもダウンロードする
-The list came through the mirror; the checksum was confirmed by GitHub.	一覧はミラー経由ですが、チェックサムは GitHub で確認されました。
 Noise remover (neural)##gennr	ノイズ除去（ニューラル）##gennr
 Mix of cleaned and original audio: right removes more noise, left keeps more of the original. Adds about 20 ms of delay.	処理後と元の音声の混ぜ具合：右へ動かすほどノイズが減り、左は元の音に近づきます。約20 msの遅延が加わります。
 Speech only; do not use on music or data modes.	音声専用。音楽やデータモードでは使わないでください。
@@ -1469,9 +1452,6 @@ ACARS messages	ACARSメッセージ
 %d ACARS messages	ACARSメッセージ %d 件
 Copy these messages as text	これらのメッセージをテキストとしてコピー
 No ACARS messages heard from this aircraft	この機体からのACARSメッセージは受信されていません
-Also share interesting ACARS messages (text becomes public on the map)	興味深いACARSメッセージも共有する（テキストは地図上で公開されます）
-Messages an aircraft sent by ACARS (free text, crew, operations, company and maintenance messages), shown on that aircraft's card on the public map for 48 hours. Phone numbers and e-mail addresses are removed first. Position reports and link tests are not part of this. You can turn it off at any time.	機体がACARSで送信したメッセージ（自由文、乗員・運航・会社・整備のメッセージ）を、公開地図のその機体のカードに48時間表示します。電話番号とメールアドレスは事前に削除されます。位置報告とリンクテストは含まれません。いつでもオフにできます。
-Messages that aircraft send by ACARS (free text and crew, operations, company and maintenance messages) can be shown on the aircraft's card as well, with phone numbers and e-mail addresses removed. This is a separate choice that you can change in the Server menu.	機体がACARSで送信するメッセージ（自由文、乗員・運航・会社・整備のメッセージ）を、電話番号とメールアドレスを除いて機体のカードにも表示できます。これは別の選択で、サーバーメニューで変更できます。
 #  sweep scanner
 %.0f MHz/s, %d hops, %d averages, %.0f ms per sweep	%.0f MHz/s、%dホップ、%d回平均、1スイープ %.0f ms
 pick a radio first (the test signal and files cannot sweep)	先に無線機を選んでください(テスト信号とファイルはスイープできません)
@@ -1577,7 +1557,6 @@ Mode panel	モードパネル
 Memory and frequencies	メモリと周波数
 Receivers	受信機
 Audio	オーディオ
-Server and support	サーバーとサポート
 Take the guided tour	ガイドツアーを開始
 Choose the radio or recording that supplies samples. Record IQ saves the raw signal for later playback.	サンプルを供給する無線機または録音を選びます。Record IQ は生の信号を保存し、後で再生できます。
 Set the frequency, band and sample rate here. Gain and AGC set the input level; Second mode decodes another mode from the same capture.	ここで周波数、バンド、サンプルレートを設定します。ゲインと AGC は入力レベルを決め、セカンドモードは同じ受信データから別のモードをデコードします。
@@ -1587,7 +1566,6 @@ Each mode has its own tabs for decoded output, settings and tools. They change w
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	メモリは周波数をモードと設定とともに保存します。周波数とバンドプランは、モードごとの運用状況を示します。
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	各受信機は無線機とモードの組み合わせです。このバーで切り替え、音声を出す受信機を選びます。
 Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen は復調した信号を再生します。音量とミュートはここにあり、Record audio はファイルに保存します。
-Server sends decoded positions to the public map. Support helps fund development.	サーバーはデコードした位置情報を公開マップに送信します。サポートは開発資金に役立ちます。
 Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	ドキュメント、トラブルシューティング、クレジット、ライセンスはここにあります。ガイドツアーでこのツアーを再開できます。
 Monitor audio	音声モニター
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	どのモードでも同調したチャンネルを聞いて信号を識別できます。無線のサンプルをUSB、LSB、狭帯域FM、AMとして復調します。モードが自分の音を出している間は無音です。
@@ -1634,7 +1612,6 @@ translation	翻訳
 testing	テスト
 idea	アイデア
 Thank you to everyone who sent fixes, reported bugs, shared recordings, translated or suggested ideas. The author is Kristijonas Adomaitis.	修正の送付、バグ報告、録音の共有、翻訳、アイデアの提案をしてくださったすべての方に感謝します。作者は Kristijonas Adomaitis です。
-Want your name changed or removed? Tell us on Discord or open an issue.	名前の変更や削除をご希望ですか？ Discord でお知らせいただくか、issue を作成してください。
 # airband: airport search, band watch
 Airport data updated: %s	空港データを更新しました: %s
 Airport data not updated: %s	空港データを更新できませんでした: %s
@@ -1752,9 +1729,6 @@ SNR per channel	チャンネルごとのSNR
 Second transmitter	2番目の送信機
 Second bearing	2番目の方位
 Position fix	位置の算出
-Sharing	共有
-Share my bearing on the map server	自分の方位を地図サーバーで共有
-Needs Server > Send data to map server. Only the bearing, its uncertainty, the frequency and your station position go up; the map shows where bearings from several stations cross.	サーバー > 地図サーバーにデータを送信 が必要です。送信されるのは方位とその不確かさ、周波数、あなたの局の位置だけです。地図には複数の局の方位が交差する場所が表示されます。
 Bearing and position of a transmitter from an antenna array such as the KrakenSDR	KrakenSDRのようなアンテナアレイによる送信機の方位と位置
 Decoded only	デコード済みのみ
 Hides tone-only pages and pages whose text could not be decoded.	トーンのみの呼び出しと、テキストをデコードできなかったメッセージを非表示にします。
@@ -1763,7 +1737,7 @@ Hides tone-only pages and pages whose text could not be decoded.	トーンのみ
 hidden	非表示
 # LBJ (Chinese railway train warning)
 What LBJ carries	LBJが伝える内容
-LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nOnAir decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJは中国の列車接近警報で、約821.2375 MHzで送信されます。各機関車は1200 bit/sのPOCSAG数字ページを送ります。数秒ごとに列車番号・速度(km/h)・キロ程を含む短いメッセージと、機関車の形式と番号・路線を含む長いメッセージです。\n\nOnAir自身がページを復号します(受信のみ)。空欄の値は桁が壊れていたものです。灰色の行は誤りを訂正したものなので、同じ列車の次のメッセージと照合してください。
+LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of ZorCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJは中国の列車接近警報で、約821.2375 MHzで送信されます。各機関車は1200 bit/sのPOCSAG数字ページを送ります。数秒ごとに列車番号・速度(km/h)・キロ程を含む短いメッセージと、機関車の形式と番号・路線を含む長いメッセージです。\n\nEye of ZorCom自身がページを復号します(受信のみ)。空欄の値は桁が壊れていたものです。灰色の行は誤りを訂正したものなので、同じ列車の次のメッセージと照合してください。
 tune to about 821.2375 MHz and start the receiver	約821.2375 MHzに合わせて受信を開始してください
 FM, 1200 bit/s FSK, %.2f Msps	FM、1200 bit/s FSK、%.2f Msps
 %llu messages, %llu sync words, %llu blank, %llu failed checks	メッセージ%llu件、同期ワード%llu件、空%llu件、検査失敗%llu件
@@ -1895,8 +1869,6 @@ Sure	確度
 Speaker (a guess from the wording)	話者（言葉からの推測）
 Click to copy this line	クリックでこの行をコピー
 Aircraft on the screen	画面上の機体
-Also share transcripts of aircraft radio calls (text becomes public on the map)	航空機の無線交信の文字起こしも共有する（テキストは地図上で公開されます）
-The text of airband radio calls that a speech engine on this computer made from what you receive (Transcripts window), linked to the aircraft by the callsign spoken in it, shown on that aircraft's card on the public map for 48 hours. It can contain mistakes. Phone numbers are removed first. Only airband is shared, never marine, amateur or other channels. Off until you choose it, and you can turn it off at any time.	受信した内容からこのコンピューター上の音声認識が作った航空無線の交信テキスト（文字起こしウィンドウ）を、話されたコールサインで機体に結び付け、地図上のその機体のカードに48時間公開します。誤りを含むことがあります。電話番号は先に取り除かれます。共有するのは航空無線のみで、海上、アマチュア、その他のチャンネルは共有しません。選ぶまでオフで、いつでもオフにできます。
 Transcripts ...	文字起こし ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	航空無線やその他の音声チャンネルで話された内容をテキストで: ライブ字幕、検索、書き出し。オンにするまでオフです。
 # Automations window
@@ -2211,7 +2183,7 @@ Kind	種類
 Map points	地図上の点
 Modes (in the mode list, group PLUGINS)	モード(モード一覧の PLUGINS グループ)
 Network: talk to other computers	ネットワーク: 他のコンピューターと通信
-No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .onairplugin file.	インストールされたプラグインはありません。「ファイルからインストール」を使うか、プラグインのフォルダーをプラグインフォルダーにコピーしてください。プラグインは .onairplugin ファイルです。
+No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .zorcomplugin file.	インストールされたプラグインはありません。「ファイルからインストール」を使うか、プラグインのフォルダーをプラグインフォルダーにコピーしてください。プラグインは .zorcomplugin ファイルです。
 Not installed	インストールできませんでした
 Open its folder	そのフォルダーを開く
 PLUGINS	プラグイン
@@ -2412,8 +2384,6 @@ grey: predicted by the downloaded elements, blue: refined, green: measured, ambe
 residual %.1f Hz -> %.1f Hz (%d used, %d rejected); receiver offset %+.0f Hz	残差 %.1f Hz -> %.1f Hz (使用 %d、除外 %d)、受信機オフセット %+.0f Hz
 mean anomaly %+.3f deg, mean motion %+.5f rev/day, inclination %+.4f deg, RAAN %+.4f deg	平均近点角 %+.3f 度、平均運動 %+.5f 回転/日、軌道傾斜角 %+.4f 度、RAAN %+.4f 度
 estimated timing error of the prediction: %.1f s before, %.1f s after (1 sigma)	予測の推定時間誤差: 前 %.1f 秒、後 %.1f 秒 (1シグマ)
-Also share GPS interference cells (counts per area, no aircraft)	GPS妨害セルも共有する（エリアごとの件数のみ、航空機情報なし）
-For every 0.5 degree square (about 55 km) around your ADS-B receiver: how many aircraft were heard in the last hour and how many of them reported a poor GPS position. Only these two numbers per square are sent, never aircraft identities, tracks or your location. It feeds the GPS interference layer of the public map and is an indicator, not proof of jamming. Off until you choose it.	ADS-B受信機の周囲の0.5度四方（約55 km）ごとに、直近1時間に受信した航空機の数と、そのうちGPS位置が不良と報告した数を送ります。送るのは各区画のこの2つの数字だけで、航空機の識別情報、航跡、あなたの位置は送りません。公開マップのGPS妨害レイヤーに使われますが、妨害の証拠ではなく目安です。選択するまでオフです。
 Calibrate...	校正...
 Measure this radio's frequency error against an FM station or a carrier of known frequency	FM局または周波数既知のキャリアに対して、このラジオの周波数誤差を測定します
 Frequency calibration	周波数校正
@@ -2464,26 +2434,6 @@ to (kHz)	帯域の上限 (kHz)
 Translate to English	英語に翻訳
 Speech in another language is also translated to English, offline, next to the original. Needs a multilingual model and costs about 1.5 times more processor time; it is skipped when the engine cannot keep up. Nothing is sent anywhere. Translation into other languages is not available.	他の言語の音声は、原文の横にオフラインで英語にも翻訳されます。多言語モデルが必要で、プロセッサ時間が約1.5倍かかります。エンジンが追いつかない場合はスキップされます。何も送信されません。他の言語への翻訳はできません。
 The loaded model is English only: translation needs a multilingual model.	読み込まれたモデルは英語専用です。翻訳には多言語モデルが必要です。
-Live: stop the room	ライブ中: ルームを停止
-Copy room link	ルームのリンクをコピー
-Host PIN (to moderate on the room page):	ホストPIN（ルームのページで管理するため）:
-Go live (Live rooms)...	ライブ配信を開始（ライブルーム）...
-Could not create the room	ルームを作成できませんでした
-Lost the connection to the rooms server	ルームサーバーとの接続が切れました
-The live rooms server is not available yet.	ライブルームのサーバーはまだ利用できません。
-No internet connection.	インターネットに接続されていません。
-The live rooms server did not answer in time.	ライブルームのサーバーが時間内に応答しませんでした。
-The live rooms server is full right now. Try again later.	ライブルームのサーバーは現在満員です。後でもう一度お試しください。
-Too many rooms were started from here. Try again in a few minutes.	ここから開始されたルームが多すぎます。数分後にもう一度お試しください。
-The live rooms server refused the request.	ライブルームのサーバーがリクエストを拒否しました。
-The live rooms server sent an answer Eye of ZorCom does not understand.	ライブルームのサーバーが Eye of ZorCom の理解できない応答を返しました。
-Checking the live rooms server...	ライブルームのサーバーを確認中...
-Check the live rooms server again	ライブルームのサーバーを再確認
-Live rooms: while you are live, anyone with the room link can watch this receiver's waterfall, the mode and the frequency you are tuned to, and chat with each other. The room list on the web also shows its title. Nothing is sent before you press Go live, and nothing is stored after the room ends. Your location, your name and the audio are never sent.	ライブルーム: ライブ中は、ルームのリンクを知っている人なら誰でも、この受信機のウォーターフォール、モード、受信周波数を見て、互いにチャットできます。ウェブのルーム一覧にはタイトルも表示されます。「ライブ配信を開始」を押すまでは何も送信されず、ルームが終了すると何も保存されません。あなたの位置情報、名前、音声は送信されません。
-Room title	ルームのタイトル
-Also show decoded ACARS text in the room (public)	デコードしたACARSテキストもルームに表示する（公開）
-Needs Server > Send data to map server and Also share interesting ACARS messages.	サーバー > 地図サーバーにデータを送信 と 興味深いACARSメッセージも共有 が必要です。
-Go live	ライブ配信を開始
 Schedule passes by itself	通過を自動でスケジュール
 Takes the passes of the ticked groups one at a time, highest priority first, and starts, tunes and records each one without you. Overlapping passes are trimmed or skipped; a receiver you started yourself is left alone.	チェックしたグループの通過を優先度の高い順に1つずつ取り、操作なしで開始・同調・録音します。重なる通過は短縮またはスキップされ、自分で起動した受信機には手を触れません。
 Priority (higher wins)	優先度(高い方が優先)
@@ -3084,7 +3034,7 @@ Tone decoders	トーンデコーダー
 The test signal repeats every 40 s: CTCSS 123.0 Hz under speech-like noise, DCS D023N, DTMF 159#, a ZVEI1 call 12345, SELCAL AM-CP and a two-tone page.	テスト信号は40秒ごとに繰り返されます。音声に似た雑音の下のCTCSS 123.0 Hz、DCS D023N、DTMF 159#、ZVEI1呼び出し12345、SELCAL AM-CP、2トーン呼び出し。
 CTCSS, DCS, DTMF, selcall	CTCSS・DCS・DTMF・選択呼出
 # COSPAS-SARSAT 406 MHz
-A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nOnAir only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	406 MHz 遭難ビーコン(船のEPIRB、航空機のELT、個人が携行するPLB)は、約50秒ごとに約0.5秒のバーストを送信します。無変調の搬送波に続いて、400 bit/sで112または144ビットが送られます。メッセージには、ビーコン固有の15桁の16進ID、国、ビーコンの種類、多くの場合位置(短いメッセージでは15分単位、長いメッセージでは4秒単位に丸め)が含まれます。2つのBCHチェックがメッセージを保護し、最初のフィールドの最大3ビットの誤りが修復されます。\n\nOnAirは受信のみを行います。テストビーコンと自己テストのバーストには印が付きます。本物を受信したと思われる場合は、お住まいの国の救助調整センターに連絡してください。安全のためにこのプログラムに頼らないでください。
+A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of ZorCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	406 MHz 遭難ビーコン(船のEPIRB、航空機のELT、個人が携行するPLB)は、約50秒ごとに約0.5秒のバーストを送信します。無変調の搬送波に続いて、400 bit/sで112または144ビットが送られます。メッセージには、ビーコン固有の15桁の16進ID、国、ビーコンの種類、多くの場合位置(短いメッセージでは15分単位、長いメッセージでは4秒単位に丸め)が含まれます。2つのBCHチェックがメッセージを保護し、最初のフィールドの最大3ビットの誤りが修復されます。\n\nEye of ZorComは受信のみを行います。テストビーコンと自己テストのバーストには印が付きます。本物を受信したと思われる場合は、お住まいの国の救助調整センターに連絡してください。安全のためにこのプログラムに頼らないでください。
 EPIRB (boat)	EPIRB(船)
 ELT (aircraft)	ELT(航空機)
 PLB (person)	PLB(個人)

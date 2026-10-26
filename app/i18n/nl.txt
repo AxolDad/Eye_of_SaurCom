@@ -209,7 +209,6 @@ New interface	Nieuwe interface
 Try the new interface. You can switch back at any time.	Probeer de nieuwe interface. Je kunt op elk moment terugschakelen.
 Guided tour	Rondleiding
 Tour	Rondleiding
-by: Kristijonas Adomaitis, made with help from the community	door: Kristijonas Adomaitis, gemaakt met hulp van de community
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Dank aan iedereen die bugs meldde, opnames instuurde en pull requests opende.
 Source	Bron
 source	bron
@@ -732,8 +731,8 @@ Install the SDRplay API	De SDRplay API installeren
 Install the SDRplay API from sdrplay.com if you have not.	Installeer de SDRplay API van sdrplay.com als je dat nog niet hebt gedaan.
 Install the WinUSB driver once with Zadig (zadig.akeo.ie): choose the radio, then the driver WinUSB, then Install.	Installeer het WinUSB-stuurprogramma eenmalig met Zadig (zadig.akeo.ie): kies de radio, dan het stuurprogramma WinUSB, dan Install.
 Install the udev rules (install-udev-rules.sh), then unplug and replug the radio.	Installeer de udev-regels (install-udev-rules.sh) en haal de radio dan los en steek hem er weer in.
-Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb does it).	Installeer de udev-regels: voer install-udev-rules.sh uit vanuit de OnAir-map (het .deb doet dat).
-Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb package does it for you).	Installeer de udev-regels: voer install-udev-rules.sh uit vanuit de OnAir-map (het .deb-pakket doet dat voor je).
+Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb does it).	Installeer de udev-regels: voer install-udev-rules.sh uit vanuit de ZorCom-map (het .deb doet dat).
+Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb package does it for you).	Installeer de udev-regels: voer install-udev-rules.sh uit vanuit de ZorCom-map (het .deb-pakket doet dat voor je).
 Intensity (dB)	Intensiteit (dB)
 IoT, 2.4 GHz	IoT, 2.4 GHz
 IoT, sub-GHz	IoT, sub-GHz
@@ -1005,7 +1004,7 @@ Set the receiver position first: ranges are measured from it.	Stel eerst de posi
 The RX888 MkII sends up to 256 MB per second. It needs a USB 3 (SuperSpeed) port and a USB 3 cable; on a USB 2 port it cannot stream.	De RX888 MkII stuurt tot 256 MB per seconde. Hij heeft een USB 3-poort (SuperSpeed) en een USB 3-kabel nodig; op een USB 2-poort kan hij niet streamen.
 The RX888 is on a USB 2 port	De RX888 zit op een USB 2-poort
 The RX888 needs its firmware file	De RX888 heeft zijn firmwarebestand nodig
-The RX888 MkII has no program of its own in its USB chip: Eye of ZorCom loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official Eye of ZorCom packages include this file; a copy built by hand may not.	De RX888 MkII heeft geen eigen programma in zijn USB-chip: Eye of ZorCom laadt SDDC_FX3.img in RAM in de boot-loader-modus (er wordt niets naar de radio geflasht). Officiële OnAir-pakketten bevatten dit bestand; een handmatig gebouwde kopie mogelijk niet.
+The RX888 MkII has no program of its own in its USB chip: Eye of ZorCom loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official Eye of ZorCom packages include this file; a copy built by hand may not.	De RX888 MkII heeft geen eigen programma in zijn USB-chip: Eye of ZorCom laadt SDDC_FX3.img in RAM in de boot-loader-modus (er wordt niets naar de radio geflasht). Officiële ZorCom-pakketten bevatten dit bestand; een handmatig gebouwde kopie mogelijk niet.
 Use a USB 3 cable (the one that came with the radio).	Gebruik een USB 3-kabel (die bij de radio werd geleverd).
 armed: %s at %s	ingesteld: %s om %s
 last downloaded %s	laatst gedownload %s
@@ -1060,8 +1059,6 @@ GNSS NMEA RMC/GGA (UDP)	GNSS NMEA RMC/GGA (UDP)
 Bluetooth LE advertisements, JSON (UDP)	Bluetooth LE-advertenties, JSON (UDP)
 LoRa / LoRaWAN / Meshtastic, JSON (UDP)	LoRa / LoRaWAN / Meshtastic, JSON (UDP)
 JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent.	JSON-regels (één object per regel), behalve GNSS, dat NMEA is. Uit tot u een feed aanzet. Alleen modi die al gestructureerde berichten hebben worden gestuurd.
-Support	Support
-Support Eye of ZorCom on Ko-fi	Support Eye of ZorCom on Ko-fi
 Documentation	Documentatie
 Troubleshooting	Probleemoplossing
 Website	Website
@@ -1092,10 +1089,6 @@ Amber: DFS channels (radar sharing).	Amber: DFS-kanalen (gedeeld met radar).
 Bright numbers: preferred scanning channels (PSC), where FILS discovery is sent.	Heldere cijfers: voorkeurskanalen voor scannen (PSC), waarop FILS discovery wordt verzonden.
 start the receiver to see the channels	start de ontvanger om de kanalen te zien
 # map server start-up question
-Keep sending positions	Posities blijven verzenden
-Eye of ZorCom asks this question at every start. "No, do not ask again" stops it until Eye of ZorCom is updated.	Eye of ZorCom stelt deze vraag bij elke start. „Nee, niet meer vragen” stopt dit tot Eye of ZorCom wordt bijgewerkt.
-Nothing is sent in this session. Eye of ZorCom asks again the next time it starts.	In deze sessie wordt niets verzonden. Eye of ZorCom vraagt het bij de volgende start opnieuw.
-Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu.	Er wordt niets verzonden en deze vraag verschijnt niet meer tot Eye of ZorCom wordt bijgewerkt. Je kunt het later nog aanzetten in het menu Server.
 #  Wi-Fi HaLow
 (hidden)	(verborgen)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	De radio draait op %.1f Msps: kanalen van %d MHz hebben minstens %.0f Msps nodig (%.0f aanbevolen). Kies de SNELHEID in de bovenbalk of een andere ontvangstbreedte.
@@ -1347,16 +1340,6 @@ Project	Project
 Author	Author
 Licence	Licence
 Used for	Used for
-Update source	Updatebron
-Automatic: GitHub	Automatisch: GitHub
-GitHub only	Alleen GitHub
-Mirror only	Alleen mirror
-Use the mirror when GitHub cannot be reached	De mirror gebruiken als GitHub niet bereikbaar is
-Mirror address (https://host/{url} or a base address)	Mirroradres (https://host/{url} of een basisadres)
-A mirror is a third-party web address you chose. It sees that you check for updates and which version you run. It is used only after GitHub fails (not at all with GitHub only), the package is checked against the checksum from GitHub when GitHub can be reached, and nothing is installed from a mirror without your confirmation.	Een mirror is een webadres van een derde dat u hebt gekozen. Hij ziet dat u naar updates zoekt en welke versie u gebruikt. Hij wordt alleen gebruikt nadat GitHub faalt (nooit bij „Alleen GitHub”), het pakket wordt gecontroleerd met de checksum van GitHub als GitHub bereikbaar is, en er wordt niets van een mirror geïnstalleerd zonder uw bevestiging.
-The list of versions came through the mirror and GitHub could not be reached to confirm the checksum: only the mirror vouches for this package. Nothing is installed without your confirmation.	De lijst met versies kwam via de mirror en GitHub was niet bereikbaar om de checksum te bevestigen: alleen de mirror staat in voor dit pakket. Zonder uw bevestiging wordt niets geïnstalleerd.
-I understand, download it anyway	Ik begrijp het, toch downloaden
-The list came through the mirror; the checksum was confirmed by GitHub.	De lijst kwam via de mirror; de checksum is door GitHub bevestigd.
 Noise remover (neural)##gennr	Ruisonderdrukking (neuraal)##gennr
 Mix of cleaned and original audio: right removes more noise, left keeps more of the original. Adds about 20 ms of delay.	Mix van gereinigd en origineel geluid: naar rechts meer ruis weg, naar links meer van het origineel. Voegt ongeveer 20 ms vertraging toe.
 Speech only; do not use on music or data modes.	Alleen spraak; niet gebruiken bij muziek of datamodi.
@@ -1469,9 +1452,6 @@ ACARS messages	ACARS-berichten
 %d ACARS messages	%d ACARS-berichten
 Copy these messages as text	Kopieer deze berichten als tekst
 No ACARS messages heard from this aircraft	Geen ACARS-berichten ontvangen van dit vliegtuig
-Also share interesting ACARS messages (text becomes public on the map)	Deel ook interessante ACARS-berichten (de tekst wordt openbaar op de kaart)
-Messages an aircraft sent by ACARS (free text, crew, operations, company and maintenance messages), shown on that aircraft's card on the public map for 48 hours. Phone numbers and e-mail addresses are removed first. Position reports and link tests are not part of this. You can turn it off at any time.	Berichten die een vliegtuig via ACARS verstuurde (vrije tekst en berichten van bemanning, operaties, maatschappij en onderhoud), 48 uur lang getoond op de kaart van dat vliegtuig op de openbare kaart. Telefoonnummers en e-mailadressen worden eerst verwijderd. Positiemeldingen en linktests horen hier niet bij. Je kunt dit altijd uitzetten.
-Messages that aircraft send by ACARS (free text and crew, operations, company and maintenance messages) can be shown on the aircraft's card as well, with phone numbers and e-mail addresses removed. This is a separate choice that you can change in the Server menu.	Berichten die vliegtuigen via ACARS versturen (vrije tekst en berichten van bemanning, operaties, maatschappij en onderhoud) kunnen ook op de kaart van het vliegtuig staan, zonder telefoonnummers en e-mailadressen. Dit is een aparte keuze die je in het Server-menu kunt wijzigen.
 #  sweep scanner
 %.0f MHz/s, %d hops, %d averages, %.0f ms per sweep	%.0f MHz/s, %d sprongen, %d gemiddelden, %.0f ms per sweep
 pick a radio first (the test signal and files cannot sweep)	kies eerst een radio (testsignaal en bestanden kunnen niet worden gesweept)
@@ -1521,8 +1501,8 @@ WAV: 16-bit, large. FLAC: lossless, about half the size. MP3: small (needs libmp
 Saves only while there is sound (like a squelch): silence is cut out, with a short lead-in and tail	Slaat alleen op zolang er geluid is (zoals een squelch): stilte wordt weggelaten, met een korte aanloop en uitloop
 One file per transmission: a new file starts after 3 s of silence	Eén bestand per uitzending: na 3 s stilte begint een nieuw bestand
 Keeps recording when the mode or the frequency changes. Off: the recording stops then.	Blijft opnemen als de modus of frequentie verandert. Uit: dan stopt de opname.
-The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	De SoapyRemote-module ontbreekt in deze OnAir-installatie, dus Eye of ZorCom kan geen radio op afstand bereiken. Installeer Eye of ZorCom opnieuw, en meld het als het weer gebeurt. De computer van de radio moet SoapySDRServer --bind draaien.
-The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	De SoapyRemote-module ontbreekt in deze OnAir-installatie, dus Eye of ZorCom kan geen radio op afstand bereiken. Installeer Eye of ZorCom opnieuw (of voer brew install soapyremote uit), en meld het als het weer gebeurt. De computer van de radio moet SoapySDRServer --bind draaien.
+The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	De SoapyRemote-module ontbreekt in deze ZorCom-installatie, dus Eye of ZorCom kan geen radio op afstand bereiken. Installeer Eye of ZorCom opnieuw, en meld het als het weer gebeurt. De computer van de radio moet SoapySDRServer --bind draaien.
+The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	De SoapyRemote-module ontbreekt in deze ZorCom-installatie, dus Eye of ZorCom kan geen radio op afstand bereiken. Installeer Eye of ZorCom opnieuw (of voer brew install soapyremote uit), en meld het als het weer gebeurt. De computer van de radio moet SoapySDRServer --bind draaien.
 SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind.	Deze SoapySDR heeft geen SoapyRemote-clientmodule, dus kan geen radio op afstand bereiken. Installeer die (Debian/Ubuntu: sudo apt install soapysdr-module-remote; andere systemen: github.com/pothosware/SoapyRemote) en start Eye of ZorCom opnieuw. De computer van de radio moet SoapySDRServer --bind draaien.
 # frequency database
 %zu built in, %zu yours	%zu ingebouwd, %zu van jou
@@ -1577,7 +1557,6 @@ Mode panel	Modipaneel
 Memory and frequencies	Geheugen en frequenties
 Receivers	Ontvangers
 Audio	Audio
-Server and support	Server en steun
 Take the guided tour	Rondleiding starten
 Choose the radio or recording that supplies samples. Record IQ saves the raw signal for later playback.	Kies de radio of opname die de samples levert. Record IQ slaat het ruwe signaal op voor latere weergave.
 Set the frequency, band and sample rate here. Gain and AGC set the input level; Second mode decodes another mode from the same capture.	Stel hier frequentie, band en samplefrequentie in. Gain en AGC bepalen het ingangsniveau; Tweede modus decodeert een andere modus uit dezelfde opname.
@@ -1587,7 +1566,6 @@ Each mode has its own tabs for decoded output, settings and tools. They change w
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Geheugen bewaart frequenties met hun modus en instellingen. Frequenties en bandplannen tonen wat er per modus in de lucht is.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Elke ontvanger koppelt een radio aan een modus. Deze balk schakelt ertussen en bepaalt welke het geluid afspeelt.
 Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen speelt het gedemoduleerde signaal af. Volume en dempen staan hier; Record audio slaat het op in een bestand.
-Server sends decoded positions to the public map. Support helps fund development.	Server stuurt gedecodeerde posities naar de openbare kaart. Steun helpt de ontwikkeling te financieren.
 Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Hier staan documentatie, probleemoplossing, dankwoord en licenties. Rondleiding start deze rondleiding opnieuw.
 Monitor audio	Audio meeluisteren
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Luister in elke modus naar het afgestemde kanaal om een signaal te herkennen: de samples van de radio worden gedemoduleerd als USB, LSB, smalle FM of AM. Stil zolang de modus eigen geluid speelt.
@@ -1634,7 +1612,6 @@ translation	vertaling
 testing	testen
 idea	idee
 Thank you to everyone who sent fixes, reported bugs, shared recordings, translated or suggested ideas. The author is Kristijonas Adomaitis.	Dank aan iedereen die fixes stuurde, bugs meldde, opnames deelde, vertaalde of ideeën aandroeg. De auteur is Kristijonas Adomaitis.
-Want your name changed or removed? Tell us on Discord or open an issue.	Wil je dat je naam wordt aangepast of verwijderd? Laat het ons weten op Discord of open een issue.
 # airband: airport search, band watch
 Airport data updated: %s	Luchthavengegevens bijgewerkt: %s
 Airport data not updated: %s	Luchthavengegevens niet bijgewerkt: %s
@@ -1752,9 +1729,6 @@ SNR per channel	SNR per kanaal
 Second transmitter	Tweede zender
 Second bearing	Tweede peiling
 Position fix	Positiebepaling
-Sharing	Delen
-Share my bearing on the map server	Mijn peiling delen met de kaartserver
-Needs Server > Send data to map server. Only the bearing, its uncertainty, the frequency and your station position go up; the map shows where bearings from several stations cross.	Vereist Server > Gegevens naar de kaartserver sturen. Alleen de peiling, de onzekerheid, de frequentie en de positie van je station gaan omhoog; de kaart toont waar peilingen van meerdere stations elkaar kruisen.
 Bearing and position of a transmitter from an antenna array such as the KrakenSDR	Peiling en positie van een zender met een antennearray zoals de KrakenSDR
 Decoded only	Alleen gedecodeerd
 Hides tone-only pages and pages whose text could not be decoded.	Verbergt alleen-toon-oproepen en berichten waarvan de tekst niet gedecodeerd kon worden.
@@ -1763,7 +1737,7 @@ Hides tone-only pages and pages whose text could not be decoded.	Verbergt alleen
 hidden	verborgen
 # LBJ (Chinese railway train warning)
 What LBJ carries	Wat LBJ uitzendt
-LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nOnAir decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ is de Chinese waarschuwing voor naderende treinen op ongeveer 821,2375 MHz. Elke locomotief verstuurt numerieke POCSAG-pagina's van 1200 bit/s: om de paar seconden een kort bericht met treinnummer, snelheid (km/u) en kilometerpaal, en langere berichten met locomotieftype en -nummer en de route.\n\nOnAir decodeert de pagina's zelf (alleen ontvangen). Een lege waarde had beschadigde cijfers; een grijze regel had gecorrigeerde fouten, vergelijk hem dus met het volgende bericht van dezelfde trein.
+LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of ZorCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ is de Chinese waarschuwing voor naderende treinen op ongeveer 821,2375 MHz. Elke locomotief verstuurt numerieke POCSAG-pagina's van 1200 bit/s: om de paar seconden een kort bericht met treinnummer, snelheid (km/u) en kilometerpaal, en langere berichten met locomotieftype en -nummer en de route.\n\nEye of ZorCom decodeert de pagina's zelf (alleen ontvangen). Een lege waarde had beschadigde cijfers; een grijze regel had gecorrigeerde fouten, vergelijk hem dus met het volgende bericht van dezelfde trein.
 tune to about 821.2375 MHz and start the receiver	stem af op ongeveer 821,2375 MHz en start de ontvanger
 FM, 1200 bit/s FSK, %.2f Msps	FM, 1200 bit/s FSK, %.2f Msps
 %llu messages, %llu sync words, %llu blank, %llu failed checks	%llu berichten, %llu syncwoorden, %llu leeg, %llu mislukte controles
@@ -1895,8 +1869,6 @@ Sure	Zeker
 Speaker (a guess from the wording)	Spreker (een gok op basis van de woorden)
 Click to copy this line	Klik om deze regel te kopiëren
 Aircraft on the screen	Vliegtuig op het scherm
-Also share transcripts of aircraft radio calls (text becomes public on the map)	Ook transcripties van radio-oproepen van vliegtuigen delen (tekst wordt openbaar op de kaart)
-The text of airband radio calls that a speech engine on this computer made from what you receive (Transcripts window), linked to the aircraft by the callsign spoken in it, shown on that aircraft's card on the public map for 48 hours. It can contain mistakes. Phone numbers are removed first. Only airband is shared, never marine, amateur or other channels. Off until you choose it, and you can turn it off at any time.	De tekst van oproepen op de luchtvaartband die een spraakengine op deze computer van je ontvangst heeft gemaakt (venster Transcripties), gekoppeld aan het vliegtuig via de uitgesproken roepletters en 48 uur openbaar getoond op de kaart van dat vliegtuig. Kan fouten bevatten. Telefoonnummers worden eerst verwijderd. Alleen de luchtvaartband wordt gedeeld, nooit marifoon, amateur of andere kanalen. Uit tot je het kiest, en je kunt het altijd uitzetten.
 Transcripts ...	Transcripties ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	Wat op de luchtvaartband en andere spraakkanalen wordt gezegd, als tekst: live ondertiteling, zoeken, exporteren. Uit tot je het aanzet.
 # Automations window
@@ -2211,7 +2183,7 @@ Kind	Soort
 Map points	Kaartpunten
 Modes (in the mode list, group PLUGINS)	Modi (in de modelijst, groep PLUGINS)
 Network: talk to other computers	Netwerk: met andere computers communiceren
-No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .onairplugin file.	Geen plug-ins geïnstalleerd. Gebruik Installeren vanuit bestand of kopieer een plug-inmap naar de plug-inmap. Een plug-in is een .onairplugin-bestand.
+No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .zorcomplugin file.	Geen plug-ins geïnstalleerd. Gebruik Installeren vanuit bestand of kopieer een plug-inmap naar de plug-inmap. Een plug-in is een .zorcomplugin-bestand.
 Not installed	Niet geïnstalleerd
 Open its folder	Zijn map openen
 PLUGINS	PLUG-INS
@@ -2412,8 +2384,6 @@ grey: predicted by the downloaded elements, blue: refined, green: measured, ambe
 residual %.1f Hz -> %.1f Hz (%d used, %d rejected); receiver offset %+.0f Hz	rest %.1f Hz -> %.1f Hz (%d gebruikt, %d verworpen); ontvangeroffset %+.0f Hz
 mean anomaly %+.3f deg, mean motion %+.5f rev/day, inclination %+.4f deg, RAAN %+.4f deg	gemiddelde anomalie %+.3f graden, gemiddelde beweging %+.5f omw/dag, inclinatie %+.4f graden, RAAN %+.4f graden
 estimated timing error of the prediction: %.1f s before, %.1f s after (1 sigma)	geschatte tijdfout van de voorspelling: %.1f s ervoor, %.1f s erna (1 sigma)
-Also share GPS interference cells (counts per area, no aircraft)	Deel ook GPS-storingscellen (tellingen per gebied, geen vliegtuigen)
-For every 0.5 degree square (about 55 km) around your ADS-B receiver: how many aircraft were heard in the last hour and how many of them reported a poor GPS position. Only these two numbers per square are sent, never aircraft identities, tracks or your location. It feeds the GPS interference layer of the public map and is an indicator, not proof of jamming. Off until you choose it.	Voor elk vierkant van 0,5 graad (ongeveer 55 km) rond uw ADS-B-ontvanger: hoeveel vliegtuigen het afgelopen uur zijn gehoord en hoeveel daarvan een slechte GPS-positie meldden. Per vierkant worden alleen deze twee getallen verstuurd, nooit identiteiten van vliegtuigen, sporen of uw locatie. Het voedt de GPS-storingslaag van de openbare kaart en is een aanwijzing, geen bewijs van jamming. Uit totdat u het kiest.
 Calibrate...	Kalibreren...
 Measure this radio's frequency error against an FM station or a carrier of known frequency	De frequentiefout van deze radio meten aan een FM-zender of een draaggolf met bekende frequentie
 Frequency calibration	Frequentiekalibratie
@@ -2464,26 +2434,6 @@ to (kHz)	tot (kHz)
 Translate to English	Vertalen naar Engels
 Speech in another language is also translated to English, offline, next to the original. Needs a multilingual model and costs about 1.5 times more processor time; it is skipped when the engine cannot keep up. Nothing is sent anywhere. Translation into other languages is not available.	Spraak in een andere taal wordt ook offline naar het Engels vertaald, naast het origineel. Vereist een meertalig model en kost ongeveer 1,5 keer meer processortijd; wordt overgeslagen als de engine het niet bijhoudt. Er wordt niets verzonden. Vertalen naar andere talen is niet mogelijk.
 The loaded model is English only: translation needs a multilingual model.	Het geladen model is alleen Engels: vertalen vereist een meertalig model.
-Live: stop the room	Live: de ruimte stoppen
-Copy room link	Ruimtelink kopiëren
-Host PIN (to moderate on the room page):	Host-pincode (om te modereren op de ruimtepagina):
-Go live (Live rooms)...	Live gaan (Live-ruimtes)...
-Could not create the room	De ruimte kon niet worden gemaakt
-Lost the connection to the rooms server	Verbinding met de ruimteserver verbroken
-The live rooms server is not available yet.	De server voor live-ruimtes is nog niet beschikbaar.
-No internet connection.	Geen internetverbinding.
-The live rooms server did not answer in time.	De server voor live-ruimtes antwoordde niet op tijd.
-The live rooms server is full right now. Try again later.	De server voor live-ruimtes zit nu vol. Probeer het later opnieuw.
-Too many rooms were started from here. Try again in a few minutes.	Er zijn vanaf hier te veel ruimtes gestart. Probeer het over een paar minuten opnieuw.
-The live rooms server refused the request.	De server voor live-ruimtes weigerde het verzoek.
-The live rooms server sent an answer Eye of ZorCom does not understand.	De server voor live-ruimtes stuurde een antwoord dat Eye of ZorCom niet begrijpt.
-Checking the live rooms server...	Server voor live-ruimtes controleren...
-Check the live rooms server again	Server voor live-ruimtes opnieuw controleren
-Live rooms: while you are live, anyone with the room link can watch this receiver's waterfall, the mode and the frequency you are tuned to, and chat with each other. The room list on the web also shows its title. Nothing is sent before you press Go live, and nothing is stored after the room ends. Your location, your name and the audio are never sent.	Live-ruimtes: zolang je live bent, kan iedereen met de ruimtelink het waterfalldiagram van deze ontvanger, de modus en de ingestelde frequentie zien en met elkaar chatten. De ruimtelijst op het web toont ook de titel. Er wordt niets verzonden voordat je op Live gaan drukt en er wordt niets bewaard nadat de ruimte is afgelopen. Je locatie, je naam en het geluid worden nooit verzonden.
-Room title	Titel van de ruimte
-Also show decoded ACARS text in the room (public)	Ook gedecodeerde ACARS-tekst in de ruimte tonen (openbaar)
-Needs Server > Send data to map server and Also share interesting ACARS messages.	Vereist Server > Gegevens naar kaartserver sturen en Ook interessante ACARS-berichten delen.
-Go live	Live gaan
 Schedule passes by itself	Overvluchten zelf plannen
 Takes the passes of the ticked groups one at a time, highest priority first, and starts, tunes and records each one without you. Overlapping passes are trimmed or skipped; a receiver you started yourself is left alone.	Neemt de overvluchten van de aangevinkte groepen één voor één op, hoogste prioriteit eerst, en start, stemt af en neemt elk op zonder jouw tussenkomst. Overlappende overvluchten worden ingekort of overgeslagen; een ontvanger die je zelf startte blijft ongemoeid.
 Priority (higher wins)	Prioriteit (hoger wint)
@@ -3084,7 +3034,7 @@ Tone decoders	Tonendecoders
 The test signal repeats every 40 s: CTCSS 123.0 Hz under speech-like noise, DCS D023N, DTMF 159#, a ZVEI1 call 12345, SELCAL AM-CP and a two-tone page.	Het testsignaal herhaalt zich elke 40 s: CTCSS 123,0 Hz onder spraakachtige ruis, DCS D023N, DTMF 159#, een ZVEI1-oproep 12345, SELCAL AM-CP en een tweetoonsoproep.
 CTCSS, DCS, DTMF, selcall	CTCSS, DCS, DTMF, selectieve oproep
 # COSPAS-SARSAT 406 MHz
-A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nOnAir only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	Een 406 MHz-noodbaken (EPIRB op een boot, ELT in een vliegtuig, PLB bij een persoon) zendt ongeveer elke 50 seconden een burst van een halve seconde uit: een ongemoduleerde draaggolf, daarna 112 of 144 bits met 400 bit/s. Het bericht bevat een hex-ID van 15 cijfers dat uniek is voor de baken, het land, het soort baken en vaak een positie (in een kort bericht afgerond op 15 minuten, in een lang op 4 seconden). Twee BCH-controles beschermen het bericht; tot drie beschadigde bits in het eerste veld worden hersteld.\n\nOnAir ontvangt alleen. Testbakens en zelftestbursts zijn gemarkeerd. Denkt u een echte te hebben gehoord, meld dit dan bij het reddingscoördinatiecentrum van uw land; vertrouw voor uw veiligheid niet op dit programma.
+A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of ZorCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	Een 406 MHz-noodbaken (EPIRB op een boot, ELT in een vliegtuig, PLB bij een persoon) zendt ongeveer elke 50 seconden een burst van een halve seconde uit: een ongemoduleerde draaggolf, daarna 112 of 144 bits met 400 bit/s. Het bericht bevat een hex-ID van 15 cijfers dat uniek is voor de baken, het land, het soort baken en vaak een positie (in een kort bericht afgerond op 15 minuten, in een lang op 4 seconden). Twee BCH-controles beschermen het bericht; tot drie beschadigde bits in het eerste veld worden hersteld.\n\nEye of ZorCom ontvangt alleen. Testbakens en zelftestbursts zijn gemarkeerd. Denkt u een echte te hebben gehoord, meld dit dan bij het reddingscoördinatiecentrum van uw land; vertrouw voor uw veiligheid niet op dit programma.
 EPIRB (boat)	EPIRB (boot)
 ELT (aircraft)	ELT (vliegtuig)
 PLB (person)	PLB (persoon)

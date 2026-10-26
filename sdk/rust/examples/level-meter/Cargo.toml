@@ -8,7 +8,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-onair-plugin = { path = "../../onair-plugin" }
+zorcom-plugin = { path = "../../zorcom-plugin" }
 
 [profile.release]
 panic = "abort"

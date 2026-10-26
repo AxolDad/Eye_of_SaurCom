@@ -1,7 +1,7 @@
-// Golden-vector test of the DAB data layers (dect2::dabp, the Rust crate onair_dab): the FIB walk and the FIG 0/0, 0/1, 0/2, 0/3, 0/10, 0/13, 0/17, 0/18, 0/19, FIG 1
+// Golden-vector test of the DAB data layers (dect2::dabp, the Rust crate zorcom_dab): the FIB walk and the FIG 0/0, 0/1, 0/2, 0/3, 0/10, 0/13, 0/17, 0/18, 0/19, FIG 1
 // and FIG 2 parsers, MOT time, header (parameters, caption, slide show fields), data group and directory, the PAD split of access units and MP2 frames, X-PAD
 // subfields, dynamic label framing and DL Plus, the Journaline data group and TOC, the packet mode headers, built from random descriptors, mutated, truncated and with
-// corrupt length fields, over ONAIR_DIFF_ITERS (default 200000) seeded inputs per family. Buffers are exactly as long as the input so a sanitizer build sees any read
+// corrupt length fields, over ZORCOM_DIFF_ITERS (default 200000) seeded inputs per family. Buffers are exactly as long as the input so a sanitizer build sees any read
 // past the end. Every result goes into a digest (tests/common/golden.h) compared with the one recorded from the C++ layer the Rust code replaced.
 #include "dect2/dab/dab_proto.h"
 #include "../common/golden.h"
@@ -220,7 +220,7 @@ static void testContentNames() { for (int t = -1; t < 12; t++) for (int s = -1; 
 static Buf genAu() { Buf a; put(a, {(int)(0x80 | (r32() & 0x1F)), 0}); const int cnt = (int)(r32() % 3 == 0 ? 250 + r32() % 20 : 2 + r32() % 30); if (cnt >= 255) { a[1] = 255; a.push_back((uint8_t)(cnt - 255)); } else a[1] = (uint8_t)cnt; rnd(a, cnt + (r32() % 5 == 0 ? 0 : 3)); return a; }
 static Buf genMp2() { Buf f; rnd(f, 8 + r32() % 40); const int ind = (int)(r32() % 4); f[f.size() - 2] = (uint8_t)((r32() % 8 ? 0 : 0x40) | ind << 4 | (r32() & 0x0F)); f[f.size() - 1] = (uint8_t)((r32() & 0xFD) | (r32() % 2) << 1); return f; }
 static void testPad() {
-    const long iters = getenv("ONAIR_DIFF_ITERS") ? atol(getenv("ONAIR_DIFF_ITERS")) : 200000;
+    const long iters = getenv("ZORCOM_DIFF_ITERS") ? atol(getenv("ZORCOM_DIFF_ITERS")) : 200000;
     int lcA = 0, ltA = 0;
     for (long i = 0; i < iters; i++) {
         { const Buf s = pick(genAu); exact(s, [&](const uint8_t* p, size_t n) { A::PadBytes a; const bool ba = A::padFromAu(p, n, a);
@@ -261,7 +261,7 @@ static void testJl(int kind, const Buf& s) {
 }
 
 int main() {
-    const long iters = getenv("ONAIR_DIFF_ITERS") ? atol(getenv("ONAIR_DIFF_ITERS")) : 200000;
+    const long iters = getenv("ZORCOM_DIFF_ITERS") ? atol(getenv("ZORCOM_DIFF_ITERS")) : 200000;
     if (A::crc16((const uint8_t*)"123456789", 9) != 0xD64E) { printf("crc check value\n"); return 1; }
     testContentNames();
     for (long i = 0; i < iters; i++) {
@@ -274,5 +274,5 @@ int main() {
     testPad();
     printf("dab proto: ok: eid %ld sub %ld pkt %ld svc %ld apps %ld pty %ld asup %ld asw %ld time %ld fig1 %ld fig2 %ld fib %ld mottime %ld hdr %ld caption %ld group %ld/%ld dir %ld au %ld mp2 %ld split %ld dg %ld dls %ld %ld %ld dlp %ld jl %ld %ld %ld toc %ld dabpkt %ld drmpkt %ld\n",
            okc[0], okc[1], okc[2], okc[3], okc[4], okc[5], okc[6], okc[7], okc[8], okc[9], okc[10], okc[11], okc[12], okc[13], okc[14], okc[15], okc[16], okc[17], okc[18], okc[19], okc[20], okc[21], okc[22], okc[23], okc[24], okc[25], okc[26], okc[27], okc[28], okc[29], okc[30], okc[31]);
-    return golden::check("dab_proto_rs", dig, 0x921db880a444afa0ull, !getenv("ONAIR_DIFF_ITERS"));
+    return golden::check("dab_proto_rs", dig, 0x921db880a444afa0ull, !getenv("ZORCOM_DIFF_ITERS"));
 }

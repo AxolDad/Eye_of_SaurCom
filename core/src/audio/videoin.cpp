@@ -56,7 +56,7 @@ bool openFileLoop(VideoIn::Impl* I, const std::string& path, std::string& err) {
     AVFrame* fr = av_frame_alloc();
     AVPacket* pk = av_packet_alloc();
     std::vector<uint8_t> rgb;
-    I->fileTh = dect2::namedThread("onair-vidin", [=]() mutable {
+    I->fileTh = dect2::namedThread("zorcom-vidin", [=]() mutable {
         auto closeAll = [&] {
             if (sws) sws_freeContext(sws);
             av_frame_free(&fr); av_packet_free(&pk);

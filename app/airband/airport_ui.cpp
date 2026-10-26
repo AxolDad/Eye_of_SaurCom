@@ -117,7 +117,7 @@ void startDownload() {
     if (S.job.load() == 1) return;
     if (S.th.joinable()) S.th.join();
     S.job = 1;
-    S.th = dect2::namedThread("onair-airport", [] {
+    S.th = dect2::namedThread("zorcom-airport", [] {
         const std::string d = dirPath() + "/download";
         std::error_code ec;
         fs::create_directories(fs::u8path(d), ec);

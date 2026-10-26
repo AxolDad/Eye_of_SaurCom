@@ -1,5 +1,5 @@
-// Golden-vector test of the Wi-SUN frame layers (rust/onair_wisun behind dect2::wisun): all 65536 PHR values, whitening of buffers up to 3000 octets (past the
-// 2048 octet wrap), both FCS types, every name function, scheduleText of random schedules, and parse() of ONAIR_DIFF_ITERS (default 200000) frames: built with the
+// Golden-vector test of the Wi-SUN frame layers (rust/zorcom_wisun behind dect2::wisun): all 65536 PHR values, whitening of buffers up to 3000 octets (past the
+// 2048 octet wrap), both FCS types, every name function, scheduleText of random schedules, and parse() of ZORCOM_DIFF_ITERS (default 200000) frames: built with the
 // real builder (all UTT types, secured or not, schedules, PAN IE, network names, EAPOL), randomly structured MAC headers and IE lists (all frame versions and address
 // modes, header and payload IEs with random sub-IEs, channel plans with exclusions), mutated and truncated. Every result goes into a digest (tests/common/golden.h;
 // doubles rounded to 1e-6) compared with the one recorded from the C++ layers the Rust code replaced.
@@ -151,7 +151,7 @@ static std::vector<uint8_t> randFrame() {
 }
 
 int main() {
-    const char* itc = getenv("ONAIR_DIFF_ITERS");
+    const char* itc = getenv("ZORCOM_DIFF_ITERS");
     const long iters = itc ? atol(itc) : 200000;
     // PHR: every value, both directions
     for (uint32_t v = 0; v < 65536; v++) {

@@ -10,7 +10,7 @@ static Spot mk(const char* call, uint32_t f, int snr, int64_t t, const char* mod
     Spot s; s.call = call; s.freqHz = f; s.snr = snr; s.time = t; s.mode = mode; s.locator = loc; return s;
 }
 int main() {
-    const Receiver rx{"LY1ABC", "KO24ab", "OnAir 0.2.4", "dipole"};
+    const Receiver rx{"LY1ABC", "KO24ab", "ZorCom 0.2.4", "dipole"};
     std::vector<Spot> sp = {mk("DL1XYZ", 14074500, -12, 1700000000), mk("W1AW", 7075123, 5, 1700000001, "FT4", ""), mk("JA1ZZZ", 14074800, -30, 1700000002, "WSPR")};
     std::vector<uint8_t> pkt;
     size_t n = encodePacket(pkt, rx, sp, 0, 1700000010, 7, 0xDEADBEEF, true);
@@ -23,7 +23,7 @@ int main() {
     Decoded d;
     CHECK(decodePacket(pkt.data(), pkt.size(), d), "decode");
     CHECK(d.hasTemplates && d.seq == 7 && d.streamId == 0xDEADBEEF && d.time == 1700000010, "header fields");
-    CHECK(d.rx.call == "LY1ABC" && d.rx.locator == "KO24ab" && d.rx.software == "OnAir 0.2.4" && d.rx.antenna == "dipole", "receiver");
+    CHECK(d.rx.call == "LY1ABC" && d.rx.locator == "KO24ab" && d.rx.software == "ZorCom 0.2.4" && d.rx.antenna == "dipole", "receiver");
     CHECK(d.spots.size() == 3, "spots %zu", d.spots.size());
     if (d.spots.size() == 3) for (int i = 0; i < 3; i++) {
         const Spot &a = sp[i], &b = d.spots[i];

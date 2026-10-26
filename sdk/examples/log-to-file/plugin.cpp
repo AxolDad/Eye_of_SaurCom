@@ -1,22 +1,22 @@
 // Log to file: an action plugin. Appends every automation event (or only those whose type starts with the "prefix" setting) to events.log in its data folder.
-#include "onair_plugin.h"
+#include "zorcom_plugin.h"
 #include <cstdio>
 #include <cstring>
 #include <string>
 
 namespace {
-struct Logger { const OnAirHostApi* host; std::string path; uint64_t written = 0; };
+struct Logger { const ZorComHostApi* host; std::string path; uint64_t written = 0; };
 
-void* create(const OnAirHostApi* host, const char*) {
+void* create(const ZorComHostApi* host, const char*) {
     char dir[1024];
-    if (host->data_dir(host->ctx, dir, sizeof dir) != 0) { host->log(host->ctx, ONAIR_LOG_ERROR, "the filesystem permission was not granted"); return nullptr; }
+    if (host->data_dir(host->ctx, dir, sizeof dir) != 0) { host->log(host->ctx, ZORCOM_LOG_ERROR, "the filesystem permission was not granted"); return nullptr; }
     auto* l = new Logger{host, std::string(dir) + "/events.log"};
-    host->log(host->ctx, ONAIR_LOG_INFO, ("writing to " + l->path).c_str());
+    host->log(host->ctx, ZORCOM_LOG_INFO, ("writing to " + l->path).c_str());
     return l;
 }
 void destroy(void* p) { delete (Logger*)p; }
 
-void onEvent(void* p, const OnAirEvent* e) {
+void onEvent(void* p, const ZorComEvent* e) {
     auto* l = (Logger*)p;
     char prefix[64] = "";
     l->host->get_setting_text(l->host->ctx, "prefix", prefix, sizeof prefix);
@@ -33,7 +33,7 @@ void onEvent(void* p, const OnAirEvent* e) {
     l->written++;
 }
 
-const OnAirPluginVTable kVt = {sizeof(OnAirPluginVTable), ONAIR_PLUGIN_ABI_VERSION, ONAIR_CAP_EVENTS, "log-to-file", create, destroy, nullptr, nullptr, onEvent, nullptr, nullptr};
+const ZorComPluginVTable kVt = {sizeof(ZorComPluginVTable), ZORCOM_PLUGIN_ABI_VERSION, ZORCOM_CAP_EVENTS, "log-to-file", create, destroy, nullptr, nullptr, onEvent, nullptr, nullptr};
 }  // namespace
 
-extern "C" ONAIR_EXPORT const OnAirPluginVTable* onair_plugin_entry(uint32_t host_abi) { return host_abi >= ONAIR_PLUGIN_ABI_VERSION ? &kVt : nullptr; }
+extern "C" ZORCOM_EXPORT const ZorComPluginVTable* zorcom_plugin_entry(uint32_t host_abi) { return host_abi >= ZORCOM_PLUGIN_ABI_VERSION ? &kVt : nullptr; }

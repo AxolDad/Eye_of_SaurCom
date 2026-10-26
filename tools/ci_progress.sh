@@ -71,7 +71,7 @@ if [ $once = 1 ]; then draw; exit 0; fi
 clear
 while true; do
     printf '\033[H'
-    echo "OnAir local CI ($(date +%H:%M:%S))"
+    echo "Eye of ZorCom local CI ($(date +%H:%M:%S))"
     draw
     printf '\033[J'   # clear what an earlier, longer screen left below
     sleep 2

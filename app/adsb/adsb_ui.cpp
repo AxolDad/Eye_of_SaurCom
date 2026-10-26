@@ -351,10 +351,6 @@ void meters(const App& a, std::vector<ModeMeter>& out) {
 
 }  // namespace adsbui
 
-std::string adsbJamBody(const std::string& station) {
-    return dect2::GpsJamGrid::toJson(station, adsbui::S.jam.cells(ImGui::GetTime()));
-}
-
 extern const ModeUi kAdsbUi;
 
 const ModeUi kAdsbUi = {

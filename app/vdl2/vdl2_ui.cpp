@@ -680,18 +680,6 @@ void meters(const App& a, std::vector<ModeMeter>& out) {
 
 } // namespace
 
-// For the map upload (app/map/map_send.cpp): the estimated position of an aircraft whose last fix is old (dead reckoning); false when there is none.
-bool vdl2EstimatedPosition(uint32_t icao, double now, double& lat, double& lon, double& ageSec) {
-    if (!gPred.predict) return false;
-    dect2::track::PosEstimate pe;
-    if (!gPred.hub.estimate(dect2::track::keyFromIcao(icao), now, pe) || !pe.valid || pe.coarse || !pe.predicted || pe.ageSec > 1200) return false;
-    lat = pe.lat; lon = pe.lon; ageSec = pe.ageSec;
-    return true;
-}
-
-// For the map upload (app/map/map_send.cpp)
-derivedkin::Info vdl2Kinematics(const dect2::Vdl2Aircraft& c, double now) { return kinOf(c, now); }
-
 extern const ModeUi kVdl2Ui;
 const ModeUi kVdl2Ui = {
     .sideTitle = "AIRCRAFT",

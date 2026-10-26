@@ -310,28 +310,7 @@ static void testMapPoints() {
     }
     CHECK(maxLat <= 55.2 && maxLat > 50, "sub-satellite latitude reaches %.2f deg (inclination 55)", maxLat);
     CHECK(minAlt > 19.5e6 && maxAlt < 20.9e6, "height %.0f..%.0f km", minAlt / 1e3, maxAlt / 1e3);
-    GnssSatPos s;
-    s.sys = GnssGalileo; s.prn = 5; s.lat = 12.5; s.lon = -33.25; s.altKm = 23222; s.fromEphemeris = true; s.ephAgeS = 1800; s.health = 0;
-    GnssMapRow r;
-    CHECK(gnssMapRow(s, r) && r.id == "E05" && r.sub == "Galileo" && r.altKm == 23222, "Galileo row %s", r.id.c_str());
-    CHECK(r.extra.find("0.5 h") != std::string::npos, "ephemeris age text '%s'", r.extra.c_str());
-    s.sys = GnssGps; s.prn = 12;
-    CHECK(gnssMapRow(s, r) && r.id == "G12", "GPS row");
-    s.sys = GnssQzss; s.prn = 194;
-    CHECK(gnssMapRow(s, r) && r.id == "J02", "QZSS row %s", r.id.c_str());
-    s.sys = GnssBeidou; s.prn = 21;
-    CHECK(gnssMapRow(s, r) && r.id == "C21", "BeiDou row");
-    s.sys = GnssGlonass; s.prn = 7; s.ephAgeS = 900;
-    CHECK(gnssMapRow(s, r) && r.id == "R07", "GLONASS row");
-    s.ephAgeS = 2400;
-    CHECK(!gnssMapRow(s, r), "GLONASS ephemeris 40 min old accepted");
-    s.sys = GnssGps; s.ephAgeS = 4 * 3600 + 1;
-    CHECK(!gnssMapRow(s, r), "GPS ephemeris past 4 h accepted");
-    s.ephAgeS = 100; s.fromEphemeris = false;
-    CHECK(!gnssMapRow(s, r), "an almanac position accepted");
-    s.fromEphemeris = true; s.lat = 91;
-    CHECK(!gnssMapRow(s, r), "latitude 91 accepted");
-    printf("map points: latitude max %.2f deg, height %.0f..%.0f km, rows for 5 systems, stale and almanac refused\n", maxLat, minAlt / 1e3, maxAlt / 1e3);
+    printf("map points: latitude max %.2f deg, height %.0f..%.0f km\n", maxLat, minAlt / 1e3, maxAlt / 1e3);
 }
 
 int main() {

@@ -102,10 +102,10 @@ void mcRefresh() {
     if (S.mcFetch == 1) return;
     if (S.mcThread.joinable()) S.mcThread.join();
     S.mcFetch = 1;
-    S.mcThread = dect2::namedThread("onair-mesh", [] {
+    S.mcThread = dect2::namedThread("zorcom-mesh", [] {
         const std::string tmp = mcFile() + ".part";
         std::vector<dect2::MeshCorePresetEntry> v;
-        bool ok = plat::fetchUrl("https://api.meshcore.nz/api/v1/config", tmp, std::string("OnAir/") + ONAIR_VERSION) && dect2::loadMeshCorePresetFile(tmp, v);
+        bool ok = plat::fetchUrl("https://api.meshcore.nz/api/v1/config", tmp, std::string("ZorCom/") + ZORCOM_VERSION) && dect2::loadMeshCorePresetFile(tmp, v);
         if (ok) { std::remove(mcFile().c_str()); ok = std::rename(tmp.c_str(), mcFile().c_str()) == 0; }
         if (!ok) std::remove(tmp.c_str());
         S.mcFetch = ok ? 2 : 3;

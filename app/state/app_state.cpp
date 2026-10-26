@@ -1,5 +1,4 @@
 // application state: preferences, device list, bandwidth, ingesting spectrum and receiver telemetry, channel list
-#include "../rooms/rooms.h"
 #include "../app.h"
 #include "../clips/clips_ui.h"
 #include <cstring>
@@ -167,7 +166,7 @@ void refreshDevices(App& a) {
     const std::string line = "device scan: " + std::to_string(nHack) + " HackRF, " + std::to_string(nAudio) + " sound card(s), " +
         std::to_string(a.devices.size() - 2 - nHack - nAudio) + " other radio(s)" + (soapySupported() ? "" : " (built without SoapySDR)");
     a.engine.log(line);
-    // also in the log file (onair.log on Windows), with every radio and any error: what a user can send when a radio does not show up
+    // also in the log file (zorcom.log on Windows), with every radio and any error: what a user can send when a radio does not show up
     fprintf(stderr, "%s\n", line.c_str());
     for (size_t i = 2; i < a.devices.size(); i++) fprintf(stderr, "  %s\n", a.devices[i].name.c_str());
     if (!err.empty()) fprintf(stderr, "  error: %s\n", err.c_str());
@@ -381,7 +380,6 @@ void ingestSpectrum(App& a) {
     if (a.holdDecay > 0) for (size_t i = 0; i < n; i++) pk[i] = std::max(pk[i] - fall, in[i]);
     else for (size_t i = 0; i < n; i++) pk[i] = std::max(pk[i], in[i]);
     if (a.wf.offer(f.dbfs, now)) { a.wf.stamp(now); wfExportRow(a, now); }
-    roomsFeedRow(f.dbfs, a.wf.minDb, a.wf.maxDb);   // Live rooms (a flag check when not live)
     clipsui::feed(f.dbfs);   // radio clips: the retroactive history
     if (a.wf.autoTrack && !a.wf.paused && now - a.wf.trackT > 0.25) { a.wf.trackT = now; a.wf.fitRange(a.smooth, false); }
 }

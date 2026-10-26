@@ -208,13 +208,13 @@ int main(int argc, char** argv) {
         const std::string d = clips::discordText(c);
         CHECK(d.rfind("**ADS-B", 0) == 0 && d.find("@ 1090 MHz** \xC2\xB7 2025-10-09 ") != std::string::npos && d.find("16 aircraft") != std::string::npos && d.find("SNR 13 dB") != std::string::npos);
         CHECK(d.find("@everyone") == std::string::npos && d.find("[link](") != std::string::npos && d.find("`x`") == std::string::npos);
-        CHECK(d.find("discord.png") != std::string::npos && d.find("Made with Eye of ZorCom") != std::string::npos);
+        CHECK(d.find("discord.png") != std::string::npos && d.find("Made with ZorCom") != std::string::npos);
         const clips::Image cp = clips::composite(c);
         CHECK(cp.w == 1024 && cp.h == c.spectro.h + 64);
         const auto cpng = clips::encodePng(cp.rgba.data(), cp.w, cp.h);
         CHECK(cpng.size() < 8u * 1000 * 1000);
-        CHECK(clips::fileStem(c.meta) == "onair_ads-b-b-x-b_1090MHz_20251009-" + clips::fileStem(c.meta).substr(clips::fileStem(c.meta).size() - 6) || true);
-        CHECK(clips::fileStem(c.meta).rfind("onair_", 0) == 0 && clips::fileStem(c.meta).find(' ') == std::string::npos && clips::fileStem(c.meta).find('/') == std::string::npos);
+        CHECK(clips::fileStem(c.meta) == "zorcom_ads-b-b-x-b_1090MHz_20251009-" + clips::fileStem(c.meta).substr(clips::fileStem(c.meta).size() - 6) || true);
+        CHECK(clips::fileStem(c.meta).rfind("zorcom_", 0) == 0 && clips::fileStem(c.meta).find(' ') == std::string::npos && clips::fileStem(c.meta).find('/') == std::string::npos);
         CHECK(clips::freqText(93.9e6) == "93.9 MHz" && clips::freqText(145800) == "145.8 kHz" && clips::freqText(1296e6) == "1296 MHz" && clips::freqText(10368e6) == "10.368 GHz");
     }
     // ---- a sample clip from a synthetic signal

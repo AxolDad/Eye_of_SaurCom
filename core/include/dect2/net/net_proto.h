@@ -1,6 +1,6 @@
 // The pure protocol layers of the network code, over bytes and text with no socket: the remote-control API's HTTP / WebSocket side (SHA-1 and base64 for the handshake,
 // frames, the request head, URL and query text, flat JSON bodies), the rtl_tcp, SpyServer and SDR++ server protocols (greetings, commands, the SDR++ menu draw list) and
-// the list of network radios the settings keep. Implemented by the Rust crate onair_net
+// the list of network radios the settings keep. Implemented by the Rust crate zorcom_net
 // through core/src/net/net_proto_rs.cpp. The callers (remote_api.cpp, source_rtltcp.cpp, source_spyserver.cpp, source_sdrpp.cpp, netradio.cpp) keep the sockets, the threads
 // and the state; tests/net/test_net_proto_rs.cpp is the golden-vector test.
 #pragma once

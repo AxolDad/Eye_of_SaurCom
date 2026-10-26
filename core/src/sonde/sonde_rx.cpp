@@ -721,7 +721,7 @@ void SondeReceiver::feed(const cf32* x, size_t n) {
                 s.ring = std::make_unique<IqRing>(cap);
             }
             s.run = true;
-            s.th = dect2::namedThread("onair-sonde", [&s] { s.workerLoop(); });
+            s.th = dect2::namedThread("zorcom-sonde", [&s] { s.workerLoop(); });
         }
     }
     const size_t w = s.ring->write(x, n);

@@ -1,4 +1,0 @@
-name = "onair-update-mirror"
-main = "worker.js"
-compatibility_date = "2026-01-01"
-routes = [{ pattern = "mirror.on-air.dev", custom_domain = true }]

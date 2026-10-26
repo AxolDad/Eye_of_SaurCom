@@ -101,7 +101,7 @@ std::string utcText(double t, bool seconds = false);                // "2026-10-
 std::string buildHtml(const Content& c);                           // one file, no scripts, no external requests
 std::string discordText(const Content& c);                         // ready to paste markdown
 Image composite(const Content& c);                                 // spectrogram + caption strip with the watermark, width 1024
-std::string fileStem(const Meta& m);                               // "onair_adsb_1090MHz_20261017-143200"
+std::string fileStem(const Meta& m);                               // "zorcom_adsb_1090MHz_20261017-143200"
 
 struct Written { std::string dir, html, zip; std::vector<std::string> files; uint64_t htmlBytes = 0, zipBytes = 0, discordPngBytes = 0; std::string error; };
 // Writes the clip folder `parent/<stem>/` (files per the Want flags) and the zip next to it. Never throws.

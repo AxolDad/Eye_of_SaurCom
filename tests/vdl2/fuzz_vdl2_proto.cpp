@@ -1,5 +1,5 @@
 // Seeded mutation run of the VDL Mode 2 layers, meant for DECT2_SANITIZE=ON: the frame decoder, the HDLC deframer, the burst
-// body gatherer with Reed-Solomon, the header code and the address functions must never crash or hang on any bytes. Also a libFuzzer target with -DONAIR_LIBFUZZER.
+// body gatherer with Reed-Solomon, the header code and the address functions must never crash or hang on any bytes. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
 #include "dect2/vdl2/vdl2_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -38,11 +38,11 @@ static void one(const uint8_t* d, size_t n) {
     if (n >= 255) { uint8_t cw[255]; for (int i = 0; i < 255; i++) cw[i] = d[i]; vdl2RsDecode(cw, (int)(d[0] % 7)); }
 }
 
-#ifdef ONAIR_LIBFUZZER
+#ifdef ZORCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* it = getenv("ONAIR_FUZZ_ITERS");
+    const char* it = getenv("ZORCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 30000;
     std::mt19937 g(5150);
     for (long i = 0; i < iters; i++) {

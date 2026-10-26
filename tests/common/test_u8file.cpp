@@ -14,7 +14,7 @@ static void check(bool ok, int line, const std::string& what) { if (!ok) { print
 int main() {
     namespace fs = std::filesystem;
     std::error_code ec;
-    const std::u8string tmp = (fs::temp_directory_path() / "onair-u8file").u8string();
+    const std::u8string tmp = (fs::temp_directory_path() / "zorcom-u8file").u8string();
     const std::string dir(tmp.begin(), tmp.end());
     const std::string sub = dir + "/\xC3\x81rea de Trabalho";   // "Área de Trabalho" in UTF-8
     fs::remove_all(u8file(dir), ec);

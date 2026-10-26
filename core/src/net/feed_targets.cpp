@@ -265,7 +265,7 @@ void FeedTargets::configure(const std::vector<FeedTarget>& t) {
         I.pub.assign(t.size(), FeedTargetStatus());
         for (auto& p : I.pub) p.state = "starting";
     }
-    if ((a || s) && !I.th.joinable()) I.th = namedThread("onair-feedtargets", [&I] { I.loop(); });
+    if ((a || s) && !I.th.joinable()) I.th = namedThread("zorcom-feedtargets", [&I] { I.loop(); });
     I.cv.notify_one();
 }
 

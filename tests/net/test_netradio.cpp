@@ -370,7 +370,7 @@ static bool readIq(IqRing& ring, std::vector<cf32>& buf) {
 
 // SpyServer messages from hand-written bytes (no socket)
 static void testSpyServerBytes() {
-    // HELLO: type 0, body = protocol version 2.0.1700 (0x020006a4 little endian) and "OnAir"
+    // HELLO: type 0, body = protocol version 2.0.1700 (0x020006a4 little endian) and "ZorCom"
     const std::vector<unsigned char> hello = {0xa4, 0x06, 0x00, 0x02, 'O', 'n', 'A', 'i', 'r'};
     const std::vector<unsigned char> want = {0, 0, 0, 0, 9, 0, 0, 0, 0xa4, 0x06, 0x00, 0x02, 'O', 'n', 'A', 'i', 'r'};
     CHECK(native::spyServerEncodeCommand(0, hello) == want);
@@ -396,7 +396,7 @@ static void testSpyServerBytes() {
     CHECK(!native::spyServerDecodeDeviceInfo(body, 20, dev, rate, dec, gain));
 }
 
-// "Share my radio": the rtl_tcp server of OnAir against a raw socket and OnAir's own rtl_tcp client on localhost
+// "Share my radio": the rtl_tcp server of ZorCom against a raw socket and ZorCom's own rtl_tcp client on localhost
 static void testShare() {
     ShareServer& sh = ShareServer::get();
     ShareConfig c; c.on = true; c.port = 0; c.lan = false; c.allowControl = false;
@@ -433,7 +433,7 @@ static void testShare() {
     CHECK(sh.takeCommands().empty());
     sockClose(k);
 
-    // OnAir's own client: its frequency and gain commands arrive once control is allowed; the samples come back as sent
+    // ZorCom's own client: its frequency and gain commands arrive once control is allowed; the samples come back as sent
     c.port = port;
     c.allowControl = true;
     sh.configure(c);   // only the control flag changed: the server keeps running
@@ -839,7 +839,7 @@ static void testHermesLite2Slices() {
         CHECK(devs[k].name == "Hermes Lite 2 RX" + std::to_string(k + 1) + " " + hp + " (network)");
         CHECK(devs[k].nativeArgs == (k == 0 ? hp : hp + "/rx" + std::to_string(k + 1)) && devs[k].serial == devs[k].nativeArgs);
     }
-    CHECK(deviceClaimKey(devs[0]) != deviceClaimKey(devs[1]));   // each one can go to its own OnAir receiver
+    CHECK(deviceClaimKey(devs[0]) != deviceClaimKey(devs[1]));   // each one can go to its own ZorCom receiver
 
     // RX2 alone: two receivers in the stream (RX1's NCO where RX2 is), RX2's samples
     auto rx2 = makeSource(devs[1]);

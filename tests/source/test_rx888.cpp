@@ -1,4 +1,4 @@
-// The RX888 MkII driver (core/src/source/source_rx888.cpp) against a FAKE FX3: no radio is involved. What this checks is OnAir's own side: the USB
+// The RX888 MkII driver (core/src/source/source_rx888.cpp) against a FAKE FX3: no radio is involved. What this checks is ZorCom's own side: the USB
 // requests in the order the SDDC driver sends them (written from renardspark/SDDC_Driver), the firmware upload to the boot loader and the
 // wait for the radio to come back, discovery (a LimeSDR-USB shares 04b4:00f1), the clock / decimation / input choices, and that a known tone
 // comes out of the real-to-complex conversion where it should (HF directly, VHF through the 4.57 MHz IF with the spectrum inverted).
@@ -275,7 +275,7 @@ static void firmwareChecks() {
 
 static void discoveryChecks() {
     printf("discovery:\n");
-    unsetenv("ONAIR_RX888_FIRMWARE");
+    unsetenv("ZORCOM_RX888_FIRMWARE");
     fake.reset();
     CHECK(rx888ProductIsMk2("RX888mk2") && !rx888ProductIsMk2("LimeSDR-USB") && !rx888ProductIsMk2("RX888") && !rx888ProductIsMk2("HF103") && !rx888ProductIsMk2(""), "which product strings are an RX888 MkII");
     rx888UseUsb(&fake);
@@ -299,14 +299,14 @@ static void discoveryChecks() {
     // in the boot loader: listed, with what is missing in its name
     fake.reset();
     fake.devs.push_back({kRx888PidBoot, 3, 9, "", "", ""});
-    setenv("ONAIR_RX888_NO_CODEC_SEARCH", "1", 1);   // an SDDC_FX3.img in the build's codecs folder must not hide the "no image" case
+    setenv("ZORCOM_RX888_NO_CODEC_SEARCH", "1", 1);   // an SDDC_FX3.img in the build's codecs folder must not hide the "no image" case
     d = findRx888();
     CHECK(d.board == "rx888" && d.name.find("needs SDDC_FX3.img") != std::string::npos && d.serial.empty(), "boot loader entry: '%s'", d.name.c_str());
     const std::string img = writeTemp(makeImage(64, 0x40000000, 0x40000010), "rx888_list");
-    setenv("ONAIR_RX888_FIRMWARE", img.c_str(), 1);
+    setenv("ZORCOM_RX888_FIRMWARE", img.c_str(), 1);
     d = findRx888();
     CHECK(d.name.find("firmware is loaded on start") != std::string::npos, "boot loader entry with an image: '%s'", d.name.c_str());
-    unsetenv("ONAIR_RX888_FIRMWARE");
+    unsetenv("ZORCOM_RX888_FIRMWARE");
     unlink(img.c_str());
 }
 
@@ -315,8 +315,8 @@ static void firmwareUploadChecks() {
     TuneSettings s;
     s.centerHz = 7.0e6; s.sampleRate = 2e6;
     // no image anywhere: refused with a message the Fix-it card matches, and nothing written
-    unsetenv("ONAIR_RX888_FIRMWARE");
-    setenv("ONAIR_RX888_NO_CODEC_SEARCH", "1", 1);
+    unsetenv("ZORCOM_RX888_FIRMWARE");
+    setenv("ZORCOM_RX888_NO_CODEC_SEARCH", "1", 1);
     fake.reset();
     fake.devs.push_back({kRx888PidBoot, 3, 9, "", "", ""});
     {
@@ -331,7 +331,7 @@ static void firmwareUploadChecks() {
     // a damaged image
     {
         const std::string bad = writeTemp(makeImage(64, 0x40000000, 0x40000010, true), "rx888_bad");
-        setenv("ONAIR_RX888_FIRMWARE", bad.c_str(), 1);
+        setenv("ZORCOM_RX888_FIRMWARE", bad.c_str(), 1);
         auto src = makeNativeSource(findRx888());
         IqRing ring(1 << 20);
         std::string err;
@@ -343,7 +343,7 @@ static void firmwareUploadChecks() {
     {
         const std::vector<uint8_t> image = makeImage(1500, 0x40000000, 0x40000123);
         const std::string path = writeTemp(image, "rx888_good");
-        setenv("ONAIR_RX888_FIRMWARE", path.c_str(), 1);
+        setenv("ZORCOM_RX888_FIRMWARE", path.c_str(), 1);
         auto src = makeNativeSource(findRx888());
         IqRing ring(1 << 22);
         std::string err;
@@ -376,7 +376,7 @@ static void firmwareUploadChecks() {
         fake.muteAfterJump = 40;
         rx888SetReenumPollMs(25);
         const std::string path = writeTemp(makeImage(64, 0x40000000, 0x40000010), "rx888_late");
-        setenv("ONAIR_RX888_FIRMWARE", path.c_str(), 1);
+        setenv("ZORCOM_RX888_FIRMWARE", path.c_str(), 1);
         auto src = makeNativeSource(findRx888());
         IqRing ring(1 << 20);
         std::string err;
@@ -394,7 +394,7 @@ static void firmwareUploadChecks() {
         fake.nameErrorsAfterJump = 4;
         rx888SetReenumPollMs(20);
         const std::string path = writeTemp(makeImage(64, 0x40000000, 0x40000010), "rx888_name");
-        setenv("ONAIR_RX888_FIRMWARE", path.c_str(), 1);
+        setenv("ZORCOM_RX888_FIRMWARE", path.c_str(), 1);
         auto src = makeNativeSource(findRx888());
         IqRing ring(1 << 20);
         std::string err;
@@ -412,7 +412,7 @@ static void firmwareUploadChecks() {
         rx888SetReenumWaitMs(300);
         rx888SetReenumPollMs(50);
         const std::string path = writeTemp(makeImage(64, 0x40000000, 0x40000010), "rx888_gone");
-        setenv("ONAIR_RX888_FIRMWARE", path.c_str(), 1);
+        setenv("ZORCOM_RX888_FIRMWARE", path.c_str(), 1);
         auto src = makeNativeSource(findRx888());
         IqRing ring(1 << 20);
         std::string err;
@@ -431,7 +431,7 @@ static void firmwareUploadChecks() {
         rx888SetReenumWaitMs(1500);
         rx888SetReenumPollMs(50);
         const std::string path = writeTemp(makeImage(64, 0x40000000, 0x40000010), "rx888_drv");
-        setenv("ONAIR_RX888_FIRMWARE", path.c_str(), 1);
+        setenv("ZORCOM_RX888_FIRMWARE", path.c_str(), 1);
         auto src = makeNativeSource(findRx888());
         IqRing ring(1 << 20);
         std::string err;
@@ -444,7 +444,7 @@ static void firmwareUploadChecks() {
         rx888SetReenumWaitMs(0);
         rx888SetReenumPollMs(0);
     }
-    unsetenv("ONAIR_RX888_FIRMWARE");
+    unsetenv("ZORCOM_RX888_FIRMWARE");
 }
 
 static void refusalChecks() {

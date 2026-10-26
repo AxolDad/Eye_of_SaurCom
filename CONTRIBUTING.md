@@ -1,10 +1,10 @@
-# Contributing to OnAir
+# Contributing to Eye of ZorCom
 
 Thank you for helping! Bug reports, test results from your radio and pull requests are all welcome.
 
 ## Reporting a problem
 
-Open an issue and say: what you did, what you expected, what happened, your operating system, your radio and the channel's standard (DVB-T2, DVB-T, ATSC, DAB). On Windows, `%APPDATA%\OnAir\onair.log` is useful. A screenshot of the status bar and the constellations helps a lot. If a radio other than the HackRF behaves oddly, say so: those drivers are experimental.
+Open an issue and say: what you did, what you expected, what happened, your operating system, your radio and the channel's standard (DVB-T2, DVB-T, ATSC, DAB). On Windows, `%APPDATA%\ZorCom\zorcom.log` is useful. A screenshot of the status bar and the constellations helps a lot. If a radio other than the HackRF behaves oddly, say so: those drivers are experimental.
 
 ## Building and testing
 
@@ -27,8 +27,8 @@ Rust is required (cargo and rustc 1.70 or newer; `rustup target add <triple>` fo
 
 ## Threads
 
-Name every thread you create: `dect2::namedThread("onair-xxx", fn, args...)` instead of `std::thread`, or `dect2::setThreadName(...)` inside the thread function (`core/include/dect2/common/thread_name.h`). Short stable names, `onair-<what>`, at most 15 characters.
+Name every thread you create: `dect2::namedThread("zorcom-xxx", fn, args...)` instead of `std::thread`, or `dect2::setThreadName(...)` inside the thread function (`core/include/dect2/common/thread_name.h`). Short stable names, `zorcom-<what>`, at most 15 characters.
 
 ## Licence
 
-OnAir is released under the GNU General Public License v3.0 or later. By sending a contribution you agree that it is released under the same licence.
+Eye of ZorCom is released under the GNU General Public License v3.0 or later. By sending a contribution you agree that it is released under the same licence.

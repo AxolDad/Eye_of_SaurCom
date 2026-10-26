@@ -1,4 +1,4 @@
-// NXDN common air interface: the frame sync word table (see nxdn_proto.h). The layer itself is Rust: nxdn_proto_rs.cpp over rust/onair_nxdn.
+// NXDN common air interface: the frame sync word table (see nxdn_proto.h). The layer itself is Rust: nxdn_proto_rs.cpp over rust/zorcom_nxdn.
 #include "dect2/nxdn/nxdn_proto.h"
 
 namespace dect2 {

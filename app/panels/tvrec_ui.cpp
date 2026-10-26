@@ -286,7 +286,7 @@ void startFile(App& a, const RecordingEntry& e) {
     if (s.loader.joinable()) s.loader.join();
     const std::string path = e.tsPath;
     const std::string title = e.title.empty() ? path : e.title;
-    s.loader = dect2::namedThread("onair-tvload", [path, title, &a] {
+    s.loader = dect2::namedThread("zorcom-tvload", [path, title, &a] {
         TvRec& t = S();
         if (t.file.open(path)) {
             t.playCues.clear();

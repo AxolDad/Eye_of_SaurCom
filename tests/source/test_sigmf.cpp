@@ -35,7 +35,7 @@ int main() {
     const std::string k = sigmfMetaJson(e);
     CHECK(!has(k, "core:frequency") && !has(k, "core:datetime") && has(k, "ci8_le"), "optional fields left out");
 
-    const fs::path dir = fs::temp_directory_path() / "onair_sigmf_rec_test";
+    const fs::path dir = fs::temp_directory_path() / "zorcom_sigmf_rec_test";
     fs::remove_all(dir);
     IqRecorder r;
     r.setSigmf(true, 433.92e6);
@@ -54,7 +54,7 @@ int main() {
     CHECK(r2.start((dir / "plain.cs8").string(), FileFormat::CS8, 2e6, err), "start plain");
     r2.stop();
     CHECK(!fs::exists(dir / "plain.sigmf-meta"), "no meta when off");
-    {   // legacy ri8 / ri16 aliases and core:dataset (OnAir writes the .cs8 name, not .sigmf-data)
+    {   // legacy ri8 / ri16 aliases and core:dataset (ZorCom writes the .cs8 name, not .sigmf-data)
         const fs::path d2 = dir / "legacy";
         fs::create_directories(d2);
         std::ofstream(d2 / "iq.cs8", std::ios::binary) << "abcd";

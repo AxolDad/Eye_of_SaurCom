@@ -323,7 +323,7 @@ struct Js8Receiver::Impl {
         rotStep = std::polar(1.0, -2 * kPi * kCentreHz / kBase);
         win.resize(kSpecN);
         for (int i = 0; i < kSpecN; i++) win[(size_t)i] = (float)(0.5 - 0.5 * std::cos(2 * kPi * i / kSpecN));
-        th = dect2::namedThread("onair-js8", [this] { worker(); });
+        th = dect2::namedThread("zorcom-js8", [this] { worker(); });
     }
     ~Impl() {
         { std::lock_guard<std::mutex> lk(qmu); quit = true; }

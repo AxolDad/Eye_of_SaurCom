@@ -1,4 +1,4 @@
-// LoRa APRS, MeshCom and LoRaWAN packet layers on top of the Rust crate rust/onair_mesh: the decoders of mesh_proto.h;
+// LoRa APRS, MeshCom and LoRaWAN packet layers on top of the Rust crate rust/zorcom_mesh: the decoders of mesh_proto.h;
 // mesh_proto_aprs.cpp and mesh_proto_lorawan.cpp keep the settings tables and packet builders. The APRS information field itself
 // is parsed by aprs::parse here.
 #include "mesh_proto_internal.h"
@@ -12,7 +12,7 @@ using namespace meshrs;
 namespace {
 
 std::string cleanText(const std::string& s) {
-    return text<2048>([&](uint8_t* b, size_t n) { return onair_mesh_clean_text((const uint8_t*)s.data(), s.size(), b, n); });
+    return text<2048>([&](uint8_t* b, size_t n) { return zorcom_mesh_clean_text((const uint8_t*)s.data(), s.size(), b, n); });
 }
 
 std::string baseCall(const std::string& c) {
@@ -28,7 +28,7 @@ void cleanInfo(aprs::Info& a) {
 
 std::string meshPrintable(const uint8_t* p, size_t n) {
     std::string o(n * 4 + 1, '\0');
-    const size_t len = onair_mesh_printable(p, n, (uint8_t*)&o[0], o.size());
+    const size_t len = zorcom_mesh_printable(p, n, (uint8_t*)&o[0], o.size());
     o.resize(len == (size_t)-1 ? 0 : len);
     return o;
 }
@@ -37,8 +37,8 @@ MeshDecodeResult meshDecodeLoraAprs(const uint8_t* p, size_t n) {
     MeshDecodeResult r;
     r.packet.protocol = MeshProtocol::LoraAprs;
     r.packet.size = n;
-    auto a = std::make_unique<OnairMeshLoraAprs>();
-    onair_mesh_lora_aprs(p, n, a.get());
+    auto a = std::make_unique<ZorcomMeshLoraAprs>();
+    zorcom_mesh_lora_aprs(p, n, a.get());
     r.raw = str(a->raw);
     if (!a->ok) { r.packet.note = str(a->note); return r; }
     const std::string src = str(a->src), dest = str(a->dest), path = str(a->path);
@@ -70,8 +70,8 @@ MeshDecodeResult meshDecodeMeshCom(const uint8_t* p, size_t n) {
     MeshDecodeResult r;
     r.packet.protocol = MeshProtocol::MeshCom;
     r.packet.size = n;
-    auto m = std::make_unique<OnairMeshMeshCom>();
-    onair_mesh_meshcom(p, n, m.get());
+    auto m = std::make_unique<ZorcomMeshMeshCom>();
+    zorcom_mesh_meshcom(p, n, m.get());
     r.raw = str(m->raw);
     if (n == 0) return r;
     r.packet.note = str(m->note);
@@ -113,32 +113,32 @@ const char* lorawanMTypeName(int t) {
     return t >= 0 && t < 8 ? n[t] : "?";
 }
 
-std::string lorawanMacName(uint8_t cid, bool uplink) { return text<64>([&](uint8_t* b, size_t n) { return onair_mesh_lorawan_mac_name(cid, uplink, b, n); }); }
+std::string lorawanMacName(uint8_t cid, bool uplink) { return text<64>([&](uint8_t* b, size_t n) { return zorcom_mesh_lorawan_mac_name(cid, uplink, b, n); }); }
 
 std::string lorawanNetwork(uint32_t devAddr, int* typeOut, uint32_t* nwkOut, uint32_t* netOut) {
     int32_t kind = 0;
-    const std::string s = text<64>([&](uint8_t* b, size_t n) { return onair_mesh_lorawan_network(devAddr, b, n, &kind, nwkOut, netOut); });
+    const std::string s = text<64>([&](uint8_t* b, size_t n) { return zorcom_mesh_lorawan_network(devAddr, b, n, &kind, nwkOut, netOut); });
     if (typeOut) *typeOut = kind;
     return s;
 }
 
 const char* lorawanVendor(uint64_t eui) {
     static thread_local char buf[64];   // valid until the next call on this thread (the C++ returned string literals)
-    const size_t n = onair_mesh_lorawan_vendor(eui, (uint8_t*)buf, sizeof buf - 1);
+    const size_t n = zorcom_mesh_lorawan_vendor(eui, (uint8_t*)buf, sizeof buf - 1);
     buf[n == (size_t)-1 ? 0 : n] = 0;
     return buf;
 }
 
-std::string meshHexString(const uint8_t* p, size_t n) { return text<1024>([&](uint8_t* b, size_t cap) { return onair_mesh_hex_string(p, n, b, cap); }); }
+std::string meshHexString(const uint8_t* p, size_t n) { return text<1024>([&](uint8_t* b, size_t cap) { return zorcom_mesh_hex_string(p, n, b, cap); }); }
 
-std::string lorawanEui(uint64_t eui) { return text<32>([&](uint8_t* b, size_t n) { return onair_mesh_lorawan_eui(eui, b, n); }); }
+std::string lorawanEui(uint64_t eui) { return text<32>([&](uint8_t* b, size_t n) { return zorcom_mesh_lorawan_eui(eui, b, n); }); }
 
 MeshDecodeResult meshDecodeLorawan(const uint8_t* p, size_t n) {
     MeshDecodeResult r;
     r.packet.protocol = MeshProtocol::LoraWan;
     r.packet.size = n;
-    auto l = std::make_unique<OnairMeshLorawan>();
-    onair_mesh_lorawan_decode(p, n, l.get());
+    auto l = std::make_unique<ZorcomMeshLorawan>();
+    zorcom_mesh_lorawan_decode(p, n, l.get());
     MeshPacketInfo& pk = r.packet;
     MeshDecodeResult::Lorawan& w = r.lorawan;
     // everything the decoder had set when it stopped is copied, also for a payload it rejected (the reference does the same)

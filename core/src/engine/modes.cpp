@@ -293,7 +293,7 @@ public:
     FmSynth(const SynthConfig& c, double rate) : rate_(rate) {
         FmGenConfig g;
         g.rate = rate; g.cnrDb = c.snrDb >= 40 ? 200 : c.snrDb + 10; g.cfoHz = c.cfoHz;
-        g.ps = "ONAIR FM"; g.rt = "OnAir FM test signal: 1 kHz left, 3 kHz right";
+        g.ps = "ZORCOM"; g.rt = "ZorCom FM test signal: 1 kHz left, 3 kHz right";
         gen_ = std::make_unique<FmGenerator>(g);
     }
     double sampleRate() const override { return rate_; }

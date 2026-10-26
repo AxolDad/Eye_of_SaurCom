@@ -40,7 +40,7 @@ void Engine::feedSpectrum(const cf32* x, size_t n) {
 }
 
 void Engine::spectrumLoop() {
-    setThreadName("onair-spectrum");   // a copy of each block, dropped when behind: never slows the decoder
+    setThreadName("zorcom-spectrum");   // a copy of each block, dropped when behind: never slows the decoder
     std::vector<cf32> chunk;
     for (;;) {
         {
@@ -66,7 +66,7 @@ void Engine::spectrumLoop() {
 }
 
 void Engine::analysisLoop() {
-    setThreadName("onair-analysis");
+    setThreadName("zorcom-analysis");
     setThreadPriority(ThreadPriority::Realtime); // the sample path must never wait for decoders or the UI
     std::vector<cf32> buf(1 << 16);
     auto next = std::chrono::steady_clock::now();

@@ -37,7 +37,7 @@ int main() {
     printf("  %d reports: %s, %d pictures, dropped %llu\n", reports, macSummary(m).c_str(), pictures, (unsigned long long)e.droppedSamples());
     CHECK(reports > 10 && wrong == 0, "%d reports, %d wrong", reports, wrong);
     CHECK(rx.rateOk, "rate");
-    CHECK(m.state == 2 && m.channelName == "ONAIR TV", "state %d name '%s'", m.state, m.channelName.c_str());
+    CHECK(m.state == 2 && m.channelName == "ZORCOM TV", "state %d name '%s'", m.state, m.channelName.c_str());
     CHECK(pictures > 5, "%d pictures", pictures);
     e.stop();
     printf(fails ? "mac engine: %d FAILED\n" : "mac engine: all passed\n", fails);

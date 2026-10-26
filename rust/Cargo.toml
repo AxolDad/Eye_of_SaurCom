@@ -1,10 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-    "onair_common", "onair_proto", "onair",
-    "onair_adsb", "onair_acars", "onair_same", "onair_pager", "onair_ax25", "onair_dmr", "onair_p25", "onair_nxdn",
-    "onair_dstar", "onair_tetra", "onair_vdl2", "onair_hfdl", "onair_mesh", "onair_wisun", "onair_uat",
-    "onair_ts", "onair_dvbsi", "onair_dab", "onair_drm", "onair_files", "onair_net", "onair_engine", "onair_fec", "onair_usb", "onair_ring", "onair_kris", "onair_kaws", "onair_cot", "onair_wifisense", "onair_dsn",
+    "zorcom_common", "zorcom_proto", "zorcom",
+    "zorcom_adsb", "zorcom_acars", "zorcom_same", "zorcom_pager", "zorcom_ax25", "zorcom_dmr", "zorcom_p25", "zorcom_nxdn",
+    "zorcom_dstar", "zorcom_tetra", "zorcom_vdl2", "zorcom_hfdl", "zorcom_mesh", "zorcom_wisun", "zorcom_uat",
+    "zorcom_ts", "zorcom_dvbsi", "zorcom_dab", "zorcom_drm", "zorcom_files", "zorcom_net", "zorcom_engine", "zorcom_fec", "zorcom_usb", "zorcom_ring", "zorcom_kris", "zorcom_kaws", "zorcom_cot", "zorcom_wifisense", "zorcom_dsn",
 ]
 
 [workspace.package]

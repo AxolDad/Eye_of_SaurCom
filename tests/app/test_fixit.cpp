@@ -34,7 +34,7 @@ int main() {
     }
     // real messages the app shows
     CHECK(fixit::lookup("Could not start the radio: SDRplay: the SDRplay API service is not running") == fixit::byId("sdrplay_service"), "sdrplay service");
-    CHECK(fixit::lookup("HackRF is plugged in but this user may not open it: install Eye of ZorCom's udev rules") == fixit::byId("usb_permission"), "udev");
+    CHECK(fixit::lookup("HackRF is plugged in but this user may not open it: install ZorCom's udev rules") == fixit::byId("usb_permission"), "udev");
     CHECK(fixit::lookup("Could not start the radio: open: HackRF not found") == fixit::byId("hackrf_not_found"), "hackrf not found");
     CHECK(fixit::lookup("Could not start the radio: rtl_tcp: 1.2.3.4:1234 is not an rtl_tcp server") == fixit::byId("rtltcp"), "rtl_tcp");
     CHECK(fixit::lookup("Could not start the radio: something new") == fixit::byId("start_failed"), "generic start failure");

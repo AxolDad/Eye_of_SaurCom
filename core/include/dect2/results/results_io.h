@@ -27,7 +27,7 @@
 
 namespace dect2::results {
 
-constexpr uint32_t kFormat = 1;   // the encoding itself: raise it when put()/get() change (and in core/src/files/files_proto.cpp and rust/onair_files/src/container.rs, which write and check the header)
+constexpr uint32_t kFormat = 1;   // the encoding itself: raise it when put()/get() change (and in core/src/files/files_proto.cpp and rust/zorcom_files/src/container.rs, which write and check the header)
 
 namespace detail {
 
@@ -193,7 +193,7 @@ inline uint64_t fnv1a(const std::string& s) { return filesp::fnv1a(s); }   // FN
 template <class... T> uint64_t signatureHash() {
     std::string s;
     (sig<std::remove_cvref_t<T>>(s), ...);
-    return filesp::signatureHash(s);   // FNV-1a of the signature text xor kFormat: core/src/files/files_proto.cpp (C++) or the Rust crate onair_files
+    return filesp::signatureHash(s);   // FNV-1a of the signature text xor kFormat: core/src/files/files_proto.cpp (C++) or the Rust crate zorcom_files
 }
 
 template <class Tup, size_t... I, class... T> void moveOut(Tup& tmp, std::index_sequence<I...>, T&... v) { ((v = std::move(std::get<I>(tmp))), ...); }

@@ -1,6 +1,6 @@
 // Seeded mutation run of the error correction layer, meant for DECT2_SANITIZE=ON: the Reed-Solomon decoders and the BCH
 // decoder must never crash or hang on any bytes (the BCH bits are also fed values above 1 and every length from 0), the encoders on any message length.
-// Buffers are exact-size heap blocks so a sanitizer sees a read or write past the end. Also a libFuzzer target with -DONAIR_LIBFUZZER.
+// Buffers are exact-size heap blocks so a sanitizer sees a read or write past the end. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
 #include "dect2/fec/fec_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -47,11 +47,11 @@ static void one(const uint8_t* d, size_t n) {
     bch(sh, t).decode(bits);
 }
 
-#ifdef ONAIR_LIBFUZZER
+#ifdef ZORCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const long iters = getenv("ONAIR_FUZZ_ITERS") ? atol(getenv("ONAIR_FUZZ_ITERS")) : 100000;
+    const long iters = getenv("ZORCOM_FUZZ_ITERS") ? atol(getenv("ZORCOM_FUZZ_ITERS")) : 100000;
     std::mt19937 g(2468);
     for (long it = 0; it < iters; it++) {
         std::vector<uint8_t> b(g() % 3 == 0 ? g() % 40 : g() % 3000);

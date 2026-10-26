@@ -72,7 +72,7 @@ int main() {
             if (p.info.find("Eddystone UID EDD1EBEAC04E5DEFA017") != std::string::npos) uid = true;
         }
         CHECK(url && tlm && uid, "Eddystone URL %d TLM %d UID %d", url, tlm, uid);
-        CHECK(ph && ph->name == "OnAir test phone" && ph->scanned && ph->txPower == 4, "phone: name '%s' (scan response)", ph ? ph->name.c_str() : "-");
+        CHECK(ph && ph->name == "ZorCom test phone" && ph->scanned && ph->txPower == 4, "phone: name '%s' (scan response)", ph ? ph->name.c_str() : "-");
         CHECK(t.perType[ScanReq] > 0 && t.perType[ConnectInd] > 0 && t.perType[AdvExtInd] > 0 && t.perType[ScanRsp] > 0, "PDU types");
         CHECK(t.perChannel[0] > 0 && t.perChannel[1] > 0 && t.perChannel[2] > 0, "channels %llu %llu %llu", (unsigned long long)t.perChannel[0], (unsigned long long)t.perChannel[1], (unsigned long long)t.perChannel[2]);
         bool en = false;

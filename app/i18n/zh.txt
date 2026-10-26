@@ -216,7 +216,6 @@ New interface	新界面
 Try the new interface. You can switch back at any time.	试用新界面。随时可以切换回来。
 Guided tour	新手导览
 Tour	导览
-by: Kristijonas Adomaitis, made with help from the community	作者：Kristijonas Adomaitis，在社区的帮助下完成
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	感谢所有报告问题、提供录制文件和提交拉取请求的朋友。
 Source	信号源
 source	信号源
@@ -1060,8 +1059,6 @@ GNSS NMEA RMC/GGA (UDP)	GNSS NMEA RMC/GGA（UDP）
 Bluetooth LE advertisements, JSON (UDP)	蓝牙 LE 广播，JSON（UDP）
 LoRa / LoRaWAN / Meshtastic, JSON (UDP)	LoRa / LoRaWAN / Meshtastic，JSON（UDP）
 JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent.	JSON 行（每行一个对象）；GNSS 除外，用 NMEA。默认关闭，直到打开某个输出。只发送已有结构化消息的模式。
-Support	Support
-Support Eye of ZorCom on Ko-fi	Support Eye of ZorCom on Ko-fi
 Documentation	文档
 Troubleshooting	故障排除
 Website	网站
@@ -1092,10 +1089,6 @@ Amber: DFS channels (radar sharing).	琥珀色：DFS 信道（与雷达共用）
 Bright numbers: preferred scanning channels (PSC), where FILS discovery is sent.	亮色数字：优先扫描信道（PSC），FILS 发现帧在其上发送。
 start the receiver to see the channels	启动接收机以查看信道
 # map server start-up question
-Keep sending positions	继续发送位置
-Eye of ZorCom asks this question at every start. "No, do not ask again" stops it until Eye of ZorCom is updated.	Eye of ZorCom 每次启动都会提出这个问题。选择“不，不再询问”后，在 Eye of ZorCom 更新之前不会再显示。
-Nothing is sent in this session. Eye of ZorCom asks again the next time it starts.	本次会话不发送任何内容。下次启动时 Eye of ZorCom 会再次询问。
-Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu.	不发送任何内容，在 Eye of ZorCom 更新之前不再显示此问题。之后仍可在“服务器”菜单中开启。
 #  Wi-Fi HaLow
 (hidden)	(隐藏)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	无线电正以 %.1f Msps 运行:%d MHz 信道至少需要 %.0f Msps(推荐 %.0f)。请在顶部栏选择采样率,或选择其他接收带宽。
@@ -1347,16 +1340,6 @@ Project	Project
 Author	Author
 Licence	Licence
 Used for	Used for
-Update source	更新来源
-Automatic: GitHub	自动：GitHub
-GitHub only	仅 GitHub
-Mirror only	仅镜像
-Use the mirror when GitHub cannot be reached	无法连接 GitHub 时使用镜像
-Mirror address (https://host/{url} or a base address)	镜像地址（https://host/{url} 或基础地址）
-A mirror is a third-party web address you chose. It sees that you check for updates and which version you run. It is used only after GitHub fails (not at all with GitHub only), the package is checked against the checksum from GitHub when GitHub can be reached, and nothing is installed from a mirror without your confirmation.	镜像是您自己选择的第三方网址。它能看到您在检查更新以及您使用的版本。只有在 GitHub 失败后才会使用（选择“仅 GitHub”时永不使用）；能连接 GitHub 时，安装包会按 GitHub 的校验和验证；未经您确认，不会从镜像安装任何内容。
-The list of versions came through the mirror and GitHub could not be reached to confirm the checksum: only the mirror vouches for this package. Nothing is installed without your confirmation.	版本列表来自镜像，且无法连接 GitHub 确认校验和：只有镜像为此安装包担保。未经您确认不会安装任何内容。
-I understand, download it anyway	我已了解，仍然下载
-The list came through the mirror; the checksum was confirmed by GitHub.	列表来自镜像；校验和已由 GitHub 确认。
 Noise remover (neural)##gennr	降噪（神经网络）##gennr
 Mix of cleaned and original audio: right removes more noise, left keeps more of the original. Adds about 20 ms of delay.	净化音频与原声的混合：向右去除更多噪声，向左保留更多原声。会增加约 20 毫秒延迟。
 Speech only; do not use on music or data modes.	仅用于语音；请勿用于音乐或数据模式。
@@ -1469,9 +1452,6 @@ ACARS messages	ACARS 消息
 %d ACARS messages	%d 条 ACARS 消息
 Copy these messages as text	将这些消息复制为文本
 No ACARS messages heard from this aircraft	未收到这架飞机的 ACARS 消息
-Also share interesting ACARS messages (text becomes public on the map)	同时分享有价值的 ACARS 消息（文本将在地图上公开）
-Messages an aircraft sent by ACARS (free text, crew, operations, company and maintenance messages), shown on that aircraft's card on the public map for 48 hours. Phone numbers and e-mail addresses are removed first. Position reports and link tests are not part of this. You can turn it off at any time.	飞机通过 ACARS 发送的消息（自由文本，以及机组、运行、公司和维护消息）会在公开地图上该飞机的卡片中显示 48 小时。电话号码和电子邮件地址会先被移除。位置报告和链路测试不包括在内。你可以随时关闭。
-Messages that aircraft send by ACARS (free text and crew, operations, company and maintenance messages) can be shown on the aircraft's card as well, with phone numbers and e-mail addresses removed. This is a separate choice that you can change in the Server menu.	飞机通过 ACARS 发送的消息（自由文本，以及机组、运行、公司和维护消息）也可以显示在飞机卡片上，并已去除电话号码和电子邮件地址。这是一项单独的选择，可在“服务器”菜单中更改。
 #  sweep scanner
 %.0f MHz/s, %d hops, %d averages, %.0f ms per sweep	%.0f MHz/s，%d 跳，平均 %d 次，每次扫描 %.0f ms
 pick a radio first (the test signal and files cannot sweep)	请先选择一台电台(测试信号和文件无法扫描)
@@ -1577,7 +1557,6 @@ Mode panel	模式面板
 Memory and frequencies	存储与频率
 Receivers	接收机
 Audio	音频
-Server and support	服务器与支持
 Take the guided tour	开始导览
 Choose the radio or recording that supplies samples. Record IQ saves the raw signal for later playback.	选择提供采样的电台或录音。Record IQ 会保存原始信号，供以后回放。
 Set the frequency, band and sample rate here. Gain and AGC set the input level; Second mode decodes another mode from the same capture.	在此设置频率、频段和采样率。增益和 AGC 决定输入电平；第二模式可从同一次采集中解码另一种模式。
@@ -1587,7 +1566,6 @@ Each mode has its own tabs for decoded output, settings and tools. They change w
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	存储会保存频率及其模式和设置。频率与频段规划按模式列出正在广播的内容。
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	每个接收机将一台电台与一种模式配对。此栏用于在它们之间切换，并选择由哪一个播放声音。
 Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen 播放解调后的信号。音量和静音在此处；Record audio 会将声音保存为文件。
-Server sends decoded positions to the public map. Support helps fund development.	服务器会把解码得到的位置发送到公共地图。支持有助于资助开发。
 Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	文档、故障排除、致谢和许可证都在这里。导览会重新开始此导览。
 Monitor audio	监听音频
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	在任何模式下收听已调谐的频道以识别信号:无线电采样按USB、LSB、窄带FM或AM解调。模式播放自身声音时保持静音。
@@ -1634,7 +1612,6 @@ translation	翻译
 testing	测试
 idea	创意
 Thank you to everyone who sent fixes, reported bugs, shared recordings, translated or suggested ideas. The author is Kristijonas Adomaitis.	感谢所有提交修复、报告错误、分享录音、翻译或提出想法的人。作者是 Kristijonas Adomaitis。
-Want your name changed or removed? Tell us on Discord or open an issue.	希望更改或删除您的名字？请在 Discord 告诉我们或提交 issue。
 # airband: airport search, band watch
 Airport data updated: %s	机场数据已更新：%s
 Airport data not updated: %s	机场数据未更新：%s
@@ -1752,9 +1729,6 @@ SNR per channel	每通道信噪比
 Second transmitter	第二个发射机
 Second bearing	第二个方位
 Position fix	位置确定
-Sharing	共享
-Share my bearing on the map server	在地图服务器上共享我的方位
-Needs Server > Send data to map server. Only the bearing, its uncertainty, the frequency and your station position go up; the map shows where bearings from several stations cross.	需要 服务器 > 向地图服务器发送数据。只会上传方位、其不确定度、频率和你的电台位置；地图会显示多个电台的方位在何处相交。
 Bearing and position of a transmitter from an antenna array such as the KrakenSDR	使用 KrakenSDR 等天线阵测定发射机的方位和位置
 Decoded only	仅已解码
 Hides tone-only pages and pages whose text could not be decoded.	隐藏仅有音调的呼叫以及文本无法解码的消息。
@@ -1763,7 +1737,7 @@ Hides tone-only pages and pages whose text could not be decoded.	隐藏仅有音
 hidden	已隐藏
 # LBJ (Chinese railway train warning)
 What LBJ carries	LBJ 传送的内容
-LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nOnAir decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ 是中国铁路列车接近预警，频率约 821.2375 MHz。每台机车以 1200 bit/s 发送 POCSAG 数字寻呼：每隔几秒一条短报文，含车次、速度(km/h)和公里标；另有较长报文，含机车型号、机车号和线路。\n\nOnAir 自行解码这些寻呼(仅接收)。空白的值表示数字受损；灰色的行曾纠正过错误，请与同一列车的下一条报文核对。
+LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of ZorCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ 是中国铁路列车接近预警，频率约 821.2375 MHz。每台机车以 1200 bit/s 发送 POCSAG 数字寻呼：每隔几秒一条短报文，含车次、速度(km/h)和公里标；另有较长报文，含机车型号、机车号和线路。\n\nEye of ZorCom 自行解码这些寻呼(仅接收)。空白的值表示数字受损；灰色的行曾纠正过错误，请与同一列车的下一条报文核对。
 tune to about 821.2375 MHz and start the receiver	调谐到约 821.2375 MHz 并启动接收机
 FM, 1200 bit/s FSK, %.2f Msps	FM，1200 bit/s FSK，%.2f Msps
 %llu messages, %llu sync words, %llu blank, %llu failed checks	%llu 条报文，%llu 个同步字，%llu 条空白，%llu 条校验失败
@@ -1895,8 +1869,6 @@ Sure	可信度
 Speaker (a guess from the wording)	说话者（根据措辞推测）
 Click to copy this line	点击复制此行
 Aircraft on the screen	屏幕上的飞机
-Also share transcripts of aircraft radio calls (text becomes public on the map)	同时共享飞机无线电通话的转录（文字将在地图上公开）
-The text of airband radio calls that a speech engine on this computer made from what you receive (Transcripts window), linked to the aircraft by the callsign spoken in it, shown on that aircraft's card on the public map for 48 hours. It can contain mistakes. Phone numbers are removed first. Only airband is shared, never marine, amateur or other channels. Off until you choose it, and you can turn it off at any time.	本机语音引擎根据你接收到的内容生成的航空频段通话文字（转录窗口），按其中说出的呼号关联到飞机，并在地图上该飞机的公开卡片中显示 48 小时。可能含有错误。电话号码会先被移除。只共享航空频段，绝不共享海事、业余无线电或其他信道。在你选择之前保持关闭，并且可随时关闭。
 Transcripts ...	转录 ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	航空频段和其他语音信道上说的话，以文字显示：实时字幕、搜索、导出。在你开启之前保持关闭。
 # Automations window
@@ -2211,7 +2183,7 @@ Kind	类型
 Map points	地图点
 Modes (in the mode list, group PLUGINS)	模式(在模式列表的 PLUGINS 组中)
 Network: talk to other computers	网络:与其他计算机通信
-No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .onairplugin file.	尚未安装插件。请使用“从文件安装”,或把插件文件夹复制到插件文件夹中。插件是一个 .onairplugin 文件。
+No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .zorcomplugin file.	尚未安装插件。请使用“从文件安装”,或把插件文件夹复制到插件文件夹中。插件是一个 .zorcomplugin 文件。
 Not installed	未安装
 Open its folder	打开其文件夹
 PLUGINS	插件
@@ -2412,8 +2384,6 @@ grey: predicted by the downloaded elements, blue: refined, green: measured, ambe
 residual %.1f Hz -> %.1f Hz (%d used, %d rejected); receiver offset %+.0f Hz	残差 %.1f Hz -> %.1f Hz(使用 %d,剔除 %d);接收机偏移 %+.0f Hz
 mean anomaly %+.3f deg, mean motion %+.5f rev/day, inclination %+.4f deg, RAAN %+.4f deg	平近点角 %+.3f 度,平均运动 %+.5f 圈/天,倾角 %+.4f 度,RAAN %+.4f 度
 estimated timing error of the prediction: %.1f s before, %.1f s after (1 sigma)	预测的估计时间误差:之前 %.1f 秒,之后 %.1f 秒(1 西格玛)
-Also share GPS interference cells (counts per area, no aircraft)	同时分享GPS干扰网格（按区域计数，不含飞机信息）
-For every 0.5 degree square (about 55 km) around your ADS-B receiver: how many aircraft were heard in the last hour and how many of them reported a poor GPS position. Only these two numbers per square are sent, never aircraft identities, tracks or your location. It feeds the GPS interference layer of the public map and is an indicator, not proof of jamming. Off until you choose it.	对于ADS-B接收机周围每个0.5度方格（约55公里）：过去一小时听到多少架飞机，其中多少架报告了较差的GPS位置。每个方格只发送这两个数字，绝不发送飞机身份、航迹或您的位置。它用于公共地图的GPS干扰图层，只是迹象，不能证明存在干扰。在您选择之前保持关闭。
 Calibrate...	校准...
 Measure this radio's frequency error against an FM station or a carrier of known frequency	用FM电台或已知频率的载波测量此电台的频率误差
 Frequency calibration	频率校准
@@ -2464,26 +2434,6 @@ to (kHz)	频段终点 (kHz)
 Translate to English	翻译成英语
 Speech in another language is also translated to English, offline, next to the original. Needs a multilingual model and costs about 1.5 times more processor time; it is skipped when the engine cannot keep up. Nothing is sent anywhere. Translation into other languages is not available.	其他语言的语音会离线翻译成英语,显示在原文旁边。需要多语言模型,大约多消耗 1.5 倍处理器时间;引擎跟不上时会跳过。不会发送任何数据。不支持翻译成其他语言。
 The loaded model is English only: translation needs a multilingual model.	已加载的模型仅支持英语:翻译需要多语言模型。
-Live: stop the room	直播中：停止房间
-Copy room link	复制房间链接
-Host PIN (to moderate on the room page):	主持人 PIN（用于在房间页面上管理）：
-Go live (Live rooms)...	开始直播（直播房间）...
-Could not create the room	无法创建房间
-Lost the connection to the rooms server	与房间服务器的连接已断开
-The live rooms server is not available yet.	直播房间服务器尚不可用。
-No internet connection.	没有网络连接。
-The live rooms server did not answer in time.	直播房间服务器未能及时响应。
-The live rooms server is full right now. Try again later.	直播房间服务器目前已满，请稍后再试。
-Too many rooms were started from here. Try again in a few minutes.	此处启动的房间过多，请几分钟后再试。
-The live rooms server refused the request.	直播房间服务器拒绝了该请求。
-The live rooms server sent an answer Eye of ZorCom does not understand.	直播房间服务器返回了 Eye of ZorCom 无法理解的响应。
-Checking the live rooms server...	正在检查直播房间服务器...
-Check the live rooms server again	重新检查直播房间服务器
-Live rooms: while you are live, anyone with the room link can watch this receiver's waterfall, the mode and the frequency you are tuned to, and chat with each other. The room list on the web also shows its title. Nothing is sent before you press Go live, and nothing is stored after the room ends. Your location, your name and the audio are never sent.	直播房间：直播期间，任何拥有房间链接的人都可以查看此接收机的瀑布图、模式和调谐频率，并相互聊天。网页上的房间列表也会显示其标题。在您点击“开始直播”之前不会发送任何内容，房间结束后也不会保存任何内容。您的位置、姓名和音频绝不会被发送。
-Room title	房间标题
-Also show decoded ACARS text in the room (public)	同时在房间中显示解码的 ACARS 文本（公开）
-Needs Server > Send data to map server and Also share interesting ACARS messages.	需要 服务器 > 向地图服务器发送数据 以及 同时分享有趣的 ACARS 消息。
-Go live	开始直播
 Schedule passes by itself	自动安排过境
 Takes the passes of the ticked groups one at a time, highest priority first, and starts, tunes and records each one without you. Overlapping passes are trimmed or skipped; a receiver you started yourself is left alone.	按优先级从高到低逐个处理已勾选分组的过境,无需你操作即可自动启动、调谐并录制。重叠的过境会被缩短或跳过;你自己启动的接收机不会被改动。
 Priority (higher wins)	优先级(越高越优先)
@@ -3084,7 +3034,7 @@ Tone decoders	音调解码器
 The test signal repeats every 40 s: CTCSS 123.0 Hz under speech-like noise, DCS D023N, DTMF 159#, a ZVEI1 call 12345, SELCAL AM-CP and a two-tone page.	测试信号每40秒重复一次：类语音噪声下的CTCSS 123.0 Hz、DCS D023N、DTMF 159#、ZVEI1呼叫12345、SELCAL AM-CP和一次双音呼叫。
 CTCSS, DCS, DTMF, selcall	CTCSS、DCS、DTMF、选呼
 # COSPAS-SARSAT 406 MHz
-A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nOnAir only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	406 MHz 遇险信标(船上的 EPIRB、飞机上的 ELT、个人携带的 PLB)大约每 50 秒发送一次约半秒的突发:先是未调制的载波,然后以 400 bit/s 发送 112 或 144 比特。报文包含信标独有的 15 位十六进制 ID、国家、信标类型,通常还有位置(短报文取整到 15 分,长报文取整到 4 秒)。报文由两个 BCH 校验保护;第一字段中最多三个损坏的比特会被修复。\n\nOnAir 只接收。测试信标和自检突发会被标出。如果您认为听到了真正的信标,请通知您所在国家的救援协调中心;请勿依赖本程序来保障安全。
+A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of ZorCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	406 MHz 遇险信标(船上的 EPIRB、飞机上的 ELT、个人携带的 PLB)大约每 50 秒发送一次约半秒的突发:先是未调制的载波,然后以 400 bit/s 发送 112 或 144 比特。报文包含信标独有的 15 位十六进制 ID、国家、信标类型,通常还有位置(短报文取整到 15 分,长报文取整到 4 秒)。报文由两个 BCH 校验保护;第一字段中最多三个损坏的比特会被修复。\n\nEye of ZorCom 只接收。测试信标和自检突发会被标出。如果您认为听到了真正的信标,请通知您所在国家的救援协调中心;请勿依赖本程序来保障安全。
 EPIRB (boat)	EPIRB(船)
 ELT (aircraft)	ELT(飞机)
 PLB (person)	PLB(个人)

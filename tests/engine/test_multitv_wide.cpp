@@ -141,7 +141,7 @@ static std::string writeCapture(const char* name, const std::vector<ChanSpec>& c
 
 static void testEngine() {
     const double rate = 61.44e6;
-    const std::string path = writeCapture("onair_mtv_wide_61Msps.cs8", {{false, -16e6, 8, 11, "Lime A", 0, 0, 0x1001, 1}, {false, 8e6, 8, 22, "Lime B", -2, 2, 0x1002, 2}, {false, 24e6, 8, 33, "Lime C", -1, 5, 0x1003, 3}}, rate, 3.0);
+    const std::string path = writeCapture("zorcom_mtv_wide_61Msps.cs8", {{false, -16e6, 8, 11, "Lime A", 0, 0, 0x1001, 1}, {false, 8e6, 8, 22, "Lime B", -2, 2, 0x1002, 2}, {false, 24e6, 8, 33, "Lime C", -1, 5, 0x1003, 3}}, rate, 3.0);
     CHECK(!path.empty(), "capture written");
     if (path.empty()) return;
     printf("engine: three DVB-T2 channels from a 61.44 Msps recording (grid found out)\n");

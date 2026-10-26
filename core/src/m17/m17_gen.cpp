@@ -118,7 +118,7 @@ void m17TxSymbols(const M17GenTx& tx, bool codec2, std::vector<int8_t>& sym, uin
             if (!c2->ok()) c2.reset();
             else if (!tx.pullPcm) v = std::make_unique<Voice>(seed);
         }
-        const char* dataText = "M17 data stream from the OnAir test signal. ";
+        const char* dataText = "M17 data stream from the ZorCom test signal. ";
         size_t dpos = 0;
         for (int fn = 0; fn < nf; fn++) {
             if (fn > 0 && fn % 6 == 0) { setMeta(fn / 6); m17::lsfPack(l, lsf); }   // a new META at each superframe
@@ -151,8 +151,8 @@ void m17TxSymbols(const M17GenTx& tx, bool codec2, std::vector<int8_t>& sym, uin
 std::vector<M17GenTx> m17TestSchedule() {
     std::vector<M17GenTx> v;
     M17GenTx t;
-    t = {}; t.src = "N0CALL"; t.dst = "@ALL"; t.can = 0; t.dataType = 2; t.meta = 0; t.text = "OnAir M17 test signal, 73"; t.durSec = 3.0; t.gapSec = 0.8; v.push_back(t);
-    t = {}; t.packet = true; t.src = "N0CALL"; t.dst = "TEST1"; t.can = 0; t.text = "Hello from the OnAir M17 test signal"; t.gapSec = 0.8; v.push_back(t);
+    t = {}; t.src = "N0CALL"; t.dst = "@ALL"; t.can = 0; t.dataType = 2; t.meta = 0; t.text = "ZorCom M17 test signal, 73"; t.durSec = 3.0; t.gapSec = 0.8; v.push_back(t);
+    t = {}; t.packet = true; t.src = "N0CALL"; t.dst = "TEST1"; t.can = 0; t.text = "Hello from the ZorCom M17 test signal"; t.gapSec = 0.8; v.push_back(t);
     t = {}; t.src = "N0CALL/P"; t.dst = "ECHO"; t.can = 3; t.dataType = 3; t.meta = 1;
     t.gnss.source = 15; t.gnss.station = 1; t.gnss.posValid = t.gnss.altValid = t.gnss.velValid = true; t.gnss.radius = 2;
     t.gnss.lat = 48.2085; t.gnss.lon = 16.3725; t.gnss.altM = 180; t.gnss.speedKmh = 36; t.gnss.bearing = 90;

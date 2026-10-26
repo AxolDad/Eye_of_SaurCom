@@ -418,12 +418,12 @@ void Atsc3Remux::push(int id, const std::vector<uint8_t>& data) {
             }
         }
         c->chunks.push_back(data);
-        if (!c->th.joinable()) c->th = dect2::namedThread("onair-a3dmx", [this, c] { p_->demuxLoop(c); });
+        if (!c->th.joinable()) c->th = dect2::namedThread("zorcom-a3dmx", [this, c] { p_->demuxLoop(c); });
     }
     c->cv.notify_all();
     {
         std::lock_guard<std::mutex> lk(p_->mu);
-        if (!p_->muxStarted) { p_->muxStarted = true; p_->muxThread = dect2::namedThread("onair-a3mux", [this] { p_->muxLoop(); }); }
+        if (!p_->muxStarted) { p_->muxStarted = true; p_->muxThread = dect2::namedThread("zorcom-a3mux", [this] { p_->muxLoop(); }); }
     }
 }
 

@@ -19,7 +19,7 @@ Azimuth only. The array is planar, so there is no elevation estimate: the heat m
 | Picture or panorama file | PNG everywhere, other formats where the system decoder reads them (macOS: JPEG, HEIC ...). The file is checked about once a second and reloaded when it changes, so a program that keeps overwriting a still (a webcam grabber, ffmpeg writing a frame) gives a live view. |
 | Camera snapshot URL | A camera's JPEG snapshot address, fetched with curl about once a second. Streaming MJPEG and video files are not decoded: use the camera's snapshot address or a grabber that rewrites a still. |
 
-OnAir has no webcam capture of its own (no AVFoundation or Media Foundation camera code). Wide pictures are halved to 1280 pixels or less.
+Eye of ZorCom has no webcam capture of its own (no AVFoundation or Media Foundation camera code). Wide pictures are halved to 1280 pixels or less.
 
 ## Angle to pixel mapping and calibration
 
@@ -29,7 +29,7 @@ OnAir has no webcam capture of its own (no AVFoundation or Media Foundation came
 
 ## Snapshot
 
-"Save snapshot" writes `rfcamera_<date>_<time>.png` (picture with heat map and marker ticks) and a `.txt` with azimuth, frequency and strength per peak into the OnAir data folder.
+"Save snapshot" writes `rfcamera_<date>_<time>.png` (picture with heat map and marker ticks) and a `.txt` with azimuth, frequency and strength per peak into the Eye of ZorCom data folder.
 
 ## Tests
 

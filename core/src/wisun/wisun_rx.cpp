@@ -150,7 +150,7 @@ struct WisunReceiver::Impl {
 
     void startWorker() {
         quit = false;
-        worker = dect2::namedThread("onair-wisun", [this] {
+        worker = dect2::namedThread("zorcom-wisun", [this] {
             for (;;) {
                 Job j;
                 {

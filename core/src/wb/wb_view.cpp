@@ -16,7 +16,7 @@ Overview::Overview(std::shared_ptr<Source> s, size_t blocks) : s_(std::move(s)) 
     nb_ = (size_t)((len + bl_ - 1) / bl_);
     b_.assign(nb_, OverviewBlock{1e30f, -1e30f, 1e30f, -1e30f, 0, 0});
     pwAcc_.assign(nb_, 0.0);
-    th_ = dect2::namedThread("onair-wbview", [this]() {
+    th_ = dect2::namedThread("zorcom-wbview", [this]() {
         const uint64_t n = s_->length();
         std::vector<cf32> buf(1u << 18);
         uint64_t pos = 0;
@@ -135,7 +135,7 @@ void waveformColumns(const Source& s, const Overview* ov, uint64_t t0, uint64_t 
 
 // ---- spectrogram ---------------------------------------------------------------------------------------------------------------
 
-SpecEngine::SpecEngine(std::shared_ptr<Source> s) : s_(std::move(s)) { th_ = dect2::namedThread("onair-wbspec", [this]() { run(); }); }
+SpecEngine::SpecEngine(std::shared_ptr<Source> s) : s_(std::move(s)) { th_ = dect2::namedThread("zorcom-wbspec", [this]() { run(); }); }
 
 SpecEngine::~SpecEngine() {
     {
@@ -251,7 +251,7 @@ void SpecEngine::compute(const SpecParams& p, uint64_t gen) {
         }
     };
     std::vector<std::thread> th;
-    for (int t = 1; t < nth; t++) th.emplace_back(dect2::namedThread("onair-wbw", worker, t));
+    for (int t = 1; t < nth; t++) th.emplace_back(dect2::namedThread("zorcom-wbw", worker, t));
     worker(0);
     for (auto& t : th) t.join();
     if (curGen_.load() != gen) return;

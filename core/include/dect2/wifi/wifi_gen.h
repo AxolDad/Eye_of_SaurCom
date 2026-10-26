@@ -54,7 +54,7 @@ private:
 // FILS discovery frames and an unsolicited probe response; the 5 GHz scene also carries an RNR naming a co-located 6 GHz AP. All OFDM frames.
 std::vector<WifiGenFrame> wifiTestSchedule56(int band, int channel);
 
-// Two APs on channel 6 ("OnAir-Home", WPA2, AVM; "OnAir-Cafe", WPA2/WPA3, Ubiquiti), a hidden open AP, a probe response and a data frame.
+// Two APs on channel 6 ("ZorCom-Home", WPA2, AVM; "ZorCom-Cafe", WPA2/WPA3, Ubiquiti), a hidden open AP, a probe response and a data frame.
 std::vector<WifiGenFrame> wifiTestSchedule();
 
 std::unique_ptr<ModeSynth> makeWifiSynth(const SynthConfig& cfg, double sampleRate);

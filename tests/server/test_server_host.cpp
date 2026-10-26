@@ -9,7 +9,7 @@
 #include <filesystem>
 #include <thread>
 using namespace dect2;
-using namespace onair_server;
+using namespace zorcom_server;
 
 #include "../common/test_util.h"
 
@@ -115,7 +115,7 @@ static void testConfig() {
     CHECK(t.find("port=9100") != std::string::npos && t.find("port = 9000") == std::string::npos, "a key is replaced in place");
     CHECK(c.getAll("net_radio").size() == 1, "set() collapses repeated keys");
     CHECK(t.rfind("new_key=v") != std::string::npos && t.size() - t.rfind("new_key=v") <= 10, "a new key is appended");
-    const std::filesystem::path dir = std::filesystem::temp_directory_path() / ("onair_srv_cfg_" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
+    const std::filesystem::path dir = std::filesystem::temp_directory_path() / ("zorcom_srv_cfg_" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
     const std::string p = (dir / "sub" / "server.conf").string();
     std::string err;
     CHECK(c.save(p, err), "save: %s", err.c_str());
@@ -131,7 +131,7 @@ static void testConfig() {
 
 // ---------------------------------------------------------------- the host on the test signal
 static void testHost() {
-    const std::filesystem::path dir = std::filesystem::temp_directory_path() / ("onair_srv_host_" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
+    const std::filesystem::path dir = std::filesystem::temp_directory_path() / ("zorcom_srv_host_" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
     const std::string cfgPath = (dir / "server.conf").string();
     ConfigFile cfg;
     cfg.set("device", "test");
@@ -144,7 +144,7 @@ static void testHost() {
     const int port = srv.config().port;
 
     Resp r = request(port, "GET", "/");
-    CHECK(r.status == 200 && r.body.find("<title>Eye of ZorCom server</title>") != std::string::npos, "the page is served: %d", r.status);
+    CHECK(r.status == 200 && r.body.find("<title>ZorCom server</title>") != std::string::npos, "the page is served: %d", r.status);
     CHECK(r.body.find("<script src") == std::string::npos && r.body.find("<link") == std::string::npos && r.body.find("http://") == std::string::npos && r.body.find("https://") == std::string::npos && r.body.find("@import") == std::string::npos, "the page loads nothing from outside");
     r = request(port, "GET", "/api/v1/status");
     CHECK(r.status == 200 && r.body.find("\"running\":false") != std::string::npos && r.body.find("\"modeId\":\"fm\"") != std::string::npos && r.body.find("Test signal") != std::string::npos, "status before start: %s", r.body.c_str());

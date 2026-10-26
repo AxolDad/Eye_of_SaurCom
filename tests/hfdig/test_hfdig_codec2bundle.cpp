@@ -1,4 +1,4 @@
-// The codec2 library that ships with OnAir (third_party/codec2, built as libcodec2 next to the programs) is found with nothing installed and no
+// The codec2 library that ships with ZorCom (third_party/codec2, built as libcodec2 next to the programs) is found with nothing installed and no
 // environment variable: a copy of this program in an empty folder, with only the library copied next to it, must load it from there (and
 // not from Homebrew or the system). Skipped when the build has no bundled codec2 (-DDECT2_BUNDLE_CODEC2=OFF) or on Windows.
 // "test_hfdig_codec2bundle --probe" is the copy's mode: it prints the library it loaded.
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     for (const auto& n : codecFileNameList(true)) if (fs::exists(dir / n, ec)) { lib = dir / n; break; }
     if (lib.empty()) { printf("skipped: no codec2 library next to the test (bundled codec2 is off)\n"); return 0; }
 
-    const fs::path tmp = fs::temp_directory_path() / ("onair_c2bundle_" + std::to_string((long)getpid()));
+    const fs::path tmp = fs::temp_directory_path() / ("zorcom_c2bundle_" + std::to_string((long)getpid()));
     fs::remove_all(tmp, ec);
     fs::create_directories(tmp / "home", ec);
     fs::copy_file(exe, tmp / "probe", ec);

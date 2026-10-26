@@ -1,19 +1,19 @@
-# Headless server (onair-server)
+# Headless server (zorcom-server)
 
-`onair-server` is OnAir without a window. The SDR is plugged into the computer that runs it (a Raspberry Pi in the attic, a Linux box, a Windows PC with no screen); you control it from a web browser on any other device, or from the desktop app or a script through the network. There is no cloud and no relay: the browser connects straight to the server. Nothing leaves your network unless you forward a port yourself.
+`zorcom-server` is Eye of ZorCom without a window. The SDR is plugged into the computer that runs it (a Raspberry Pi in the attic, a Linux box, a Windows PC with no screen); you control it from a web browser on any other device, or from the desktop app or a script through the network. There is no cloud and no relay: the browser connects straight to the server. Nothing leaves your network unless you forward a port yourself.
 
 Status: built and tested with the synthetic test signal and fake clients only. **Not tried with a real radio, a real Raspberry Pi, a real browser on a phone or on a real Windows service.**
 
 ## Quick start
 
 ```
-onair-server                      # this computer only: http://127.0.0.1:8765/
-onair-server --lan                # other computers too: makes a token, saves it, prints it
+zorcom-server                      # this computer only: http://127.0.0.1:8765/
+zorcom-server --lan                # other computers too: makes a token, saves it, prints it
 ```
 
 Open `http://<address of the server>:8765/?token=<token>` in the browser. The page keeps the token for the tab and removes it from the address bar. From the server itself (`127.0.0.1`) no token is needed.
 
-The page shows the spectrum and a waterfall (click to tune), the radio, mode, frequency, gain and sample rate, a **Listen** button (demodulated audio in the browser) and the receiver's telemetry. Every mode that the command line `onair-cli --standard <id>` knows is in the mode list.
+The page shows the spectrum and a waterfall (click to tune), the radio, mode, frequency, gain and sample rate, a **Listen** button (demodulated audio in the browser) and the receiver's telemetry. Every mode that the command line `zorcom-cli --standard <id>` knows is in the mode list.
 
 ## Access control
 
@@ -29,8 +29,8 @@ The page shows the spectrum and a waterfall (click to tune), the radio, mode, fr
 The token travels in clear text on plain HTTP. On a network you do not trust, turn TLS on:
 
 ```
-openssl req -x509 -newkey rsa:3072 -nodes -days 825 -keyout server.key -out server.crt -subj "/CN=onair"
-onair-server --lan --tls-cert server.crt --tls-key server.key
+openssl req -x509 -newkey rsa:3072 -nodes -days 825 -keyout server.key -out server.crt -subj "/CN=zorcom"
+zorcom-server --lan --tls-cert server.crt --tls-key server.key
 ```
 
 or the same as `tls_cert=` / `tls_key=` in the settings file. The page is then `https://...`; a self-signed certificate gives the browser's warning once (add an exception, or use a certificate from your own CA or Let's Encrypt). TLS 1.2 and up.
@@ -47,7 +47,7 @@ The page's "Data use" menu sets how much the server sends. Over Wi-Fi on a phone
 
 ## The settings file
 
-Plain `key=value` lines, `#` for comments. Default place: `~/.config/onair/server.conf` (`%APPDATA%\OnAir\server.conf` on Windows), or `--config FILE`, or the `ONAIR_SERVER_CONFIG` environment variable. The file is created on the first run (mode 0600 because it holds the token). What the browser changes (mode, frequency, gain, rate, radio, demodulator, start/stop) is written back, so the server comes up the same way after a restart; your comments and unknown keys are kept.
+Plain `key=value` lines, `#` for comments. Default place: `~/.config/zorcom/server.conf` (`%APPDATA%\ZorCom\server.conf` on Windows), or `--config FILE`, or the `ZORCOM_SERVER_CONFIG` environment variable. The file is created on the first run (mode 0600 because it holds the token). What the browser changes (mode, frequency, gain, rate, radio, demodulator, start/stop) is written back, so the server comes up the same way after a restart; your comments and unknown keys are kept.
 
 | Key | Meaning |
 | --- | --- |
@@ -67,16 +67,16 @@ Plain `key=value` lines, `#` for comments. Default place: `~/.config/onair/serve
 
 ## Running it all the time
 
-**Linux (systemd).** `packaging/linux/onair-server.service` has the steps in its header: a system user in `plugdev`, the binary in `/usr/local/bin`, the settings and the token in `/var/lib/onair`. `journalctl -u onair-server` shows the log.
+**Linux (systemd).** `packaging/linux/zorcom-server.service` has the steps in its header: a system user in `plugdev`, the binary in `/usr/local/bin`, the settings and the token in `/var/lib/zorcom`. `journalctl -u zorcom-server` shows the log.
 
 **Raspberry Pi.** The same; use a 64-bit OS and a Pi 4 or better for the heavier modes (DVB-T2 needs far more CPU than FM or ADS-B). `--share-rtltcp` makes it a network radio for other computers as well.
 
-**Windows.** `onair-server.exe` is a normal console program. To run it without a login, use Task Scheduler ("run whether the user is logged on or not", trigger "at startup") or a service wrapper such as NSSM pointing at `onair-server.exe --config C:\ProgramData\OnAir\server.conf`. Allow the port in the firewall for the networks you trust. A built-in Windows service is not done.
+**Windows.** `zorcom-server.exe` is a normal console program. To run it without a login, use Task Scheduler ("run whether the user is logged on or not", trigger "at startup") or a service wrapper such as NSSM pointing at `zorcom-server.exe --config C:\ProgramData\ZorCom\server.conf`. Allow the port in the firewall for the networks you trust. A built-in Windows service is not done.
 
 ## From the desktop app or a script
 
 * **Control:** any program that speaks the remote-control API (`/api/v1/status`, `/devices`, `/modes`, `/start`, `/stop`, `/mode`, `/frequency`, `/samplerate`, `/gain`, `/ws`; see the README) can drive the server with the token. The server adds `GET /api/v1/x/server`, `POST /api/v1/x/demod` and `POST /api/v1/x/autostart`.
-* **Samples:** start the server with `--share-rtltcp` and add it in OnAir (or SDR++, SDR#) as an rtl_tcp network radio: you get the samples at the server's own rate as 8-bit IQ, and the desktop app does the decoding. The server then must run in a mode where the radio is open (receiver started).
+* **Samples:** start the server with `--share-rtltcp` and add it in Eye of ZorCom (or SDR++, SDR#) as an rtl_tcp network radio: you get the samples at the server's own rate as 8-bit IQ, and the desktop app does the decoding. The server then must run in a mode where the radio is open (receiver started).
 
 The desktop app has no "remote server" screen of its own yet.
 

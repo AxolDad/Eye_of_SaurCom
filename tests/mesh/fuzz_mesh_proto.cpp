@@ -1,5 +1,5 @@
 // Seeded mutation run of the mesh packet layers, meant for DECT2_SANITIZE=ON: every decoder must survive any bytes of
-// any length (also longer than a LoRa frame, which the Rust records cut instead of overflowing). Also a libFuzzer target with -DONAIR_LIBFUZZER.
+// any length (also longer than a LoRa frame, which the Rust records cut instead of overflowing). Also a libFuzzer target with -DZORCOM_LIBFUZZER.
 #include "dect2/mesh/mesh_proto.h"
 #include "dect2/mesh/mesh_pb.h"
 #include <cstdio>
@@ -26,11 +26,11 @@ static void one(const uint8_t* d, size_t n) {
     if (n >= 4) { lorawanNetwork((uint32_t)d[0] << 24 | (uint32_t)d[1] << 16 | (uint32_t)d[2] << 8 | d[3]); lorawanMacName(d[0], d[1] & 1); meshtasticNodeIdString(d[0]); }
 }
 
-#ifdef ONAIR_LIBFUZZER
+#ifdef ZORCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* it = getenv("ONAIR_FUZZ_ITERS");
+    const char* it = getenv("ZORCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 20000;
     std::mt19937 g(909);
     const std::vector<uint8_t> seeds[] = {

@@ -200,7 +200,6 @@ public:
     uint64_t resetCount() const { return resets_.load(); }
     bool running() const { return running_; }
     uint64_t startEpoch() const { return startEpoch_.load(); }   // grows at each successful start (map send: ignore leftover lists)
-    bool syntheticSource() const;   // last start was the built-in test signal (never posted to the public map)
     // What the radio's driver said without failing: at the last retune (a frequency outside what the radio covers, ...) or else at the start
     // (a lower sample rate than asked for, ...); empty when it had nothing to say. The app shows it with the radio messages.
     std::string sourceNote() const { std::lock_guard<std::mutex> lk(noteMu_); return retuneNote_.empty() ? note_ : retuneNote_; }

@@ -17,7 +17,7 @@ struct Presence {
     bool operator==(const Presence& o) const { return enabled == o.enabled && running == o.running && mode == o.mode && freq == o.freq && startUnix == o.startUnix; }
 };
 
-const char* appId();                                          // kDiscordAppId or $ONAIR_DISCORD_APP_ID; empty when not set
+const char* appId();                                          // kDiscordAppId or $ZORCOM_DISCORD_APP_ID; empty when not set
 std::string jsonEscape(const std::string& s);                 // the content of a JSON string literal (quotes not included)
 std::string encodeFrame(uint32_t opcode, const std::string& json);   // uint32 LE opcode, uint32 LE length, payload
 std::string handshakeJson(const std::string& clientId);

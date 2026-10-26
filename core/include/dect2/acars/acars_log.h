@@ -1,5 +1,5 @@
-// A bounded log of the interesting ACARS messages per aircraft, shared by the ACARS, VDL2 and HFDL screens, the ADS-B screens and the
-// map upload. Pure data and rules (no radio, no UI): classification of a message by its label and text, redaction of phone numbers and
+// A bounded log of the interesting ACARS messages per aircraft, shared by the ACARS, VDL2 and HFDL screens, and the ADS-B screens.
+// Pure data and rules (no radio, no UI): classification of a message by its label and text, redaction of phone numbers and
 // e-mail addresses, and a store that attaches messages to an aircraft by ICAO address, registration or flight, never by a guess.
 #pragma once
 #include <cstdint>
@@ -81,10 +81,5 @@ private:
     std::map<std::string, Bucket> buckets_;                // "H:XXXXXX", "R:REG" (registration only), "F:FLIGHT" (neither)
     std::unordered_map<std::string, uint32_t> alias_;      // normalised registration > ICAO address, learned from messages that carry both
 };
-
-// One entry as JSON for the map upload: {"t":secs,"m":"VDL2","f":136.975,"l":"H1","c":"crew","x":"text"}; strings escaped, control
-// characters as \u00XX, valid UTF-8 kept, invalid bytes replaced by '?'.
-std::string acarsJsonEscape(const std::string& s);
-std::string acarsEntryJson(const AcarsLogEntry& e);
 
 } // namespace dect2

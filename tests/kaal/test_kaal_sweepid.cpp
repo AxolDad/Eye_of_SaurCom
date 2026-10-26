@@ -65,7 +65,7 @@ int main() {
         CHECK(!packSweepId("LY2ABCD", 0, bits) && !packSweepId("LY2a", 0, bits) && !packSweepId("AB", 16, bits), "unusable calls are refused");
         CHECK(splitCallsign("ly2abc/p", b, sfx) && b == "LY2ABC" && sfx == 1, "split ly2abc/p");
         CHECK(splitCallsign("OH2XYZ/MM", b, sfx) && b == "OH2XYZ" && sfx == 3, "split /MM");
-        CHECK(splitCallsign("ONAIR", b, sfx) && b == "ONAIR" && sfx == 0, "split ONAIR");
+        CHECK(splitCallsign("ZORCOM", b, sfx) && b == "ZORCOM" && sfx == 0, "split ZORCOM");
         CHECK(!splitCallsign("TOOLONGCALL", b, sfx) && !splitCallsign("", b, sfx) && !splitCallsign("AB#C", b, sfx), "unsendable calls");
         CHECK(joinCallsign("LY2ABC", 1) == "LY2ABC/P", "join");
         double worst = 0;

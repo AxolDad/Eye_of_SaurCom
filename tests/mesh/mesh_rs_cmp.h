@@ -18,7 +18,7 @@ extern std::mt19937 g;
 inline uint32_t r32() { return g(); }
 inline uint8_t rb() { return (uint8_t)g(); }
 inline uint64_t r64() { const uint64_t hi = (uint64_t)g() << 32; return hi | g(); }   // (two draws in one expression would be evaluated in an unspecified order)
-inline long iterations() { const char* e = getenv("ONAIR_DIFF_ITERS"); return e ? atol(e) : 100000; }
+inline long iterations() { const char* e = getenv("ZORCOM_DIFF_ITERS"); return e ? atol(e) : 100000; }
 
 // Every field of a decode result goes into the digest (doubles rounded by the digest).
 template <class X> void addNode(const X& a) {

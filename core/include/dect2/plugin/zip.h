@@ -1,4 +1,4 @@
-// A small ZIP reader for .onairplugin files (stored and deflate entries, no encryption, no zip64). Bounded: entry count, sizes and the
+// A small ZIP reader for .zorcomplugin files (stored and deflate entries, no encryption, no zip64). Bounded: entry count, sizes and the
 // total unpacked size are capped, names are checked so nothing can be written outside the target folder, and every entry's CRC-32 is verified.
 #pragma once
 #include <cstdint>

@@ -1,7 +1,7 @@
 # BLE tracker detector
 
 The mode **BLE tracker detector** (IoT & sensors group) is built on the Bluetooth LE advertising receiver. It recognises item trackers from their public
-advertisements, shows how long and how close each one stays with the receiver, and warns about a tracker that follows you. It is receive only: OnAir never
+advertisements, shows how long and how close each one stays with the receiver, and warns about a tracker that follows you. It is receive only: Eye of ZorCom never
 connects to a tracker, sends to one or reads its owner's data.
 
 ## What is recognised
@@ -43,7 +43,7 @@ removed by **Clear**. The events sent to the watchlists carry no address.
 ## Not verified
 
 No real tracker was available. The frame layouts and the service UUIDs are from the public descriptions (Apple's Find My network accessory specification, the TU Darmstadt
-research on Find My and AirGuard, the Bluetooth SIG assigned numbers and Google's Find My Device network documentation) and are checked only against the OnAir test signal. Real
+research on Find My and AirGuard, the Bluetooth SIG assigned numbers and Google's Find My Device network documentation) and are checked only against the Eye of ZorCom test signal. Real
 captures of an AirTag, a Tile and a SmartTag would be the most useful check; the thresholds for *near* and the rotation chaining need real walks.
 
 ## Test signal

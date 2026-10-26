@@ -254,7 +254,7 @@ const std::vector<std::string>& memoryCsvColumns() {
 }
 
 std::string MemoryBank::toJson() const {
-    std::string o = "{\"format\":\"onair-memories\",\"version\":" + std::to_string(kMemoryFileVersion) + ",\"memories\":[";
+    std::string o = "{\"format\":\"zorcom-memories\",\"version\":" + std::to_string(kMemoryFileVersion) + ",\"memories\":[";
     for (size_t i = 0; i < v_.size(); i++) { o += i ? ",\n" : "\n"; o += entryJson(v_[i]); }
     return o + "\n]}\n";
 }

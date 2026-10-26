@@ -1,4 +1,4 @@
-// The out-of-process runner. A helper executable (onair-plugin-host) loads the library; the app sends it IQ, events, settings and ticks over a pipe and
+// The out-of-process runner. A helper executable (zorcom-plugin-host) loads the library; the app sends it IQ, events, settings and ticks over a pipe and
 // reads results back. Messages are [u32 length][u8 type][body] (results.h, Wire). The helper acknowledges every call; a call that is not acknowledged
 // within the watchdog limit gets the helper killed (SIGKILL), and a crash of the plugin only ends the helper. Nothing but plain data crosses the pipe.
 #include "dect2/common/thread_name.h"
@@ -231,7 +231,7 @@ public:
 
 std::unique_ptr<Runner> startProcess(const StartOptions& o, std::string& err) {
     if (!o.manifest || !o.results) { err = "bad start options"; return nullptr; }
-    if (o.hostExe.empty() || access(o.hostExe.c_str(), X_OK) != 0) { err = "the plugin helper (onair-plugin-host) was not found"; return nullptr; }
+    if (o.hostExe.empty() || access(o.hostExe.c_str(), X_OK) != 0) { err = "the plugin helper (zorcom-plugin-host) was not found"; return nullptr; }
     signal(SIGPIPE, SIG_IGN);
     int inP[2], outP[2];
     if (pipe(inP) != 0) { err = "cannot create a pipe"; return nullptr; }
@@ -258,9 +258,9 @@ std::unique_ptr<Runner> startProcess(const StartOptions& o, std::string& err) {
     r->o.manifest = &r->man;
     if (!r->o.settings) r->o.settings = std::make_shared<SettingValues>(r->man);
     r->pid = pid; r->toChild = inP[1]; r->fromChild = outP[0];
-    r->writer = dect2::namedThread("onair-plg-wr", [p = r.get()] { p->writerMain(); });
-    r->reader = dect2::namedThread("onair-plg-rd", [p = r.get()] { p->readerMain(); });
-    r->dog = dect2::namedThread("onair-plg-dog", [p = r.get()] { p->dogMain(); });
+    r->writer = dect2::namedThread("zorcom-plg-wr", [p = r.get()] { p->writerMain(); });
+    r->reader = dect2::namedThread("zorcom-plg-rd", [p = r.get()] { p->readerMain(); });
+    r->dog = dect2::namedThread("zorcom-plg-dog", [p = r.get()] { p->dogMain(); });
     // Init: plugin id, kind, mode id, permissions, data folder, then every setting
     {
         WireWriter w;
@@ -332,7 +332,7 @@ public:
 int helperMain(const std::string& libPath, int fdIn, int fdOut) {
     signal(SIGPIPE, SIG_IGN);
     ChildSink sink(fdOut);
-    OnAirHostApi api;
+    ZorComHostApi api;
     Lib lib;
     void* inst = nullptr;
     Wire t; std::vector<uint8_t> b;
@@ -361,7 +361,7 @@ int helperMain(const std::string& libPath, int fdIn, int fdOut) {
             const std::string k = r.str(40), v = r.str(600);
             if (!r.ok) break;
             sink.settings[k] = v;
-            if (inst && (lib.vt->caps & ONAIR_CAP_SETTINGS) && lib.vt->setting_changed) lib.vt->setting_changed(inst, k.c_str());
+            if (inst && (lib.vt->caps & ZORCOM_CAP_SETTINGS) && lib.vt->setting_changed) lib.vt->setting_changed(inst, k.c_str());
             break;
         }
         case Wire::ToChildConfigure: {
@@ -371,7 +371,7 @@ int helperMain(const std::string& libPath, int fdIn, int fdOut) {
             break;
         }
         case Wire::ToChildIq: {
-            OnAirIqMeta m{sizeof m, r.f64(), r.f64(), r.f64(), r.u64()};
+            ZorComIqMeta m{sizeof m, r.f64(), r.f64(), r.f64(), r.u64()};
             const uint32_t n = r.u32();
             if (inst && r.ok && (size_t)n * 8 + r.pos <= b.size() && lib.vt->process_iq) {
                 std::vector<float> iq(n * 2);
@@ -386,14 +386,14 @@ int helperMain(const std::string& libPath, int fdIn, int fdOut) {
             const double time = r.f64(), hz = r.f64();
             const uint32_t n = r.u32();
             std::vector<std::string> keys, texts;
-            std::vector<OnAirField> f;
-            for (uint32_t i = 0; i < n && i < 64 && r.ok; i++) { keys.push_back(r.str(40)); const uint32_t tx = r.u8(); const double d = r.f64(); texts.push_back(r.str(automation::kMaxFieldText)); OnAirField x{}; x.is_text = (int32_t)tx; x.d = d; f.push_back(x); }
+            std::vector<ZorComField> f;
+            for (uint32_t i = 0; i < n && i < 64 && r.ok; i++) { keys.push_back(r.str(40)); const uint32_t tx = r.u8(); const double d = r.f64(); texts.push_back(r.str(automation::kMaxFieldText)); ZorComField x{}; x.is_text = (int32_t)tx; x.d = d; f.push_back(x); }
             for (size_t i = 0; i < f.size(); i++) { f[i].key = keys[i].c_str(); f[i].s = texts[i].c_str(); }
-            if (inst && r.ok && lib.vt->on_event) { OnAirEvent e{sizeof e, type.c_str(), mode.c_str(), time, hz, (uint32_t)f.size(), f.data()}; lib.vt->on_event(inst, &e); }
+            if (inst && r.ok && lib.vt->on_event) { ZorComEvent e{sizeof e, type.c_str(), mode.c_str(), time, hz, (uint32_t)f.size(), f.data()}; lib.vt->on_event(inst, &e); }
             ack();
             break;
         }
-        case Wire::ToChildTick: { const double now = r.f64(); if (inst && r.ok && (lib.vt->caps & ONAIR_CAP_TICK) && lib.vt->tick) lib.vt->tick(inst, now); ack(); break; }
+        case Wire::ToChildTick: { const double now = r.f64(); if (inst && r.ok && (lib.vt->caps & ZORCOM_CAP_TICK) && lib.vt->tick) lib.vt->tick(inst, now); ack(); break; }
         case Wire::ToChildQuit: if (inst) lib.vt->destroy(inst); return 0;
         default: break;
         }

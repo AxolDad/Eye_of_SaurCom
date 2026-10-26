@@ -10,7 +10,7 @@ namespace ais {
 
 using Bits = std::vector<uint8_t>;   // one bit per element, in transmission order
 
-// Which implementation of this layer is compiled in: always "Rust (rust/onair_proto)" now; dect2cli --version prints it.
+// Which implementation of this layer is compiled in: always "Rust (rust/zorcom_proto)" now; dect2cli --version prints it.
 const char* protoImplementation();
 
 // ---- bit fields: multi-bit fields are sent most significant bit first

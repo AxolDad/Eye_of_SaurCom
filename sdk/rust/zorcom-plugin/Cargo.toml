@@ -1,0 +1,10 @@
+[package]
+name = "zorcom-plugin"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+description = "Write Eye of ZorCom plugins in Rust: thin handwritten bindings to the stable C ABI (sdk/include/zorcom_plugin.h), no dependencies"
+license = "CC0-1.0"
+publish = false
+
+[workspace]

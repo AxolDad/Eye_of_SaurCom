@@ -1,4 +1,4 @@
-// A stand-in for a user-installed mbelib, for the tests of the runtime loader only: the same five-symbol surface OnAir looks up,
+// A stand-in for a user-installed mbelib, for the tests of the runtime loader only: the same five-symbol surface ZorCom looks up,
 // no codec. Every frame "decodes" to 160 samples of a fixed ramp.
 #ifdef _WIN32
 #define FAKE_API __declspec(dllexport)

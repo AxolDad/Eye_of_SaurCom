@@ -216,7 +216,6 @@ New interface	Nauja sąsaja
 Try the new interface. You can switch back at any time.	Išbandykite naują sąsają. Grįžti galima bet kada.
 Guided tour	Apžvalga su gidu
 Tour	Apžvalga
-by: Kristijonas Adomaitis, made with help from the community	autorius Kristijonas Adomaitis, padedant bendruomenei
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Ačiū visiems, kurie pranešė apie klaidas, atsiuntė įrašus ir pateikė „pull request“.
 Source	Šaltinis
 source	šaltinis
@@ -1060,8 +1059,6 @@ GNSS NMEA RMC/GGA (UDP)	GNSS NMEA RMC/GGA (UDP)
 Bluetooth LE advertisements, JSON (UDP)	Bluetooth LE skelbimai, JSON (UDP)
 LoRa / LoRaWAN / Meshtastic, JSON (UDP)	LoRa / LoRaWAN / Meshtastic, JSON (UDP)
 JSON lines (one object a line) unless GNSS, which is NMEA. Off until you turn a feed on. Only modes that already have structured messages are sent.	JSON eilutės (vienas objektas eilutėje), išskyrus GNSS, kuris yra NMEA. Išjungta, kol įjungsite srautą. Siunčiamos tik veislės, turinčios struktūrinius pranešimus.
-Support	Support
-Support Eye of ZorCom on Ko-fi	Support Eye of ZorCom on Ko-fi
 Documentation	Dokumentacija
 Troubleshooting	Trikčių šalinimas
 Website	Svetainė
@@ -1092,10 +1089,6 @@ Amber: DFS channels (radar sharing).	Gintaro spalva: DFS kanalai (dalijami su ra
 Bright numbers: preferred scanning channels (PSC), where FILS discovery is sent.	Šviesūs skaičiai: pageidaujami skenavimo kanalai (PSC), kuriais siunčiamas FILS discovery.
 start the receiver to see the channels	paleiskite imtuvą, kad pamatytumėte kanalus
 # map server start-up question
-Keep sending positions	Toliau siųsti pozicijas
-Eye of ZorCom asks this question at every start. "No, do not ask again" stops it until Eye of ZorCom is updated.	„Eye of ZorCom“ šį klausimą užduoda per kiekvieną paleidimą. „Ne, daugiau neklausti“ jį išjungia iki kito „Eye of ZorCom“ atnaujinimo.
-Nothing is sent in this session. Eye of ZorCom asks again the next time it starts.	Šioje sesijoje niekas nesiunčiama. „Eye of ZorCom“ vėl paklaus kitą kartą paleidus.
-Nothing is sent and this question is not shown again until Eye of ZorCom is updated. You can still turn it on later in the Server menu.	Niekas nesiunčiama, o šis klausimas nerodomas iki kito „Eye of ZorCom“ atnaujinimo. Vėliau vis tiek galite įjungti meniu Serveris.
 #  Wi-Fi HaLow
 (hidden)	(paslėptas)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	Radijas veikia %.1f Msps greičiu: %d MHz kanalams reikia bent %.0f Msps (rekomenduojama %.0f). Pasirink GREITĮ viršutinėje juostoje arba kitą priėmimo plotį.
@@ -1347,16 +1340,6 @@ Project	Project
 Author	Author
 Licence	Licence
 Used for	Used for
-Update source	Atnaujinimų šaltinis
-Automatic: GitHub	Automatiškai: GitHub
-GitHub only	Tik GitHub
-Mirror only	Tik veidrodis
-Use the mirror when GitHub cannot be reached	Naudoti veidrodį, kai GitHub nepasiekiamas
-Mirror address (https://host/{url} or a base address)	Veidrodžio adresas (https://host/{url} arba bazinis adresas)
-A mirror is a third-party web address you chose. It sees that you check for updates and which version you run. It is used only after GitHub fails (not at all with GitHub only), the package is checked against the checksum from GitHub when GitHub can be reached, and nothing is installed from a mirror without your confirmation.	Veidrodis yra trečiosios šalies jūsų pasirinktas tinklalapio adresas. Jis mato, kad tikrinate atnaujinimus ir kokią versiją naudojate. Jis naudojamas tik po GitHub nesėkmės (niekada su „Tik GitHub“), paketas tikrinamas pagal GitHub kontrolinę sumą, kai GitHub pasiekiamas, ir nieko neįdiegiama iš veidrodžio be jūsų patvirtinimo.
-The list of versions came through the mirror and GitHub could not be reached to confirm the checksum: only the mirror vouches for this package. Nothing is installed without your confirmation.	Versijų sąrašas atėjo per veidrodį, o GitHub nebuvo pasiekiamas kontrolinei sumai patvirtinti: šį paketą garantuoja tik veidrodis. Be jūsų patvirtinimo nieko neįdiegiama.
-I understand, download it anyway	Suprantu, vis tiek atsisiųsti
-The list came through the mirror; the checksum was confirmed by GitHub.	Sąrašas atėjo per veidrodį; kontrolinę sumą patvirtino GitHub.
 Noise remover (neural)##gennr	Triukšmo šalintuvas (neuroninis)##gennr
 Mix of cleaned and original audio: right removes more noise, left keeps more of the original. Adds about 20 ms of delay.	Išvalyto ir originalaus garso mišinys: dešinėn pašalina daugiau triukšmo, kairėn lieka daugiau originalo. Prideda apie 20 ms vėlinimo.
 Speech only; do not use on music or data modes.	Tik kalbai; nenaudokite su muzika ar duomenų režimais.
@@ -1469,9 +1452,6 @@ ACARS messages	ACARS pranešimai
 %d ACARS messages	%d ACARS pranešimų
 Copy these messages as text	Kopijuoti šiuos pranešimus kaip tekstą
 No ACARS messages heard from this aircraft	Iš šio orlaivio ACARS pranešimų negauta
-Also share interesting ACARS messages (text becomes public on the map)	Dalytis ir įdomiais ACARS pranešimais (tekstas tampa vieša žemėlapyje)
-Messages an aircraft sent by ACARS (free text, crew, operations, company and maintenance messages), shown on that aircraft's card on the public map for 48 hours. Phone numbers and e-mail addresses are removed first. Position reports and link tests are not part of this. You can turn it off at any time.	Pranešimai, kuriuos orlaivis išsiuntė per ACARS (laisvas tekstas ir įgulos, eksploatacijos, bendrovės bei techninės priežiūros pranešimai), 48 valandas rodomi to orlaivio kortelėje viešame žemėlapyje. Telefono numeriai ir el. pašto adresai prieš tai pašalinami. Padėties ataskaitos ir ryšio bandymai čia nepriklauso. Galite bet kada išjungti.
-Messages that aircraft send by ACARS (free text and crew, operations, company and maintenance messages) can be shown on the aircraft's card as well, with phone numbers and e-mail addresses removed. This is a separate choice that you can change in the Server menu.	Pranešimai, kuriuos orlaiviai siunčia per ACARS (laisvas tekstas ir įgulos, eksploatacijos, bendrovės bei techninės priežiūros pranešimai), gali būti rodomi ir orlaivio kortelėje, be telefono numerių ir el. pašto adresų. Tai atskiras pasirinkimas, kurį galite keisti meniu Serveris.
 #  sweep scanner
 %.0f MHz/s, %d hops, %d averages, %.0f ms per sweep	%.0f MHz/s, %d šuoliai, %d vidurkiai, %.0f ms per nuskaitymą
 pick a radio first (the test signal and files cannot sweep)	pirmiausia pasirinkite radiją (bandomojo signalo ir failų nuskaityti negalima)
@@ -1577,7 +1557,6 @@ Mode panel	Režimo skydelis
 Memory and frequencies	Atmintis ir dažniai
 Receivers	Imtuvai
 Audio	Garsas
-Server and support	Serveris ir parama
 Take the guided tour	Pradėti gidą
 Choose the radio or recording that supplies samples. Record IQ saves the raw signal for later playback.	Pasirinkite radiją arba įrašą, kuris teikia atskaitas. Record IQ išsaugo neapdorotą signalą vėlesniam atkūrimui.
 Set the frequency, band and sample rate here. Gain and AGC set the input level; Second mode decodes another mode from the same capture.	Čia nustatomas dažnis, juosta ir atskaitų dažnis. Stiprinimas ir AGC nustato įėjimo lygį; Antras režimas iš to paties įrašo dekoduoja kitą režimą.
@@ -1587,7 +1566,6 @@ Each mode has its own tabs for decoded output, settings and tools. They change w
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Atmintis saugo dažnius su jų režimu ir nustatymais. Dažniai ir juostų planai parodo, kas transliuojama, pagal režimą.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Kiekvienas imtuvas sieja radiją su režimu. Ši juosta perjungia juos ir parenka, kuris groja garsą.
 Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen groja demoduliuotą signalą. Garsumas ir nutildymas čia; Record audio įrašo garsą į failą.
-Server sends decoded positions to the public map. Support helps fund development.	Serveris siunčia dekoduotas pozicijas į viešą žemėlapį. Parama padeda finansuoti kūrimą.
 Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Čia rasite dokumentaciją, trikčių šalinimą, padėkas ir licencijas. Gidas paleidžia šį gidą iš naujo.
 Monitor audio	Garso stebėjimas
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Klausykitės suderinto kanalo bet kuriuo režimu, kad atpažintumėte signalą: radijo mėginiai demoduliuojami kaip USB, LSB, siaura FM arba AM. Tylu, kol režimas groja savo garsą.
@@ -1634,7 +1612,6 @@ translation	vertimas
 testing	testavimas
 idea	idėja
 Thank you to everyone who sent fixes, reported bugs, shared recordings, translated or suggested ideas. The author is Kristijonas Adomaitis.	Ačiū visiems, kurie atsiuntė pataisymų, pranešė apie klaidas, pasidalijo įrašais, vertė ar siūlė idėjų. Autorius yra Kristijonas Adomaitis.
-Want your name changed or removed? Tell us on Discord or open an issue.	Norite, kad pakeistume ar pašalintume jūsų vardą? Parašykite mums Discord arba sukurkite issue.
 # airband: airport search, band watch
 Airport data updated: %s	Oro uostų duomenys atnaujinti: %s
 Airport data not updated: %s	Oro uostų duomenys neatnaujinti: %s
@@ -1752,9 +1729,6 @@ SNR per channel	SNR kanalui
 Second transmitter	Antras siųstuvas
 Second bearing	Antra kryptis
 Position fix	Vietos nustatymas
-Sharing	Dalijimasis
-Share my bearing on the map server	Dalytis mano kryptimi žemėlapio serveryje
-Needs Server > Send data to map server. Only the bearing, its uncertainty, the frequency and your station position go up; the map shows where bearings from several stations cross.	Reikia Serveris > Siųsti duomenis į žemėlapio serverį. Siunčiama tik kryptis, jos neapibrėžtis, dažnis ir jūsų stoties vieta; žemėlapyje matoma, kur susikerta kelių stočių kryptys.
 Bearing and position of a transmitter from an antenna array such as the KrakenSDR	Siųstuvo kryptis ir vieta naudojant antenų gardelę, pavyzdžiui, KrakenSDR
 Decoded only	Tik iššifruoti
 Hides tone-only pages and pages whose text could not be decoded.	Paslepia vien tono iškvietimus ir pranešimus, kurių teksto nepavyko iššifruoti.
@@ -1763,7 +1737,7 @@ Hides tone-only pages and pages whose text could not be decoded.	Paslepia vien t
 hidden	paslėpta
 # LBJ (Chinese railway train warning)
 What LBJ carries	Ką perduoda LBJ
-LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nOnAir decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ yra Kinijos traukinio artėjimo įspėjimas apie 821,2375 MHz dažniu. Kiekvienas lokomotyvas siunčia 1200 bit/s POCSAG skaitmeninius pranešimus: kas kelias sekundes trumpą pranešimą su traukinio numeriu, greičiu (km/h) ir kilometro ženklu, taip pat ilgesnius pranešimus su lokomotyvo tipu, numeriu ir maršrutu.\n\nOnAir pats dekoduoja pranešimus (tik priėmimas). Tuščia reikšmė turėjo pažeistų skaitmenų; pilka eilutė turėjo ištaisytų klaidų, todėl palyginkite ją su kitu to paties traukinio pranešimu.
+LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of ZorCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ yra Kinijos traukinio artėjimo įspėjimas apie 821,2375 MHz dažniu. Kiekvienas lokomotyvas siunčia 1200 bit/s POCSAG skaitmeninius pranešimus: kas kelias sekundes trumpą pranešimą su traukinio numeriu, greičiu (km/h) ir kilometro ženklu, taip pat ilgesnius pranešimus su lokomotyvo tipu, numeriu ir maršrutu.\n\nEye of ZorCom pats dekoduoja pranešimus (tik priėmimas). Tuščia reikšmė turėjo pažeistų skaitmenų; pilka eilutė turėjo ištaisytų klaidų, todėl palyginkite ją su kitu to paties traukinio pranešimu.
 tune to about 821.2375 MHz and start the receiver	sureguliuokite apie 821,2375 MHz ir paleiskite imtuvą
 FM, 1200 bit/s FSK, %.2f Msps	FM, 1200 bit/s FSK, %.2f Msps
 %llu messages, %llu sync words, %llu blank, %llu failed checks	%llu pranešimų, %llu sinchronizacijos žodžių, %llu tuščių, %llu nepraėjo patikros
@@ -1895,8 +1869,6 @@ Sure	Tikra
 Speaker (a guess from the wording)	Kalbėtojas (spėjimas pagal žodžius)
 Click to copy this line	Spustelėkite, kad nukopijuotumėte šią eilutę
 Aircraft on the screen	Orlaivis ekrane
-Also share transcripts of aircraft radio calls (text becomes public on the map)	Taip pat dalytis orlaivių radijo skambučių transkripcijomis (tekstas taps viešas žemėlapyje)
-The text of airband radio calls that a speech engine on this computer made from what you receive (Transcripts window), linked to the aircraft by the callsign spoken in it, shown on that aircraft's card on the public map for 48 hours. It can contain mistakes. Phone numbers are removed first. Only airband is shared, never marine, amateur or other channels. Off until you choose it, and you can turn it off at any time.	Aviacijos juostos radijo skambučių tekstas, kurį šio kompiuterio kalbos variklis sudarė iš to, ką priimate (langas Transkripcijos), susiejamas su orlaiviu pagal jame pasakytą šaukinį ir 48 valandas viešai rodomas to orlaivio kortelėje žemėlapyje. Gali būti klaidų. Telefono numeriai prieš tai pašalinami. Dalijamasi tik aviacijos juosta, niekada jūrų, mėgėjų ar kitais kanalais. Išjungta, kol nepasirinksite, ir bet kada galite išjungti.
 Transcripts ...	Transkripcijos ...
 What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on.	Kas sakoma aviacijos juostoje ir kituose kalbos kanaluose, kaip tekstas: tiesioginiai subtitrai, paieška, eksportas. Išjungta, kol neįjungsite.
 # Automations window
@@ -2211,7 +2183,7 @@ Kind	Rūšis
 Map points	Žemėlapio taškai
 Modes (in the mode list, group PLUGINS)	Režimai (režimų sąraše, grupė PLUGINS)
 Network: talk to other computers	Tinklas: bendrauti su kitais kompiuteriais
-No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .onairplugin file.	Įskiepių neįdiegta. Naudokite „Įdiegti iš failo“ arba nukopijuokite įskiepio aplanką į įskiepių aplanką. Įskiepis yra .onairplugin failas.
+No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .zorcomplugin file.	Įskiepių neįdiegta. Naudokite „Įdiegti iš failo“ arba nukopijuokite įskiepio aplanką į įskiepių aplanką. Įskiepis yra .zorcomplugin failas.
 Not installed	Neįdiegta
 Open its folder	Atidaryti jo aplanką
 PLUGINS	ĮSKIEPIAI
@@ -2412,8 +2384,6 @@ grey: predicted by the downloaded elements, blue: refined, green: measured, ambe
 residual %.1f Hz -> %.1f Hz (%d used, %d rejected); receiver offset %+.0f Hz	liekana %.1f Hz -> %.1f Hz (naudota %d, atmesta %d); imtuvo poslinkis %+.0f Hz
 mean anomaly %+.3f deg, mean motion %+.5f rev/day, inclination %+.4f deg, RAAN %+.4f deg	vidutinė anomalija %+.3f laipsnio, vidutinis judėjimas %+.5f apsisukimo/d., posvyris %+.4f laipsnio, RAAN %+.4f laipsnio
 estimated timing error of the prediction: %.1f s before, %.1f s after (1 sigma)	numatoma prognozės laiko paklaida: %.1f s prieš, %.1f s po (1 sigma)
-Also share GPS interference cells (counts per area, no aircraft)	Taip pat dalytis GPS trikdžių langeliais (skaičiai pagal plotą, be orlaivių)
-For every 0.5 degree square (about 55 km) around your ADS-B receiver: how many aircraft were heard in the last hour and how many of them reported a poor GPS position. Only these two numbers per square are sent, never aircraft identities, tracks or your location. It feeds the GPS interference layer of the public map and is an indicator, not proof of jamming. Off until you choose it.	Kiekvienam 0,5 laipsnio kvadratui (apie 55 km) aplink jūsų ADS-B imtuvą: kiek orlaivių buvo išgirsta per paskutinę valandą ir kiek iš jų pranešė apie blogą GPS padėtį. Siunčiami tik šie du skaičiai kiekvienam kvadratui, niekada orlaivių tapatybės, trasos ar jūsų vieta. Tai maitina viešo žemėlapio GPS trikdžių sluoksnį ir yra požymis, o ne įrodymas, kad slopinama. Išjungta, kol pasirinksite.
 Calibrate...	Kalibruoti...
 Measure this radio's frequency error against an FM station or a carrier of known frequency	Išmatuoti šio radijo dažnio paklaidą pagal FM stotį arba žinomo dažnio nešlį
 Frequency calibration	Dažnio kalibravimas
@@ -2464,26 +2434,6 @@ to (kHz)	iki (kHz)
 Translate to English	Versti į anglų kalbą
 Speech in another language is also translated to English, offline, next to the original. Needs a multilingual model and costs about 1.5 times more processor time; it is skipped when the engine cannot keep up. Nothing is sent anywhere. Translation into other languages is not available.	Kita kalba sakoma kalba papildomai verčiama į anglų kalbą, neprisijungus, šalia originalo. Reikia daugiakalbio modelio, procesoriaus laiko sunaudojama apie 1,5 karto daugiau; praleidžiama, kai variklis nespėja. Niekas nesiunčiama. Vertimo į kitas kalbas nėra.
 The loaded model is English only: translation needs a multilingual model.	Įkeltas modelis tik anglų kalbos: vertimui reikia daugiakalbio modelio.
-Live: stop the room	Gyvai: sustabdyti kambarį
-Copy room link	Kopijuoti kambario nuorodą
-Host PIN (to moderate on the room page):	Šeimininko PIN (moderuoti kambario puslapyje):
-Go live (Live rooms)...	Pradėti transliaciją (Gyvi kambariai)...
-Could not create the room	Nepavyko sukurti kambario
-Lost the connection to the rooms server	Prarastas ryšys su kambarių serveriu
-The live rooms server is not available yet.	Tiesioginių kambarių serveris dar nepasiekiamas.
-No internet connection.	Nėra interneto ryšio.
-The live rooms server did not answer in time.	Tiesioginių kambarių serveris neatsakė laiku.
-The live rooms server is full right now. Try again later.	Tiesioginių kambarių serveris šiuo metu pilnas. Bandykite vėliau.
-Too many rooms were started from here. Try again in a few minutes.	Iš čia paleista per daug kambarių. Bandykite dar kartą po kelių minučių.
-The live rooms server refused the request.	Tiesioginių kambarių serveris atmetė užklausą.
-The live rooms server sent an answer Eye of ZorCom does not understand.	Tiesioginių kambarių serveris atsiuntė atsakymą, kurio Eye of ZorCom nesupranta.
-Checking the live rooms server...	Tikrinamas tiesioginių kambarių serveris...
-Check the live rooms server again	Dar kartą patikrinti tiesioginių kambarių serverį
-Live rooms: while you are live, anyone with the room link can watch this receiver's waterfall, the mode and the frequency you are tuned to, and chat with each other. The room list on the web also shows its title. Nothing is sent before you press Go live, and nothing is stored after the room ends. Your location, your name and the audio are never sent.	Gyvi kambariai: kol transliuojate, kiekvienas, turintis kambario nuorodą, gali matyti šio imtuvo krioklio diagramą, režimą ir derinamą dažnį bei kalbėtis tarpusavyje. Kambarių sąraše internete rodomas ir jo pavadinimas. Kol nenuspausite Pradėti transliaciją, niekas nesiunčiama, o kambariui pasibaigus nieko nelieka saugoma. Jūsų vieta, vardas ir garsas niekada nesiunčiami.
-Room title	Kambario pavadinimas
-Also show decoded ACARS text in the room (public)	Rodyti kambaryje ir dekoduotą ACARS tekstą (viešai)
-Needs Server > Send data to map server and Also share interesting ACARS messages.	Reikia: Serveris > Siųsti duomenis žemėlapio serveriui ir Dalytis ir įdomiais ACARS pranešimais.
-Go live	Pradėti transliaciją
 Schedule passes by itself	Praskridimus planuoti automatiškai
 Takes the passes of the ticked groups one at a time, highest priority first, and starts, tunes and records each one without you. Overlapping passes are trimmed or skipped; a receiver you started yourself is left alone.	Paimia pažymėtų grupių praskridimus po vieną, pirma aukščiausio prioriteto, ir pats paleidžia, sutaiko bei įrašo kiekvieną. Persidengiantys praskridimai sutrumpinami arba praleidžiami; pats paleistas imtuvas neliečiamas.
 Priority (higher wins)	Prioritetas (didesnis laimi)
@@ -3084,7 +3034,7 @@ Tone decoders	Tonų dekoderiai
 The test signal repeats every 40 s: CTCSS 123.0 Hz under speech-like noise, DCS D023N, DTMF 159#, a ZVEI1 call 12345, SELCAL AM-CP and a two-tone page.	Bandomasis signalas kartojasi kas 40 s: CTCSS 123,0 Hz po į kalbą panašiu triukšmu, DCS D023N, DTMF 159#, ZVEI1 iškvietimas 12345, SELCAL AM-CP ir dviejų tonų iškvietimas.
 CTCSS, DCS, DTMF, selcall	CTCSS, DCS, DTMF, selektyvus iškvietimas
 # COSPAS-SARSAT 406 MHz
-A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nOnAir only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	406 MHz avarinis švyturėlis (EPIRB laive, ELT orlaivyje, PLB asmens) maždaug kas 50 sekundžių siunčia apie pusės sekundės trukmės impulsą: nemoduliuotą nešlį, po to 112 arba 144 bitus 400 bit/s greičiu. Pranešime yra 15 skaitmenų šešioliktainis ID, vienintelis šiam švyturėliui, šalis, švyturėlio rūšis ir dažnai padėtis (trumpame pranešime suapvalinta iki 15 minučių, ilgame iki 4 sekundžių). Pranešimą saugo du BCH patikrinimai; iki trijų sugadintų pirmo lauko bitų pataisoma.\n\nOnAir tik priima. Bandomieji švyturėliai ir savitikros impulsai pažymimi. Jei manote išgirdę tikrą, praneškite savo šalies gelbėjimo koordinavimo centrui; savo saugumu nepasikliaukite šia programa.
+A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of ZorCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	406 MHz avarinis švyturėlis (EPIRB laive, ELT orlaivyje, PLB asmens) maždaug kas 50 sekundžių siunčia apie pusės sekundės trukmės impulsą: nemoduliuotą nešlį, po to 112 arba 144 bitus 400 bit/s greičiu. Pranešime yra 15 skaitmenų šešioliktainis ID, vienintelis šiam švyturėliui, šalis, švyturėlio rūšis ir dažnai padėtis (trumpame pranešime suapvalinta iki 15 minučių, ilgame iki 4 sekundžių). Pranešimą saugo du BCH patikrinimai; iki trijų sugadintų pirmo lauko bitų pataisoma.\n\nEye of ZorCom tik priima. Bandomieji švyturėliai ir savitikros impulsai pažymimi. Jei manote išgirdę tikrą, praneškite savo šalies gelbėjimo koordinavimo centrui; savo saugumu nepasikliaukite šia programa.
 EPIRB (boat)	EPIRB (laivas)
 ELT (aircraft)	ELT (orlaivis)
 PLB (person)	PLB (asmuo)

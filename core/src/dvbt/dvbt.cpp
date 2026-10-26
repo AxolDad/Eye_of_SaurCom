@@ -209,7 +209,7 @@ void scramble(const uint8_t* ts, size_t packets, uint8_t* out) {
     }
 }
 
-void rsEncode(const uint8_t* in, uint8_t* out) { fecp::rs204Encode(in, out); }   // Reed-Solomon (204,188): core/src/fec/fec_proto.cpp (C++) or the Rust crate onair_fec
+void rsEncode(const uint8_t* in, uint8_t* out) { fecp::rs204Encode(in, out); }   // Reed-Solomon (204,188): core/src/fec/fec_proto.cpp (C++) or the Rust crate zorcom_fec
 
 ConvInterleaver::ConvInterleaver(bool inverse) : inverse_(inverse) {
     fifo_.resize(12);
@@ -666,7 +666,7 @@ void Viterbi::decode(const std::vector<int8_t>& soft, std::vector<uint8_t>& out,
         const size_t lo = a > L ? a - L : 0, hi = std::min(steps, b + L);
         std::vector<uint8_t> bits;
         long mt = 0;
-        fecp::viterbiRange(soft.data() + 2 * lo, hi - lo, bits, &mt);   // 64-state K = 7 trellis: core/src/fec/fec_proto.cpp (C++) or the Rust crate onair_fec (aarch64)
+        fecp::viterbiRange(soft.data() + 2 * lo, hi - lo, bits, &mt);   // 64-state K = 7 trellis: core/src/fec/fec_proto.cpp (C++) or the Rust crate zorcom_fec (aarch64)
         metrics[ci] = mt;
         for (size_t t = a; t < b; t++) out[t] = bits[t - lo];
     };
@@ -674,7 +674,7 @@ void Viterbi::decode(const std::vector<int8_t>& soft, std::vector<uint8_t>& out,
     else {
         std::atomic<size_t> next{0};
         std::vector<std::thread> ts;
-        for (int t = 0; t < std::min<size_t>(threads, chunks); t++) ts.emplace_back(dect2::namedThread("onair-dvbt-w", [&] { for (size_t c; (c = next++) < chunks;) work(c); }));
+        for (int t = 0; t < std::min<size_t>(threads, chunks); t++) ts.emplace_back(dect2::namedThread("zorcom-dvbt-w", [&] { for (size_t c; (c = next++) < chunks;) work(c); }));
         for (auto& t : ts) t.join();
     }
     if (metric) { long s = 0; for (long m : metrics) s += m; *metric = s; }

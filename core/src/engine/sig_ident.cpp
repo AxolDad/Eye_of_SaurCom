@@ -1293,7 +1293,7 @@ struct Capture::Impl {
 };
 
 Capture::Capture() : p_(new Impl) {
-    p_->th = dect2::namedThread("onair-sigid", [this] {
+    p_->th = dect2::namedThread("zorcom-sigid", [this] {
         Impl& m = *p_;
         (void)builtinFrequencies(); (void)bandplan::builtinPlans();   // parsed once, on first use: not while someone waits for an answer
         (void)signatureCount();

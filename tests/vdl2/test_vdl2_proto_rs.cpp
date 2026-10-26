@@ -1,7 +1,7 @@
-// Golden-vector test of the VDL Mode 2 layers (rust/onair_vdl2 behind the D::vdl2* functions): the scrambler, every one of the 2^25 header words, every burst
+// Golden-vector test of the VDL Mode 2 layers (rust/zorcom_vdl2 behind the D::vdl2* functions): the scrambler, every one of the 2^25 header words, every burst
 // length, Reed-Solomon with random errors and erasures, burst bodies (built by the generator, with bit errors), the FCS, the HDLC deframer on built / damaged /
 // random bit streams, addresses, and AVLC frame decoding of built frames (ACARS, X.25 with CLNP / COTP, call set-up, XID GSIF / link establishment), random
-// X.25 packets and random frames. ONAIR_DIFF_ITERS (default 200000) inputs per family. Every result goes into a digest (tests/common/golden.h; doubles rounded
+// X.25 packets and random frames. ZORCOM_DIFF_ITERS (default 200000) inputs per family. Every result goes into a digest (tests/common/golden.h; doubles rounded
 // to 1e-6) compared with the one recorded from the C++ layers the Rust code replaced.
 #include "dect2/vdl2/vdl2_proto.h"
 #include "../common/golden.h"
@@ -220,7 +220,7 @@ static void testFrames(long iters) {
 }
 
 int main() {
-    const char* itc = getenv("ONAIR_DIFF_ITERS");
+    const char* itc = getenv("ZORCOM_DIFF_ITERS");
     const long iters = itc ? atol(itc) : 200000;
     testBitLayer(iters);
     testRs(iters);

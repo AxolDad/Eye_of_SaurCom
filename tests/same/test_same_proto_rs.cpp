@@ -1,5 +1,5 @@
-// Golden-vector test of the Rust SAME layer (rust/onair_same, dect2::same): built and known messages, the tables over every code, the time helpers over their
-// whole range, county tables, and ONAIR_DIFF_ITERS (default 200000) seeded random / mutated / truncated inputs per family. Every result goes into a digest
+// Golden-vector test of the Rust SAME layer (rust/zorcom_same, dect2::same): built and known messages, the tables over every code, the time helpers over their
+// whole range, county tables, and ZORCOM_DIFF_ITERS (default 200000) seeded random / mutated / truncated inputs per family. Every result goes into a digest
 // (tests/common/golden.h) compared with the one recorded from the C++ SAME layer the Rust code replaced.
 #include "dect2/same/same_proto.h"
 #include "../common/golden.h"
@@ -78,7 +78,7 @@ static void compareCounties(const std::string& csv) {
 }
 
 int main() {
-    const char* it = getenv("ONAIR_DIFF_ITERS");
+    const char* it = getenv("ZORCOM_DIFF_ITERS");
     const long iters = it ? atol(it) : 200000;
 
     // tables: every three letter code, every digit

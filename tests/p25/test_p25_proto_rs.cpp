@@ -1,6 +1,6 @@
-// Golden-vector test of the Rust P25 frame layer (rust/onair_p25, dect2::p25): NID over all messages and noisy words, Reed-Solomon of every shape with 0..t+3
+// Golden-vector test of the Rust P25 frame layer (rust/zorcom_p25, dect2::p25): NID over all messages and noisy words, Reed-Solomon of every shape with 0..t+3
 // errors, Golay / Hamming over their word space, CRC, trellis with noisy / NaN / random levels, TSBK, link control, encryption sync and header words, the IMBE
-// interleave and the names, over ONAIR_DIFF_ITERS (default 200000) seeded inputs per family. Every result goes into a digest (tests/common/golden.h; floats
+// interleave and the names, over ZORCOM_DIFF_ITERS (default 200000) seeded inputs per family. Every result goes into a digest (tests/common/golden.h; floats
 // widened and rounded to 1e-6) compared with the one recorded from the C++ layer the Rust code replaced.
 #include "dect2/p25/p25_proto.h"
 #include "../common/golden.h"
@@ -19,7 +19,7 @@ static uint32_t r32() { return g(); }
 static uint64_t r64() { const uint64_t hi = (uint64_t)g() << 32; return hi | g(); }   // (two draws in one expression would be evaluated in an unspecified order)
 
 int main() {
-    const char* it = getenv("ONAIR_DIFF_ITERS");
+    const char* it = getenv("ZORCOM_DIFF_ITERS");
     const long iters = it ? atol(it) : 200000;
 
     // tables and names

@@ -1,5 +1,5 @@
 // Seeded mutation run of the Wi-SUN frame layers, meant for DECT2_SANITIZE=ON: parse() of any bytes, the PHY helpers, the name
-// functions and scheduleText must never crash or hang. Also a libFuzzer target with -DONAIR_LIBFUZZER.
+// functions and scheduleText must never crash or hang. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
 #include "dect2/wisun/wisun_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -21,11 +21,11 @@ static void one(const uint8_t* d, size_t n) {
     if (n >= 3) { uttName(d[0]); uttShort(d[1]); chFunctionName(d[2]); regDomainName(d[0]); }
 }
 
-#ifdef ONAIR_LIBFUZZER
+#ifdef ZORCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* it = getenv("ONAIR_FUZZ_ITERS");
+    const char* it = getenv("ZORCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 50000;
     std::mt19937 g(1357);
     for (long i = 0; i < iters; i++) {

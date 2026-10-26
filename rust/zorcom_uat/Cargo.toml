@@ -1,0 +1,10 @@
+[package]
+name = "zorcom_uat"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of ZorCom UAT 978 MHz message layer: ADS-B downlink and FIS-B uplink parsing"
+
+[dependencies]
+zorcom_common = { path = "../zorcom_common" }

@@ -218,7 +218,7 @@ PlpDecoder::PlpDecoder(int threads) {
     gpuOk_ = GpuLdpc::instance().available();
     autoGpu_ = autoStartsOnGpu();   // Auto starts on the GPU
     threads_ = threads > 0 ? threads : std::max(1u, std::thread::hardware_concurrency());
-    th_ = dect2::namedThread("onair-t2plp", [this] { loop(); });
+    th_ = dect2::namedThread("zorcom-t2plp", [this] { loop(); });
 }
 
 PlpDecoder::~PlpDecoder() {

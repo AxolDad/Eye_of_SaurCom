@@ -63,7 +63,7 @@ static uint64_t record(const fs::path& dir, FileFormat fmt, std::string& path, d
 }
 
 int main() {
-    const fs::path dir = fs::temp_directory_path() / "onair_iq_record_test";
+    const fs::path dir = fs::temp_directory_path() / "zorcom_iq_record_test";
     fs::remove_all(dir);
     fs::create_directories(dir);
     std::string pCs8, pCf32;
@@ -81,8 +81,8 @@ int main() {
     CHECK(sCs8.droppedSamples == 0 && sCf32.droppedSamples == 0, "nothing dropped");
     CHECK(std::abs(guessSampleRate(pCs8) - kRate) < 1 && std::abs(guessSampleRate(pCf32) - kRate) < 1, "the name gives the sample rate back");
     CHECK(guessFormat(pCs8) == FileFormat::CS8 && guessFormat(pCf32) == FileFormat::CF32, "the name gives the format back");
-    CHECK(fs::path(pCf32).filename().string().rfind("onair_fm_93.900MHz_1Msps_", 0) == 0, "the name has the mode, the frequency and the rate");
-    CHECK(std::abs(guessSampleRate("onair_dvb_554.000MHz_10Msps_20261009-071530.cs8") - 10e6) < 1 && std::abs(guessSampleRate("onair_dab_225.648MHz_2.048Msps_x.cf32") - 2.048e6) < 1, "the documented file names parse");
+    CHECK(fs::path(pCf32).filename().string().rfind("zorcom_fm_93.900MHz_1Msps_", 0) == 0, "the name has the mode, the frequency and the rate");
+    CHECK(std::abs(guessSampleRate("zorcom_dvb_554.000MHz_10Msps_20261009-071530.cs8") - 10e6) < 1 && std::abs(guessSampleRate("zorcom_dab_225.648MHz_2.048Msps_x.cf32") - 2.048e6) < 1, "the documented file names parse");
     CHECK(liveCs8 >= 1 && liveCf32 >= 1, "the live signal was received");
 
     // the float file played back as a file: the same receiver state as the live signal

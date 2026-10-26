@@ -7,7 +7,7 @@
         {
           "title": "Eye of ZorCom",
           "subtitle": "One program for every radio signal around you",
-          "footer": "Free and open source - built on OnAir",
+          "footer": "Free and open source - built on Eye of ZorCom",
           "voice": "Eye of ZorCom. One program for every radio signal around you. Here is a two minute tour."
         },
         {
@@ -68,7 +68,7 @@
           "title": "Get Eye of ZorCom",
           "subtitle": "github.com/AxolDad/OnAir-SDR-Suite",
           "footer": "Transmit only within your own legal authority",
-          "voice": "Eye of ZorCom is free and open source. Get it on GitHub, at AxolDad, slash, OnAir SDR Suite."
+          "voice": "Eye of ZorCom is free and open source. Get it on GitHub, at AxolDad, slash, Eye of ZorCom SDR Suite."
         }
       ]
     },

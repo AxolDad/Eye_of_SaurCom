@@ -28,7 +28,7 @@ constexpr int kConnectMs = 8000;   // an unreachable server is reported after th
 constexpr int kGreetingMs = 10000; // a server still closing the previous client can take seconds to greet
 constexpr int kStallMs = 3000;     // no samples for this long: the connection is taken as lost
 
-// The tuner's gains, its name and the "host:port" form: net_proto.h (C++ or the Rust crate onair_net)
+// The tuner's gains, its name and the "host:port" form: net_proto.h (C++ or the Rust crate zorcom_net)
 std::vector<int> tunerGains(int tuner) { return netp::rtlTunerGains(tuner); }
 std::string tunerName(int t) { return netp::rtlTunerName(t); }
 bool splitHostPort(const std::string& a, std::string& host, int& port) { return netp::splitHostPort(a, host, port); }

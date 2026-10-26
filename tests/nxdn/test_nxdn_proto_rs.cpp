@@ -1,5 +1,5 @@
-// Golden-vector test of the Rust NXDN frame layer (rust/onair_nxdn, dect2::nxdn): scrambler, LICH (all 256 bytes), CRCs, the three coded channels (clean,
-// with bit errors and random soft values), layer 3 build / parse and the names, over ONAIR_DIFF_ITERS (default 200000) seeded inputs per family. Every result
+// Golden-vector test of the Rust NXDN frame layer (rust/zorcom_nxdn, dect2::nxdn): scrambler, LICH (all 256 bytes), CRCs, the three coded channels (clean,
+// with bit errors and random soft values), layer 3 build / parse and the names, over ZORCOM_DIFF_ITERS (default 200000) seeded inputs per family. Every result
 // goes into a digest (tests/common/golden.h) compared with the one recorded from the C++ layer the Rust code replaced.
 #include "dect2/nxdn/nxdn_proto.h"
 #include "../common/golden.h"
@@ -30,7 +30,7 @@ static void addMsg(const A::Msg& a) {
 }
 
 int main() {
-    const char* it = getenv("ONAIR_DIFF_ITERS");
+    const char* it = getenv("ZORCOM_DIFF_ITERS");
     const long iters = it ? atol(it) : 200000;
 
     // the table and the 8-bit LICH space

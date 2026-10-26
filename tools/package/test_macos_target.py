@@ -48,13 +48,13 @@ class BundleTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.app = self.root / "OnAir.app"
+        self.app = self.root / "ZorCom.app"
         self.contents = self.app / "Contents"
         (self.contents / "MacOS").mkdir(parents=True)
         (self.contents / "Frameworks").mkdir()
         with (self.contents / "Info.plist").open("wb") as stream:
-            plistlib.dump({"CFBundleExecutable": "OnAir", "LSMinimumSystemVersion": "15.0"}, stream)
-        self.compile(self.contents / "MacOS/OnAir", "15.0")
+            plistlib.dump({"CFBundleExecutable": "ZorCom", "LSMinimumSystemVersion": "15.0"}, stream)
+        self.compile(self.contents / "MacOS/ZorCom", "15.0")
 
     def compile(self, path, target, library=False):
         command = ["xcrun", "clang", "-x", "c", "-", "-o", str(path),
@@ -69,8 +69,8 @@ class BundleTests(unittest.TestCase):
         self.assertIn("Verified 2 binaries", check_bundle(self.app))
 
     def test_newer_executable_is_rejected(self):
-        self.compile(self.contents / "MacOS/OnAir", "15.1")
-        with self.assertRaisesRegex(ValueError, "MacOS/OnAir requires macOS 15.1"):
+        self.compile(self.contents / "MacOS/ZorCom", "15.1")
+        with self.assertRaisesRegex(ValueError, "MacOS/ZorCom requires macOS 15.1"):
             check_bundle(self.app)
 
     def test_newer_transitive_library_is_rejected(self):
@@ -79,7 +79,7 @@ class BundleTests(unittest.TestCase):
             check_bundle(self.app)
 
     def test_missing_executable_is_rejected(self):
-        (self.contents / "MacOS/OnAir").unlink()
+        (self.contents / "MacOS/ZorCom").unlink()
         with self.assertRaises((ValueError, subprocess.CalledProcessError)):
             check_bundle(self.app)
 
@@ -90,7 +90,7 @@ class BundleTests(unittest.TestCase):
         package.mkdir(parents=True)
         script = package / "make_dmg.sh"
         shutil.copy(Path(__file__).with_name("make_dmg.sh"), script)
-        stale_app = repo / "build-release/OnAir.app"
+        stale_app = repo / "build-release/ZorCom.app"
         stale_app.mkdir(parents=True)
         marker = stale_app / "previous-build"
         marker.write_text("preserve until a successful build")

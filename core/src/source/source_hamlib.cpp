@@ -265,7 +265,7 @@ public:
         rate_ = iq_->sampleRate();
         stopFlag_ = false;
         publishLocked(true, "", false);
-        poll_ = dect2::namedThread("onair-hamlib", [this] { pollLoop(); });
+        poll_ = dect2::namedThread("zorcom-hamlib", [this] { pollLoop(); });
         return true;
     }
 

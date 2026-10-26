@@ -30,7 +30,7 @@ double ptsDelta(double a, double b);
 // Alpha-blend the regions of a display into one dispW x dispH RGBA picture (transparent where nothing is drawn)
 void dvbSubComposite(const DvbSubDisplay& d, std::vector<uint8_t>& rgba);
 
-// The pure layer below the decoder (Rust crate rust/onair_dvbsi, dvbsub_rs.cpp): PES header, segment walk, segment parsers,
+// The pure layer below the decoder (Rust crate rust/zorcom_dvbsi, dvbsub_rs.cpp): PES header, segment walk, segment parsers,
 // colours and the run-length pixel decoder (ETSI EN 300 743).
 struct DvbSubPesInfo { uint32_t payloadOff = 0; bool hasPts = false; double pts = -1; };   // payloadOff: the first segment (after data_identifier and stream id)
 bool dvbSubPesInfo(const uint8_t* pes, size_t n, DvbSubPesInfo& out);   // false: not a DVB subtitle PES packet (private stream 1, data_identifier 0x20)

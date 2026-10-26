@@ -8,7 +8,7 @@ Goal: WSJT-X style operation for every amateur mode, for people with a rig. The 
 |---|---|---|
 | Hamlib CAT | `core/include/dect2/source/hamlib_rig.h`, `rig_setup.h`, `core/src/source/hamlib_rig.cpp` | Rig list, serial/rigctld, dial + mode follow. `makeHamlibTxSink`: PTT and frequency only, **no RF audio** (the note says so) |
 | TX session | `core/include/dect2/tx/tx.h`, `core/src/tx/tx.cpp` | One continuous or timed session per mode on a TX-capable SDR; FT8/FT4/WSPR/FT2/JT65/JT9/Q65/FST4/MSK144 payload kind `Ftx`; no per-slot scheduling |
-| Safety today | `app/panels/tx_ui.cpp` (`txNoticePopup`, Start, STOP ALL) | One-time notice, explicit Start, STOP ALL. No band check, no arm. "OnAir does not limit the frequency" |
+| Safety today | `app/panels/tx_ui.cpp` (`txNoticePopup`, Start, STOP ALL) | One-time notice, explicit Start, STOP ALL. No band check, no arm. "Eye of ZorCom does not limit the frequency" |
 | Modulators | `core/src/hfdig/hfdig_ftx_gen.cpp` (`ftxAddTransmission[Ex]`), `hfdig_gen`, `hfdig_sstv_gen`, `hfdig_hamdrm_gen` | Audio for FT8/FT4/FT2/WSPR/JT/Q65/FST4/MSK144 messages at any audio Hz and start time |
 | Decoders | `HfdigFtx` (`hfdig_ftx.h`), `FtxDecode` has call, grid, cq, snr, dt, hz, slotUtc | Done |
 | Band table | `core/include/dect2/bandplan/bandplan.h` (service "ham") | Channel plans, not used as a TX gate |

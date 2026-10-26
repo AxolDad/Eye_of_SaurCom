@@ -132,7 +132,7 @@ void autoSave(const App& a) {
     char when[32];
     std::strftime(when, sizeof when, "%H:%M:%S", std::localtime(&now));
     S.autoBusy = true;
-    S.autoTh = dect2::namedThread("onair-specan", [g, live = t.live, peak = t.peak, avg = t.avg, path, w = std::string(when)] {
+    S.autoTh = dect2::namedThread("zorcom-specan", [g, live = t.live, peak = t.peak, avg = t.avg, path, w = std::string(when)] {
         const bool ok = dect2::saCsvWriteFile(path, g, live, peak, avg);
         std::lock_guard<std::mutex> lk(autoMu());
         if (ok) { S.autoCount++; S.autoLast = w; S.autoFiles.push_back(path); S.note = "auto-saved " + path; }

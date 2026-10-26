@@ -131,9 +131,6 @@ const std::vector<PrefKey>& keyTable() {
         shared(num("mtvGrid", AT(a.mtvGrid), 0, 0, 2, true)),
         shared(flagI("reduceCpuHidden", AT(a.reduceCpuHidden), true)),
         shared(flagI("discordOn", AT(a.discordOn), false)), shared(flagI("discordFreq", AT(a.discordFreq), true)),
-        shared(rx1(flagI("mapSend", AT(a.mapSend), false, false))), shared(rx1(flagI("mapConsent", AT(a.mapConsent), false, false))), shared(rx1(flagI("mapMsgs", AT(a.mapMsgs), false, false))), shared(rx1(flagI("mapJam", AT(a.mapJam), false, false))), shared(rx1(flagI("mapVoice", AT(a.mapVoice), false, false))),
-        shared(rx1(flagI("mapDeclined", AT(a.mapDeclined), false, false))), shared(rx1(text("mapDeclinedVersion", AT(a.mapDeclinedVersion)))),
-        shared(rx1(text("mapStationId", AT(a.mapStationId)))), shared(rx1(text("mapServer", AT(a.mapServer)))),
         shared(flagI("lightUi", AT(a.lightUi), false)), shared(flagI("highContrast", AT(a.highContrast), false)),
         shared(text("uiLang", AT(a.uiLang))),
         shared(text("bandPlan", AT(a.bandPlan))),
@@ -154,7 +151,6 @@ const std::vector<PrefKey>& keyTable() {
         shared(flagB("subsOn", AT(a.subsOn), true)), shared(text("subsPick", AT(a.subsPick))), shared(num("ttxPage", AT(a.ttxPage), 100, 100, 899)),
         shared(flagB("updCheck", AT(a.updCheck), true)), shared(flagB("updAuto", AT(a.updAuto), true)), shared(flagB("updBeta", AT(a.updPre), false)),
         shared(dbl("updLast", AT(a.updLast), 0)), shared(text("updSkip", AT(a.updSkip))),
-        shared(num("updSrc", AT(a.updSrc), 0, 0, 2)), shared(flagB("updMirrorOn", AT(a.updMirrorOn), false)), shared(text("updMirror", AT(a.updMirror))),
     };
     return t;
 }
@@ -346,7 +342,6 @@ void loadPrefs(App& a) {
     loadKeys(d, a, false);
     loadSpectrumRanges(d, a);
     if (d.has("wideMaskLo")) a.wideFamMask = (uint64_t)(uint32_t)d.getI("wideMaskLo", 0) | ((uint64_t)(uint32_t)d.getI("wideMaskHi", 0) << 32);
-    if (a.rxId == 1 && a.mapSend && !a.mapConsent) a.mapSend = false;   // never on without consent
     i18n::set(a.uiLang.empty() ? plat::uiLanguage() : a.uiLang);
     loadFmStations(d, a);
     if (d.has("fmSaved")) {   // the saved-stations library, separate from the band-scan list in fmStations
