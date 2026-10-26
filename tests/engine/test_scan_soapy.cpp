@@ -20,7 +20,8 @@ static int fails = 0;
 int main(int argc, char** argv) {
     if (argc > 1) setenv("SOAPY_SDR_PLUGIN_PATH", argv[1], 1);
     setenv("SAURCOM_TEST_PACE", "0.5", 1);              // half speed: independent of how fast the machine is
-    setenv("SAURCOM_TEST_DEAD_REOPEN_MS", "300", 1);    // a stream started within 0.3 s of the last one ending stays silent
+    setenv("SAURCOM_TEST_DEAD_REOPEN_MS", "2000", 1);   // a stream started within 2 s of the receiver's ending stays silent (the scan opens the
+                                                        // radio again 5 s after a silent open; a busy machine needs more than 0.3 s for the hand-over)
     std::string err;
     DeviceInfo radio;
     bool found = false;

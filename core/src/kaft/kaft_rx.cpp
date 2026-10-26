@@ -74,6 +74,28 @@ double preambleRho(const std::vector<cf>& mf, double tau, double fHz, const std:
 
 // ---------------------------------------------------------------------------------------------- receiver
 
+namespace {
+// The ratio up / down nearest to num / den with neither above kMaxRatioTerm (the last continued-fraction convergent that fits). An input rate with no
+// common factor with the width's rate (64/7 Msps, the DVB-T2 rate of an 8 MHz channel, is 9142857 samples per second as a whole number) would
+// otherwise give terms of millions, and a filter table of hundreds of millions of taps: seconds of work and gigabytes on every start and retune of
+// the engine, which configures this receiver whatever the mode. The error (0.02 ppm at 64/7 Msps) is far below a radio's own clock error.
+constexpr int64_t kMaxRatioTerm = 4096;
+void smallRatio(int64_t num, int64_t den, int& up, int& down) {
+    int64_t p0 = 0, q0 = 1, p1 = 1, q1 = 0;   // convergents h(-2)/k(-2) and h(-1)/k(-1)
+    int64_t a = num, b = den;
+    while (b != 0) {
+        const int64_t t = a / b;
+        const int64_t p2 = t * p1 + p0, q2 = t * q1 + q0;
+        if (p2 > kMaxRatioTerm || q2 > kMaxRatioTerm) break;
+        p0 = p1; q0 = q1; p1 = p2; q1 = q2;
+        const int64_t r = a - t * b;
+        a = b; b = r;
+    }
+    up = (int)std::max<int64_t>(p1, 1);
+    down = (int)std::max<int64_t>(q1, 1);
+}
+}  // namespace
+
 FrameReceiver::FrameReceiver(const FrameReceiverConfig& cfg) : cfg_(cfg) {
     if (cfg_.inputRate < 1) cfg_.inputRate = kRefRate;
     double longest = 0;
@@ -82,6 +104,7 @@ FrameReceiver::FrameReceiver(const FrameReceiverConfig& cfg) : cfg_(cfg) {
         const int g = std::gcd(fsw, cfg_.inputRate);
         up_[w] = fsw / g;
         down_[w] = cfg_.inputRate / g;
+        if (std::max(up_[w], down_[w]) > kMaxRatioTerm) smallRatio(fsw, cfg_.inputRate, up_[w], down_[w]);
         const int syms = std::max(kWidths[w].frameSymbols, frameSymbolCount(kCtrlProfile, kCtrlMaxBlocks));
         longest = std::max(longest, (double)syms * kSps * down_[w] / up_[w]);
     }

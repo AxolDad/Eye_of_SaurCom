@@ -33,8 +33,9 @@ void note(const std::string& k, const std::string& v) {
 #endif
 }   // the native rate of an 8 MHz channel: the only rate this "radio" offers
 
-// SAURCOM_TEST_DEAD_REOPEN_MS=n: a stream started within n ms of the last one ending never sends a sample, as a radio opened the moment another
-// handle let go of it can do (the channel scan opening the radio right after the receiver closed it)
+// SAURCOM_TEST_DEAD_REOPEN_MS=n: a stream started within n ms of the end of the last one that sent samples never sends a sample, as a radio opened the
+// moment another handle let go of it can do (the channel scan opening the radio right after the receiver closed it). The end of a silent stream does not
+// count: the radio opened again after one comes back, however busy the machine is (the window is measured from the receiver letting go)
 std::atomic<long long> gLastEndMs{-1000000000};
 long long nowMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
 
@@ -43,6 +44,7 @@ struct TestStream {
     std::unique_ptr<IqSource> src;
     bool active = false;
     bool tx = false;   // a transmit stream: writeStream appends the samples to the file named by SAURCOM_TEST_TX_FILE (cf32)
+    bool delivered = false;   // sent samples: its end starts the SAURCOM_TEST_DEAD_REOPEN_MS window
 };
 
 class SaurComTestDevice : public SoapySDR::Device {
@@ -132,7 +134,11 @@ public:
         s->tx = dir == SOAPY_SDR_TX;
         return reinterpret_cast<SoapySDR::Stream*>(s);
     }
-    void closeStream(SoapySDR::Stream* st) override { delete reinterpret_cast<TestStream*>(st); gLastEndMs = nowMs(); }
+    void closeStream(SoapySDR::Stream* st) override {
+        auto* s = reinterpret_cast<TestStream*>(st);
+        if (s->delivered) gLastEndMs = nowMs();
+        delete s;
+    }
     size_t getStreamMTU(SoapySDR::Stream*) const override { return 1 << 15; }
 
     int activateStream(SoapySDR::Stream* st, const int, const long long, const size_t) override {
@@ -161,7 +167,7 @@ public:
         if (s->tx) { s->active = false; note("TXACTIVE", "0"); return 0; }
         if (s->src) { s->src->stop(); s->src.reset(); }
         s->active = false;
-        gLastEndMs = nowMs();
+        if (s->delivered) gLastEndMs = nowMs();
         return 0;
     }
     // the samples the host sends: appended to SAURCOM_TEST_TX_FILE (complex float); SAURCOM_TEST_TX_STALL=1: the radio takes nothing (a timeout every call)
@@ -178,7 +184,7 @@ public:
         flags = 0; timeNs = 0;
         const auto t0 = std::chrono::steady_clock::now();
         for (;;) {
-            if (s->ring.available() > 0) return (int)s->ring.read(reinterpret_cast<cf32*>(buffs[0]), n);
+            if (s->ring.available() > 0) { s->delivered = true; return (int)s->ring.read(reinterpret_cast<cf32*>(buffs[0]), n); }
             if (std::chrono::steady_clock::now() - t0 > std::chrono::microseconds(timeoutUs)) return SOAPY_SDR_TIMEOUT;
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
