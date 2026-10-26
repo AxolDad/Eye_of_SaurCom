@@ -14,7 +14,7 @@ struct W {
 
 } // namespace
 
-// The parsing side (everything that reads a received block) is Rust: tetra_pdu_rs.cpp over rust/onair_tetra. The encoders and the generator PDUs are here.
+// The parsing side (everything that reads a received block) is Rust: tetra_pdu_rs.cpp over rust/zorcom_tetra. The encoders and the generator PDUs are here.
 
 // ---------------------------------------------------------------- SYNC
 

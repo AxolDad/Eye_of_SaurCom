@@ -1,4 +1,4 @@
-// The AX.25 frame parser, text forms, FCS and HDLC receiver step on top of the Rust crate rust/onair_ax25: the functions of packet_ax25.h;
+// The AX.25 frame parser, text forms, FCS and HDLC receiver step on top of the Rust crate rust/zorcom_ax25: the functions of packet_ax25.h;
 // packet_ax25.cpp keeps frame building and the transmit-side bit helpers.
 #include "dect2/packet/packet_ax25.h"
 #include "dect2/common/rs_abi.h"
@@ -9,19 +9,19 @@
 namespace dect2 {
 namespace ax25 {
 
-static_assert(sizeof(HdlcState) == sizeof(OnairAx25Hdlc), "HdlcState mirrors OnairAx25Hdlc");
+static_assert(sizeof(HdlcState) == sizeof(ZorcomAx25Hdlc), "HdlcState mirrors ZorcomAx25Hdlc");
 
 namespace {
 struct AbiCheck {
     AbiCheck() {
         size_t f = 0, a = 0, i = 0, h = 0;
-        onair_ax25_struct_sizes(&f, &a, &i, &h);
-        dect2::rsAbiCheck("onair_ax25", {f, a, i, h}, {sizeof(OnairAx25Frame), sizeof(OnairAx25AddrIn), sizeof(OnairAprsInfo), sizeof(OnairAx25Hdlc)});
+        zorcom_ax25_struct_sizes(&f, &a, &i, &h);
+        dect2::rsAbiCheck("zorcom_ax25", {f, a, i, h}, {sizeof(ZorcomAx25Frame), sizeof(ZorcomAx25AddrIn), sizeof(ZorcomAprsInfo), sizeof(ZorcomAx25Hdlc)});
     }
 } abiCheck;
 
-OnairAx25AddrIn in(const Address& a) {
-    OnairAx25AddrIn r{};
+ZorcomAx25AddrIn in(const Address& a) {
+    ZorcomAx25AddrIn r{};
     r.call = reinterpret_cast<const uint8_t*>(a.call.data());
     r.call_len = a.call.size();
     r.ssid = a.ssid;
@@ -39,7 +39,7 @@ template <class F> std::string text(F f) {
     }
 }
 
-Address fromRs(const OnairAx25Addr& a) {
+Address fromRs(const ZorcomAx25Addr& a) {
     Address r;
     r.call.assign((const char*)a.call, a.call_len);
     r.ssid = a.ssid;
@@ -48,35 +48,35 @@ Address fromRs(const OnairAx25Addr& a) {
 }
 } // namespace
 
-uint16_t fcs(const uint8_t* d, size_t n) { return onair_ax25_fcs(d, n); }
-bool fcsOk(const uint8_t* d, size_t n) { return onair_ax25_fcs_ok(d, n); }
+uint16_t fcs(const uint8_t* d, size_t n) { return zorcom_ax25_fcs(d, n); }
+bool fcsOk(const uint8_t* d, size_t n) { return zorcom_ax25_fcs_ok(d, n); }
 
 std::string Address::str() const {
-    const OnairAx25AddrIn a = in(*this);
-    return text([&](uint8_t* o, size_t c) { return onair_ax25_addr_str(&a, o, c); });
+    const ZorcomAx25AddrIn a = in(*this);
+    return text([&](uint8_t* o, size_t c) { return zorcom_ax25_addr_str(&a, o, c); });
 }
 
 std::string Frame::pathStr() const {
-    std::vector<OnairAx25AddrIn> p;
+    std::vector<ZorcomAx25AddrIn> p;
     for (const Address& a : path) p.push_back(in(a));
-    return text([&](uint8_t* o, size_t c) { return onair_ax25_path_str(p.data(), p.size(), o, c); });
+    return text([&](uint8_t* o, size_t c) { return zorcom_ax25_path_str(p.data(), p.size(), o, c); });
 }
 
 std::string Frame::tnc2() const {
-    std::vector<OnairAx25AddrIn> p;
+    std::vector<ZorcomAx25AddrIn> p;
     for (const Address& a : path) p.push_back(in(a));
-    const OnairAx25AddrIn f = in(from), t = in(to);
+    const ZorcomAx25AddrIn f = in(from), t = in(to);
     return text([&](uint8_t* o, size_t c) {
-        return onair_ax25_tnc2(&f, &t, p.data(), p.size(), reinterpret_cast<const uint8_t*>(info.data()), info.size(), o, c);
+        return zorcom_ax25_tnc2(&f, &t, p.data(), p.size(), reinterpret_cast<const uint8_t*>(info.data()), info.size(), o, c);
     });
 }
 
-std::string Frame::typeName() const { return text([&](uint8_t* o, size_t c) { return onair_ax25_type_name(control, o, c); }); }
+std::string Frame::typeName() const { return text([&](uint8_t* o, size_t c) { return zorcom_ax25_type_name(control, o, c); }); }
 
 bool parseFrame(const uint8_t* d, size_t n, Frame& f) {
     f = Frame();
-    OnairAx25Frame r;
-    if (!onair_ax25_parse_frame(d, n, &r)) return false;
+    ZorcomAx25Frame r;
+    if (!zorcom_ax25_parse_frame(d, n, &r)) return false;
     f.to = fromRs(r.to);
     f.from = fromRs(r.from);
     for (uint32_t i = 0; i < r.npath; i++) f.path.push_back(fromRs(r.path[i]));
@@ -88,10 +88,10 @@ bool parseFrame(const uint8_t* d, size_t n, Frame& f) {
 
 int hdlcStep(HdlcState& s, int level, bool nrzi, size_t& len) {
     len = 0;
-    return onair_ax25_hdlc_bit(reinterpret_cast<OnairAx25Hdlc*>(&s), level, nrzi, &len);
+    return zorcom_ax25_hdlc_bit(reinterpret_cast<ZorcomAx25Hdlc*>(&s), level, nrzi, &len);
 }
 
-void hdlcReset(HdlcState& s) { onair_ax25_hdlc_reset(reinterpret_cast<OnairAx25Hdlc*>(&s)); }
+void hdlcReset(HdlcState& s) { zorcom_ax25_hdlc_reset(reinterpret_cast<ZorcomAx25Hdlc*>(&s)); }
 
 } // namespace ax25
 } // namespace dect2

@@ -82,7 +82,6 @@ struct State {
     std::vector<BearingLine> lines;
     Fix fix;
     // sharing
-    bool share = false;
     std::string msg;
 };
 State S;
@@ -109,7 +108,7 @@ void load() {
     S.elements = (int)p.getI("dfN", 5); S.spacingWl = (float)p.getD("dfSpacing", 0.5);
     S.orientation = (float)p.getD("dfOrient", 0); S.compass = (float)p.getD("dfCompass", 0);
     S.lockTuned = p.getB("dfLock", true); S.manualMhz = (float)p.getD("dfMhz", 433.92);
-    S.share = p.getB("dfShare", false); S.useCal = p.getB("dfUseCal", true);
+    S.useCal = p.getB("dfUseCal", true);
     S.elements = std::clamp(S.elements, 2, 8);
     std::string c = p.getS("dfCal", "");
     S.cal.clear();
@@ -127,7 +126,7 @@ void save() {
     plat::Prefs& p = plat::prefs();
     p.setI("dfSrc", S.src); p.setI("dfGeo", S.geo); p.setI("dfMethod", S.method); p.setI("dfN", S.elements);
     p.setD("dfSpacing", S.spacingWl); p.setD("dfOrient", S.orientation); p.setD("dfCompass", S.compass);
-    p.setB("dfLock", S.lockTuned); p.setD("dfMhz", S.manualMhz); p.setB("dfShare", S.share); p.setB("dfUseCal", S.useCal);
+    p.setB("dfLock", S.lockTuned); p.setD("dfMhz", S.manualMhz); p.setB("dfUseCal", S.useCal);
     p.setS("dfCal", calString());
 }
 
@@ -373,7 +372,7 @@ void fixSection(App& a) {
 
 void drawWindow(App& a) {
     load();
-    { static bool af = std::getenv("ONAIR_MAP_FULL") != nullptr; if (af) { af = false; gFull = true; } }   // dev: --shot enters full screen
+    { static bool af = std::getenv("ZORCOM_MAP_FULL") != nullptr; if (af) { af = false; gFull = true; } }   // dev: --shot enters full screen
     if (gFull && !ImGui::GetIO().WantTextInput && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId) && ImGui::IsKeyPressed(ImGuiKey_Escape, false)) gFull = false;
     if (gFull) { ImGui::SetNextWindowPos(ImVec2(0, 0)); ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize); }
     else ImGui::SetNextWindowSize(ImVec2(900 * gUi, 640 * gUi), ImGuiCond_FirstUseEver);
@@ -463,10 +462,6 @@ void drawWindow(App& a) {
         if (S.sim2) { ImGui::SetNextItemWidth(160 * gUi); ImGui::SliderFloat(tr("Second bearing"), &S.sim2Bearing, 0, 359.9f, "%.0f\xC2\xB0"); }
     }
     if (typo::collapsingHeader(tr("Position fix"), ImGuiTreeNodeFlags_DefaultOpen)) fixSection(a);
-    if (typo::collapsingHeader(tr("Sharing"))) {
-        ch |= ImGui::Checkbox(tr("Share my bearing on the map server"), &S.share);
-        ImGui::TextWrapped("%s", tr("Needs Server > Send data to map server. Only the bearing, its uncertainty, the frequency and your station position go up; the map shows where bearings from several stations cross."));
-    }
     if (!S.msg.empty()) ImGui::TextColored(ImVec4(1, 0.75f, 0.3f, 1), "%s", S.msg.c_str());
     ImGui::EndChild();
     if (ch) save();
@@ -480,18 +475,3 @@ void dfWindow(App& a) {
     drawWindow(a);
 }
 
-bool dfMapLine(const App& a, DfMapLine& out) {
-    load();
-    if (!S.share || S.avg.empty() || !receiverLocationSet()) return false;
-    const double now = ImGui::GetTime();
-    if (S.hist.empty() || now - S.hist.back().t > 30) return false;
-    const double conf = S.src == SrcJson ? S.jsonConf : S.res.confidence;
-    if (conf < 0.3) return false;
-    receiverLocation(out.lat, out.lon);
-    out.bearing = S.avg.mean();
-    out.sigma = std::max(1.0, S.avg.stdDeg() + 2.0);
-    out.conf = conf;
-    out.freqHz = tunedHz(a);
-    out.ageSec = now - S.hist.back().t;
-    return true;
-}

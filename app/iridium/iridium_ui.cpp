@@ -553,13 +553,13 @@ void toolkitSave(App& a) {
     const bool on = r.bitsFileOpen();
     ImGui::Spacing();
     ImGui::TextDisabled("SAVE FOR IRIDIUM-TOOLKIT");
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Writes every demodulated burst as gr-iridium iridium-extractor RAW lines.\nRun: iridium-parser.py output.bits > output.parsed\nOnAir never decodes voice; that is up to you, with the toolkit.");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Writes every demodulated burst as gr-iridium iridium-extractor RAW lines.\nRun: iridium-parser.py output.bits > output.parsed\nEye of ZorCom never decodes voice; that is up to you, with the toolkit.");
     ImGui::TextDisabled("format"); ImGui::SameLine(0, 5 * gUi);
     ImGui::SetNextItemWidth(std::min(120 * gUi, ImGui::GetContentRegionAvail().x));
     int fmt = 0;
     static const char* fmts[] = {".bits (RAW)"};
     ImGui::Combo("##irbfmt", &fmt, fmts, 1);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("RAW lines as iridium-extractor writes them. For output.parsed run the toolkit's iridium-parser.py on this file:\nOnAir does not write .parsed itself.");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("RAW lines as iridium-extractor writes them. For output.parsed run the toolkit's iridium-parser.py on this file:\nEye of ZorCom does not write .parsed itself.");
     ImGui::BeginDisabled(on);
     ImGui::SetNextItemWidth(std::min(160 * gUi, ImGui::GetContentRegionAvail().x));
     if (ImGui::InputText("##irbname", S.bitsName, sizeof S.bitsName)) plat::prefs().setS("iridiumBitsName", S.bitsName);

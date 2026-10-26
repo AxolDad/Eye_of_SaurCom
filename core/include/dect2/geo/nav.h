@@ -239,7 +239,7 @@ inline bool parseGpx(const std::string& xml, Route& out, size_t maxPts = 4000) {
 }
 
 inline std::string gpxRoute(const Route& r) {
-    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"OnAir\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n<rte><name>" + gpxEscape(r.name) + "</name>\n";
+    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Eye of ZorCom\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n<rte><name>" + gpxEscape(r.name) + "</name>\n";
     char b[96];
     for (const LatLon& p : r.pts) { snprintf(b, sizeof b, "<rtept lat=\"%.7f\" lon=\"%.7f\"/>\n", p.lat, p.lon); o += b; }
     return o + "</rte>\n</gpx>\n";
@@ -281,7 +281,7 @@ inline std::string gpxTime(double utc) {
 }
 
 inline std::string gpxTrack(const TripLog& log, const std::string& name) {
-    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"OnAir\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n<trk><name>" + gpxEscape(name) + "</name><trkseg>\n";
+    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Eye of ZorCom\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n<trk><name>" + gpxEscape(name) + "</name><trkseg>\n";
     char b[160];
     for (const TripPoint& p : log.pts) {
         snprintf(b, sizeof b, "<trkpt lat=\"%.7f\" lon=\"%.7f\"><ele>%.1f</ele>", p.lat, p.lon, p.ele);

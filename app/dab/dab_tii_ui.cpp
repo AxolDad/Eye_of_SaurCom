@@ -1,14 +1,12 @@
 // DAB: the Map tab (the transmitters). The receiver names the transmitters of the network it hears by their TII codes (MainId / SubId, EN 300 401
 // clause 14.8); with a list of where each transmitter of an ensemble stands they go on the map, with the distance and bearing from the
-// antenna. The list comes from the crowd-sourced OnAir-channels repository (dab-tii/<country>.csv, downloaded and kept for offline use) and
-// from the user's own file in Eye of ZorCom's data folder (dab-transmitters.csv, the same columns; it wins where both name a transmitter):
+// antenna. The list is the user's own file in Eye of ZorCom's data folder (dab-transmitters.csv), with the positions the ensemble itself
+// broadcasts (FIG 0/22) where the file has none:
 //   eid,main,sub,lat,lon,site,power_kw,channel_mhz[,reports,first_seen,last_seen]      (eid in hex; a line starting with # is a comment)
-// TII codes are unique within an ensemble, not worldwide: a transmitter is found by (ensemble id, MainId, SubId). A transmitter that is heard but
-// not in the list can be submitted from here: the app fills in the ids, the user adds where it stands (the issue form of the repository).
+// TII codes are unique within an ensemble, not worldwide: a transmitter is found by (ensemble id, MainId, SubId).
 #include "dect2/common/thread_name.h"
 #include "app.h"
 #include "../adsb/adsb_map.h"
-#include "dect2/channels/channel_db.h"
 #include "dect2/engine/updater.h"
 #include "dect2/dab/dab_fig.h"
 #include <algorithm>
@@ -28,20 +26,15 @@ struct TxSite { double lat = 0, lon = 0, powerKw = 0, channelMhz = 0; std::strin
 
 struct Heard { int eid = 0, mainId = 0, subId = 0; std::string ens; double mhz = 0; float levelDb = 0; double seen = 0; };
 
-struct Download { std::atomic<int> state{0}; std::string country; };   // 0 working, 1 done, 2 failed
-
 struct State {
     bool loaded = false;
     std::map<uint64_t, TxSite> sites;   // key: eid << 16 | main << 8 | sub
     std::string ownFile, loadMsg;
-    char country[3] = {0, 0, 0};
-    std::shared_ptr<Download> dl;
-    std::string dlMsg;
     adsbmap::View map;
     bool fitted = false;
     double refLat = 0, refLon = 0;
     bool haveRef = false;
-    // the positions the ensemble itself broadcasts (FIG 0/22), refreshed every couple of seconds: key as in sites, own/shared lists win
+    // the positions the ensemble itself broadcasts (FIG 0/22), refreshed every couple of seconds: key as in sites, the own file wins
     std::map<uint64_t, TxSite> air;
     double airAt = -10, heardAt = -10;
     // every transmitter heard since the program started, over all channels (a band scan fills it): key as in sites
@@ -53,13 +46,6 @@ State S;
 uint64_t key(int eid, int mainId, int subId) { return ((uint64_t)(eid & 0xFFFF) << 16) | ((uint64_t)(mainId & 0xFF) << 8) | (uint64_t)(subId & 0xFF); }
 std::filesystem::path u8(const std::string& p) { return std::filesystem::path(reinterpret_cast<const char8_t*>(p.c_str())); }
 
-std::string repoUrl() {   // the raw files of the channel list (DECT2_CHANNELDB_URL for tests, as the Scan tab's shared data)
-    const char* e = getenv("DECT2_CHANNELDB_URL");
-    std::string b = e && *e ? e : "https://raw.githubusercontent.com/adswill/OnAir-channels/main";
-    while (!b.empty() && b.back() == '/') b.pop_back();
-    return b;
-}
-std::string sharedFile(const std::string& cc) { return plat::cacheDir() + "/dab-tii-" + cc + ".csv"; }
 
 std::vector<std::string> splitCsv(const std::string& line) {   // commas (or tabs: a TSV works too); a field in double quotes may hold commas
     std::vector<std::string> f;
@@ -98,7 +84,7 @@ int readList(const std::string& path, bool own, int& bad) {
         if (f.size() > 7) s.channelMhz = std::atof(f[7].c_str());
         s.own = own;
         if (e == f[0].c_str() || m < 0 || m > 69 || sb < 0 || sb > 23 || std::fabs(s.lat) > 90 || std::fabs(s.lon) > 180) { bad++; continue; }
-        S.sites[key((int)eid, m, sb)] = s;   // the own file is read last: it wins
+        S.sites[key((int)eid, m, sb)] = s;
         n++;
     }
     return n;
@@ -107,47 +93,12 @@ int readList(const std::string& path, bool own, int& bad) {
 void load() {
     S.loaded = true;
     S.sites.clear();
-    if (!S.country[0]) {   // the country of the shared channel list (the Scan tab), else none yet
-        const std::string c = plat::prefs().getS("dabTiiCountry", plat::prefs().getS("scanDbCountry", ""));
-        if (c.size() == 2) { S.country[0] = c[0]; S.country[1] = c[1]; }
-    }
-    int bad = 0, shared = -1;
-    if (S.country[0]) shared = readList(sharedFile(S.country), false, bad);
+    int bad = 0;
     S.ownFile = plat::dataDir() + "/dab-transmitters.csv";
     const int own = readList(S.ownFile, true, bad);
     char b[200];
-    snprintf(b, sizeof b, "%s%d transmitter(s)%s%s", shared >= 0 ? "shared list " : "", (int)S.sites.size(), own > 0 ? " (with your own file)" : "",
-             bad ? ", some lines not understood" : "");
-    S.loadMsg = (shared < 0 && own < 0) ? std::string("no transmitter list yet") : std::string(b);
-}
-
-// fetches dab-tii/<country>.csv from the repository into the cache, in the background (curl, as the updater and the map tiles)
-void startDownload() {
-    if (!S.country[0] || (S.dl && S.dl->state == 0)) return;
-    auto job = std::make_shared<Download>();
-    job->country = S.country;
-    S.dl = job;
-    S.dlMsg = "downloading the shared list...";
-    dect2::namedThread("onair-tii", [job] {
-        const std::string tmp = sharedFile(job->country) + ".part";
-        const bool ok = plat::fetchUrl(repoUrl() + "/dab-tii/" + job->country + ".csv", tmp, "OnAir/" ONAIR_VERSION);
-        std::error_code ec;
-        if (ok) std::filesystem::rename(u8(tmp), u8(sharedFile(job->country)), ec);
-        else std::filesystem::remove(u8(tmp), ec);
-        job->state = ok && !ec ? 1 : 2;
-    }).detach();
-}
-
-// the issue of the repository's submission form, filled in with what the receiver knows; the user adds the position and the site
-void submitTransmitter(int eid, int mainId, int subId, double mhz) {
-    char row[160];
-    if (mhz > 0) snprintf(row, sizeof row, "%04X,%d,%d,,,,,%.3f", eid & 0xFFFF, mainId, subId, mhz);
-    else snprintf(row, sizeof row, "%04X,%d,%d,,,,,", eid & 0xFFFF, mainId, subId);
-    const std::string cc = S.country[0] ? std::string(S.country) : std::string("XX");
-    const std::string body = "mode: dab-tii\ncountry: " + cc + "\n\n```csv\neid,main,sub,lat,lon,site,power_kw,channel_mhz\n" + row + "\n```\n";
-    const std::string title = "[submit] dab-tii " + cc;
-    dect2::openUrl("https://github.com/adswill/OnAir-channels/issues/new?template=submit.yml&title=" + dect2::chdb::urlEncode(title) +
-                   "&data=" + dect2::chdb::urlEncode(body));
+    snprintf(b, sizeof b, "%d transmitter(s) in your list%s", (int)S.sites.size(), bad ? ", some lines not understood" : "");
+    S.loadMsg = own < 0 ? std::string("no transmitter list yet: add your own file") : std::string(b);
 }
 
 // great-circle distance (km) and initial bearing (degrees from north)
@@ -211,21 +162,7 @@ static void exportHeard() {
 }
 
 void dabTransmittersTab(App& a) {
-    if (!S.loaded) {
-        load();
-        // the shared list: fetched when it is not here yet or older than a day (it changes as people submit)
-        if (S.country[0]) {
-            std::error_code ec;
-            const auto t = std::filesystem::last_write_time(u8(sharedFile(S.country)), ec);
-            if (ec || std::filesystem::file_time_type::clock::now() - t > std::chrono::hours(24)) startDownload();
-        }
-    }
-    if (S.dl && S.dl->state != 0) {   // a download ended
-        // a country nobody has submitted for yet has no file (404), which curl reports like no network: one message for both
-        S.dlMsg = S.dl->state == 1 ? "" : "no shared list for " + S.dl->country + " yet (or no network): submit the first transmitter below";
-        S.dl.reset();
-        load(); S.fitted = false;
-    }
+    if (!S.loaded) load();
     // the antenna position: the one the map modes share (set in the ADS-B tuner, or below)
     if (!S.haveRef) {
         S.refLat = plat::prefs().getD("adsbLat", 0); S.refLon = plat::prefs().getD("adsbLon", 0);
@@ -348,15 +285,8 @@ void dabTransmittersTab(App& a) {
             if (r.site) { ImGui::TextUnformatted(r.site->name.empty() ? "?" : r.site->name.c_str());
                 if (ImGui::IsItemHovered()) { if (r.site->own) ImGui::SetTooltip("from your own file"); else if (r.site->name == "broadcast position") ImGui::SetTooltip("%.4f, %.4f\nsent by the ensemble itself (FIG 0/22), no site name", r.site->lat, r.site->lon); } }
             else {
-                // the built-in test signal's transmitters are made up: they must not end up in the public list
-                const bool demo = a.devices[a.devIdx].kind == DeviceInfo::Synthetic || a.devices[a.devIdx].kind == DeviceInfo::File;
-                ImGui::BeginDisabled(demo);
-                if (ImGui::SmallButton("submit")) submitTransmitter(h.eid, h.mainId, h.subId, h.mhz);
-                ImGui::EndDisabled();
-                if (demo && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Only transmitters received with a radio can be submitted (the test signal's and recordings' are not real ones).");
-                else if (ImGui::IsItemHovered()) ImGui::SetTooltip("Position not known yet. Add it to the shared list: your browser opens GitHub with its ids filled in;\n"
-                                                              "add where it stands (latitude, longitude) and the site's name, then press Submit.\n"
-                                                              "GitHub shows your user name on the issue; the data becomes public domain (CC0).");
+                ImGui::TextDisabled("?");
+                if (ImGui::IsItemHovered()) ImGui::SetTooltip("Position not known yet: add it to your own list (%s).", S.ownFile.c_str());
             }
             ImGui::PopID();
             ImGui::TableNextColumn(); if (r.km >= 0) ImGui::Text("%.0f km", r.km); else ImGui::TextDisabled("-");
@@ -368,22 +298,9 @@ void dabTransmittersTab(App& a) {
 
     // ---- the list and the antenna position
     ImGui::Spacing();
-    if (!S.dlMsg.empty()) { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("%s", S.dlMsg.c_str()); ImGui::PopTextWrapPos(); }
     ImGui::TextDisabled("%s", S.loadMsg.c_str());
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("The shared list: github.com/adswill/OnAir-channels (dab-tii/<country>.csv), crowd-sourced.\n"
-                                                  "Your own additions: %s\n(columns eid,main,sub,lat,lon,site,power_kw,channel_mhz; eid in hex; # starts a comment)", S.ownFile.c_str());
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Your list: %s\n(columns eid,main,sub,lat,lon,site,power_kw,channel_mhz; eid in hex; # starts a comment)", S.ownFile.c_str());
     flowNext(10 * gUi);   // the row wraps in a narrow window
-    ImGui::AlignTextToFramePadding(); ImGui::TextDisabled("country"); ImGui::SameLine(0, 4 * gUi);
-    ImGui::SetNextItemWidth(ImGui::CalcTextSize("WWW").x + 2 * ImGui::GetStyle().FramePadding.x);
-    if (ImGui::InputText("##dabtiicc", S.country, sizeof S.country, ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_EnterReturnsTrue) && S.country[0] && S.country[1]) {
-        plat::prefs().setS("dabTiiCountry", S.country); load(); startDownload();
-    }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("The country of the shared transmitter list (ISO code, e.g. GB, DE, NO); Enter downloads it");
-    flowNext(6 * gUi);
-    ImGui::BeginDisabled(!S.country[0] || (S.dl && S.dl->state == 0));
-    if (ImGui::SmallButton("download")) startDownload();
-    ImGui::EndDisabled();
-    flowNext(6 * gUi);
     if (ImGui::SmallButton("reload")) { load(); S.fitted = false; }
     flowNext(6 * gUi);
     if (ImGui::SmallButton("open folder")) dect2::openUrl(plat::dataDir());
@@ -391,7 +308,7 @@ void dabTransmittersTab(App& a) {
     ImGui::BeginDisabled(S.heard.empty());
     if (ImGui::SmallButton("export heard")) exportHeard();
     ImGui::EndDisabled();
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Save every transmitter heard (all channels) as a CSV file in Eye of ZorCom's data folder, to share or to add to the list");
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Save every transmitter heard (all channels) as a CSV file in Eye of ZorCom's data folder, to add to your list");
     flowNext(6 * gUi);
     if (ImGui::SmallButton("clear heard")) S.heard.clear();
     flowEnd();

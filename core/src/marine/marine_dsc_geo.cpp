@@ -88,7 +88,7 @@ std::string dscKml(const std::vector<DscFix>& fixes, const ShipDb& db) {
 }
 
 std::string dscGpx(const std::vector<DscFix>& fixes, const ShipDb& db) {
-    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"OnAir\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n";
+    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Eye of ZorCom\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n";
     char b[96];
     for (const DscFix& f : fixes) {
         snprintf(b, sizeof b, "<wpt lat=\"%.6f\" lon=\"%.6f\">", f.lat, f.lon);

@@ -1763,7 +1763,7 @@ Hides tone-only pages and pages whose text could not be decoded.	トーンのみ
 hidden	非表示
 # LBJ (Chinese railway train warning)
 What LBJ carries	LBJが伝える内容
-LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nOnAir decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJは中国の列車接近警報で、約821.2375 MHzで送信されます。各機関車は1200 bit/sのPOCSAG数字ページを送ります。数秒ごとに列車番号・速度(km/h)・キロ程を含む短いメッセージと、機関車の形式と番号・路線を含む長いメッセージです。\n\nOnAir自身がページを復号します(受信のみ)。空欄の値は桁が壊れていたものです。灰色の行は誤りを訂正したものなので、同じ列車の次のメッセージと照合してください。
+LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of ZorCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJは中国の列車接近警報で、約821.2375 MHzで送信されます。各機関車は1200 bit/sのPOCSAG数字ページを送ります。数秒ごとに列車番号・速度(km/h)・キロ程を含む短いメッセージと、機関車の形式と番号・路線を含む長いメッセージです。\n\nEye of ZorCom自身がページを復号します(受信のみ)。空欄の値は桁が壊れていたものです。灰色の行は誤りを訂正したものなので、同じ列車の次のメッセージと照合してください。
 tune to about 821.2375 MHz and start the receiver	約821.2375 MHzに合わせて受信を開始してください
 FM, 1200 bit/s FSK, %.2f Msps	FM、1200 bit/s FSK、%.2f Msps
 %llu messages, %llu sync words, %llu blank, %llu failed checks	メッセージ%llu件、同期ワード%llu件、空%llu件、検査失敗%llu件
@@ -2211,7 +2211,7 @@ Kind	種類
 Map points	地図上の点
 Modes (in the mode list, group PLUGINS)	モード(モード一覧の PLUGINS グループ)
 Network: talk to other computers	ネットワーク: 他のコンピューターと通信
-No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .onairplugin file.	インストールされたプラグインはありません。「ファイルからインストール」を使うか、プラグインのフォルダーをプラグインフォルダーにコピーしてください。プラグインは .onairplugin ファイルです。
+No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .zorcomplugin file.	インストールされたプラグインはありません。「ファイルからインストール」を使うか、プラグインのフォルダーをプラグインフォルダーにコピーしてください。プラグインは .zorcomplugin ファイルです。
 Not installed	インストールできませんでした
 Open its folder	そのフォルダーを開く
 PLUGINS	プラグイン
@@ -3084,7 +3084,7 @@ Tone decoders	トーンデコーダー
 The test signal repeats every 40 s: CTCSS 123.0 Hz under speech-like noise, DCS D023N, DTMF 159#, a ZVEI1 call 12345, SELCAL AM-CP and a two-tone page.	テスト信号は40秒ごとに繰り返されます。音声に似た雑音の下のCTCSS 123.0 Hz、DCS D023N、DTMF 159#、ZVEI1呼び出し12345、SELCAL AM-CP、2トーン呼び出し。
 CTCSS, DCS, DTMF, selcall	CTCSS・DCS・DTMF・選択呼出
 # COSPAS-SARSAT 406 MHz
-A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nOnAir only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	406 MHz 遭難ビーコン(船のEPIRB、航空機のELT、個人が携行するPLB)は、約50秒ごとに約0.5秒のバーストを送信します。無変調の搬送波に続いて、400 bit/sで112または144ビットが送られます。メッセージには、ビーコン固有の15桁の16進ID、国、ビーコンの種類、多くの場合位置(短いメッセージでは15分単位、長いメッセージでは4秒単位に丸め)が含まれます。2つのBCHチェックがメッセージを保護し、最初のフィールドの最大3ビットの誤りが修復されます。\n\nOnAirは受信のみを行います。テストビーコンと自己テストのバーストには印が付きます。本物を受信したと思われる場合は、お住まいの国の救助調整センターに連絡してください。安全のためにこのプログラムに頼らないでください。
+A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of ZorCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	406 MHz 遭難ビーコン(船のEPIRB、航空機のELT、個人が携行するPLB)は、約50秒ごとに約0.5秒のバーストを送信します。無変調の搬送波に続いて、400 bit/sで112または144ビットが送られます。メッセージには、ビーコン固有の15桁の16進ID、国、ビーコンの種類、多くの場合位置(短いメッセージでは15分単位、長いメッセージでは4秒単位に丸め)が含まれます。2つのBCHチェックがメッセージを保護し、最初のフィールドの最大3ビットの誤りが修復されます。\n\nEye of ZorComは受信のみを行います。テストビーコンと自己テストのバーストには印が付きます。本物を受信したと思われる場合は、お住まいの国の救助調整センターに連絡してください。安全のためにこのプログラムに頼らないでください。
 EPIRB (boat)	EPIRB(船)
 ELT (aircraft)	ELT(航空機)
 PLB (person)	PLB(個人)

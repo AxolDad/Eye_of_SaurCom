@@ -183,7 +183,7 @@ void Transcriber::startWorkers() {
     std::lock_guard<std::mutex> lk(mu_);
     if (sync_ || !th_.empty()) return;
     stop_ = false;
-    for (int i = 0; i < cfg_.workers; i++) th_.emplace_back(dect2::namedThread("onair-asr", [this] { workerLoop(); }));
+    for (int i = 0; i < cfg_.workers; i++) th_.emplace_back(dect2::namedThread("zorcom-asr", [this] { workerLoop(); }));
 }
 
 void Transcriber::stopWorkers() {

@@ -1,0 +1,10 @@
+[package]
+name = "zorcom_dstar"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of ZorCom D-STAR frame layer: header, FEC, flags, slow data GPS text"
+
+[dependencies]
+zorcom_common = { path = "../zorcom_common" }

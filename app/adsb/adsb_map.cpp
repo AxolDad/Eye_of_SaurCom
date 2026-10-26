@@ -172,7 +172,7 @@ void run() {
             char url[128];
             snprintf(url, sizeof url, "https://tile.openstreetmap.org/%d/%d/%d.png", z, x, y);
             const std::string part = path + ".part";
-            if (!ec && plat::fetchUrl(url, part, std::string("OnAir/") + ONAIR_VERSION + " (ADS-B map)")) {
+            if (!ec && plat::fetchUrl(url, part, std::string("ZorCom/") + ZORCOM_VERSION + " (ADS-B map)")) {
                 fs::rename(fsPath(part), fsPath(path), ec);
                 ok = !ec && exists(path);
             }
@@ -188,7 +188,7 @@ void run() {
 void start() {
     if (started) return;
     started = true;
-    worker = dect2::namedThread("onair-admap", run);
+    worker = dect2::namedThread("zorcom-admap", run);
 }
 
 // a long session at street level would fill the graphics memory: past this many, the pictures not on the screen go, the oldest first
@@ -487,7 +487,7 @@ void dlStart(std::vector<dect2::TileKey> list) {
     dlJoin();
     dlStop = false; dlDone = 0; dlFailed = 0; dlTotal = (int)list.size(); dlRunning = true;
     const std::string root = kept;
-    dlThread = dect2::namedThread("onair-adsbdl", [list = std::move(list), root] {
+    dlThread = dect2::namedThread("zorcom-adsbdl", [list = std::move(list), root] {
         int consecutive = 0, fetched = 0;
         for (const dect2::TileKey& t : list) {
             if (dlStop) break;
@@ -499,7 +499,7 @@ void dlStart(std::vector<dect2::TileKey> list) {
             snprintf(url, sizeof url, "https://tile.openstreetmap.org/%d/%d/%d.png", t.z, t.x, t.y);
             const std::string part = path + ".part";
             bool ok = false;
-            if (!ec && plat::fetchUrl(url, part, std::string("OnAir/") + ONAIR_VERSION + " (offline area)")) {
+            if (!ec && plat::fetchUrl(url, part, std::string("ZorCom/") + ZORCOM_VERSION + " (offline area)")) {
                 fs::rename(fsPath(part), fsPath(path), ec);
                 ok = !ec && exists(path);
             }
@@ -737,7 +737,7 @@ void fullCorner(ImVec2 p0, ImVec2 size) {
     const float w = ImGui::CalcTextSize(gFullOn ? tr("Exit full screen") : tr("Full screen")).x + 2 * ImGui::GetStyle().FramePadding.x;
     ImGui::SetCursorScreenPos(ImVec2(p0.x + size.x - w - 8 * gUi, p0.y + 8 * gUi));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.06f, 0.07f, 0.08f, 0.85f));
-    static bool autoFull = std::getenv("ONAIR_MAP_FULL") != nullptr;   // dev: see tileControls()
+    static bool autoFull = std::getenv("ZORCOM_MAP_FULL") != nullptr;   // dev: see tileControls()
     const bool autoHit = autoFull && !gFullOn && (autoFull = false, true);
     if (fullButton(gFullOn, "screen") || autoHit) fullToggle();
     ImGui::PopStyleColor();
@@ -766,7 +766,7 @@ void tileControls(const char* privacy, bool fullBtn) {
     if (canFull) {
         ImGui::SameLine(0, 6 * gUi);
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.06f, 0.07f, 0.08f, 0.85f));
-        static bool autoFull = std::getenv("ONAIR_MAP_FULL") != nullptr;   // dev: screenshots of the full-screen view (--shot) enter it by themselves
+        static bool autoFull = std::getenv("ZORCOM_MAP_FULL") != nullptr;   // dev: screenshots of the full-screen view (--shot) enter it by themselves
         const bool autoHit = autoFull && !gFullOn && (autoFull = false, true);
         if (fullButton(gFullOn, "screen") || autoHit) {
             fullToggle();
@@ -791,7 +791,7 @@ FullScope::~FullScope() { if (!gFullOn) gFullCtx = {}; }
 
 bool fullDraw(const void* owner, int family, ImVec2 disp) {
     if (!gFullOn || gFullOwner != owner) return false;
-    if (!gFullFamilyKnown) { gFullFamily = family; gFullFamilyKnown = true; if (std::getenv("ONAIR_MAP_FULL")) std::fprintf(stderr, "[mapfull] entered, family %d\n", family); }
+    if (!gFullFamilyKnown) { gFullFamily = family; gFullFamilyKnown = true; if (std::getenv("ZORCOM_MAP_FULL")) std::fprintf(stderr, "[mapfull] entered, family %d\n", family); }
     if (family != gFullFamily || !gFullBody) { gFullOn = false; return false; }   // another mode was picked: the screen is gone
     if (!ImGui::GetIO().WantTextInput && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId) && ImGui::IsKeyPressed(ImGuiKey_Escape, false)) { gFullOn = false; return false; }
     ImGui::SetNextWindowPos(ImVec2(0, 0));

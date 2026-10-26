@@ -46,7 +46,7 @@ std::vector<uint8_t> nrziEncode(const std::vector<uint8_t>& bits, uint8_t startL
 // G3RUH scrambler x^17 + x^12 + 1 for 9600 baud (state: the last 17 output bits)
 std::vector<uint8_t> scramble(const std::vector<uint8_t>& bits, uint32_t& state);
 
-// State of the HDLC receiver: a plain struct (same layout as the Rust one in rust/onair_ax25/src/hdlc.rs) so that both implementations share it.
+// State of the HDLC receiver: a plain struct (same layout as the Rust one in rust/zorcom_ax25/src/hdlc.rs) so that both implementations share it.
 struct HdlcState {
     int32_t prev = 0;
     uint8_t pat = 0, acc = 0;

@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #endif
 
-namespace onair_server {
+namespace zorcom_server {
 
 static std::string trim(const std::string& s) {
     size_t a = 0, b = s.size();
@@ -121,15 +121,15 @@ void ConfigFile::setNum(const std::string& key, double v) {
 }
 
 std::string defaultConfigPath() {
-    if (const char* e = getenv("ONAIR_SERVER_CONFIG")) if (*e) return e;
+    if (const char* e = getenv("ZORCOM_SERVER_CONFIG")) if (*e) return e;
 #ifdef _WIN32
-    if (const char* a = getenv("APPDATA")) return std::string(a) + "\\OnAir\\server.conf";
+    if (const char* a = getenv("APPDATA")) return std::string(a) + "\\ZorCom\\server.conf";
     return "server.conf";
 #else
-    if (const char* x = getenv("XDG_CONFIG_HOME")) if (*x) return std::string(x) + "/onair/server.conf";
-    if (const char* h = getenv("HOME")) return std::string(h) + "/.config/onair/server.conf";
-    return "/etc/onair/server.conf";
+    if (const char* x = getenv("XDG_CONFIG_HOME")) if (*x) return std::string(x) + "/zorcom/server.conf";
+    if (const char* h = getenv("HOME")) return std::string(h) + "/.config/zorcom/server.conf";
+    return "/etc/zorcom/server.conf";
 #endif
 }
 
-} // namespace onair_server
+} // namespace zorcom_server

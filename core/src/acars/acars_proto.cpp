@@ -4,7 +4,7 @@
 
 namespace dect2 {
 
-// The transmitter side of the test signal. The block layer (CRC, repair, parsing, label and text decoding) is Rust: acars_proto_rs.cpp over rust/onair_acars.
+// The transmitter side of the test signal. The block layer (CRC, repair, parsing, label and text decoding) is Rust: acars_proto_rs.cpp over rust/zorcom_acars.
 std::vector<uint8_t> acarsBuildFrame(const AcarsBlockSpec& s, int preKeyChars) {
     std::vector<uint8_t> out;
     std::vector<uint8_t> blk;                              // what the check sequence covers

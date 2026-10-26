@@ -12,7 +12,7 @@
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD="${1:-$ROOT/build-ui}"
-OUT="${2:-${TMPDIR:-/tmp}/onair-layout-$(date +%Y%m%d-%H%M%S)}"
+OUT="${2:-${TMPDIR:-/tmp}/zorcom-layout-$(date +%Y%m%d-%H%M%S)}"
 JOBS="${JOBS:-4}"
 APP="$BUILD/dect2"
 [ -x "$APP" ] || APP="$BUILD/dect2.exe"
@@ -157,7 +157,7 @@ TOTAL=$(wc -l < "$JOBLIST" | tr -d ' ')
 echo "layout check: $TOTAL runs, $JOBS at a time, reports in $OUT"
 
 worker() {   # worker n: every JOBS-th line of the job list, with its own copy of the app (its own settings)
-    local n="$1" name="onair_layout_$1" i=0
+    local n="$1" name="zorcom_layout_$1" i=0
     cp "$APP" "$OUT/bin/$name"
     while IFS=$'\t' read -r size id args tab; do
         i=$((i + 1))

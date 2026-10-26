@@ -47,8 +47,6 @@ inline const Step* steps(int* n) {
          N_("Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.")},
         {"audio", N_("Audio"),
          N_("Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.")},
-        {"server", N_("Server and support"),
-         N_("Server sends decoded positions to the public map. Support helps fund development.")},
         {"view", N_("Interface and windows"),
          N_("View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.")},
         {"help", N_("Help"),

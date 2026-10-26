@@ -1,4 +1,4 @@
-# Threading in OnAir (0.2.7)
+# Threading in Eye of ZorCom (0.2.7)
 
 Survey of how threads are used, the shared framework (`core/include/dect2/common/threadpool.h`, `queue.h`, `stage_pipeline.h`), where it is applied and where it is deliberately not. Rule for everything here: **the output is bit-identical for any number of threads**; `DECT2_THREADS=0` runs every shared piece on the calling thread (debugging, determinism checks), `DECT2_THREADS=N` fixes the pool size, unset = hardware_concurrency - 1 (1 to 8).
 
@@ -7,10 +7,10 @@ Survey of how threads are used, the shared framework (`core/include/dect2/common
 | Thread | Created by | Produces / consumes | When it is behind |
 |---|---|---|---|
 | source / reader (one per radio: `source_*.cpp`, `hackrf_usb.cpp`, `native_common.h`) | the source on start | USB / socket / file reader writes cf32 into the `IqRing` | the ring counts `dropped`; the reader never waits for the analysis thread |
-| `IqRing` (`common/ring.h`; the C++ one by default, `-DDECT2_RUST_RING=ON` swaps in the Rust ring `rust/onair_ring`, both stay and `tests/common/test_ring_rs.cpp` compares them) | - | lock-free SPSC ring of cf32: the reader writes, the analysis thread reads; sequence-locked "last write" stamp for the loss detector | drops the new samples |
-| analysis thread (`Engine::analysisLoop`, `onair-analysis`) | `Engine::start` | ring -> active receiver `feed()`; Realtime QoS. Contract (`engine/engine.h`): it never waits for the interface, results are polled | the ring drops |
-| spectrum thread (`Engine::spectrumLoop`, `onair-spectrum`) | `Engine::start` | gets a copy of each block from `feedSpectrum` (queue of 6, extra blocks skipped), runs the analyser | skips blocks; **never slows the decoder** (already off the decode path) |
-| secondary receivers rx2..rx4 (`Engine::secondaryLoop`, `onair-rxN`) | `Engine::startSecondary` | own ring, own shifter + resampler, own receiver; Background QoS | own ring drops |
+| `IqRing` (`common/ring.h`; the C++ one by default, `-DDECT2_RUST_RING=ON` swaps in the Rust ring `rust/zorcom_ring`, both stay and `tests/common/test_ring_rs.cpp` compares them) | - | lock-free SPSC ring of cf32: the reader writes, the analysis thread reads; sequence-locked "last write" stamp for the loss detector | drops the new samples |
+| analysis thread (`Engine::analysisLoop`, `zorcom-analysis`) | `Engine::start` | ring -> active receiver `feed()`; Realtime QoS. Contract (`engine/engine.h`): it never waits for the interface, results are polled | the ring drops |
+| spectrum thread (`Engine::spectrumLoop`, `zorcom-spectrum`) | `Engine::start` | gets a copy of each block from `feedSpectrum` (queue of 6, extra blocks skipped), runs the analyser | skips blocks; **never slows the decoder** (already off the decode path) |
+| secondary receivers rx2..rx4 (`Engine::secondaryLoop`, `zorcom-rxN`) | `Engine::startSecondary` | own ring, own shifter + resampler, own receiver; Background QoS | own ring drops |
 | results / telemetry (`Engine::pollMode`, `pollMode(int a, RxTelemetry&, seqs[])`) | the UI / remote API thread | copies the receiver's telemetry when its `seq` moved | not a thread of its own: runs on the caller, takes the receiver's own mutex briefly |
 | per-mode decode workers (wisun, tetra, sonde, nr, nbiot, js8, iridium, gsmr, hfdig/FTx, dvbs symbol thread) | the receiver's constructor | `Impl::run()` consumes blocks the demod pushes (mutex + cv queue of the mode) | each mode has its own drop / wait rule |
 | DVB-T2 (`t2/t2rx_impl.h` stage thread, `t2/t2plp.cpp` `PlpDecoder` + LDPC) | `T2Receiver` | frame stage thread; `PlpDecoder` loop takes jobs (max 3 queued, drops frames beyond), LDPC codewords of a frame spread over threads (**now the shared background pool**, before: threads created per frame), optional GPU (`gpu_ldpc.h`) | `PlpDecoder::submit` drops the frame and counts it |
@@ -21,7 +21,7 @@ Survey of how threads are used, the shared framework (`core/include/dect2/common
 | network (`net/remote_api.cpp` accept + one thread per connection, `share_server.cpp`, `feeds.cpp`, `pskreporter.cpp`, `wsprnet.cpp`, `nettuner.cpp`) | on enable | I/O bound, not on the sample path | their own timeouts |
 | scanner, updater, sig_ident, multitv (`engine/multitv.cpp`: a channelizer + one engine per TV channel) | on use | background jobs | - |
 
-Thread names (debuggers, Activity Monitor, perf, TSAN reports): `onair-analysis`, `onair-spectrum`, `onair-rx2..4`, `onair-w0..` (shared pool), `onair-bg0..` (background pool), stage threads are named by the owner.
+Thread names (debuggers, Activity Monitor, perf, TSAN reports): `zorcom-analysis`, `zorcom-spectrum`, `zorcom-rx2..4`, `zorcom-w0..` (shared pool), `zorcom-bg0..` (background pool), stage threads are named by the owner.
 
 ## 2. The framework
 
@@ -166,7 +166,7 @@ The Mac was under heavy load from other jobs (load average 16-36 on 10 cores) du
 | WideBank (DMR, P25, NXDN, D-STAR, M17, dPMR, pager, APRS banks): the live carriers' Channelizer + receiver run in `parallelFor`; the receivers' log lines are captured per carrier and replayed in carrier order | 5 DMR carriers, 6 s of 2.4 Msps: 0.80 s wall, 0.79 s CPU | 0.32 s wall (2.4x), 0.95 s CPU (+20%: wake-ups, cold caches) | carriers table, merged call log and log lines identical (`test_dmr_wide_threads`); `dmr_wide`, `nxdn_wide`, `pager_wide`, `packet_wide` unchanged |
 | HFDL: the in-band channels (filter chain, search, burst decoder) in parallel; the hits for the shared lists (`serial`, messages, aircraft, stations, counters, log) are held per channel and applied in channel order after the join; the three lazy tables (`hfdlPreambleRef`, interleaver, Viterbi table) and the coarse reference are now thread-safe once-initialised | `bench_modes hfdl` 2 Msps: cost 0.286, wall/signal 0.27 | cost 0.360, wall/signal 0.10 (2.7x faster, +26% CPU) | 32 messages with order, serials, times, counters and channel table identical (`test_hfdl_threads`); `hfdl_rx` 175 failures before and after (known, same), `hfdl_engine` same output before and after |
 | DVB-T2 LDPC: the codewords of a frame on `ThreadPool::background()` instead of threads created per frame | bench t2: cost 0.300, 5 items | cost 0.284, 5 items | same |
-| Thread names on the analysis, spectrum, secondary threads | - | `onair-analysis`, `onair-spectrum`, `onair-rxN` | - |
+| Thread names on the analysis, spectrum, secondary threads | - | `zorcom-analysis`, `zorcom-spectrum`, `zorcom-rxN` | - |
 | Spectrum off the decode path, secondary receivers on their own threads | already the case (section 1), no change | | |
 
 ## 5. Left single-threaded, and why

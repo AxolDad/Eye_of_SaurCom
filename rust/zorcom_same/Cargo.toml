@@ -1,0 +1,10 @@
+[package]
+name = "zorcom_same"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of ZorCom SAME / EAS: header parser, tables, location text, issue/purge time, county CSV reader"
+
+[dependencies]
+zorcom_common = { path = "../zorcom_common" }

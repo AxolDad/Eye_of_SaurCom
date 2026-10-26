@@ -190,7 +190,7 @@ void Engine::setResultsDir(const std::string& dir) {
     }
     if (dir.empty()) return;
     loadResults(dir);
-    resTh_ = dect2::namedThread("onair-results", [this, dir] {
+    resTh_ = dect2::namedThread("zorcom-results", [this, dir] {
         std::unique_lock<std::mutex> lk(resMu_);
         while (!resStop_) {
             resCv_.wait_for(lk, std::chrono::seconds(30), [this] { return resStop_; });

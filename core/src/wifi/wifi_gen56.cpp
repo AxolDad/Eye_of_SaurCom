@@ -20,24 +20,24 @@ std::vector<WifiGenFrame> wifiTestSchedule56(int band, int channel) {
     const int wide = std::max(20, std::min(80, band == Band6 ? 80 : 80));
     ApSpec a;   // a modern AP: HE (and EHT on 6 GHz), 80 MHz, WPA3 / OWE on 6 GHz
     mac(a, 0x24, 0xA4, 0x3C, 0x50, 0x00, 0x01);
-    a.band = band; a.channel = channel; a.ssid = "OnAir-5G"; a.security = Wpa2Wpa3; a.he = true; a.ht = band == Band5; a.vht = band == Band5; a.eht = band == Band6;
+    a.band = band; a.channel = channel; a.ssid = "ZorCom-5G"; a.security = Wpa2Wpa3; a.he = true; a.ht = band == Band5; a.vht = band == Band5; a.eht = band == Band6;
     a.width = blockCentreChannel(band, channel, wide) ? wide : 20; a.streams = 2; a.bssColor = 17; a.twt = true; a.country = "DE I"; a.powerConstraint = 3;
     a.tsf = 5000000; a.seq = 300; a.mdid = 0x1234; a.he6Reg = 0;
-    if (band == Band6) { a.ssid = "OnAir-6E"; a.security = Wpa3; a.he6Dup = true; mac(a, 0x24, 0xA4, 0x3C, 0x60, 0x00, 0x01); }
+    if (band == Band6) { a.ssid = "ZorCom-6E"; a.security = Wpa3; a.he6Dup = true; mac(a, 0x24, 0xA4, 0x3C, 0x60, 0x00, 0x01); }
     ApSpec b;   // an older AP: 802.11n only (5 GHz), or an HE AP with OWE (6 GHz)
     mac(b, 0x00, 0x04, 0x0E, 0x77, 0x88, 0x99);
-    b.band = band; b.channel = channel; b.ssid = band == Band5 ? "OnAir-Old" : "OnAir-6E-Open"; b.security = band == Band5 ? Wpa2 : Owe; b.ht = band == Band5; b.he = band == Band6;
+    b.band = band; b.channel = channel; b.ssid = band == Band5 ? "ZorCom-Old" : "ZorCom-6E-Open"; b.security = band == Band5 ? Wpa2 : Owe; b.ht = band == Band5; b.he = band == Band6;
     b.width = 20; b.streams = band == Band5 ? 3 : 1; b.tsf = 777; b.seq = 40; b.interval = 100; b.bssColor = band == Band6 ? 33 : -1;
     ApSpec c;   // a Wi-Fi 5 AP (5 GHz) or a hidden HE AP (6 GHz)
     mac(c, 0xFC, 0xEC, 0xDA, 0x12, 0x34, 0x56);
-    c.band = band; c.channel = channel; c.ssid = band == Band5 ? "OnAir-ac" : "hidden6"; c.hidden = band == Band6; c.security = band == Band5 ? Wpa2 : Wpa3;
+    c.band = band; c.channel = channel; c.ssid = band == Band5 ? "ZorCom-ac" : "hidden6"; c.hidden = band == Band6; c.security = band == Band5 ? Wpa2 : Wpa3;
     c.ht = band == Band5; c.vht = band == Band5; c.he = band == Band6; c.width = blockCentreChannel(band, channel, 40) ? 40 : 20; c.streams = 4; c.tsf = 31337; c.seq = 9;
     if (band == Band5) {   // a co-located 6 GHz AP announced in the Reduced Neighbor Report
         Neighbor n;
         n.opClass = 131; n.channel = 5; n.hasBssid = true; n.hasShortSsid = true; n.coLocated = true; n.unsolicitedProbe = true; n.sameSsid = true; n.memberOfEss24or5 = false;
         const uint8_t m[6] = {0x24, 0xA4, 0x3C, 0x60, 0x00, 0x01};
         memcpy(n.bssid, m, 6);
-        n.shortSsid = shortSsid("OnAir-6E");
+        n.shortSsid = shortSsid("ZorCom-6E");
         a.rnr.push_back(n);
     }
     add(makeBeacon(a), 0.0008, 0, 1.0);

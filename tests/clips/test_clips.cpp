@@ -213,8 +213,8 @@ int main(int argc, char** argv) {
         CHECK(cp.w == 1024 && cp.h == c.spectro.h + 64);
         const auto cpng = clips::encodePng(cp.rgba.data(), cp.w, cp.h);
         CHECK(cpng.size() < 8u * 1000 * 1000);
-        CHECK(clips::fileStem(c.meta) == "onair_ads-b-b-x-b_1090MHz_20251009-" + clips::fileStem(c.meta).substr(clips::fileStem(c.meta).size() - 6) || true);
-        CHECK(clips::fileStem(c.meta).rfind("onair_", 0) == 0 && clips::fileStem(c.meta).find(' ') == std::string::npos && clips::fileStem(c.meta).find('/') == std::string::npos);
+        CHECK(clips::fileStem(c.meta) == "zorcom_ads-b-b-x-b_1090MHz_20251009-" + clips::fileStem(c.meta).substr(clips::fileStem(c.meta).size() - 6) || true);
+        CHECK(clips::fileStem(c.meta).rfind("zorcom_", 0) == 0 && clips::fileStem(c.meta).find(' ') == std::string::npos && clips::fileStem(c.meta).find('/') == std::string::npos);
         CHECK(clips::freqText(93.9e6) == "93.9 MHz" && clips::freqText(145800) == "145.8 kHz" && clips::freqText(1296e6) == "1296 MHz" && clips::freqText(10368e6) == "10.368 GHz");
     }
     // ---- a sample clip from a synthetic signal

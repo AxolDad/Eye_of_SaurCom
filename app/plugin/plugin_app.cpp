@@ -102,22 +102,22 @@ void init(App& a) {
     dp::ManagerConfig c;
     c.pluginsDir = plat::dataDir() + "/plugins";
     const std::string ed = exeDir();
-    for (const char* rel : {"/plugins", "/../Resources/plugins", "/../lib/onair/plugins", "/../plugins"}) {
+    for (const char* rel : {"/plugins", "/../Resources/plugins", "/../lib/zorcom/plugins", "/../plugins"}) {
         std::error_code ec;
         if (fs::is_directory(ed + rel, ec)) { c.bundledDir = (fs::path(ed + rel)).lexically_normal().string(); break; }
     }
 #if defined(_WIN32)
-    const char* hostName = "onair-plugin-host.exe";
+    const char* hostName = "zorcom-plugin-host.exe";
 #else
-    const char* hostName = "onair-plugin-host";
+    const char* hostName = "zorcom-plugin-host";
 #endif
-    for (const char* rel : {"/", "/../Resources/", "/../lib/onair/"}) {
+    for (const char* rel : {"/", "/../Resources/", "/../lib/zorcom/"}) {
         std::error_code ec;
         const fs::path h = fs::path(ed + rel + hostName).lexically_normal();
         if (fs::exists(h, ec)) { c.hostExe = h.string(); break; }
     }
     P.hostAvail = !c.hostExe.empty();
-    c.hostVersion = ONAIR_VERSION;
+    c.hostVersion = ZORCOM_VERSION;
     P.mgr = std::make_unique<dp::Manager>(c);
     P.mgr->scan();
     P.mgr->beginSession();
@@ -337,14 +337,14 @@ void managerPanel(App& a) {
     ImGui::SameLine();
     if (ImGui::Button(trw("Refresh"))) { P.mgr->scan(); registerModes(); }
     ImGui::SameLine();
-    if (ImGui::Button(trw("Community plugins"))) openPath("https://github.com/adswill/OnAir/wiki/Plugins");
+    if (ImGui::Button(trw("Community plugins"))) openPath("https://github.com/AxolDad/OnAir-SDR-Suite/tree/main/sdk");
     ImGui::SameLine();
     bool sm = plat::prefs().getB("pluginsSafeMode", false);
     if (ImGui::Checkbox(trw("Safe mode (no plugins)"), &sm)) { plat::prefs().setB("pluginsSafeMode", sm); plat::prefs().flush(); if (sm) P.mgr->forceSafeMode(true); else P.mgr->leaveSafeMode(); }
     if (!P.installMsg.empty()) ImGui::TextDisabled("%s", P.installMsg.c_str());
     ImGui::Separator();
     auto es = P.mgr->entries();
-    if (es.empty()) ImGui::TextWrapped("%s", tr("No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .onairplugin file."));
+    if (es.empty()) ImGui::TextWrapped("%s", tr("No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .zorcomplugin file."));
     ImGui::BeginChild("##pl", ImVec2(250 * gUi, 0), true);
     for (const auto& e : es) {
         std::string label = e.m.name + "  " + e.m.version + (e.bundled ? "  (example)" : "") + "##" + e.m.id;

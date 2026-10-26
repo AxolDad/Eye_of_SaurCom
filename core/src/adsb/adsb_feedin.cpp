@@ -253,7 +253,7 @@ void AdsbFeedIn::setSources(const std::vector<std::string>& specs, bool allowNon
     for (auto& o : old) if (o->th.joinable()) o->th.join();
     for (size_t i = 0; i < next.size(); i++) {
         Impl::Src* s = next[i].get();
-        if (s->error.empty()) s->th = dect2::namedThread("onair-adsbin", [this, s, i] { p_->run(s, (int)i + 1); });
+        if (s->error.empty()) s->th = dect2::namedThread("zorcom-adsbin", [this, s, i] { p_->run(s, (int)i + 1); });
     }
     std::lock_guard<std::mutex> lk(p_->mu);
     p_->src = std::move(next);

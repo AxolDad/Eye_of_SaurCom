@@ -1,4 +1,4 @@
-// ANT frame layer under mutation: libFuzzer entry point (-DONAIR_LIBFUZZER) or a deterministic seeded mutation run (ONAIR_FUZZ_ITERS, default 200000).
+// ANT frame layer under mutation: libFuzzer entry point (-DZORCOM_LIBFUZZER) or a deterministic seeded mutation run (ZORCOM_FUZZ_ITERS, default 200000).
 #include "dect2/ant/ant_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -26,11 +26,11 @@ static void exercise(const uint8_t* d, size_t n) {
     sink += decodePayload(n ? d[0] : 0, pl).text.size() + hex(d, n).size();
 }
 
-#ifdef ONAIR_LIBFUZZER
+#ifdef ZORCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { exercise(d, n); return 0; }
 #else
 int main() {
-    const char* e = getenv("ONAIR_FUZZ_ITERS");
+    const char* e = getenv("ZORCOM_FUZZ_ITERS");
     const long iters = e ? atol(e) : 200000;
     std::mt19937 g(777);
     std::vector<std::vector<uint8_t>> seeds;

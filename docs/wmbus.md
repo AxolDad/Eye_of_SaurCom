@@ -31,12 +31,12 @@ EN 13757 CRC-16 (polynomial 0x3D65, inverted result). A frame with a failed CRC 
 ## Encrypted meters
 
 A frame whose configuration word has an encryption mode other than 0 (or an extended link layer frame with encryption) is listed as **encrypted payload**. The link layer
-fields (manufacturer, ID, type) are in the clear and are shown; the payload is never decoded and OnAir has no key input.
+fields (manufacturer, ID, type) are in the clear and are shown; the payload is never decoded and Eye of ZorCom has no key input.
 
 ## Not verified
 
 No real meter was available. The rates, sync words and Manchester polarity of S1, R2 and N1 are from the standard as remembered and checked only against the
-OnAir test signal (which is written from the same description); the R2 and N1 details in particular need a real capture. Real captures of T1 and C1
+Eye of ZorCom test signal (which is written from the same description); the R2 and N1 details in particular need a real capture. Real captures of T1 and C1
 are the most useful check. Mode T2 (other to meter, 32.768 kchip/s) and the 433 MHz mode are not received.
 
 ## Test signal

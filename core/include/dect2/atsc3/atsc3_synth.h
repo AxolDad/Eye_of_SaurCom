@@ -1,5 +1,5 @@
 // ATSC 3.0 test signal: the generator the synthetic source plays, so that the ATSC 3.0 receiver can be tried without a radio or a recording.
-// Nothing is transmitted. One service ("ONAIR", 7.1) is made from nothing but code: a looping test card with a 1 kHz (left) and 3 kHz (right) tone,
+// Nothing is transmitted. One service ("ZORCOM", 7.1) is made from nothing but code: a looping test card with a 1 kHz (left) and 3 kHz (right) tone,
 // encoded in memory with libav (HEVC when the linked FFmpeg has an HEVC encoder, else H.264, else MPEG-2 video; AAC audio) and cut into fragmented MP4,
 // one fragment per second. The fragments go round and round through the transmitter chain of this project: ROUTE (S-TSID, MPD and the init and
 // media segments of both components) in UDP/IP, LLS (the service list table), ALP, baseband packets, BICM (BCH, LDPC, interleavers, constellation),

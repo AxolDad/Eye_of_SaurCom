@@ -227,7 +227,7 @@ std::string toKml(const Table& t) {
 }
 
 std::string toGpx(const Table& t) {
-    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"OnAir\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n";
+    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Eye of ZorCom\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n";
     for (const Pt& p : points(t)) {
         o += "<wpt lat=\"" + p.lat + "\" lon=\"" + p.lon + "\">";
         if (!p.ele.empty()) o += "<ele>" + p.ele + "</ele>";

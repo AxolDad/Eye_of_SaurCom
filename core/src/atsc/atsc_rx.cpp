@@ -447,7 +447,7 @@ struct Core {
         pfIm.resize(nOut);
         auto filter = [&](size_t k0, size_t k1) { pfbBlock(taps.data(), J, NPH, inRe.data(), inIm.data(), (int64_t)inBase, pos, step, k0, k1, pfRe.data(), pfIm.data()); };
         if (splitA && nOut >= 4096) {   // split across two threads
-            std::thread helper([&] { dect2::setThreadName("onair-atsc-pf"); setThreadPriority(ThreadPriority::Realtime); filter(nOut / 2, nOut); });
+            std::thread helper([&] { dect2::setThreadName("zorcom-atsc-pf"); setThreadPriority(ThreadPriority::Realtime); filter(nOut / 2, nOut); });
             filter(0, nOut / 2);
             helper.join();
         } else filter(0, nOut);
@@ -791,7 +791,7 @@ struct Core {
     DecOut decOut;
     std::mutex dmu;
     ~Core() { stopWorker(); }
-    void startWorker() { if (worker.joinable()) return; stopW = false; worker = dect2::namedThread("onair-atsc", [this] { workerLoop(); }); }
+    void startWorker() { if (worker.joinable()) return; stopW = false; worker = dect2::namedThread("zorcom-atsc", [this] { workerLoop(); }); }
     void stopWorker() {
         { std::lock_guard<std::mutex> lk(jm); stopW = true; }
         jcv.notify_all();

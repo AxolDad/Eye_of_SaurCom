@@ -1,6 +1,6 @@
 // The shared worker pool and the thread helpers of the receivers (see docs/threading.md).
 //
-//   ThreadPool::shared()   one pool for the whole process, created on first use, N = hardware_concurrency - 1 (1..8) workers, named "onair-wN"
+//   ThreadPool::shared()   one pool for the whole process, created on first use, N = hardware_concurrency - 1 (1..8) workers, named "zorcom-wN"
 //   parallelFor(n, fn)     runs fn(0..n-1) on the pool; the calling thread helps and returns when all n are done (safe from inside a pool task)
 //   submit(fn) -> future   runs fn on a worker
 //
@@ -33,7 +33,7 @@ inline bool threadingEnabled() { return configuredThreads() != 0; }
 class ThreadPool {
 public:
     // workers: number of threads (0 = every call runs inline); prefix: thread name; background: lowest QoS (bulk work that must not disturb the receivers)
-    explicit ThreadPool(int workers, const char* prefix = "onair-w", bool background = false);
+    explicit ThreadPool(int workers, const char* prefix = "zorcom-w", bool background = false);
     ~ThreadPool();   // finishes the queued tasks, joins every worker
     ThreadPool(const ThreadPool&) = delete;
     ThreadPool& operator=(const ThreadPool&) = delete;

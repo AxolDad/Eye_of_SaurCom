@@ -34,7 +34,7 @@ public:
         f_ = fopen(path.c_str(), "rb");
         if (!f_) return fail(err, "cannot open the file");
         uint8_t h[100];
-        // the 100 byte header: core/src/files/files_proto.cpp (C++) or the Rust crate onair_files
+        // the 100 byte header: core/src/files/files_proto.cpp (C++) or the Rust crate zorcom_files
         if (fread(h, 1, 100, f_) != 100) return closeFail(err, "not an SQLite file");
         const filesp::DbHeader dh = filesp::dbHeader(h, 100);
         if (dh.status == 1) return closeFail(err, "not an SQLite file");

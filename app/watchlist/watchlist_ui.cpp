@@ -57,7 +57,7 @@ void worker() {
             r = std::move(gQ.front());
             gQ.pop_front();
         }
-        const bool ok = plat::postRequest(r.url, r.body, r.contentType, r.headers, std::string("OnAir/") + ONAIR_VERSION + " (watchlist)");
+        const bool ok = plat::postRequest(r.url, r.body, r.contentType, r.headers, std::string("ZorCom/") + ZORCOM_VERSION + " (watchlist)");
         std::lock_guard<std::mutex> lk(gMu);
         gStatus = r.label + (ok ? ": sent" : ": failed");
     }
@@ -76,7 +76,7 @@ public:
     void post(const wl::Request& r) override {
         {
             std::lock_guard<std::mutex> lk(gMu);
-            if (!gTh.joinable()) gTh = dect2::namedThread("onair-watch", worker);
+            if (!gTh.joinable()) gTh = dect2::namedThread("zorcom-watch", worker);
             if (gQ.size() >= 50) return;
             gQ.push_back(r);
         }
@@ -320,7 +320,7 @@ void alertsTab() {
     }
     if (ch) S.dirty = true;
     ImGui::Separator();
-    if (ImGui::Button(tr("Send a test alert"))) dect2::namedThread("onair-wltest", [] { wl::global().sendTest(); }).detach();   // a thread: the sound and the banner are made on this window's thread
+    if (ImGui::Button(tr("Send a test alert"))) dect2::namedThread("zorcom-wltest", [] { wl::global().sendTest(); }).detach();   // a thread: the sound and the banner are made on this window's thread
     std::string st;
     {
         std::lock_guard<std::mutex> lk(gMu);

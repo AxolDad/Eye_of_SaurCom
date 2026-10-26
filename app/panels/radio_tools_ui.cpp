@@ -104,7 +104,7 @@ void startGps() {
     stopGps();
     if (S.gpsMode != GpsNmea || !S.nmeaPath[0]) return;
     S.gcancel = false; S.grun = true; S.gpsMsg = "Waiting for a position fix.";
-    S.gth = dect2::namedThread("onair-rtgps", gpsWorker, std::string(S.nmeaPath));
+    S.gth = dect2::namedThread("zorcom-rtgps", gpsWorker, std::string(S.nmeaPath));
 }
 
 bool position(double& lat, double& lon, double& alt) {

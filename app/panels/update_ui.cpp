@@ -4,32 +4,22 @@
 #include "../app.h"
 #include "dect2/engine/updater.h"
 #include "../state/receivers.h"
-#include "supporters_data.h"
 #include <ctime>
 
 namespace {
 Updater& U(App& a) {
-    if (!a.upd) { a.upd.reset(new Updater(ONAIR_VERSION)); a.upd->loadResult(); }   // loadResult: what the installation of an earlier start left behind
+    if (!a.upd) { a.upd.reset(new Updater(ZORCOM_VERSION)); a.upd->loadResult(); }   // loadResult: what the installation of an earlier start left behind
     return *a.upd;
 }
 bool resultDismissed = false;
 // the version whose installation failed at the last start: not tried again by itself (the button still does)
 bool failedBefore(const Updater::Status& st, const ReleaseInfo& r) { return st.lastResult.found && !st.lastResult.ok && compareVersions(r.version, st.lastResult.version) == 0; }
 double nowS() { return (double)time(nullptr); }
-// the mirror choices of the settings go to the updater (nothing is sent to a mirror unless they allow it)
-void applyMirror(App& a) {
-    MirrorConfig c;
-    c.source = a.updSrc == 1 ? UpdateSource::GitHubOnly : a.updSrc == 2 ? UpdateSource::MirrorOnly : UpdateSource::Automatic;
-    c.fallback = a.updMirrorOn;
-    c.tmpl = a.updMirror;
-    U(a).setMirror(c);
-}
 bool skipped(const App& a, const ReleaseInfo& r) { return !a.updSkip.empty() && compareVersions(r.version, a.updSkip) <= 0; }
 }
 
 void updateTick(App& a) {
     Updater& u = U(a);
-    applyMirror(a);
     const Updater::Status st = u.status();
     static Updater::Phase lastPhase = Updater::Phase::Idle;
     static double startT = -1;
@@ -47,18 +37,18 @@ void updateTick(App& a) {
     static double failT = -1;
     if (startAttempts > 0 && startAttempts < 2 && st.phase == Updater::Phase::Failed && failT < 0) failT = ImGui::GetTime();
     if (st.phase == Updater::Phase::Idle || st.phase == Updater::Phase::Failed) {
-        const int act = startupCheckAction(a.updCheck && !getenv("ONAIR_NO_UPDATE_CHECK"), ImGui::GetTime() - startT, startAttempts,
+        const int act = startupCheckAction(a.updCheck && !getenv("ZORCOM_NO_UPDATE_CHECK"), ImGui::GetTime() - startT, startAttempts,
                                            failT >= 0 && st.phase == Updater::Phase::Failed, failT >= 0 ? ImGui::GetTime() - failT : 0);
         if (act) { startAttempts++; a.updStarted = true; u.check(a.updPre); }
     }
     if (st.phase != lastPhase) {
         lastPhase = st.phase;
         switch (st.phase) {
-        case Updater::Phase::UpToDate: a.updLast = nowS(); savePrefs(a); a.engine.log(std::string("Eye of ZorCom ") + ONAIR_VERSION + " is the newest version"); break;
+        case Updater::Phase::UpToDate: a.updLast = nowS(); savePrefs(a); a.engine.log(std::string("Eye of ZorCom ") + ZORCOM_VERSION + " is the newest version"); break;
         case Updater::Phase::Available:
             a.updLast = nowS(); savePrefs(a);
             a.engine.log("update available: Eye of ZorCom " + st.release.version + (st.release.prerelease ? tr(" (beta)") : ""));
-            if (a.updAuto && st.autoInstallable && !st.mirrorUnverified && !skipped(a, st.release) && !failedBefore(st, st.release)) { U(a).download(); a.engine.log("downloading Eye of ZorCom " + st.release.version + " in the background"); }
+            if (a.updAuto && st.autoInstallable && !skipped(a, st.release) && !failedBefore(st, st.release)) { U(a).download(); a.engine.log("downloading Eye of ZorCom " + st.release.version + " in the background"); }
             break;
         case Updater::Phase::Ready: a.engine.log("Eye of ZorCom " + st.release.version + " is ready: it is installed when you close the program"); break;
         case Updater::Phase::Failed: a.engine.log("update: " + st.error); break;
@@ -72,20 +62,8 @@ bool updateOnExit(App& a) {
     if (!a.upd) return false;
     const Updater::Status st = a.upd->status();
     if (st.phase != Updater::Phase::Ready || !a.updAuto) return false;
-    if (st.release.fromMirror && !st.release.officialVerified) return false;   // only the mirror vouches for it: installed only by the button, never by itself
     std::string err;
     return a.upd->apply(false, &err);
-}
-
-void supportButton() {
-    if (ImGui::SmallButton(tr("Support"))) dect2::openUrl("https://ko-fi.com/adswill");
-    if (ImGui::IsItemHovered() && ImGui::BeginTooltip()) {
-        ImGui::TextUnformatted(tr("Support Eye of ZorCom on Ko-fi"));
-        ImGui::Separator();
-        ImGui::TextDisabled("%s", tr("Thank you to our supporters:"));
-        for (const char* n : kSupporters) ImGui::TextUnformatted(n);
-        ImGui::EndTooltip();
-    }
 }
 
 void updateButton(App& a) {
@@ -95,23 +73,23 @@ void updateButton(App& a) {
     ImVec4 col(0.62f, 0.68f, 0.75f, 1);
     switch (st.phase) {
     case Updater::Phase::Checking: snprintf(label, sizeof label, "%s", tr("checking…")); break;
-    case Updater::Phase::Available: snprintf(label, sizeof label, tr("update %s"), st.release.version.c_str()); col = ImVec4(0.95f, 0.75f, 0.2f, 1); if (skipped(a, st.release)) { snprintf(label, sizeof label, "v%s", ONAIR_VERSION); col = ImVec4(0.62f, 0.68f, 0.75f, 1); } break;
+    case Updater::Phase::Available: snprintf(label, sizeof label, tr("update %s"), st.release.version.c_str()); col = ImVec4(0.95f, 0.75f, 0.2f, 1); if (skipped(a, st.release)) { snprintf(label, sizeof label, "v%s", ZORCOM_VERSION); col = ImVec4(0.62f, 0.68f, 0.75f, 1); } break;
     case Updater::Phase::Downloading: snprintf(label, sizeof label, tr("downloading %.0f%%"), st.total ? 100.0 * (double)st.done / (double)st.total : 0.0); col = ImVec4(0.4f, 0.75f, 0.95f, 1); break;
     case Updater::Phase::Preparing: snprintf(label, sizeof label, "%s", tr("preparing…")); col = ImVec4(0.4f, 0.75f, 0.95f, 1); break;
     case Updater::Phase::Ready: snprintf(label, sizeof label, "%s", tr("restart to update")); col = ImVec4(0.35f, 0.9f, 0.45f, 1); break;
-    case Updater::Phase::Failed: snprintf(label, sizeof label, "v%s", ONAIR_VERSION); col = ImVec4(0.95f, 0.5f, 0.35f, 1); break;
-    default: snprintf(label, sizeof label, "v%s", ONAIR_VERSION); break;
+    case Updater::Phase::Failed: snprintf(label, sizeof label, "v%s", ZORCOM_VERSION); col = ImVec4(0.95f, 0.5f, 0.35f, 1); break;
+    default: snprintf(label, sizeof label, "v%s", ZORCOM_VERSION); break;
     }
     ImGui::PushStyleColor(ImGuiCol_Text, col);
     if (ImGui::SmallButton(label)) { ImGui::OpenPopup("##updates"); }
     ImGui::PopStyleColor();
     const ImVec2 bmax = ImGui::GetItemRectMax();
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Updates"));
-    { static const bool dbg = getenv("ONAIR_OPEN_UPDATES") != nullptr; if (dbg && st.phase != Updater::Phase::Idle && st.phase != Updater::Phase::Checking && !ImGui::IsPopupOpen("##updates")) ImGui::OpenPopup("##updates"); }   // for screenshots
+    { static const bool dbg = getenv("ZORCOM_OPEN_UPDATES") != nullptr; if (dbg && st.phase != Updater::Phase::Idle && st.phase != Updater::Phase::Checking && !ImGui::IsPopupOpen("##updates")) ImGui::OpenPopup("##updates"); }   // for screenshots
     ImGui::SetNextWindowPos(ImVec2(bmax.x + 70 * gUi, bmax.y + 4), ImGuiCond_Always, ImVec2(1, 0));   // under the button, its right edge near the window's
     ImGui::SetNextWindowSizeConstraints(ImVec2(400 * gUi, 0), ImVec2(520 * gUi, 520 * gUi));
     if (ImGui::BeginPopup("##updates")) {
-        ImGui::Text(tr("Eye of ZorCom %s"), ONAIR_VERSION);
+        ImGui::Text(tr("Eye of ZorCom %s"), ZORCOM_VERSION);
         ImGui::SameLine(0, 10 * gUi);
         ImGui::TextDisabled("(%s)", installKindName(st.kind));
         ImGui::Separator();
@@ -152,17 +130,8 @@ void updateButton(App& a) {
                 if (st.kind == InstallKind::WindowsInstall) ImGui::TextDisabled("%s", tr("Windows asks for permission to run the installer."));
                 if (st.kind == InstallKind::LinuxDeb) ImGui::TextDisabled("%s", tr("The system asks for your password to install the package."));
             } else {
-                if (st.release.fromMirror) {
-                    ImGui::PushTextWrapPos(0);
-                    if (st.mirrorUnverified) ImGui::TextColored(ImVec4(0.95f, 0.5f, 0.35f, 1), "%s", tr("The list of versions came through the mirror and GitHub could not be reached to confirm the checksum: only the mirror vouches for this package. Nothing is installed without your confirmation."));
-                    else ImGui::TextDisabled("%s", tr("The list came through the mirror; the checksum was confirmed by GitHub."));
-                    ImGui::PopTextWrapPos();
-                }
-                if (st.mirrorUnverified && st.autoInstallable) ImGui::Checkbox(tr("I understand, download it anyway"), &a.updConfirm);
                 if (st.autoInstallable) {
-                    ImGui::BeginDisabled(st.mirrorUnverified && !a.updConfirm);
-                    if (ImGui::Button(tr("Download and install"))) u.download(st.mirrorUnverified && a.updConfirm);
-                    ImGui::EndDisabled();
+                    if (ImGui::Button(tr("Download and install"))) u.download();
                 }
                 else { ImGui::TextDisabled("%s", tr("This copy of Eye of ZorCom cannot replace itself.")); }
                 ImGui::SameLine();
@@ -184,24 +153,8 @@ void updateButton(App& a) {
         ch |= ImGui::Checkbox(tr("Download and install them by themselves"), &a.updAuto);
         ch |= ImGui::Checkbox(tr("Include beta versions"), &a.updPre);
         if (ch) savePrefs(a);
-        {
-            const char* items[3] = {tr("Automatic: GitHub"), tr("GitHub only"), tr("Mirror only")};
-            ImGui::SetNextItemWidth(200 * gUi);
-            if (ImGui::BeginCombo(tr("Update source"), items[std::max(0, std::min(2, a.updSrc))])) {
-                for (int i = 0; i < 3; i++) if (ImGui::Selectable(items[i], a.updSrc == i)) { a.updSrc = i; savePrefs(a); }
-                ImGui::EndCombo();
-            }
-            if (a.updSrc == 0 && ImGui::Checkbox(tr("Use the mirror when GitHub cannot be reached"), &a.updMirrorOn)) savePrefs(a);
-            if (a.updSrc == 2 || (a.updSrc == 0 && a.updMirrorOn)) {
-                char buf[400];
-                snprintf(buf, sizeof buf, "%s", a.updMirror.c_str());
-                ImGui::SetNextItemWidth(-1);
-                if (ImGui::InputTextWithHint("##updmirror", tr("Mirror address (https://host/{url} or a base address)"), buf, sizeof buf)) { a.updMirror = buf; savePrefs(a); }
-            }
-        }
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        if (a.updSrc == 2 || (a.updSrc == 0 && a.updMirrorOn)) ImGui::TextWrapped("%s", tr("A mirror is a third-party web address you chose. It sees that you check for updates and which version you run. It is used only after GitHub fails (not at all with GitHub only), the package is checked against the checksum from GitHub when GitHub can be reached, and nothing is installed from a mirror without your confirmation."));
-        else ImGui::TextWrapped("%s", tr("Only github.com is contacted. Downloads are checked against the SHA-256 GitHub lists for the file."));
+        ImGui::TextWrapped("%s", tr("Only github.com is contacted. Downloads are checked against the SHA-256 GitHub lists for the file."));
         ImGui::PopStyleColor();
         ImGui::EndPopup();
     }

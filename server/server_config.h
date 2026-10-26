@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace onair_server {
+namespace zorcom_server {
 
 class ConfigFile {
 public:
@@ -26,7 +26,7 @@ private:
     std::vector<Line> lines_;
 };
 
-// The default place of the file: $ONAIR_SERVER_CONFIG, else ~/.config/onair/server.conf (%APPDATA%\OnAir\server.conf on Windows)
+// The default place of the file: $ZORCOM_SERVER_CONFIG, else ~/.config/zorcom/server.conf (%APPDATA%\ZorCom\server.conf on Windows)
 std::string defaultConfigPath();
 
-} // namespace onair_server
+} // namespace zorcom_server

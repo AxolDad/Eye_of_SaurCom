@@ -1,6 +1,6 @@
-// Golden-vector test of the Rust POCSAG / FLEX layer (rust/onair_pager, dect2::pager): code words (valid, damaged, random), text readers, the "looks like text"
+// Golden-vector test of the Rust POCSAG / FLEX layer (rust/zorcom_pager, dect2::pager): code words (valid, damaged, random), text readers, the "looks like text"
 // heuristic, POCSAG transmissions built by the generator and then damaged, the FLEX speed table, frame information words and FLEX phases (built by the generator,
-// built word by word with random vector words, damaged, random), ONAIR_DIFF_ITERS (default 200000) per family. Every result goes into a digest
+// built word by word with random vector words, damaged, random), ZORCOM_DIFF_ITERS (default 200000) per family. Every result goes into a digest
 // (tests/common/golden.h) compared with the one recorded from the C++ layer the Rust code replaced.
 #include "dect2/pager/pager_proto.h"
 #include "../common/golden.h"
@@ -221,7 +221,7 @@ static void testFlex(long iters) {
 }
 
 int main() {
-    const char* it = getenv("ONAIR_DIFF_ITERS");
+    const char* it = getenv("ZORCOM_DIFF_ITERS");
     const long iters = it ? atol(it) : 200000;
     testWords(iters);
     testText(iters);

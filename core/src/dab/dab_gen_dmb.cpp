@@ -26,7 +26,7 @@ namespace dabgen {
 
 TxService dmbService() {
     TxService s;
-    s.sid = 0xE0CEA001; s.label = "OnAir TV"; s.subId = 5; s.bitrate = 408; s.dmb = true; s.dabPlus = false;
+    s.sid = 0xE0CEA001; s.label = "Eye of ZorCom TV"; s.subId = 5; s.bitrate = 408; s.dmb = true; s.dabPlus = false;
     return s;
 }
 

@@ -141,7 +141,7 @@ int main() {
 
     // ---- a message of several bursts (40 kB of pseudo-random bytes sent from a file)
     {
-        const fs::path dir = fs::temp_directory_path() / "onair_kapp_engine_test";
+        const fs::path dir = fs::temp_directory_path() / "zorcom_kapp_engine_test";
         fs::remove_all(dir);
         fs::create_directories(dir);
         std::vector<uint8_t> big(40000);

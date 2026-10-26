@@ -1,6 +1,6 @@
 // Derived ground speed, track and vertical rate for the aircraft that report positions only (ACARS, VDL2, HFDL): the maths is in
 // core/include/dect2/geo/kinematics.h. Here: the fixes out of the track points, the choice between measured / estimated / derived, and the
-// text for the screens and the map upload. Header only.
+// text for the screens. Header only.
 #pragma once
 #include "dect2/geo/kinematics.h"
 #include "dect2/track/track_hub.h"
@@ -102,7 +102,7 @@ inline bool lines(const Info& i, Lines& L) {
     return true;
 }
 
-// fields for the map upload / CSV: only the derived figures
+// fields for CSV: only the derived figures
 inline bool isDerived(const Info& i) { return i.v.src == KinSource::Derived; }
 
 }  // namespace derivedkin

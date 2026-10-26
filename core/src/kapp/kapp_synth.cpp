@@ -13,10 +13,10 @@ std::unique_ptr<ModeSynth> makeKappSynth(const SynthConfig& s, double sampleRate
     auto synth = std::make_unique<TxLoopSynth>(rate, 1000.0 + s.cfoHz, s.snrDb, 1.0, [rate, profile](int pass) -> std::unique_ptr<TxGenerator> {
     TxRequest r;
     r.modeId = "kapp";
-    r.callsign = "ONAIR";
-    static const char* kText[3] = {"OnAir KAPP test signal: message one. Selective-repeat packets, sent by the real transmitter.",
-                                   "OnAir KAPP test signal: message two. A receiver that joins late gets the next one.",
-                                   "OnAir KAPP test signal: message three, then the first again."};
+    r.callsign = "ZORCOM";
+    static const char* kText[3] = {"Eye of ZorCom KAPP test signal: message one. Selective-repeat packets, sent by the real transmitter.",
+                                   "Eye of ZorCom KAPP test signal: message two. A receiver that joins late gets the next one.",
+                                   "Eye of ZorCom KAPP test signal: message three, then the first again."};
     r.text = kText[pass % 3];
     r.opt["kapp.profile"] = profile;
     r.opt["kapp.repeat"] = 1;

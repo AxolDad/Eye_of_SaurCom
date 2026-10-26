@@ -622,7 +622,7 @@ struct GeneralReceiver::Impl {
             std::strftime(iso, sizeof iso, "%Y-%m-%dT%H:%M:%S", &tm);
             txIso = iso;
             char base[192];
-            snprintf(base, sizeof base, "onair_%s_%.6fMHz_%s", stamp, txHz / 1e6, generalDemodName(txDemod));
+            snprintf(base, sizeof base, "zorcom_%s_%.6fMHz_%s", stamp, txHz / 1e6, generalDemodName(txDemod));
             std::string path = txDir + "/" + base + "." + ext;
             for (int n = 2; fileThere(path) && n < 100; n++) {
                 char b[240];

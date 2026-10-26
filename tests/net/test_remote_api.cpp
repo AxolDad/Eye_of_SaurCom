@@ -427,7 +427,7 @@ static void testTls() {
     printf("TLS: not built (DECT2_WITH_TLS=OFF), only the refusal was tested\n");
 #else
     namespace fs = std::filesystem;
-    const fs::path dir = fs::temp_directory_path() / ("onair_tls_" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
+    const fs::path dir = fs::temp_directory_path() / ("zorcom_tls_" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
     fs::create_directories(dir);
     const std::string crt = (dir / "c.pem").string(), key = (dir / "k.pem").string();
     const std::string cmd = "openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj /CN=localhost -keyout '" + key + "' -out '" + crt + "' >/dev/null 2>&1";

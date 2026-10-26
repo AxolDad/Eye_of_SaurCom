@@ -114,14 +114,14 @@ std::vector<DstarGenTx> dstarTestSchedule() {
     std::vector<DstarGenTx> v;
     DstarGenTx t;
     t.hdr.flag[0] = 0x40; t.hdr.rpt2 = "LY0VNO G"; t.hdr.rpt1 = "LY0VNO B"; t.hdr.ur = "CQCQCQ"; t.hdr.my = "N0CALL"; t.hdr.sfx = "ID51";
-    t.text = "OnAir D-STAR test 73";
+    t.text = "Eye of ZorCom D-STAR test 73";
     t.gps = {dstarRmc(54.68720, 25.27970, 36, 90), dstarGga(54.68720, 25.27970, 112)};
     t.durSec = 4.0; t.gapSec = 0.8;
     v.push_back(t);
     t = {};
     t.hdr.ur = "CQCQCQ"; t.hdr.my = "LY1TST"; t.hdr.sfx = "";
     t.text = "Hello via simplex";
-    t.gps = {dstarDprs("LY1TST-7", 54.89850, 23.90360, "OnAir D-PRS test")};
+    t.gps = {dstarDprs("LY1TST-7", 54.89850, 23.90360, "Eye of ZorCom D-PRS test")};
     t.squelch = 12;
     t.durSec = 3.0; t.gapSec = 1.0;
     v.push_back(t);

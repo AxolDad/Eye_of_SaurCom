@@ -85,7 +85,7 @@ int main() {
     }
     // a good one, from a copy that is deleted again after loading (an uninstalled or moved library must not take the program down)
     namespace fs = std::filesystem;
-    const fs::path tmp = fs::temp_directory_path() / ("onair_hdc_test_" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
+    const fs::path tmp = fs::temp_directory_path() / ("zorcom_hdc_test_" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
     fs::create_directories(tmp);
     const fs::path copy = tmp / fs::path(FAKE_HDC_GOOD).filename();
     std::error_code ec;

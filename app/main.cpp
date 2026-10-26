@@ -245,13 +245,13 @@ int main(int argc, char** argv) {
     if (geteuid() == 0) fprintf(stderr, "Eye of ZorCom: running as root is not needed; see docs for udev rules\n");
 #endif
 #ifdef _WIN32
-    dect2::crash::startLog();   // the program has no console window: keep its messages in a log file next to the settings (the old one is kept as onair-prev.log)
+    dect2::crash::startLog();   // the program has no console window: keep its messages in a log file next to the settings (the old one is kept as zorcom-prev.log)
 #endif
     {
         std::string report;
         if (dect2::crash::lastRunCrashed(report)) {
 #ifdef _WIN32
-            gCrashNote = "The last run of Eye of ZorCom crashed; the report is in " + report + " - please send it with onair-prev.log";
+            gCrashNote = "The last run of Eye of ZorCom crashed; the report is in " + report + " - please send it with zorcom-prev.log";
 #else
             gCrashNote = "The last run of Eye of ZorCom crashed; the report is in " + report + " - please send it";
 #endif

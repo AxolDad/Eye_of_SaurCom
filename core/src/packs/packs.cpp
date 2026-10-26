@@ -123,10 +123,6 @@ std::vector<Pack> builtinCatalog() {
         p.files = {a, f};
         v.push_back(std::move(p));
     }
-    for (const char* cc : {"DE", "GB", "FR", "PL", "NL", "LT", "AT", "CH"})
-        v.push_back(file1((std::string("dab-tii-") + cc).c_str(), (std::string("DAB transmitter list (TII): ") + cc).c_str(), "Transmitters", "OnAir-channels (github.com/adswill/OnAir-channels)",
-                          "CC0 (public domain)", "OnAir-channels contributors", 40 << 10,
-                          (std::string("https://raw.githubusercontent.com/adswill/OnAir-channels/main/dab-tii/") + cc + ".csv").c_str(), (std::string("dab-tii-") + cc + ".csv").c_str(), Root::Cache));
     return v;
 }
 
@@ -244,7 +240,7 @@ bool PackManager::start(const std::string& id, std::string* why) {
     { std::lock_guard<std::mutex> lk(mu_); err_.clear(); active_ = id; }
     state_ = State::Downloading;
     Pack copy = *p;
-    th_ = dect2::namedThread("onair-packs", [this, copy] { run(copy); });
+    th_ = dect2::namedThread("zorcom-packs", [this, copy] { run(copy); });
     return true;
 }
 

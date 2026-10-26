@@ -261,14 +261,14 @@ static void testLoopback() {
     MapMarker ship; ship.layer = LayerAis; ship.id = "277123456"; ship.lat = 55.7; ship.lon = 21.1;
     MapMarker nowhere; nowhere.layer = LayerSat; nowhere.id = "25544";   // satellites are not CoT contacts here: skipped
     F.cot({plane, nowhere, ship}, 1792758896789);
-    OnairCotEvent e{};
+    ZorcomCotEvent e{};
     k = sockRecv(cotRx, buf, sizeof buf);
-    CHECK(k > 0 && onair_cot_decode((const uint8_t*)buf, (size_t)k, &e), "CoT event over UDP");
+    CHECK(k > 0 && zorcom_cot_decode((const uint8_t*)buf, (size_t)k, &e), "CoT event over UDP");
     CHECK(std::string((const char*)e.uid) == "ICAO-4CA2B1" && std::string((const char*)e.cot_type) == "a-n-A-C-F" && std::string((const char*)e.callsign) == "RYR12AB",
           "CoT aircraft: %s %s %s", (const char*)e.uid, (const char*)e.cot_type, (const char*)e.callsign);
     CHECK(std::fabs(e.lat - 54.6872) < 1e-6 && std::fabs(e.hae - 1200) < 1e-6 && e.stale_ms - e.time_ms == 120000, "CoT position and stale time");
     k = sockRecv(cotRx, buf, sizeof buf);
-    CHECK(k > 0 && onair_cot_decode((const uint8_t*)buf, (size_t)k, &e) && std::string((const char*)e.uid) == "MMSI-277123456"
+    CHECK(k > 0 && zorcom_cot_decode((const uint8_t*)buf, (size_t)k, &e) && std::string((const char*)e.uid) == "MMSI-277123456"
           && std::string((const char*)e.cot_type) == "a-n-S-C" && std::string((const char*)e.callsign) == "277123456", "CoT vessel (callsign falls back to the id)");
     CHECK(feedfmt::cotEvent(nowhere, 0, 60).empty() && feedfmt::cotEvent(MapMarker{}, 0, 60).empty(), "no event without a CoT layer or an id");
     sockClose(cotRx);

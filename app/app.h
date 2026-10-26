@@ -406,14 +406,6 @@ struct App {
     bool atvWide = false;     // analog TV: system E chosen (14 MHz channel, 10 MHz of video): the radio runs at 20 Msps
     bool reduceCpuHidden = true;   // View > Reduce CPU when hidden: no drawing while the window is minimised or hidden (decoding goes on)
     bool discordOn = false, discordFreq = true;   // View > Show in Discord (opt-in Rich Presence, discord_rpc.cpp) and its "Show the frequency"
-    bool mapSend = false, mapConsent = false;     // Server > Send data to map server (opt-in; consent once)
-    bool mapVoice = false;                        // Server > also share transcripts of airband radio calls (public text; own choice, off until chosen)
-    bool mapJam = false;                          // Server > also share GPS interference cells (counts per 0.5 degree cell, no aircraft ids); off until chosen
-    bool mapMsgs = false;                         // Server > also share interesting ACARS messages (free text becomes public); off until chosen
-    std::string mapDeclinedVersion;               // ONAIR_VERSION when "No, do not ask again" was chosen; another version asks again
-    bool mapDeclined = false;                     // the start-up question was answered "No, do not ask again" (the Server menu still works)
-    std::string mapStationId;                     // client id for /ingest, generated once
-    std::string mapServer;                        // empty: https://map.on-air.dev (a local worker URL for developers)
     bool feedsOpen = false;   // View > Data feeds: the window (feeds_ui.cpp)
     bool webRadioOpen = false;   // View > Internet radio (web_radio_ui.cpp)
     bool dsnOpen = false;        // Tools > Deep Space Network (dsn_ui.cpp)
@@ -598,10 +590,6 @@ struct App {
     std::unique_ptr<Updater> upd;      // update check and installer
     bool updCheck = true, updAuto = true, updPre = false, updStarted = false;   // official updates on; betas off until asked
     double updLast = 0;                // when the last check was made (seconds since 1970)
-    int updSrc = 0;                    // update source: 0 automatic (GitHub), 1 GitHub only, 2 mirror only
-    bool updMirrorOn = false;          // automatic: also try the mirror when GitHub fails (off until the user turns it on)
-    std::string updMirror = "https://mirror.on-air.dev/{url}";   // the mirror address (the project's own mirror until the user types another); it is only contacted when the user chose the mirror
-    bool updConfirm = false;           // the user ticked "download it anyway" for a package only the mirror vouches for
     std::string updSkip;               // a version the user chose to skip
     DirectionFinder dir;
     int antKind = 0;          // 0 directional, 1 dipole / indoor, 2 omnidirectional
@@ -702,7 +690,6 @@ void setUiLanguage(App& a, const std::string& code);   // empty: the system's la
 extern bool gTightTabs;   // the tabs of mainTabs() get less padding (a narrow pane)
 void toggleFullscreen();
 void handleFullscreenHotkeys();          // F11 and Alt+Enter; ignored while a text field has the keyboard
-std::string adsbJamBody(const std::string& station);   // adsb_ui.cpp: the POST /jam body of the GPS interference cells ("" when there is nothing to share)
 bool adsbFullMap(App& a, ImVec2 disp);           // adsb_ui.cpp: the ADS-B map or radar over the whole window when it is popped out
 void receiverLocation(double& lat, double& lon);  // adsb_ui.cpp: the one receiver position (the ADS-B antenna position)
 bool receiverLocationSet();                        // the user has set it (else it is a placeholder)
@@ -716,24 +703,12 @@ struct MapCellTower { double lat = 0, lon = 0; int rangeM = 0; std::string label
 void cellMapTowers(const dect2::CellTelemetry& t, std::vector<MapCellTower>& out);   // cell_ui.cpp: the towers placed (OpenCelliD / CSV)
 void mapWindow(App& a);                             // map_ui.cpp: View > Map (a.mapOpen): coordinates, Maidenhead locators, distance and bearing
 void propagationWindow(App& a);                     // prop_ui.cpp: Tools > Propagation (a.propOpen): coverage heat map, range and a probe point (no terrain)
-void mapSendServerMenu(App& a);                     // map_send.cpp: Server menu (opt-in public map)
-void mapSendButton(App& a);                         // classic interface: the same choice as a button
-void mapSendTick(App& a);                           // POST current decoded positions when opted in
-bool mapPauseForTransmit(App& a);                   // turn the map connection off before the radio is keyed; true if it was on
-void mapTransmitAbort(App& a);                      // the radio did not start: put the connection back if it was on
-void mapTransmitEnded();                            // the radio is quiet: the Server control works again; the next send skips what is already on screen
 void aeroToolsTick(App& a);                         // aero_ui.cpp: SNR-sound tone while Inmarsat Aero is the mode
-void mapSendShutdown();                             // join the ingest thread before exit
-bool mapFamilySends(int family);                    // this mode can put decoded positions on the public map
-std::string mapSendStatusLine();                    // short "connected / N sent" line for the mode header (empty when off)
-std::string mapSendDiagnosticsBlock(const App& a);  // map.on-air.dev ingest state + recent log for Copy diagnostics
 void passesDevTle(const std::string& path);       // dev (--tle): TLEs from a file, as if pasted
 std::vector<std::pair<std::string, double>> passesGlobalstarDoppler(double unixSec, double freqHz);   // passes_ui.cpp: Globalstar satellites above the horizon and their Doppler (TLEs from the planner)
-struct DfMapLine { double lat = 0, lon = 0, bearing = 0, sigma = 5, conf = 0, freqHz = 0, ageSec = 0; };
 void rfiWindow(App& a);                             // rfi_ui.cpp: the interference hunter window (a.rfiOpen), every frame
 void passiveRadarWindow(App& a);                    // passive_ui.cpp: the passive radar window (a.passiveRadarOpen), every frame
 void dfWindow(App& a);                              // df_ui.cpp: the direction finder window (a.dfOpen), every frame
-bool dfMapLine(const App& a, DfMapLine& out);       // df_ui.cpp: the current bearing as a map line, only when the user chose to share it and it is fresh and confident
 void satnogsWindow(App& a);                        // satnogs_ui.cpp: the SatNOGS DB transmitter browser window (a.satnogsOpen), every frame
 void passesWindow(App& a);                         // passes_ui.cpp: the satellite pass planner window (a.passesOpen) and its tracking, every frame
 void memoryWindow(App& a);                         // memory_ui.cpp: the Memory window (a.memoryOpen), the Ctrl+M key, the scan of the flagged memories, every frame
@@ -950,7 +925,6 @@ void appResultsLoad(App& a);
 void appResultsSave(App& a, bool now = false);
 // The Clear of a mode's decoded lists, at the top of its list (results_ui.cpp): true when pressed
 bool resultsClearButton(const char* id);
-void scanDbTick(App& a);   // scan_db_ui.cpp: asks to share a finished scan
 void tuneToChannel(App& a, const SavedChannel& c);
 void followBandwidth(App& a);
 void setDvbBandwidth(App& a, int idx);   // toolbar_source.cpp: the DVB-T2 / DVB-T width kBw[idx] (manual), or idx < 0 for Automatic; a running receiver follows at once
@@ -1100,7 +1074,6 @@ void isdbtStatus(App& a);
 void isdbtReceiverTab(App& a);
 void updateTick(App& a);
 void updateButton(App& a);
-void supportButton();
 std::string modeCreditsLine(const char* modeName);   // "\n\nCredits: a, b" for a mode's tooltip, empty when nobody is credited for it (credits_ui.cpp)
 void creditsWindow(App& a);   // Help, Credits and licences: the projects Eye of ZorCom uses (app/panels/credits_ui.cpp)
 void clearAllButton(App& a);   // top bar, next to the version: empties every decoded list, after an "are you sure"
@@ -1124,7 +1097,6 @@ struct DiagInput {
     std::string version, os, cpu, gpu;
     std::vector<DeviceInfo> radios;
     std::vector<std::string> messages, log;   // log: the whole engine log, filtered inside
-    std::string mapServer;                    // map ingest connection log (map_send.cpp)
 };
 std::string buildDiagnostics(const DiagInput& in);   // plain text, no ImGui
 std::string diagnosticsText(App& a);

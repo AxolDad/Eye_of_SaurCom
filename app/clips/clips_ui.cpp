@@ -104,7 +104,7 @@ Content collect(App& a, Range r, double now) {
     m.summary = l2.size() > 80 ? l2.substr(0, 80) : l2;
     m.freqHz = a.freqMhz * 1e6; m.t0 = r.t0; m.t1 = r.t1;
     if (!a.hist.empty() && std::isfinite(a.hist.back().snr) && glfwGetTime() - a.hist.back().t < 5) m.snrDb = a.hist.back().snr;
-    m.title = D.title; m.notes = D.notes; m.version = ONAIR_VERSION;
+    m.title = D.title; m.notes = D.notes; m.version = ZORCOM_VERSION;
     if (D.incImage) {
         std::vector<uint8_t> rows; std::vector<double> times;
         const size_t n = wfHistory().extract(r, rows, times);
@@ -184,7 +184,7 @@ void draw(App& a) {
     if (ImGui::Button(tr("Save clip"))) {
         const Content c = collect(a, D.sel, now);
         if (c.spectro.w == 0 && c.audio.empty() && c.table.rows.empty()) D.status = tr("Nothing to save: no waterfall, audio or decoded rows in this range");
-        else { const std::string dir = plat::dataDir() + "/clips"; D.busy = true; D.status = tr("Saving..."); D.job = std::async(std::launch::async, [c, dir] { dect2::setThreadName("onair-clip"); return writeClip(c, dir); }); }
+        else { const std::string dir = plat::dataDir() + "/clips"; D.busy = true; D.status = tr("Saving..."); D.job = std::async(std::launch::async, [c, dir] { dect2::setThreadName("zorcom-clip"); return writeClip(c, dir); }); }
     }
     ImGui::EndDisabled();
     ImGui::SameLine();

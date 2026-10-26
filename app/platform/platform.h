@@ -59,7 +59,7 @@ bool postRequest(const std::string& url, const std::string& body, const std::str
 // The same, and the response body (up to 64 KB) in reply: an OAuth token exchange, whose secret goes in the private header file.
 bool postRequestReply(const std::string& url, const std::string& body, const std::string& contentType, const std::vector<std::string>& headers,
                       const std::string& userAgent, std::string& reply);
-// The same, and the response body (up to 64 KB) in reply. The Live rooms feature needs the room id and token the server answers with.
+// The same, and the response body (up to 64 KB) in reply.
 bool postJsonReply(const std::string& url, const std::string& json, const std::string& userAgent, std::string& reply);
 // One HTTP request that tells why it failed. method "GET", "HEAD" or "POST" (body sent as JSON). status is the HTTP status (0 when there was no
 // answer); net says why there was none: 0 an answer came, 1 the host name was not found, 2 no connection (offline, refused, unreachable), 3 timed out,

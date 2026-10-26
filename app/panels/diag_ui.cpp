@@ -540,13 +540,12 @@ std::string buildDiagnostics(const DiagInput& in) {
     const size_t from = pick.size() > 60 ? pick.size() - 60 : 0;
     s += fmt("\nLog (last %zu matching lines):\n", pick.size() - from);
     for (size_t i = from; i < pick.size(); i++) s += *pick[i] + "\n";
-    if (!in.mapServer.empty()) s += in.mapServer;
     return s;
 }
 
 std::string diagnosticsText(App& a) {
     DiagInput in;
-    in.version = ONAIR_VERSION;
+    in.version = ZORCOM_VERSION;
     in.os = osName();
     in.cpu = cpuName();
     in.gpu = gpuName();
@@ -554,7 +553,6 @@ std::string diagnosticsText(App& a) {
     for (auto& m : radioMessages(a)) in.messages.push_back(m.text);
     size_t total = 0;
     in.log = a.engine.logSnapshot(total);
-    in.mapServer = mapSendDiagnosticsBlock(a);
     return buildDiagnostics(in);
 }
 
@@ -664,12 +662,12 @@ void radioMessagesUi(App& a, bool vertical) {
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Copies the version, system, radios, messages and radio log lines, for a bug report"));
     ImGui::SameLine();
     if (ImGui::SmallButton(tr("Save bug report"))) {
-        const std::string path = plat::saveFileDialog("onair-bug-report.zip");
+        const std::string path = plat::saveFileDialog("zorcom-bug-report.zip");
         if (!path.empty()) {
             const std::filesystem::path d = std::filesystem::path(std::u8string(reinterpret_cast<const char8_t*>(dect2::crash::logDir().data()), dect2::crash::logDir().size()));
             std::vector<std::pair<std::string, std::string>> f;
             f.push_back({"diagnostics.txt", diagnosticsText(a)});
-            for (const char* n : {"onair.log", "onair-prev.log", "crash.txt"}) {
+            for (const char* n : {"zorcom.log", "zorcom-prev.log", "crash.txt"}) {
                 std::error_code ec;
                 if (std::filesystem::exists(d / n, ec)) f.push_back({n, slurp(d / n)});
             }

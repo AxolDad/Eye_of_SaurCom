@@ -172,10 +172,10 @@ static void testTalkerAlias() {
     TalkerAlias t2;
     for (int i = 0; i < n; i++) t2.add(out[i]);
     CHECK(t2.complete() && t2.text() == "Test Station 1", "own talker alias round trip '%s'", t2.text().c_str());
-    const int n2 = talkerAliasPdus("OnAir", 3, out);
+    const int n2 = talkerAliasPdus("Eye of ZorCom", 3, out);
     TalkerAlias t3;
     for (int i = 0; i < n2; i++) t3.add(out[i]);
-    CHECK(t3.complete() && t3.text() == "OnAir", "UTF-16 alias '%s'", t3.text().c_str());
+    CHECK(t3.complete() && t3.text() == "Eye of ZorCom", "UTF-16 alias '%s'", t3.text().c_str());
 }
 
 static void testHeaders() {

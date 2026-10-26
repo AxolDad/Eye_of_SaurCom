@@ -98,7 +98,7 @@ bool kappFromRequest(const TxRequest& r, std::vector<uint8_t>& msg, std::string&
     callsign.clear();
     for (char c : r.callsign) callsign += (char)std::toupper((unsigned char)c);
     while (!callsign.empty() && callsign.back() == ' ') callsign.pop_back();
-    if (callsign.empty()) callsign = "ONAIR";
+    if (callsign.empty()) callsign = "ZORCOM";
     if (callsign.size() > 7) { err = "KAPP: the callsign is at most 7 characters"; return false; }
     for (char c : callsign) {
         if (!(c == '/' || (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z'))) { err = "KAPP: the callsign may hold only letters, digits and /"; return false; }
@@ -115,7 +115,7 @@ bool kappFromRequest(const TxRequest& r, std::vector<uint8_t>& msg, std::string&
         if (msg.empty()) { err = "KAPP: the file is empty"; return false; }
         if (msg.size() > kapp::kArqMaxMessage) { err = "KAPP: a message is at most 8 MiB"; return false; }
     } else {
-        const std::string t = r.text.empty() ? std::string("OnAir KAPP test message: packet data in bursts with selective repeat.") : r.text;
+        const std::string t = r.text.empty() ? std::string("Eye of ZorCom KAPP test message: packet data in bursts with selective repeat.") : r.text;
         msg.assign(t.begin(), t.end());
         if (msg.size() > kapp::kArqMaxMessage) { err = "KAPP: a message is at most 8 MiB"; return false; }
     }

@@ -3,7 +3,7 @@
 // Nothing is transmitted: the samples only exist in memory or in a file.
 //
 // Options of the synthetic source (SynthConfig::modeOpt / modeVal, all 0 = the default shown):
-//   modeOpt[0]  robustness mode: 0 B (default), 1 A, 2 B, 3 C, 4 D, 5 E (DRM+: 100 kHz at 192 kHz, label "OnAir DRM+")
+//   modeOpt[0]  robustness mode: 0 B (default), 1 A, 2 B, 3 C, 4 D, 5 E (DRM+: 100 kHz at 192 kHz, label "Eye of ZorCom DRM+")
 //   modeOpt[1]  spectrum occupancy: 0 the usual one of the mode (10 kHz), 1 .. 6 = occupancy code 0 .. 5 (4.5, 5, 9, 10, 18, 20 kHz; modes C and D only have 10 and 20 kHz;
 //               mode E only has 100 kHz)
 //   modeOpt[2]  MSC constellation: 0 64-QAM (mode E 16-QAM), 1 16-QAM (mode E 4-QAM)
@@ -64,7 +64,7 @@ struct DrmTxConfig {
     int partABytes = 0;          // bytes of the audio stream in part A (0: equal error protection)
     bool longInterleave = true;  // 2 s (otherwise 400 ms)
     int sdcMode = 0;             // 0 16-QAM, 1 4-QAM
-    std::string label = "OnAir DRM";
+    std::string label = "Eye of ZorCom DRM";
     uint32_t serviceId = 0xE12345;
     int language = 5;            // Table 18: English
     std::string language3 = "eng", country2 = "ae";
@@ -75,7 +75,7 @@ struct DrmTxConfig {
     int audioRateHz = 24000;     // 12000 or 24000 (the core sampling rate of the AAC stream): 5 or 10 audio frames per super frame (mode E: 24000, 5 frames
                                  // in an audio super frame of 200 ms that two logical frames carry)
     bool textMessage = true;
-    std::string text = "OnAir DRM test signal";
+    std::string text = "Eye of ZorCom DRM test signal";
     int year = 2026, month = 10, day = 6, hour = 12, minute = 0;   // the clock that SDC type 8 reports (advances with the signal)
     bool sendTime = true, sendLanguage = true;
     uint32_t seed = 1;
@@ -91,7 +91,7 @@ struct DrmTxConfig {
     int dataLossEvery = 0;               // > 0: every n-th packet is not sent at all (the continuity index jumps)
     int dataBadCrcEvery = 0;             // > 0: every n-th packet is sent with a wrong CRC-16
     int dataOtherIdEvery = 0;            // > 0: every n-th packet slot carries a packet of another Packet Id (an unrelated application)
-    std::string dataLabel = "OnAir Data";
+    std::string dataLabel = "Eye of ZorCom Data";
 };
 
 // The content of the audio stream: the frames of each audio super frame

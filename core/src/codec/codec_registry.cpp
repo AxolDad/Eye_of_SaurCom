@@ -12,11 +12,11 @@ std::map<std::string, Slot>& slots() { static std::map<std::string, Slot> m; ret
 
 const std::vector<CodecInfo>& codecTable() {
     static const std::vector<CodecInfo> t = {
-        {"ambe2", "AMBE+2 (3600x2450)", CodecKind::Patented, "DMR, NXDN, dPMR, P25 phase 2", "plug-in onair-codec-ambe2 (for example around mbelib), or libmbe in the codecs folder"},
-        {"ambe",  "AMBE (3600x2400)",   CodecKind::Patented, "D-STAR", "plug-in onair-codec-ambe, or libmbe in the codecs folder"},
-        {"imbe",  "IMBE (7200x4400)",   CodecKind::Patented, "P25 phase 1, ProVoice / EDACS", "plug-in onair-codec-imbe, or libmbe in the codecs folder"},
-        {"ysf",   "AMBE+2 (Yaesu)",     CodecKind::Patented, "Yaesu System Fusion (C4FM)", "plug-in onair-codec-ysf"},
-        {"tetra", "TETRA ACELP",        CodecKind::Patented, "TETRA", "plug-in onair-codec-tetra (unencrypted calls only)"},
+        {"ambe2", "AMBE+2 (3600x2450)", CodecKind::Patented, "DMR, NXDN, dPMR, P25 phase 2", "plug-in zorcom-codec-ambe2 (for example around mbelib), or libmbe in the codecs folder"},
+        {"ambe",  "AMBE (3600x2400)",   CodecKind::Patented, "D-STAR", "plug-in zorcom-codec-ambe, or libmbe in the codecs folder"},
+        {"imbe",  "IMBE (7200x4400)",   CodecKind::Patented, "P25 phase 1, ProVoice / EDACS", "plug-in zorcom-codec-imbe, or libmbe in the codecs folder"},
+        {"ysf",   "AMBE+2 (Yaesu)",     CodecKind::Patented, "Yaesu System Fusion (C4FM)", "plug-in zorcom-codec-ysf"},
+        {"tetra", "TETRA ACELP",        CodecKind::Patented, "TETRA", "plug-in zorcom-codec-tetra (unencrypted calls only)"},
         {"",      "Codec 2",            CodecKind::Open,     "M17, FreeDV 700D / 700E / 1600", "built in (libcodec2 comes with Eye of ZorCom)"},
         {"",      "RADE",               CodecKind::Open,     "FreeDV RADE", "optional librade"},
         {"",      "KA codecs",          CodecKind::Open,     "KAAL, KAPP, KAFT, KAVB, KAIT, KAWS", "built in"},
@@ -66,7 +66,7 @@ std::unique_ptr<SpeechCodec> pluginVocoder(const std::string& id) {
 std::string pluginStatusLine(const std::string& id, const std::string& folder) {
     std::string p;
     if (pluginLoaded(id, &p)) return "Codec plug-in loaded: " + p;
-    return "Codec plug-in not found. Eye of ZorCom looks for " + speechCodecFileName(id) + " in " + folder + " (Windows onair-codec-" + id + ".dll, macOS .dylib, Linux .so).";
+    return "Codec plug-in not found. Eye of ZorCom looks for " + speechCodecFileName(id) + " in " + folder + " (Windows zorcom-codec-" + id + ".dll, macOS .dylib, Linux .so).";
 }
 
 } // namespace dect2::codec

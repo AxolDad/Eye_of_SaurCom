@@ -209,7 +209,7 @@ public:
             }
             inflight_++;
         }
-        events_ = dect2::namedThread("onair-hrf-evt", [this] { eventLoop(); });
+        events_ = dect2::namedThread("zorcom-hrf-evt", [this] { eventLoop(); });
         return true;
     }
 

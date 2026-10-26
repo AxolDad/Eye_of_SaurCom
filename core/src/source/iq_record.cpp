@@ -33,7 +33,7 @@ std::string recordingFileName(const std::string& modeId, double centerHz, double
     std::string id = modeId.empty() ? "iq" : modeId;
     for (auto& c : id) if (!isalnum((unsigned char)c)) c = '-';
     char b[160];
-    snprintf(b, sizeof b, "onair_%s_%.3fMHz_%.9gMsps_%s.%s", id.c_str(), centerHz / 1e6, rateHz / 1e6, stamp, fmt == FileFormat::CF32 ? "cf32" : "cs8");
+    snprintf(b, sizeof b, "zorcom_%s_%.3fMHz_%.9gMsps_%s.%s", id.c_str(), centerHz / 1e6, rateHz / 1e6, stamp, fmt == FileFormat::CF32 ? "cf32" : "cs8");
     return b;
 }
 
@@ -52,7 +52,7 @@ std::string sigmfUtcNow() {
     return b;
 }
 
-std::string sigmfMetaJson(const SigmfInfo& i) {   // the text: core/src/files/files_proto.cpp (C++) or the Rust crate onair_files
+std::string sigmfMetaJson(const SigmfInfo& i) {   // the text: core/src/files/files_proto.cpp (C++) or the Rust crate zorcom_files
     return filesp::sigmfRecorderMeta(sigmfDatatype(i.fmt), i.rateHz, i.centerHz, i.datetimeUtc, i.dataFile, i.sampleCount, i.description);
 }
 
@@ -107,7 +107,7 @@ bool IqRecorder::start(const std::string& path, FileFormat fmt, double rateHz, s
         writeSigmf(false);
     }
     active_ = true;
-    th_ = dect2::namedThread("onair-iqrec", [this] { writerLoop(); });
+    th_ = dect2::namedThread("zorcom-iqrec", [this] { writerLoop(); });
     return true;
 }
 

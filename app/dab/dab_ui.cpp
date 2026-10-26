@@ -605,7 +605,7 @@ void dabStations(App& a) {
             else if (!au.decoder.empty()) row(Ic::Layers, "Decoder", "%s", au.decoder.c_str());
             if (p.sbr && !au.sbrDecoded && !dect2::dabFaadAvailable()) {   // where the library goes, for this system
 #ifdef _WIN32
-                row(Ic::Info, "libfaad", "%s", "Put libfaad2.dll (a 64-bit build, also named libfaad.dll or faad2.dll) in the folder with OnAir.exe, then restart Eye of ZorCom.");
+                row(Ic::Info, "libfaad", "%s", "Put libfaad2.dll (a 64-bit build, also named libfaad.dll or faad2.dll) in the folder with ZorCom.exe, then restart Eye of ZorCom.");
 #elif defined(__APPLE__)
                 row(Ic::Info, "libfaad", "%s", "In Terminal: brew install faad2, then restart Eye of ZorCom.");
 #else

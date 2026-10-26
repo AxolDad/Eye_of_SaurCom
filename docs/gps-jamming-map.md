@@ -1,10 +1,10 @@
 # GPS interference map
 
-ADS-B aircraft broadcast how good their own GNSS position is. When a jammer or spoofer is near, many aircraft in one area report a collapsed accuracy or an impossible position jump. OnAir counts this per grid cell, shows it on its ADS-B map, and can share the counts (and only the counts) with the public map.
+ADS-B aircraft broadcast how good their own GNSS position is. When a jammer or spoofer is near, many aircraft in one area report a collapsed accuracy or an impossible position jump. Eye of ZorCom counts this per grid cell, shows it on its ADS-B map, and can share the counts (and only the counts) with the public map.
 
 ## What is measured
 
-For every aircraft heard with a fresh position (not on the ground), OnAir looks at:
+For every aircraft heard with a fresh position (not on the ground), Eye of ZorCom looks at:
 
 | Field | Source | Used |
 |---|---|---|
@@ -20,16 +20,6 @@ The grid is 0.5 degree squares (about 55 km north-south). Per square and over a 
 ## Local layer
 
 ADS-B map, "GPS interference" checkbox: the squares around your receiver, from what your own receiver heard in the last hour. Hover a square for its counts. It is off by default and costs nothing when off (the counting runs while the ADS-B screen is open).
-
-## Sharing (opt-in)
-
-Server menu, "Also share GPS interference cells", available while "Send data to map server" is on and off until chosen. Every 5 minutes OnAir posts `POST /jam` to the map server:
-
-```
-{"station":"<random station id>","cell":0.5,"cells":[[latIdx,lonIdx,aircraft,degraded], ...]}
-```
-
-`latIdx = floor(lat / 0.5)`, `lonIdx = floor(lon / 0.5)`. Nothing else is sent: no ICAO addresses, callsigns, tracks, altitudes or times, and no finer position than the square. The server rejects a post that contains anything else, and a station can send one post per 30 s with at most 600 squares. The server keeps each station's newest post for 2 hours, adds the stations together, and publishes only squares with 3 or more aircraft in total through `GET /jam` (no station ids). It is stored in one row of the hub's `meta` table, written at most once a minute. The community layer is the "GPS interference (community)" checkbox on map.on-air.dev (web/map, not deployed by this change).
 
 ## Limits: this is not proof of jamming
 

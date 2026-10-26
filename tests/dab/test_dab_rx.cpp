@@ -155,7 +155,7 @@ static void checkEnsemble(const Result& r, const dabgen::TxConfig& tc, const cha
     const DabEnsemble& e = r.ens;
     CHECK(r.tel.state == 2, "%s: not locked (state %d)", what, r.tel.state);
     CHECK(e.valid && e.eid == 0xCE15, "%s: ensemble id %04X valid %d", what, e.eid, e.valid);
-    CHECK(e.label == "OnAir DAB", "%s: ensemble label \"%s\"", what, e.label.c_str());
+    CHECK(e.label == "Eye of ZorCom DAB", "%s: ensemble label \"%s\"", what, e.label.c_str());
     const auto& svc = tx.config().services;
     CHECK(e.services.size() == svc.size(), "%s: %zu services, expected %zu", what, e.services.size(), svc.size());
     for (size_t i = 0; i < svc.size(); i++) {
@@ -302,7 +302,7 @@ static void testSnr() {
     for (size_t k = 0; k < snrs.size(); k++) {
         const double snr = snrs[k];
         const Result& r = runs[k];
-        bool labels = r.ens.valid && r.ens.label == "OnAir DAB" && r.ens.services.size() == 4;
+        bool labels = r.ens.valid && r.ens.label == "Eye of ZorCom DAB" && r.ens.services.size() == 4;
         for (const auto& kv : r.ens.services) labels &= !kv.second.label.empty();
         jprintf("  %5.1f   %-6s %6.1f%%   %-8s  %-6s  %llu / %llu\n", snr, r.tel.state == 2 ? "yes" : "no", 100 * fibRatio(r), r.ens.valid ? "yes" : "no", labels ? "all" : "no", (unsigned long long)r.st.auOk,
                (unsigned long long)r.st.auBad);

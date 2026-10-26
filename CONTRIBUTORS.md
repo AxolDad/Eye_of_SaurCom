@@ -1,6 +1,6 @@
 # Contributors
 
-OnAir exists because of the people below: they sent fixes, reported bugs, shared recordings, translated and suggested ideas. The maintainer, [Kristijonas Adomaitis](https://github.com/adswill), is the author and is not repeated here. Only names people already use in public are shown. **Want your name changed or removed? Tell us on Discord or open an issue.**
+Eye of ZorCom exists because of the people below: they sent fixes, reported bugs, shared recordings, translated and suggested ideas. The author of OnAir, the program this one is a fork of, [Kristijonas Adomaitis](https://github.com/adswill), is not repeated here. Only names people already use in public are shown. **Want your name changed or removed? Open an issue.**
 
 In the program: Help, Credits, tab Contributors. To add someone, edit `tools/contributors.tsv` and run `python3 tools/gen_credits.py`.
 

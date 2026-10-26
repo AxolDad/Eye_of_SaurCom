@@ -301,7 +301,6 @@ bool startTx(App& a, TxUi& s, const DeviceInfo* radio, const TxModeSpec* mode, b
         sink = makeTxSink(*radio);
         if (!sink) { s.error = txUnavailableReason(*radio); if (s.error.empty()) s.error = tr("This radio has no transmit driver in Eye of ZorCom."); release(s); return false; }
         lim = TxRateLimits{radio->txMinRateHz, radio->txMaxRateHz};
-        mapPauseForTransmit(a);   // before the radio is keyed, so this frame cannot post what the receiver hears from it
     }
     if (s.session.start(std::move(sink), req, lim, err)) {
         s.radioName = toFile ? std::string("IQ file ") + s.ifPathUsed : s.dryRun ? std::string(tr("test (no RF)")) : radio->name;
@@ -317,7 +316,7 @@ bool startTx(App& a, TxUi& s, const DeviceInfo* radio, const TxModeSpec* mode, b
         return true;
     }
     s.error = err;
-    if (!s.session.running()) { release(s); if (!s.dryRun && !toFile) mapTransmitAbort(a); }
+    if (!s.session.running()) release(s);
     return false;
 }
 
@@ -388,7 +387,6 @@ void txTick(App&) {
         release(s);
         s.radioName.clear();
         s.carrierOnly = false;
-        if (!s.sessionDry) mapTransmitEnded();
         s.sessionDry = false;
         s.sessionFile = false;
     }

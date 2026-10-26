@@ -207,7 +207,7 @@ void kaftPanel(TxUi& s, bool running) {
     }
     ImGui::TextWrapped("%s", "KAFT: file transfer in a 200 kHz, 500 kHz or 1 MHz channel. The file goes out one-way: OPEN, the data frames, FINISH, and again for each pass; "
                               "no reply is waited for, so the profile is fixed and the whole file is sent several times (a receiver that missed blocks gets them on the next pass; one that has the file ignores the repeat). "
-                              "The file is sent as it is (no compression codec is built in). Empty callsign sends the demo identity ONAIR; no file sends a short demo text file. "
+                              "The file is sent as it is (no compression codec is built in). Empty callsign sends the demo identity ZORCOM; no file sends a short demo text file. "
                               "Eye of ZorCom sets no limit on the frequency or the power.");
     ImGui::BeginDisabled(running);
     ImGui::SetNextItemWidth(160 * gUi);

@@ -35,8 +35,8 @@ void Atsc3Rx::start() {
     q_.clear();
     busySec_ = 0; signalSec_ = 0; lastFrameWall_ = 0; lastFrames_ = 0; tsBytes_ = 0;
     { std::lock_guard<std::mutex> lk(tmu_); tel_ = Atsc3Telemetry(); }
-    worker_ = dect2::namedThread("onair-a3wk", [this] { worker(); });
-    pump_ = dect2::namedThread("onair-a3pump", [this] { pump(); });
+    worker_ = dect2::namedThread("zorcom-a3wk", [this] { worker(); });
+    pump_ = dect2::namedThread("zorcom-a3pump", [this] { pump(); });
 }
 
 void Atsc3Rx::stop() {

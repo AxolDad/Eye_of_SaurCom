@@ -39,7 +39,7 @@ int parsePacket(const uint8_t* d, size_t n, AvPacket& out) {
     return static_cast<int>(total);
 }
 
-// ---- FEC groups (the erasure code itself is in Rust: rust/onair_kris/src/erasure.rs) -------------------------------------------------------------------
+// ---- FEC groups (the erasure code itself is in Rust: rust/zorcom_kris/src/erasure.rs) -------------------------------------------------------------------
 
 FecProfile fecProfile(int idx) {
     static const FecProfile t[kNumFecProfiles] = {{4, 0}, {14, 2}, {12, 4}, {28, 4}, {24, 8}, {6, 2}, {56, 8}, {48, 16}};
@@ -53,7 +53,7 @@ std::vector<std::vector<uint8_t>> fecEncode(int fecIdx, const std::vector<std::v
     if (f.parity == 0 || n == 0 || static_cast<int>(data.size()) != f.data) return par;
     std::vector<uint8_t> flat(static_cast<size_t>(f.data) * n), pflat(static_cast<size_t>(f.parity) * n);
     for (int i = 0; i < f.data; i++) std::copy(data[i].begin(), data[i].end(), flat.begin() + static_cast<size_t>(i) * n);
-    if (onair_kris_erasure_encode(f.data, f.parity, static_cast<int32_t>(n), flat.data(), pflat.data()) != 0) return par;
+    if (zorcom_kris_erasure_encode(f.data, f.parity, static_cast<int32_t>(n), flat.data(), pflat.data()) != 0) return par;
     for (int j = 0; j < f.parity; j++) par[j].assign(pflat.begin() + static_cast<size_t>(j) * n, pflat.begin() + static_cast<size_t>(j + 1) * n);
     return par;
 }
@@ -76,7 +76,7 @@ bool fecRecover(int fecIdx, std::vector<std::vector<uint8_t>>& cells) {
             std::copy(cells[i].begin(), cells[i].end(), flat.begin() + static_cast<size_t>(i) * n);
             present[i] = 1;
         }
-    if (onair_kris_erasure_recover(G, f.parity, static_cast<int32_t>(n), flat.data(), present.data()) != 0) return false;
+    if (zorcom_kris_erasure_recover(G, f.parity, static_cast<int32_t>(n), flat.data(), present.data()) != 0) return false;
     for (int i = 0; i < G; i++)
         if (cells[i].empty()) cells[i].assign(flat.begin() + static_cast<size_t>(i) * n, flat.begin() + static_cast<size_t>(i + 1) * n);
     return true;

@@ -114,7 +114,7 @@ static void contributorsTab() {
     static int view = 0;
     ImGui::PushTextWrapPos(0);
     ImGui::TextUnformatted(tr("Thank you to everyone who sent fixes, reported bugs, shared recordings, translated or suggested ideas. The author is Kristijonas Adomaitis."));
-    ImGui::TextDisabled("%s", tr("Want your name changed or removed? Tell us on Discord or open an issue."));
+    ImGui::TextDisabled("%s", tr("Want your name changed or removed? Open an issue."));
     ImGui::PopTextWrapPos();
     ImGui::RadioButton(tr("People"), &view, 0); ImGui::SameLine();
     ImGui::RadioButton(tr("By mode"), &view, 1); ImGui::SameLine(0, 24 * gUi);

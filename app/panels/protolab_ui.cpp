@@ -88,7 +88,7 @@ void startWork(std::function<void()> job) {
     if (S.worker.joinable()) S.worker.join();
     S.run = 1;
     S.err.clear();
-    S.worker = dect2::namedThread("onair-protolab", [job] {
+    S.worker = dect2::namedThread("zorcom-protolab", [job] {
         try { job(); } catch (const std::exception& e) { std::lock_guard<std::mutex> lk(S.mu); S.err = e.what(); }
         S.run = 2;
     });

@@ -283,20 +283,20 @@ struct NetTuner::Impl {
         if (path == "/lineup.m3u" || path == "/playlist.m3u") {
             std::string m = "#EXTM3U\n";
             for (auto* s : svc) {
-                m += "#EXTINF:-1 tvg-id=\"" + std::to_string(s->id) + ".onair\" tvg-name=\"" + xmlEscape(s->name) + "\"";
+                m += "#EXTINF:-1 tvg-id=\"" + std::to_string(s->id) + ".zorcom\" tvg-name=\"" + xmlEscape(s->name) + "\"";
                 if (s->lcn) m += " tvg-chno=\"" + std::to_string(s->lcn) + "\"";
                 m += "," + s->name + "\n" + base + "/stream/" + std::to_string(s->id) + keyQ + "\n";
             }
             reply(200, "audio/x-mpegurl", m);
         } else if (path == "/guide.xml" || path == "/xmltv.xml") {
-            std::string x = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<tv generator-info-name=\"OnAir\">\n";
-            for (auto* s : svc) x += "<channel id=\"" + std::to_string(s->id) + ".onair\"><display-name>" + xmlEscape(s->name) + "</display-name></channel>\n";
+            std::string x = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<tv generator-info-name=\"Eye of ZorCom\">\n";
+            for (auto* s : svc) x += "<channel id=\"" + std::to_string(s->id) + ".zorcom\"><display-name>" + xmlEscape(s->name) + "</display-name></channel>\n";
             for (auto& kv : eng.epg()) {
                 bool known = false;
                 for (auto* s : svc) if (s->id == kv.first) known = true;
                 if (!known) continue;
                 for (const auto& e : kv.second) {
-                    x += "<programme start=\"" + xmltvTime(e.start) + "\" stop=\"" + xmltvTime(e.end()) + "\" channel=\"" + std::to_string(kv.first) + ".onair\"><title>" + xmlEscape(e.title) + "</title>";
+                    x += "<programme start=\"" + xmltvTime(e.start) + "\" stop=\"" + xmltvTime(e.end()) + "\" channel=\"" + std::to_string(kv.first) + ".zorcom\"><title>" + xmlEscape(e.title) + "</title>";
                     if (!e.text.empty() || !e.extended.empty()) x += "<desc>" + xmlEscape(e.extended.empty() ? e.text : e.extended) + "</desc>";
                     x += "</programme>\n";
                 }
@@ -304,7 +304,7 @@ struct NetTuner::Impl {
             x += "</tv>\n";
             reply(200, "application/xml", x);
         } else if (path == "/discover.json") {
-            reply(200, "application/json", "{\"FriendlyName\":\"" + jsonEscape(cfg.name) + "\",\"Manufacturer\":\"OnAir\",\"ModelNumber\":\"HDTC-2US\",\"FirmwareName\":\"hdhomerun_atsc\",\"FirmwareVersion\":\"20240101\",\"DeviceID\":\"0A1B2C3D\",\"DeviceAuth\":\"onair\",\"TunerCount\":1,\"BaseURL\":\"" + base + "\",\"LineupURL\":\"" + base + "/lineup.json\"}");
+            reply(200, "application/json", "{\"FriendlyName\":\"" + jsonEscape(cfg.name) + "\",\"Manufacturer\":\"Eye of ZorCom\",\"ModelNumber\":\"HDTC-2US\",\"FirmwareName\":\"hdhomerun_atsc\",\"FirmwareVersion\":\"20240101\",\"DeviceID\":\"0A1B2C3D\",\"DeviceAuth\":\"zorcom\",\"TunerCount\":1,\"BaseURL\":\"" + base + "\",\"LineupURL\":\"" + base + "/lineup.json\"}");
         } else if (path == "/lineup_status.json") {
             reply(200, "application/json", "{\"ScanInProgress\":0,\"ScanPossible\":0,\"Source\":\"Antenna\",\"SourceList\":[\"Antenna\"]}");
         } else if (path == "/lineup.json") {
@@ -329,7 +329,7 @@ struct NetTuner::Impl {
             sock_t fd = accept(lsock, (sockaddr*)&ca, &cl);
             if (fd == kBadSock) { if (!running) break; continue; }
             live++;
-            dect2::namedThread("onair-nettune-c", [this, fd] { serve(fd); live--; }).detach();
+            dect2::namedThread("zorcom-nettune-c", [this, fd] { serve(fd); live--; }).detach();
         }
     }
 };
@@ -354,7 +354,7 @@ bool NetTuner::start(const NetTunerConfig& c) {
     a.sin_addr.s_addr = htonl(c.localOnly ? INADDR_LOOPBACK : INADDR_ANY);
     if (bind(s, (sockaddr*)&a, sizeof a) < 0 || listen(s, 16) < 0) { p_->error = "port " + std::to_string(c.port) + " is not available"; sockClose(s); return false; }
     p_->lsock = s; p_->running = true;
-    p_->acceptor = dect2::namedThread("onair-nettune", [this] { p_->acceptLoop(); });
+    p_->acceptor = dect2::namedThread("zorcom-nettune", [this] { p_->acceptLoop(); });
     p_->eng.setPacketTap([this](const uint8_t* pk, size_t n, const TsSnapshot* sn, double secs) { p_->tap(pk, n, sn, secs); });
     return true;
 }

@@ -29,7 +29,7 @@ public:
         blocking_ = blocking;
         stopFlag_ = false;
         dropped_ = 0;
-        th_ = dect2::namedThread("onair-dvbs-sym", [this] { loop(); });
+        th_ = dect2::namedThread("zorcom-dvbs-sym", [this] { loop(); });
     }
 
     // Queues a block of symbols (copied). Returns false when it was dropped because the thread is too far behind.

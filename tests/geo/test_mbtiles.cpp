@@ -67,7 +67,7 @@ static Bytes fakePng(size_t n, uint8_t seed) {
 static bool writeFile(const std::string& p, const Bytes& d) { std::ofstream f(p, std::ios::binary); f.write((const char*)d.data(), (std::streamsize)d.size()); return (bool)f; }
 
 int main() {
-    const fs::path dir = fs::temp_directory_path() / "onair_mbtiles_test";
+    const fs::path dir = fs::temp_directory_path() / "zorcom_mbtiles_test";
     fs::create_directories(dir);
 
     // ---- synthetic file: page 1 master, 2 tiles, 3 index, 4 metadata, 5.. overflow of the big tile

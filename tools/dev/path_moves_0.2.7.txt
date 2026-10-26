@@ -403,7 +403,7 @@ core/include/dect2/nxdn_proto.h core/include/dect2/nxdn/nxdn_proto.h
 core/include/dect2/nxdn_rx.h core/include/dect2/nxdn/nxdn_rx.h
 core/include/dect2/nxdn_tel.h core/include/dect2/nxdn/nxdn_tel.h
 core/include/dect2/offset_tune.h core/include/dect2/source/offset_tune.h
-core/include/dect2/onair_proto_rs.h core/include/dect2/ais/onair_proto_rs.h
+core/include/dect2/zorcom_proto_rs.h core/include/dect2/ais/zorcom_proto_rs.h
 core/include/dect2/orbcomm.h core/include/dect2/orbcomm/orbcomm.h
 core/include/dect2/orbcomm_gen.h core/include/dect2/orbcomm/orbcomm_gen.h
 core/include/dect2/orbcomm_rx.h core/include/dect2/orbcomm/orbcomm_rx.h

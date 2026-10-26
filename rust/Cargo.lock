@@ -3,244 +3,244 @@
 version = 3
 
 [[package]]
-name = "onair"
+name = "zorcom"
 version = "0.1.0"
 dependencies = [
- "onair_acars",
- "onair_adsb",
- "onair_ax25",
- "onair_common",
- "onair_cot",
- "onair_dab",
- "onair_dmr",
- "onair_drm",
- "onair_dsn",
- "onair_dstar",
- "onair_dvbsi",
- "onair_engine",
- "onair_fec",
- "onair_files",
- "onair_hfdl",
- "onair_kaws",
- "onair_kris",
- "onair_mesh",
- "onair_net",
- "onair_nxdn",
- "onair_p25",
- "onair_pager",
- "onair_proto",
- "onair_ring",
- "onair_same",
- "onair_tetra",
- "onair_ts",
- "onair_uat",
- "onair_usb",
- "onair_vdl2",
- "onair_wifisense",
- "onair_wisun",
+ "zorcom_acars",
+ "zorcom_adsb",
+ "zorcom_ax25",
+ "zorcom_common",
+ "zorcom_cot",
+ "zorcom_dab",
+ "zorcom_dmr",
+ "zorcom_drm",
+ "zorcom_dsn",
+ "zorcom_dstar",
+ "zorcom_dvbsi",
+ "zorcom_engine",
+ "zorcom_fec",
+ "zorcom_files",
+ "zorcom_hfdl",
+ "zorcom_kaws",
+ "zorcom_kris",
+ "zorcom_mesh",
+ "zorcom_net",
+ "zorcom_nxdn",
+ "zorcom_p25",
+ "zorcom_pager",
+ "zorcom_proto",
+ "zorcom_ring",
+ "zorcom_same",
+ "zorcom_tetra",
+ "zorcom_ts",
+ "zorcom_uat",
+ "zorcom_usb",
+ "zorcom_vdl2",
+ "zorcom_wifisense",
+ "zorcom_wisun",
 ]
 
 [[package]]
-name = "onair_acars"
+name = "zorcom_acars"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_adsb"
+name = "zorcom_adsb"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_ax25"
+name = "zorcom_ax25"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_common"
+name = "zorcom_common"
 version = "0.1.0"
 
 [[package]]
-name = "onair_cot"
+name = "zorcom_cot"
 version = "0.1.0"
 
 [[package]]
-name = "onair_dab"
+name = "zorcom_dab"
 version = "0.1.0"
 dependencies = [
- "onair_common",
- "onair_dvbsi",
+ "zorcom_common",
+ "zorcom_dvbsi",
 ]
 
 [[package]]
-name = "onair_dmr"
+name = "zorcom_dmr"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_drm"
+name = "zorcom_drm"
 version = "0.1.0"
 dependencies = [
- "onair_common",
- "onair_dab",
+ "zorcom_common",
+ "zorcom_dab",
 ]
 
 [[package]]
-name = "onair_dsn"
+name = "zorcom_dsn"
 version = "0.1.0"
 
 [[package]]
-name = "onair_dstar"
+name = "zorcom_dstar"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_dvbsi"
+name = "zorcom_dvbsi"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_engine"
+name = "zorcom_engine"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_fec"
+name = "zorcom_fec"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_files"
+name = "zorcom_files"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_hfdl"
+name = "zorcom_hfdl"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_kaws"
+name = "zorcom_kaws"
 version = "0.1.0"
 
 [[package]]
-name = "onair_kris"
+name = "zorcom_kris"
 version = "0.1.0"
 
 [[package]]
-name = "onair_mesh"
+name = "zorcom_mesh"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_net"
+name = "zorcom_net"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_nxdn"
+name = "zorcom_nxdn"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_p25"
+name = "zorcom_p25"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_pager"
+name = "zorcom_pager"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_proto"
+name = "zorcom_proto"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_ring"
+name = "zorcom_ring"
 version = "0.1.0"
 
 [[package]]
-name = "onair_same"
+name = "zorcom_same"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_tetra"
+name = "zorcom_tetra"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_ts"
+name = "zorcom_ts"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_uat"
+name = "zorcom_uat"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_usb"
+name = "zorcom_usb"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_vdl2"
+name = "zorcom_vdl2"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]
 
 [[package]]
-name = "onair_wifisense"
+name = "zorcom_wifisense"
 version = "0.1.0"
 
 [[package]]
-name = "onair_wisun"
+name = "zorcom_wisun"
 version = "0.1.0"
 dependencies = [
- "onair_common",
+ "zorcom_common",
 ]

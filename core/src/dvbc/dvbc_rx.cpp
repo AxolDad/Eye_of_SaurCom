@@ -794,7 +794,7 @@ struct DvbcReceiver::Impl {
     }
 };
 
-DvbcReceiver::DvbcReceiver() : p_(new Impl) { p_->bth = dect2::namedThread("onair-dvbc", [this] { p_->backRun(); }); p_->th = std::thread([this] { p_->run(); }); }
+DvbcReceiver::DvbcReceiver() : p_(new Impl) { p_->bth = dect2::namedThread("zorcom-dvbc", [this] { p_->backRun(); }); p_->th = std::thread([this] { p_->run(); }); }
 DvbcReceiver::~DvbcReceiver() {
     { std::lock_guard<std::mutex> lk(p_->qmu); p_->stop = true; }
     p_->qcv.notify_all();

@@ -124,11 +124,11 @@ std::vector<WifiGenFrame> wifiTestSchedule() {
     ApSpec home;
     const uint8_t hb[6] = {0x00, 0x04, 0x0E, 0x12, 0x34, 0x56};   // AVM
     std::copy(hb, hb + 6, home.bssid);
-    home.ssid = "OnAir-Home"; home.channel = 6; home.security = Wpa2; home.tsf = 123456789; home.seq = 100;
+    home.ssid = "ZorCom-Home"; home.channel = 6; home.security = Wpa2; home.tsf = 123456789; home.seq = 100;
     ApSpec cafe;
     const uint8_t cb[6] = {0xFC, 0xEC, 0xDA, 0xAB, 0xCD, 0xEF};   // Ubiquiti
     std::copy(cb, cb + 6, cafe.bssid);
-    cafe.ssid = "OnAir-Cafe"; cafe.channel = 6; cafe.security = Wpa2Wpa3; cafe.tsf = 987654321; cafe.seq = 2000;
+    cafe.ssid = "ZorCom-Cafe"; cafe.channel = 6; cafe.security = Wpa2Wpa3; cafe.tsf = 987654321; cafe.seq = 2000;
     ApSpec hidden;
     const uint8_t xb[6] = {0x02, 0x11, 0x22, 0x33, 0x44, 0x55};   // locally administered
     std::copy(xb, xb + 6, hidden.bssid);

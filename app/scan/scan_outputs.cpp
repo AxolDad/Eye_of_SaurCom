@@ -4,10 +4,9 @@
 #include <random>
 
 void scanTabCommon(App& a);
-void scanDbHost(App& a, void (*inner)(App&));   // scan_db_ui.cpp: "Shared data" view and the share dialog around the scan tab
 
 static void scanTabMode(App& a);
-void scanTab(App& a) { if (!a.newUi) scannerButton(a); scanDbHost(a, scanTabMode); }
+void scanTab(App& a) { if (!a.newUi) scannerButton(a); scanTabMode(a); }
 
 static void scanTabMode(App& a) {
     if (const ModeUi* mu = modeUi(a.family)) { if (mu->scan) mu->scan(a); else { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("Scanning is not available for this mode yet. Tune with the frequency field."); ImGui::PopTextWrapPos(); } return; }

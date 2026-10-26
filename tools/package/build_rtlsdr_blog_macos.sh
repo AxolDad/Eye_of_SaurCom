@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build RTL-SDR Blog librtlsdr 1.3.6 as a dylib for bundling into OnAir.app (stock Homebrew librtlsdr cannot drive the V4 HF upconverter).
+# Build RTL-SDR Blog librtlsdr 1.3.6 as a dylib for bundling into ZorCom.app (stock Homebrew librtlsdr cannot drive the V4 HF upconverter).
 # Usage: build_rtlsdr_blog_macos.sh <output directory>
 set -euo pipefail
 OUT=${1:?output directory}

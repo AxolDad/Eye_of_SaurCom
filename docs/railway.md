@@ -3,7 +3,7 @@
 The LBJ message parser and the KLW / TDCS receive chain are ported from
 [railair-terminal](https://github.com/frank-1225/railair-terminal), source revision
 `a3a2bcbc998ca79c379f0af05d4ae3ffee033164`, under GPL-3.0-or-later.
-The existing OnAir LBJ modem is retained. KLW and TDCS share `core/src/railway/`
+The existing Eye of ZorCom LBJ modem is retained. KLW and TDCS share `core/src/railway/`
 and have separate mode entries and receiver state.
 
 | Mode | Default frequency | Engine standard | Active telemetry standard | Data |
@@ -12,7 +12,7 @@ and have separate mode entries and receiver state.
 | KLW | 866.2375 MHz | 148 | 147 | 1200 bit/s FFSK, 1200 / 1800 Hz tones |
 | TDCS | 457.550 MHz | 149 | 148 | Same CIR/FFSK physical framing |
 
-Frequencies are defaults and remain editable in OnAir. The KLW default is the
+Frequencies are defaults and remain editable in Eye of ZorCom. The KLW default is the
 passenger end-of-train channel used by the source project, not a claim that all
 KLW equipment uses that channel. These modes register no transmit capability.
 
@@ -163,7 +163,7 @@ is unavailable. It is registered by the same normal CMake test glob.
 * The source project's LBJ field research cites
   [undef-i/LBJ_Console](https://github.com/undef-i/LBJ_Console) and
   [MisakaXing/RP2040-Based-LBJ-Receiver](https://github.com/MisakaXing/RP2040-Based-LBJ-Receiver),
-  GPL-3.0. The original OnAir modem retains its own provenance in [lbj.md](lbj.md).
+  GPL-3.0. The original Eye of ZorCom modem retains its own provenance in [lbj.md](lbj.md).
 * TDCS / KLW layouts originate in the user-supplied CRRD reference, MIT,
   Copyright (c) 2020 Alex L Manstein; the notice is in
   [LICENSES/CRRD-MIT.txt](../LICENSES/CRRD-MIT.txt).

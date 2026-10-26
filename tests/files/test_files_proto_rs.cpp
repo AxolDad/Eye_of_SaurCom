@@ -1,7 +1,7 @@
-// Golden-vector test of the file format layer (dect2::filesp, the Rust crate onair_files): CSV records / quoting / list splitting, SigMF meta files (built from
+// Golden-vector test of the file format layer (dect2::filesp, the Rust crate zorcom_files): CSV records / quoting / list splitting, SigMF meta files (built from
 // random members, mutated, truncated, nested too deep, with duplicate keys, escapes and odd numbers) and both SigMF writers, WAV fmt chunks / classification /
 // data end / names, TLE lines (valid sets with mutated columns and checksums) and TLE texts, the SQLite pieces of the MBTiles reader (varints, records, payload
-// sizes, page headers, cells of all four kinds on random pages, tile rows, schema text, database header) and the results container. ONAIR_DIFF_ITERS (default
+// sizes, page headers, cells of all four kinds on random pages, tile rows, schema text, database header) and the results container. ZORCOM_DIFF_ITERS (default
 // 100000) inputs per family. Buffers are exactly as long as their content so a sanitizer sees a read past the end. The Rust C ABI is also called with null pointers
 // and short arrays. Every result goes into a digest (tests/common/golden.h; doubles rounded to 1e-6) compared with the one recorded from the C++ layer the Rust code
 // replaced.
@@ -180,7 +180,7 @@ static void sigmfFamily(long iters) {
         const std::string dtn = pick({"cf32_le", "ci8_le", "cu8", "ci16_be", "cu16_le"});
         const uint64_t ss = r32() % 3 ? r32() : r64();
         { dig.add(A::sigmfToolMeta(dtn, rate, center, ss, desc)); }
-        const std::string when = r32() % 3 ? "2026-10-13T09:15:30Z" : "", ds = r32() % 3 ? "onair_x.cs8" : "";
+        const std::string when = r32() % 3 ? "2026-10-13T09:15:30Z" : "", ds = r32() % 3 ? "zorcom_x.cs8" : "";
         { dig.add(A::sigmfRecorderMeta(dtn, rate, center, when, ds, ss % 7 ? ss : 0, desc)); }
     }
     printf("  sigmf: %ld metas (%ld ok; bad: json %ld, no global %ld, no datatype %ld, unsupported %ld)\n", iters, ok, bad[1], bad[2], bad[3], bad[4]);
@@ -410,58 +410,58 @@ static void containerFamily(long iters) {
 static void abiMisuse() {
     uint8_t buf[64] = {};
     size_t sz[3];
-    CHECK(!onair_files_csv_measure(nullptr, 0, nullptr), "measure null out");
-    CHECK(onair_files_csv_measure(nullptr, 0, sz) && sz[0] == 0 && sz[1] == 0 && sz[2] == 0, "measure null text");
-    CHECK(!onair_files_csv_parse((const uint8_t*)"a,b\n", 4, buf, 1, nullptr, 0, nullptr, 0), "parse short arrays");
-    CHECK(onair_files_csv_parse(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0), "parse empty");
-    CHECK(onair_files_csv_quote((const uint8_t*)"a,b", 3, buf, 2) == SIZE_MAX, "quote short");
-    CHECK(onair_files_csv_quote_len(nullptr, 0) == 0, "quote len null");
+    CHECK(!zorcom_files_csv_measure(nullptr, 0, nullptr), "measure null out");
+    CHECK(zorcom_files_csv_measure(nullptr, 0, sz) && sz[0] == 0 && sz[1] == 0 && sz[2] == 0, "measure null text");
+    CHECK(!zorcom_files_csv_parse((const uint8_t*)"a,b\n", 4, buf, 1, nullptr, 0, nullptr, 0), "parse short arrays");
+    CHECK(zorcom_files_csv_parse(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0), "parse empty");
+    CHECK(zorcom_files_csv_quote((const uint8_t*)"a,b", 3, buf, 2) == SIZE_MAX, "quote short");
+    CHECK(zorcom_files_csv_quote_len(nullptr, 0) == 0, "quote len null");
     uint32_t ends[2];
-    CHECK(onair_files_split_list((const uint8_t*)"a|b|c", 5, '|', ends, 2) == SIZE_MAX, "split short ends");
-    CHECK(onair_files_split_list((const uint8_t*)"a|b|c", 5, '|', nullptr, 0) == 3, "split count");
-    CHECK(onair_files_json_unescape(nullptr, 0, nullptr, 0) == 0, "unescape null");
-    OnairFilesSigmf m;
-    onair_files_sigmf_parse(nullptr, 0, &m);
+    CHECK(zorcom_files_split_list((const uint8_t*)"a|b|c", 5, '|', ends, 2) == SIZE_MAX, "split short ends");
+    CHECK(zorcom_files_split_list((const uint8_t*)"a|b|c", 5, '|', nullptr, 0) == 3, "split count");
+    CHECK(zorcom_files_json_unescape(nullptr, 0, nullptr, 0) == 0, "unescape null");
+    ZorcomFilesSigmf m;
+    zorcom_files_sigmf_parse(nullptr, 0, &m);
     CHECK(m.status == 1, "sigmf null text");
-    onair_files_sigmf_parse(nullptr, 0, nullptr);
+    zorcom_files_sigmf_parse(nullptr, 0, nullptr);
     int32_t f, be;
-    CHECK(!onair_files_sigmf_datatype(nullptr, 0, &f, &be), "datatype null");
-    CHECK(onair_files_sigmf_write_tool(nullptr, 0, 1, 2, 3, nullptr, 0, nullptr, 0) > 100, "write tool measure");
-    CHECK(onair_files_sigmf_write_recorder(nullptr, 0, 1, 2, nullptr, 0, nullptr, 0, 0, nullptr, 0, buf, 5) > 100, "write recorder short");
-    OnairFilesWavFmt w;
-    onair_files_wav_fmt(nullptr, 0, 0, &w);
+    CHECK(!zorcom_files_sigmf_datatype(nullptr, 0, &f, &be), "datatype null");
+    CHECK(zorcom_files_sigmf_write_tool(nullptr, 0, 1, 2, 3, nullptr, 0, nullptr, 0) > 100, "write tool measure");
+    CHECK(zorcom_files_sigmf_write_recorder(nullptr, 0, 1, 2, nullptr, 0, nullptr, 0, 0, nullptr, 0, buf, 5) > 100, "write recorder short");
+    ZorcomFilesWavFmt w;
+    zorcom_files_wav_fmt(nullptr, 0, 0, &w);
     CHECK(w.tag == 0 && w.channels == 0, "wav fmt null");
-    CHECK(onair_files_wav_classify(nullptr, &f) == 2, "wav classify null");
-    CHECK(onair_files_wav_center_from_name(nullptr, 0) == 0, "wav name null");
-    OnairFilesTle t;
-    onair_files_tle_parse(nullptr, 0, nullptr, 0, nullptr, 0, &t);
+    CHECK(zorcom_files_wav_classify(nullptr, &f) == 2, "wav classify null");
+    CHECK(zorcom_files_wav_center_from_name(nullptr, 0) == 0, "wav name null");
+    ZorcomFilesTle t;
+    zorcom_files_tle_parse(nullptr, 0, nullptr, 0, nullptr, 0, &t);
     CHECK(t.status == 1, "tle null");
-    CHECK(onair_files_tle_scan(nullptr, 0, nullptr, 0) == 0, "tle scan null");
-    OnairFilesDbHeader dh;
-    onair_files_sqlite_header(nullptr, 0, &dh);
+    CHECK(zorcom_files_tle_scan(nullptr, 0, nullptr, 0) == 0, "tle scan null");
+    ZorcomFilesDbHeader dh;
+    zorcom_files_sqlite_header(nullptr, 0, &dh);
     CHECK(dh.status == 1, "db header null");
     uint64_t v;
-    CHECK(onair_files_sqlite_varint(nullptr, 0, &v) == 0, "varint null");
-    CHECK(onair_files_sqlite_record(nullptr, 0, nullptr, 0) == SIZE_MAX, "record null");
-    CHECK(onair_files_sqlite_payload_local(10, 10, false, &v) == 0, "payload tiny usable");
+    CHECK(zorcom_files_sqlite_varint(nullptr, 0, &v) == 0, "varint null");
+    CHECK(zorcom_files_sqlite_record(nullptr, 0, nullptr, 0) == SIZE_MAX, "record null");
+    CHECK(zorcom_files_sqlite_payload_local(10, 10, false, &v) == 0, "payload tiny usable");
     uint32_t o[3];
-    CHECK(!onair_files_sqlite_page_header(nullptr, 0, 0, o), "page header null");
-    CHECK(!onair_files_sqlite_page_header(buf, 64, 100, o), "page header past end");
-    OnairFilesCell c;
-    CHECK(!onair_files_sqlite_cell(nullptr, 0, 13, 0, 0, 1, &c), "cell null");
-    CHECK(!onair_files_sqlite_cell(buf, 64, 99, 0, 0, 1, &c), "cell bad kind");
-    CHECK(!onair_files_sqlite_cell(buf, 64, 13, 0, (size_t)-1 / 4, (size_t)-1 / 4, &c), "cell huge index");
+    CHECK(!zorcom_files_sqlite_page_header(nullptr, 0, 0, o), "page header null");
+    CHECK(!zorcom_files_sqlite_page_header(buf, 64, 100, o), "page header past end");
+    ZorcomFilesCell c;
+    CHECK(!zorcom_files_sqlite_cell(nullptr, 0, 13, 0, 0, 1, &c), "cell null");
+    CHECK(!zorcom_files_sqlite_cell(buf, 64, 99, 0, 0, 1, &c), "cell bad kind");
+    CHECK(!zorcom_files_sqlite_cell(buf, 64, 13, 0, (size_t)-1 / 4, (size_t)-1 / 4, &c), "cell huge index");
     int64_t row;
-    CHECK(!onair_files_sqlite_tile_row(5, 99, 0, &row), "tile row range");
-    CHECK(onair_files_sqlite_tiles_schema(nullptr, 5, buf, 64) == SIZE_MAX, "schema null");
-    CHECK(onair_files_sqlite_tiles_schema((const uint8_t*)"x", 1, buf, 0) == SIZE_MAX, "schema short scratch");
-    CHECK(!onair_files_sqlite_index_covers((const uint8_t*)"abc", 3, buf, 1, nullptr, 0), "index short scratch");
-    CHECK(onair_files_container_check(nullptr, 0, 1) == SIZE_MAX, "container null");
-    CHECK(!onair_files_container_header(1, buf, 8), "container short");
+    CHECK(!zorcom_files_sqlite_tile_row(5, 99, 0, &row), "tile row range");
+    CHECK(zorcom_files_sqlite_tiles_schema(nullptr, 5, buf, 64) == SIZE_MAX, "schema null");
+    CHECK(zorcom_files_sqlite_tiles_schema((const uint8_t*)"x", 1, buf, 0) == SIZE_MAX, "schema short scratch");
+    CHECK(!zorcom_files_sqlite_index_covers((const uint8_t*)"abc", 3, buf, 1, nullptr, 0), "index short scratch");
+    CHECK(zorcom_files_container_check(nullptr, 0, 1) == SIZE_MAX, "container null");
+    CHECK(!zorcom_files_container_header(1, buf, 8), "container short");
 }
 
 int main() {
-    const long iters = getenv("ONAIR_DIFF_ITERS") ? atol(getenv("ONAIR_DIFF_ITERS")) : 100000;
+    const long iters = getenv("ZORCOM_DIFF_ITERS") ? atol(getenv("ZORCOM_DIFF_ITERS")) : 100000;
     printf("files differential, %ld iterations per family\n", iters);
     csvFamily(iters);
     sigmfFamily(iters);
@@ -471,5 +471,5 @@ int main() {
     containerFamily(iters);
     abiMisuse();
     if (abiFails) return 1;
-    return golden::check("files_proto_rs", dig, 0x88007ab9e0e04110ull, !getenv("ONAIR_DIFF_ITERS"));
+    return golden::check("files_proto_rs", dig, 0x88007ab9e0e04110ull, !getenv("ZORCOM_DIFF_ITERS"));
 }

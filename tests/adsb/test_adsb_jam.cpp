@@ -63,15 +63,12 @@ int main() {
     for (uint32_t n = 0; n < 5; n++) { GpsJamObs o = ob(n, 1, 1, 0, 0); o.ground = true; k2.observe(o); k2.observe(ob(50 + n, 1, 1, 0, -1)); }
     CHECK(k2.cells(1).empty(), "ground and unknown skipped");
 
-    // negative and western cells, the wire body
+    // negative and western cells
     GpsJamGrid w;
     for (uint32_t n = 0; n < 3; n++) w.observe(ob(900 + n, -33.9, -70.9, 0, n == 0 ? 2 : 9));
     auto wc = w.cells(10);
     CHECK(wc.size() == 1 && wc[0].latIdx == -68 && wc[0].lonIdx == -142, "negative cell %d %d", wc.empty() ? 0 : wc[0].latIdx, wc.empty() ? 0 : wc[0].lonIdx);
-    const std::string body = GpsJamGrid::toJson("station-abcdef12", wc);
-    CHECK(body == "{\"station\":\"station-abcdef12\",\"cell\":0.5,\"cells\":[[-68,-142,3,1]]}", "body %s", body.c_str());
-    CHECK(body.find("900") == std::string::npos && body.find("icao") == std::string::npos, "no aircraft id in the body");
-    CHECK(GpsJamGrid::toJson("s", {}).empty(), "nothing to send");
+    CHECK(wc.size() == 1 && wc[0].aircraft == 3 && wc[0].degraded == 1, "counts %d %d", wc.empty() ? 0 : wc[0].aircraft, wc.empty() ? 0 : wc[0].degraded);
 
     printf(fails ? "FAILED\n" : "adsb jam ok\n");
     return fails ? 1 : 0;

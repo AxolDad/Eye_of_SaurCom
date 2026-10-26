@@ -61,7 +61,7 @@ struct NrReceiver::Impl {
     // results (under mu)
     NrTelemetry tel, pub;
 
-    Impl() { th = dect2::namedThread("onair-nr", [this] { run(); }); }
+    Impl() { th = dect2::namedThread("zorcom-nr", [this] { run(); }); }
     ~Impl() {
         { std::lock_guard<std::mutex> lk(mu); stop = true; }
         cv.notify_all();

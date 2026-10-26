@@ -43,7 +43,7 @@ not matter.
 
 Demodulation and frame decoding are **[nfc-laboratory](https://github.com/josevcm/nfc-laboratory)**'s (Jose Vicente Campos
 Martinez, GPL-3.0-or-later), vendored in `third_party/nfc-laboratory` as its decoder libraries at commit e9b054a (2026-10-23);
-`third_party/nfc-laboratory/README-OnAir.md` lists what was taken and the two files OnAir replaced (the logger and the debug recorder
+`third_party/nfc-laboratory/README-ZorCom.md` lists what was taken and the two files Eye of ZorCom replaced (the logger and the debug recorder
 stub). Eye of ZorCom feeds it the magnitude of each sample and reads its frames back. The frame names, the anticollision tracking
 to the UID, the ATQA / SAK and manufacturer tables and the screens are Eye of ZorCom's (`core/include/dect2/nfc/nfc_proto.h`).
 

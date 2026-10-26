@@ -31,7 +31,7 @@ void startMeasure() {
     auto src = s.src;
     Job* job = &s.mJob;
     s.mJob.cancel = false; s.mJob.finished = false; s.mJob.running = true; s.mJob.prog = 0;
-    s.mJob.th = dect2::namedThread("onair-wbm", [=]() {
+    s.mJob.th = dect2::namedThread("zorcom-wbm", [=]() {
         measure(*src, t0, t1, f0, f1, o, *res, [job](double p) { job->prog = p; return !job->cancel.load(); });
         job->finished = true;
     });
@@ -51,7 +51,7 @@ void startDemod() {
     Job* job = &s.dJob;
     s.dJob.cancel = false; s.dJob.finished = false; s.dJob.running = true; s.dJob.prog = 0;
     stopAudio();
-    s.dJob.th = dect2::namedThread("onair-wbd", [=]() {
+    s.dJob.th = dect2::namedThread("zorcom-wbd", [=]() {
         *res = demodulate(*src, t0, t1, p);
         job->finished = true;
     });

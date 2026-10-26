@@ -42,7 +42,7 @@ static const WifiSenseListener::Node* find(const std::vector<WifiSenseListener::
 
 int main() {
     WifiSenseListener& L = WifiSenseListener::get();
-    CHECK(onair_wifisense_struct_size() == sizeof(OnairWifiSense), "struct layout matches Rust: %zu vs %zu", onair_wifisense_struct_size(), sizeof(OnairWifiSense));
+    CHECK(zorcom_wifisense_struct_size() == sizeof(ZorcomWifiSense), "struct layout matches Rust: %zu vs %zu", zorcom_wifisense_struct_size(), sizeof(ZorcomWifiSense));
     const int64_t t0 = 1792756800000;
     auto f = frame(3, 1, 60);
     CHECK(L.take(f.data(), f.size(), t0, "10.0.0.3"), "a CSI frame is taken");

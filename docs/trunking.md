@@ -1,6 +1,6 @@
 # Trunking follower (P25, DMR Tier III, NXDN Type C)
 
-Receive only. OnAir decodes a trunked system's control channel and can follow the voice calls it announces. Open the **P25** tab, **Follow**, and turn on **Follow calls**.
+Receive only. Eye of ZorCom decodes a trunked system's control channel and can follow the voice calls it announces. Open the **P25** tab, **Follow**, and turn on **Follow calls**.
 
 ## What it does
 
@@ -10,7 +10,7 @@ Receive only. OnAir decodes a trunked system's control channel and can follow th
   - *Wide capture* (whole-span decoding on): when the granted channel is inside the captured span the sound moves to that carrier. Up to N calls (1 to 4, default 2) are followed at once, limited by CPU. When all are busy a higher-priority talkgroup preempts the lowest one.
   - *Single radio*: the radio leaves the control channel for the call, and returns when the call ends (no voice for the hang time, or a terminator). It does not hop away from a call that is already followed, and never hops when "retune the radio" is off. In both cases the entry says **needs a wider capture or a second radio** and counts as not followed.
   - If the control channel is lost the radio tries the known candidates in turn.
-- **Talkgroup list.** Name, tag, category, priority (1 highest, 0 none), lockout, listen, scan list. Lockout talkgroups are logged but not followed. With **scan list only** only listed talkgroups with Listen on (and in an enabled list, when any list is enabled) are followed. The list is saved to `trunk_talkgroups.csv` in the OnAir data folder.
+- **Talkgroup list.** Name, tag, category, priority (1 highest, 0 none), lockout, listen, scan list. Lockout talkgroups are logged but not followed. With **scan list only** only listed talkgroups with Listen on (and in an enabled list, when any list is enabled) are followed. The list is saved to `trunk_talkgroups.csv` in the Eye of ZorCom data folder.
 - **Call log** with CSV export, **now talking** table, per-call recording (WAV, gated) when the vocoder add-on is present.
 
 ## Encrypted calls
@@ -23,7 +23,7 @@ Voice sound needs the user-installed vocoder add-on (see [CODECS.md](CODECS.md))
 
 ## CSV columns
 
-Import reads the header row, case-insensitive, any column order: `Decimal` (also `DEC`, `TGID`, `Talkgroup`), `Hex`, `Alpha Tag` (`Name`), `Mode` (D, DE, T, A), `Description`, `Tag`, `Category` (`Group`), and the OnAir extras `Priority`, `Lockout`, `List`, `Listen`. The usual RadioReference-style export (Decimal, Hex, Alpha Tag, Mode, Description, Tag, Category) imports as it is; without a header that order is assumed. Quoted fields, doubled quotes, LF/CRLF and a UTF-8 BOM are accepted. A row without a valid number (1 to 65535) is skipped and counted. OnAir downloads no data: you bring the file.
+Import reads the header row, case-insensitive, any column order: `Decimal` (also `DEC`, `TGID`, `Talkgroup`), `Hex`, `Alpha Tag` (`Name`), `Mode` (D, DE, T, A), `Description`, `Tag`, `Category` (`Group`), and the Eye of ZorCom extras `Priority`, `Lockout`, `List`, `Listen`. The usual RadioReference-style export (Decimal, Hex, Alpha Tag, Mode, Description, Tag, Category) imports as it is; without a header that order is assumed. Quoted fields, doubled quotes, LF/CRLF and a UTF-8 BOM are accepted. A row without a valid number (1 to 65535) is skipped and counted. Eye of ZorCom downloads no data: you bring the file.
 
 ## Honest scope
 

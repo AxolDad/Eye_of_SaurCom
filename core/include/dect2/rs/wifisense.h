@@ -1,5 +1,5 @@
-// C ABI of the Rust crate rust/onair_wifisense (WiFi sensing from the CSI frames of RuView's ESP32 nodes: presence, motion,
-// breathing and heart rate). Written by hand; the Rust test rust/onair/tests/headers.rs checks it against ffi.rs.
+// C ABI of the Rust crate rust/zorcom_wifisense (WiFi sensing from the CSI frames of RuView's ESP32 nodes: presence, motion,
+// breathing and heart rate). Written by hand; the Rust test rust/zorcom/tests/headers.rs checks it against ffi.rs.
 #pragma once
 #include <stdbool.h>
 #include <stddef.h>
@@ -9,10 +9,10 @@
 extern "C" {
 #endif
 
-typedef struct OnairWifiSenseSensor OnairWifiSenseSensor;
+typedef struct ZorcomWifiSenseSensor ZorcomWifiSenseSensor;
 
 // One node's state after a frame. Rates are 0 and their confidence 0 while unknown; confidence runs 0 - 1.
-typedef struct OnairWifiSense {
+typedef struct ZorcomWifiSense {
     uint8_t node_id;
     uint8_t presence;   // 1 when someone is in the room
     uint8_t n_antennas;
@@ -25,18 +25,18 @@ typedef struct OnairWifiSense {
     double breathing_bpm, breathing_conf;
     double heart_bpm, heart_conf;
     uint64_t frames;
-} OnairWifiSense;
+} ZorcomWifiSense;
 
 // ABI version of this module (1).
-uint32_t onair_wifisense_version(void);
-size_t onair_wifisense_struct_size(void);
+uint32_t zorcom_wifisense_version(void);
+size_t zorcom_wifisense_struct_size(void);
 // The node id of a CSI datagram, or -1 when it is not a whole ADR-018 CSI frame.
-int32_t onair_wifisense_node(const uint8_t* d, size_t n);
-// A sensor for one node sending frames_per_sec frames (RuView firmware: 50); free it with onair_wifisense_free.
-OnairWifiSenseSensor* onair_wifisense_new(double frames_per_sec);
-void onair_wifisense_free(OnairWifiSenseSensor* s);
+int32_t zorcom_wifisense_node(const uint8_t* d, size_t n);
+// A sensor for one node sending frames_per_sec frames (RuView firmware: 50); free it with zorcom_wifisense_free.
+ZorcomWifiSenseSensor* zorcom_wifisense_new(double frames_per_sec);
+void zorcom_wifisense_free(ZorcomWifiSenseSensor* s);
 // Feeds one datagram to the node's sensor; false (out untouched) when it is not a CSI frame.
-bool onair_wifisense_feed(OnairWifiSenseSensor* s, const uint8_t* d, size_t n, OnairWifiSense* out);
+bool zorcom_wifisense_feed(ZorcomWifiSenseSensor* s, const uint8_t* d, size_t n, ZorcomWifiSense* out);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
-// Golden-vector test of the transport-stream parsing layer (dect2::tsp, the Rust crate onair_ts): CRC-32, packet header, PAT packet, and PAT / PMT / SDT / NIT / EIT /
-// TVCT / TDT sections built from random descriptors, mutated, truncated, with corrupt length fields, over ONAIR_DIFF_ITERS (default 200000) seeded inputs per
+// Golden-vector test of the transport-stream parsing layer (dect2::tsp, the Rust crate zorcom_ts): CRC-32, packet header, PAT packet, and PAT / PMT / SDT / NIT / EIT /
+// TVCT / TDT sections built from random descriptors, mutated, truncated, with corrupt length fields, over ZORCOM_DIFF_ITERS (default 200000) seeded inputs per
 // family. Buffers are exactly as long as the section so a sanitizer build sees any read past the end. Every result goes into a digest (tests/common/golden.h)
 // compared with the one recorded from the C++ layer the Rust code replaced.
 #include "dect2/tv/ts_proto.h"
@@ -250,7 +250,7 @@ static void testCrcPacket(const Buf& s) {
 }
 
 int main() {
-    const long iters = getenv("ONAIR_DIFF_ITERS") ? atol(getenv("ONAIR_DIFF_ITERS")) : 200000;
+    const long iters = getenv("ZORCOM_DIFF_ITERS") ? atol(getenv("ZORCOM_DIFF_ITERS")) : 200000;
     // known vectors first: the CRC check value and a PAT packet
     if (A::crc32((const uint8_t*)"123456789", 9) != 0x0376E6E7u) { printf("crc check value\n"); return 1; }
     { uint8_t a[188]; for (int i = 0; i < 1000; i++) { const int ts = (int)(r32() & 0xFFFF), sid = (int)(r32() & 0xFFFF), pp = (int)(r32() & 0x1FFF), cc = (int)(r32() & 0xFFFF);
@@ -266,5 +266,5 @@ int main() {
         { Buf d; rnd(d, r32() % 200); if (d.size() > 5 && r32() % 2) d[0] = 0x47; testCrcPacket(d); }
     }
     printf("ts proto: parsed ok: pat %ld pmt %ld sdt %ld nit %ld eit %ld tvct %ld tdt %ld packets %ld\n", okCount[0], okCount[1], okCount[2], okCount[3], okCount[4], okCount[5], okCount[6], okCount[7]);
-    return golden::check("ts_proto_rs", dig, 0xcd5ef97b4a7bfd45ull, !getenv("ONAIR_DIFF_ITERS"));
+    return golden::check("ts_proto_rs", dig, 0xcd5ef97b4a7bfd45ull, !getenv("ZORCOM_DIFF_ITERS"));
 }

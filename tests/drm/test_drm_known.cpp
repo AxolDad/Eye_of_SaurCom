@@ -350,7 +350,7 @@ static void testMessages() {
     std::vector<uint8_t> field;
     sdcPutEntity(field, 0, 0, sdcEntityMux(mx));
     sdcPutEntity(field, 9, 0, sdcEntityAudio(a));
-    sdcPutEntity(field, 1, 0, sdcEntityLabel(1, "OnAir DRM"));
+    sdcPutEntity(field, 1, 0, sdcEntityLabel(1, "Eye of ZorCom DRM"));
     sdcPutEntity(field, 12, 0, sdcEntityLang(1, "eng", "gb"));
     sdcPutEntity(field, 8, 0, sdcEntityTime(tm));
     SdcInfo si;
@@ -358,7 +358,7 @@ static void testMessages() {
     CHECK(n == 5, "%d SDC entities parsed", n);
     CHECK(si.mux.present && si.mux.nStreams == 2 && si.mux.protB == 1 && si.mux.stream[0].lenB == 1105 && si.mux.stream[1].lenA == 59, "SDC type 0");
     CHECK(si.audio[1].present && si.audio[1].sbr == 1 && si.audio[1].mode == 2 && si.audio[1].rateHz() == 24000 && si.audio[1].text, "SDC type 9");
-    CHECK(si.label[1].present && si.label[1].text == "OnAir DRM", "SDC label '%s'", si.label[1].text.c_str());
+    CHECK(si.label[1].present && si.label[1].text == "Eye of ZorCom DRM", "SDC label '%s'", si.label[1].text.c_str());
     CHECK(si.lang[1].present && si.lang[1].language == "eng" && si.lang[1].country == "gb", "SDC type 12");
     CHECK(si.time.present && si.time.mjd == tm.mjd && si.time.hour == 17 && si.time.minute == 42 && si.time.offsetHalfHours == 8, "SDC type 8");
     int y, mo, d;
@@ -374,7 +374,7 @@ static void testMessages() {
     // text message: encode, decode, a changed message, and a lost unit
     TextEncoder te;
     TextDecoder td;
-    const std::string msg = "OnAir DRM test signal: station name and a text message of more than sixteen characters";
+    const std::string msg = "Eye of ZorCom DRM test signal: station name and a text message of more than sixteen characters";
     te.set(msg);
     uint8_t unit[4];
     bool changed = false;

@@ -20,19 +20,19 @@ static std::string slurp(const fs::path& p) { std::ifstream f(p, std::ios::binar
 static void spit(const fs::path& p, const std::string& t) { std::ofstream f(p, std::ios::binary | std::ios::trunc); f << t; }
 
 int main() {
-    const fs::path dir = fs::temp_directory_path() / ("onair_crash_test_" + std::to_string((long long)std::rand()) + "_" + std::to_string((long long)fs::file_time_type::clock::now().time_since_epoch().count()));
+    const fs::path dir = fs::temp_directory_path() / ("zorcom_crash_test_" + std::to_string((long long)std::rand()) + "_" + std::to_string((long long)fs::file_time_type::clock::now().time_since_epoch().count()));
     fs::create_directories(dir);
 
     // log rotation: the old log is kept once, a newer one replaces it
     crash::rotateLog(dir.string());   // no log yet: nothing happens
-    CHECK(!fs::exists(dir / "onair-prev.log"), "no log, no previous log");
-    spit(dir / "onair.log", "first run");
+    CHECK(!fs::exists(dir / "zorcom-prev.log"), "no log, no previous log");
+    spit(dir / "zorcom.log", "first run");
     crash::rotateLog(dir.string());
-    CHECK(!fs::exists(dir / "onair.log"), "the log moved away");
-    CHECK(slurp(dir / "onair-prev.log") == "first run", "the previous log has the old text");
-    spit(dir / "onair.log", "second run");
+    CHECK(!fs::exists(dir / "zorcom.log"), "the log moved away");
+    CHECK(slurp(dir / "zorcom-prev.log") == "first run", "the previous log has the old text");
+    spit(dir / "zorcom.log", "second run");
     crash::rotateLog(dir.string());
-    CHECK(slurp(dir / "onair-prev.log") == "second run", "only one old log is kept");
+    CHECK(slurp(dir / "zorcom-prev.log") == "second run", "only one old log is kept");
 
 #ifndef _WIN32
     // a fresh start reports no crash

@@ -51,13 +51,6 @@ void summaryText(App& a, std::string& l1, std::string& l2) {
             snprintf(b, sizeof b, "%s  SNR %.1f dB  CFO %+.0f Hz", tr(rx.state == 2 ? "locked" : "searching"), rx.dataSnrDb, rx.cfoHz);
             l2 = b;
         }
-        if (mapFamilySends(a.family)) {
-            const std::string m = mapSendStatusLine();
-            if (!m.empty()) {
-                if (!l2.empty()) l2 += "  ";
-                l2 += m;
-            }
-        }
     }
 }
 
@@ -452,27 +445,26 @@ static void viewMenu(App& a) {
     }
 }
 
-// the right end of the menu bar: credit, Support, the update button and Clear all (their widths set where the credit may sit)
+// the right end of the menu bar: credit, Credits, the update button and Clear all (their widths set where the credit may sit)
 static void menuBarRight(App& a) {
         const ImGuiStyle& ist = ImGui::GetStyle();
         const float btnPad = 2.f * ist.FramePadding.x + ist.FrameBorderSize;
         char verLbl[64];
-        snprintf(verLbl, sizeof verLbl, "v%s", ONAIR_VERSION);
+        snprintf(verLbl, sizeof verLbl, "v%s", ZORCOM_VERSION);
         float updW = ImGui::CalcTextSize(verLbl).x + btnPad;
         updW = std::max(updW, ImGui::CalcTextSize(tr("restart to update")).x + btnPad);
         updW = std::max(updW, ImGui::CalcTextSize(tr("downloading 100%")).x + btnPad);
         updW = std::max(updW, ImGui::CalcTextSize(tr("checking…")).x + btnPad);
         updW = std::max(updW, ImGui::CalcTextSize(tr("preparing…")).x + btnPad);
         char updLbl[80];
-        snprintf(updLbl, sizeof updLbl, tr("update %s"), ONAIR_VERSION);
+        snprintf(updLbl, sizeof updLbl, tr("update %s"), ZORCOM_VERSION);
         updW = std::max(updW, ImGui::CalcTextSize(updLbl).x + btnPad);
         const float clearW = ImGui::CalcTextSize(tr("Clear all##clearall")).x + btnPad;
-        const float supportW = ImGui::CalcTextSize(tr("Support")).x + btnPad;
         const float creditsW = ImGui::CalcTextSize(tr("Credits")).x + btnPad;
-        const float rightReserve = updW + 6.f * gUi + clearW + 12.f * gUi + supportW + 4.f * gUi + creditsW + 4.f * gUi;
-        const char* credit = tr("by: Kristijonas Adomaitis, made with help from the community");
+        const float rightReserve = updW + 6.f * gUi + clearW + 12.f * gUi + creditsW + 4.f * gUi;
+        const char* credit = tr("by AxolDad, built on the work of Kristijonas Adomaitis and the community");
         const float cw = ImGui::CalcTextSize(credit).x + btnPad;
-        const float xBtn = ImGui::GetWindowWidth() - rightReserve;   // Credits and Support sit just left of the version label
+        const float xBtn = ImGui::GetWindowWidth() - rightReserve;   // Credits sits just left of the version label
         const float xBy = xBtn - cw - 12.f * gUi;
         const float minX = ImGui::GetCursorPosX() + 20 * gUi;
         if (xBy > minX) {   // the 'by' text goes first when the menu bar is narrow
@@ -490,10 +482,8 @@ static void menuBarRight(App& a) {
         if (xBtn > minX) {
             ImGui::SameLine(xBtn);
             if (ImGui::SmallButton(tr("Credits"))) { a.creditsOpen = true; a.creditsTab = 0; }
-            ImGui::SameLine();
-            supportButton();
         }
-        // the version/update button and Clear all sit right of Credits and Support: starting it at xBtn drew the two over each other
+        // the version/update button and Clear all sit right of Credits: starting it at xBtn drew the two over each other
         ImGui::SameLine(ImGui::GetWindowWidth() - (updW + 6.f * gUi + clearW + 12.f * gUi));
         updateButton(a);
         clearAllButton(a);
@@ -530,9 +520,6 @@ float menuBar(App& a) {
         memoryMenu(a);
         const float mx1 = ImGui::GetCursorScreenPos().x;
         tourMark("memory", ImVec2(mx0, my0), ImVec2(mx1, my1));
-        mapSendServerMenu(a);
-        const float sx1 = ImGui::GetCursorScreenPos().x;
-        tourMark("server", ImVec2(mx1, my0), ImVec2(sx1, my1));
         const float hx0 = ImGui::GetCursorScreenPos().x;
         if (ImGui::BeginMenu(tr("Help"))) {
             if (ImGui::MenuItem(tr("Credits"))) { a.creditsOpen = true; a.creditsTab = 0; }
@@ -549,10 +536,10 @@ float menuBar(App& a) {
             if (ImGui::MenuItem(tr("Get me listening"))) listenWizardOpen(a);
             if (ImGui::MenuItem(tr("Guided tour"))) tourStart(a);
             ImGui::Separator();
-            if (ImGui::MenuItem(tr("Documentation"))) dect2::openUrl("https://on-air.dev/docs/");
-            if (ImGui::MenuItem(tr("Troubleshooting"))) dect2::openUrl("https://on-air.dev/docs/troubleshooting/");
+            if (ImGui::MenuItem(tr("Documentation"))) dect2::openUrl("https://github.com/AxolDad/OnAir-SDR-Suite/tree/main/docs");
+            if (ImGui::MenuItem(tr("Troubleshooting"))) dect2::openUrl("https://github.com/AxolDad/OnAir-SDR-Suite#troubleshooting");
             if (ImGui::MenuItem(tr("Voice codecs"))) a.voiceCodecsOpen = true;
-            if (ImGui::MenuItem(tr("Website"))) dect2::openUrl("https://on-air.dev/");
+            if (ImGui::MenuItem(tr("Website"))) dect2::openUrl("https://github.com/AxolDad/OnAir-SDR-Suite");
             if (ImGui::MenuItem(tr("Credits and licences"))) { a.creditsOpen = true; a.creditsTab = 1; }
             ImGui::Separator();
             if (ImGui::MenuItem(tr("Report a problem"))) a.reportOpen = true;

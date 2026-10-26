@@ -1,4 +1,4 @@
-// CDR sound: the DRA+ decoder as an add-on the user installs ("libonair_dra"), loaded at run time. Eye of ZorCom ships no DRA+ decoder and no decoder
+// CDR sound: the DRA+ decoder as an add-on the user installs ("libzorcom_dra"), loaded at run time. Eye of ZorCom ships no DRA+ decoder and no decoder
 // source (the codec's patent and licence status is not verified, docs/CODECS.md "DRA+ (CDR sound)"); without the library the CDR services, signal
 // information and data still work and the audio units are only counted.
 //

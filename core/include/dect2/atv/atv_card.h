@@ -1,5 +1,5 @@
 // The analog TV test card: EBU colour bars, grey ramp and staircase, multiburst, resolution wedge, checkerboard, a circle, the text
-// ONAIR TEST, a moving box, a running clock and a frame counter. Drawn at the picture size of the format (768 x 576 or 640 x 480) as
+// ZORCOM TEST, a moving box, a running clock and a frame counter. Drawn at the picture size of the format (768 x 576 or 640 x 480) as
 // luma and colour-difference planes (E'Y, E'U, E'V in the units of BT.470: Y 0..1, U and V the weighted differences).
 // The picture is band-limited the way a 5 MHz video chain would: the generator can send it as it is.
 #pragma once
@@ -14,7 +14,7 @@ struct AtvMbPacket { double startUs, endUs, mhz; };   // a burst of sine in the 
 
 class AtvCard {
 public:
-    // pattern: 0 the test card, 1 EBU colour bars only, 2 grey ramp only. title: the ident on the card (empty: "ONAIR TEST")
+    // pattern: 0 the test card, 1 EBU colour bars only, 2 grey ramp only. title: the ident on the card (empty: "ZORCOM TEST")
     AtvCard(const AtvFormat& f, int pattern = 0, std::string title = {});
     int width() const { return w_; }
     int height() const { return h_; }

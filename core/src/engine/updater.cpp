@@ -676,13 +676,13 @@ UpdateResult parseUpdateResult(const std::string& text) {
     return r;
 }
 
-std::string updateResultPath() { const std::string t = tempRoot(); return t + (t.back() == '/' || t.back() == '\\' ? "" : "/") + "onair-update-result.txt"; }
+std::string updateResultPath() { const std::string t = tempRoot(); return t + (t.back() == '/' || t.back() == '\\' ? "" : "/") + "zorcom-update-result.txt"; }
 
 // ---------------------------------------------------------------- the updater
 
 Updater::Updater(const std::string& v) : current_(v) {
     api_ = "https://api.github.com/repos/" + std::string(kUpdateRepo) + "/releases?per_page=12";
-    if (const char* e = getenv("ONAIR_UPDATE_URL")) if (*e) setApiUrl(e);
+    if (const char* e = getenv("ZORCOM_UPDATE_URL")) if (*e) setApiUrl(e);
     setExecutable(executablePath());
 }
 
@@ -728,79 +728,9 @@ void Updater::check(bool pre) {
     if (th_.joinable()) th_.join();
     cancel_ = false;
     setPhase(Phase::Checking);
-    th_ = dect2::namedThread("onair-upd", [this, pre] { runCheck(pre); });
+    th_ = dect2::namedThread("zorcom-upd", [this, pre] { runCheck(pre); });
 }
 
-// ---------------------------------------------------------------- the mirror (opt-in) and the checks around it
-
-bool mirrorEnabled(const MirrorConfig& c) {
-    if (c.tmpl.empty()) return false;
-    return c.source == UpdateSource::MirrorOnly || (c.source == UpdateSource::Automatic && c.fallback);
-}
-
-bool isOfficialUrl(const std::string& u) {
-    static const std::string api = "https://api.github.com/repos/" + std::string(kUpdateRepo) + "/r",
-                             rel = "https://github.com/" + std::string(kUpdateRepo) + "/releases/";
-    return u.compare(0, api.size(), api) == 0 || u.compare(0, rel.size(), rel) == 0;
-}
-
-static std::string percentEncode(const std::string& s) {
-    static const char* hex = "0123456789ABCDEF";
-    std::string o;
-    for (unsigned char c : s) {
-        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') o += (char)c;
-        else { o += '%'; o += hex[c >> 4]; o += hex[c & 15]; }
-    }
-    return o;
-}
-
-std::string mirrorUrl(const std::string& tmpl, const std::string& url, bool allowHttp) {
-    if (tmpl.empty() || tmpl.size() > 400 || url.empty() || url.size() > 600) return "";
-    for (unsigned char c : tmpl) if (c <= 32 || c == 127) return "";
-    const bool https = tmpl.compare(0, 8, "https://") == 0;
-    if (!https && !(allowHttp && tmpl.compare(0, 7, "http://") == 0)) return "";
-    if (tmpl.size() < 12) return "";
-    if (!allowHttp && !isOfficialUrl(url)) return "";   // the mirror is only ever asked for the project's own releases
-    std::string t = tmpl, out;
-    auto rep = [](std::string& s, const std::string& key, const std::string& val) { size_t k; bool any = false; while ((k = s.find(key)) != std::string::npos) { s.replace(k, key.size(), val); any = true; } return any; };
-    // an {url} inside the value must not be replaced again: the pieces are put together in one pass
-    const size_t pu = t.find("{url}"), pe = t.find("{urlenc}");
-    if (pu != std::string::npos || pe != std::string::npos) {
-        std::string r;
-        for (size_t i = 0; i < t.size();) {
-            if (t.compare(i, 5, "{url}") == 0) { r += url; i += 5; }
-            else if (t.compare(i, 8, "{urlenc}") == 0) { r += percentEncode(url); i += 8; }
-            else r += t[i++];
-        }
-        out = r;
-    } else {
-        (void)rep;
-        out = t + (t.back() == '/' ? "" : "/") + url;
-    }
-    if (out.compare(0, 8, "https://") != 0 && !(allowHttp && out.compare(0, 7, "http://") == 0)) return "";   // e.g. a template that begins with {url}
-    return out;
-}
-
-std::string checksumFor(const std::string& sums, const std::string& name) {
-    size_t pos = 0;
-    while (pos < sums.size()) {
-        size_t e = sums.find('\n', pos);
-        if (e == std::string::npos) e = sums.size();
-        std::string line = sums.substr(pos, e - pos);
-        pos = e + 1;
-        while (!line.empty() && (line.back() == '\r' || line.back() == ' ')) line.pop_back();
-        if (line.size() < 66) continue;
-        const std::string h = line.substr(0, 64);
-        bool hex = true;
-        for (char c : h) if (!isxdigit((unsigned char)c)) hex = false;
-        if (!hex || (line[64] != ' ' && line[64] != '\t')) continue;
-        size_t k = 64;
-        while (k < line.size() && (line[k] == ' ' || line[k] == '\t')) k++;
-        if (k < line.size() && line[k] == '*') k++;
-        if (line.compare(k, std::string::npos, name) == 0) { std::string r = h; for (char& c : r) c = (char)tolower((unsigned char)c); return r; }
-    }
-    return "";
-}
 
 // One download or request through curl: https only (redirects too, at most 5), a size limit, timeouts, and a stalled transfer is given up.
 int Updater::fetch(const std::string& url, std::string* body, const std::string& outFile, int maxTime, uint64_t maxBytes, const std::function<void()>& tick) {
@@ -810,109 +740,41 @@ int Updater::fetch(const std::string& url, std::string* body, const std::string&
     else if (!insecure_) return 1;   // not an https address: refused (curl code 1: protocol not supported)
     if (!outFile.empty()) { a.push_back("--retry"); a.push_back("2"); a.push_back("-o"); a.push_back(outFile); }
     else { a.push_back("-H"); a.push_back("Accept: application/vnd.github+json"); }
-    a.push_back("-H"); a.push_back("User-Agent: OnAir/" + current_);
+    a.push_back("-H"); a.push_back("User-Agent: ZorCom/" + current_);
     a.push_back(url);
     return runCurl(a, outFile.empty() ? body : nullptr, cancel_, tick);
 }
 
-// GitHub first (unless MirrorOnly); the mirror only when the user turned it on (see mirrorEnabled) and GitHub failed. *usedMirror tells which answered.
-int Updater::fetchWithFallback(const std::string& url, std::string* body, const std::string& outFile, int maxTime, uint64_t maxBytes, bool* usedMirror, const std::function<void()>& tick) {
-    *usedMirror = false;
-    int rc = 1;
-    if (mirror_.source != UpdateSource::MirrorOnly) {
-        if (body) body->clear();
-        rc = fetch(url, body, outFile, maxTime, maxBytes, tick);
-        if (rc == 0 && (!body || !body->empty()) ) return 0;
-        if (rc == 0) rc = 22;
-        if (cancel_ || rc == kCurlMissing) return rc;
-    }
-    if (!mirrorEnabled(mirror_)) return rc;
-    const std::string m = mirrorUrl(mirror_.tmpl, url, insecure_);
-    if (m.empty()) return rc == 0 ? 1 : rc;
-    if (!outFile.empty()) std::remove(outFile.c_str());
-    if (body) body->clear();
-    const int rc2 = fetch(m, body, outFile, maxTime, maxBytes, tick);
-    if (rc2 == 0 && body && body->empty()) return 22;
-    if (rc2 == 0) *usedMirror = true;
-    return rc2;
-}
-
-// The release came through the mirror: ask github.com itself (its API, then the SHA256SUMS file of the release) for the checksum of the package.
-// true = confirmed and r.sha256 is github.com's. A checksum that differs from the mirror's is a refusal (r.sha256 is cleared and the caller fails).
-bool Updater::confirmOfficial(ReleaseInfo& r) {
-    if (mirror_.source == UpdateSource::MirrorOnly) return false;   // the user chose never to contact GitHub
-    std::string off;
-    {
-        std::string body;
-        if (fetch(api_, &body, "", 10, 4u << 20) == 0 && !body.empty()) {
-            std::string e;
-            ReleaseInfo o = pickRelease(body, "0", true, kind_, thisArch(), &e);   // "0": every release counts, the tag is compared below
-            JParser p(body);
-            J root = p.value();
-            if (p.ok && root.t == J::Arr) {
-                for (const J& rel : root.a) {
-                    if (rel.t != J::Obj || rel.str("tag_name") != r.tag) continue;
-                    if (const J* as = rel.get("assets")) for (const J& a : as->a) if (a.str("name") == r.assetName) {
-                        const std::string d = a.str("digest");
-                        if (d.compare(0, 7, "sha256:") == 0 && d.size() == 71) off = d.substr(7);
-                    }
-                }
-            }
-            (void)o;
-        }
-    }
-    if (off.empty()) {
-        std::string sums;
-        if (fetch(dlBase_ + r.tag + "/SHA256SUMS", &sums, "", 10, 1u << 16) == 0) off = checksumFor(sums, r.assetName);
-    }
-    if (off.size() != 64) return false;
-    if (!r.sha256.empty() && r.sha256 != off) { r.sha256 = "!"; return false; }   // the mirror's list disagrees with GitHub: something is wrong
-    r.sha256 = off;
-    r.officialVerified = true;
-    return true;
-}
 
 void Updater::runCheck(bool pre) {
     std::string body;
-    bool viaMirror = false;
-    const int rc = fetchWithFallback(api_, &body, "", 20, 4u << 20, &viaMirror);
+    const int rc = fetch(api_, &body, "", 20, 4u << 20);
     if (cancel_) return;
     if (rc != 0 || body.empty()) {
-        std::string why = rc == 0 ? "no answer from GitHub" : curlError(rc, "the update check");
-        if (mirrorEnabled(mirror_)) why += "; the mirror did not answer either";
-        setPhase(Phase::Failed, why);
+        setPhase(Phase::Failed, rc == 0 ? "no answer from GitHub" : curlError(rc, "the update check"));
         return;
     }
     std::string err;
     ReleaseInfo r = pickRelease(body, current_, pre, kind_, thisArch(), &err);
-    if (viaMirror && r.valid) {
-        r.fromMirror = true;
-        if (confirmOfficial(r)) {}
-        else if (r.sha256 == "!") { setPhase(Phase::Failed, "the mirror's checksum for the package does not match GitHub's: not installing it"); return; }
-    }
     std::lock_guard<std::mutex> lk(mu_);
     st_.checkedAt = nowSeconds();
     if (!err.empty()) { st_.phase = Phase::Failed; st_.error = err; return; }
     st_.release = r;
-    st_.viaMirror = viaMirror;
-    st_.mirrorUnverified = r.valid && r.fromMirror && !r.officialVerified;
     st_.phase = r.valid ? Phase::Available : Phase::UpToDate;
     st_.error.clear();
 }
 
-std::string Updater::workDir() const { return tempRoot() + (tempRoot().back() == '/' || tempRoot().back() == '\\' ? "" : "/") + "onair-update-" + std::to_string(pidNow()); }
+std::string Updater::workDir() const { return tempRoot() + (tempRoot().back() == '/' || tempRoot().back() == '\\' ? "" : "/") + "zorcom-update-" + std::to_string(pidNow()); }
 
-void Updater::download(bool confirmMirrorOnly) {
+void Updater::download() {
     {
         std::lock_guard<std::mutex> lk(mu_);
         if (st_.phase != Phase::Available || !st_.release.valid) return;
-        if (st_.mirrorUnverified && !confirmMirrorOnly) return;   // only the mirror vouches for it: never without the user's explicit yes
     }
-    confirmed_ = confirmMirrorOnly;
     if (th_.joinable()) th_.join();
     cancel_ = false;
     setPhase(Phase::Downloading);
-    th_ = dect2::namedThread("onair-updl", [this] { runDownload(); });
+    th_ = dect2::namedThread("zorcom-updl", [this] { runDownload(); });
 }
 
 void Updater::runDownload() {
@@ -927,12 +789,9 @@ void Updater::runDownload() {
     runCommand("mkdir -p " + shq(dir));
 #endif
     file_ = dir + "/" + r.assetName;
-    if (r.fromMirror && !r.officialVerified && !confirmed_) { setPhase(Phase::Failed, "only the mirror vouches for this package: it needs your confirmation"); return; }
-    if (r.fromMirror && r.size == 0) { setPhase(Phase::Failed, "the mirror's list gives no size for the package: not installing it"); return; }
     // the size of the file is watched while curl runs; a package is never larger than 1.5 GB
-    bool dlMirror = false;
     const uint64_t cap = r.size ? r.size + 4096 : (1536ull << 20);
-    const int rc = fetchWithFallback(r.assetUrl, nullptr, file_, 1800, cap, &dlMirror, [&] {
+    const int rc = fetch(r.assetUrl, nullptr, file_, 1800, cap, [&] {
         std::ifstream f(file_, std::ios::binary | std::ios::ate);
         const uint64_t sz = f ? (uint64_t)f.tellg() : 0;
         std::lock_guard<std::mutex> lk(mu_);
@@ -962,7 +821,7 @@ bool Updater::prepare(const std::string& file, std::string& err) {
         // the new app is copied from the disk image next to the installed one, on the same volume, so that swapping them is a rename
         const std::string appPath = exe_.substr(0, exe_.find(".app/Contents/MacOS/") + 4);
         const std::string parent = dirOf(appPath);
-        const std::string stage = parent + "/.OnAir-update";
+        const std::string stage = parent + "/.ZorCom-update";
         const std::string mnt = dir + "/mnt";
         runCommand("rm -rf " + shq(stage) + " && mkdir -p " + shq(stage) + " " + shq(mnt));
         int rc = 0;
@@ -970,7 +829,7 @@ bool Updater::prepare(const std::string& file, std::string& err) {
         if (rc != 0) { err = "the disk image could not be opened: " + out.substr(0, 120); return false; }
         const std::string name = appPath.substr(appPath.find_last_of('/') + 1);
         std::string src = mnt + "/" + name;
-        if (!fileExists(src + "/Contents/Info.plist")) src = mnt + "/OnAir.app";
+        if (!fileExists(src + "/Contents/Info.plist")) src = mnt + "/ZorCom.app";
         const int cp = runCommand("ditto " + shq(src) + " " + shq(stage + "/" + name) + " >/dev/null 2>&1");
         runCommand("hdiutil detach " + shq(mnt) + " -quiet >/dev/null 2>&1");
         if (cp != 0 || !fileExists(stage + "/" + name + "/Contents/Info.plist")) { err = "the new version could not be copied next to the installed one (no permission? it has to be written to " + parent + ")"; runCommand("rm -rf " + shq(stage)); return false; }
@@ -981,13 +840,13 @@ bool Updater::prepare(const std::string& file, std::string& err) {
     case InstallKind::LinuxPortable: {
         const std::string root = dirOf(dirOf(exe_));
         const std::string parent = dirOf(root);
-        const std::string stage = parent + "/.onair-update";
+        const std::string stage = parent + "/.zorcom-update";
         runCommand("rm -rf " + shq(stage) + " && mkdir -p " + shq(stage));
         if (runCommand("tar -xzf " + shq(file) + " -C " + shq(stage)) != 0) { err = "the package could not be unpacked (no permission to write in " + parent + "?)"; return false; }
         // the archive holds one folder
         std::string top = runCapture("ls " + shq(stage));
         top.erase(std::remove(top.begin(), top.end(), '\n'), top.end());
-        if (top.empty() || !fileExists(stage + "/" + top + "/bin/onair")) { err = "the package has an unexpected layout"; return false; }
+        if (top.empty() || !fileExists(stage + "/" + top + "/bin/zorcom")) { err = "the package has an unexpected layout"; return false; }
         staged_ = stage + "/" + top;
         return true;
     }
@@ -1082,7 +941,7 @@ bool Updater::apply(bool restart, std::string* err) {
         o << "rm -rf \"" << dir << "\"\n";
         o.close();
         chmod(script.c_str(), 0755);
-        const std::string launch = mac ? std::string() : target + "/bin/onair";
+        const std::string launch = mac ? std::string() : target + "/bin/zorcom";
         spawnDetached(script, {pid, target, staged_, restart ? "1" : "0", launch});
         return true;
     }
@@ -1090,7 +949,7 @@ bool Updater::apply(bool restart, std::string* err) {
         // the package manager needs the administrator: polkit asks for the password in a window
         const std::string script = dir + "/apply.sh";
         std::ofstream o(script);
-        o << "#!/bin/sh\npkexec dpkg -i " << shq(staged_) << " && { if [ \"$1\" = 1 ]; then onair >/dev/null 2>&1 & fi; }\n";
+        o << "#!/bin/sh\npkexec dpkg -i " << shq(staged_) << " && { if [ \"$1\" = 1 ]; then zorcom >/dev/null 2>&1 & fi; }\n";
         o.close();
         chmod(script.c_str(), 0755);
         spawnDetached(script, {restart ? "1" : "0"});

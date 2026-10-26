@@ -1,6 +1,6 @@
-// C ABI of the Rust crate rust/onair_dsn (Deep Space Network Now: the live dish, target and signal XML of eyes.nasa.gov and its
-// configuration). Written by hand; the Rust test rust/onair/tests/headers.rs checks the functions against ffi.rs, and dect2/net/dsn.cpp
-// checks the struct sizes against onair_dsn_feed_size() / onair_dsn_config_size().
+// C ABI of the Rust crate rust/zorcom_dsn (Deep Space Network Now: the live dish, target and signal XML of eyes.nasa.gov and its
+// configuration). Written by hand; the Rust test rust/zorcom/tests/headers.rs checks the functions against ffi.rs, and dect2/net/dsn.cpp
+// checks the struct sizes against zorcom_dsn_feed_size() / zorcom_dsn_config_size().
 #pragma once
 #include <stdbool.h>
 #include <stddef.h>
@@ -10,37 +10,37 @@
 extern "C" {
 #endif
 
-#define ONAIR_DSN_MAX_STATIONS 4
-#define ONAIR_DSN_MAX_DISHES 32
-#define ONAIR_DSN_MAX_TARGETS 64
-#define ONAIR_DSN_MAX_SIGNALS 128
-#define ONAIR_DSN_MAX_SITES 4
-#define ONAIR_DSN_MAX_SPACECRAFT 320
+#define ZORCOM_DSN_MAX_STATIONS 4
+#define ZORCOM_DSN_MAX_DISHES 32
+#define ZORCOM_DSN_MAX_TARGETS 64
+#define ZORCOM_DSN_MAX_SIGNALS 128
+#define ZORCOM_DSN_MAX_SITES 4
+#define ZORCOM_DSN_MAX_SPACECRAFT 320
 
 // Texts are NUL-terminated UTF-8. Unknown numbers are NaN.
-typedef struct OnairDsnStation {
+typedef struct ZorcomDsnStation {
     char name[8];             // gdscc, mdscc, cdscc
     char friendly[24];        // Goldstone, Madrid, Canberra
     int64_t time_utc_ms;
     int64_t tz_offset_ms;     // add to time_utc_ms for the local time
-} OnairDsnStation;
+} ZorcomDsnStation;
 
-typedef struct OnairDsnDish {
+typedef struct ZorcomDsnDish {
     char name[8];             // DSS14 ...
     char activity[72];
     double azimuth_deg, elevation_deg;
     double wind_kmh;
     int32_t station;          // index into stations, -1 when none
     uint8_t mspa, array, ddor, _pad;
-} OnairDsnDish;
+} ZorcomDsnDish;
 
-typedef struct OnairDsnTarget {
+typedef struct ZorcomDsnTarget {
     char name[16];            // call sign
     int32_t dish, id;
     double upleg_km, downleg_km, rtlt_s;
-} OnairDsnTarget;
+} ZorcomDsnTarget;
 
-typedef struct OnairDsnSignal {
+typedef struct ZorcomDsnSignal {
     char spacecraft[16];
     int32_t dish, spacecraft_id;
     uint8_t up;               // 1 uplink, 0 downlink
@@ -52,53 +52,53 @@ typedef struct OnairDsnSignal {
     double data_rate_bps;
     double frequency_hz;      // 0 when not published
     double power;             // uplink kW, downlink dBm
-} OnairDsnSignal;
+} ZorcomDsnSignal;
 
-typedef struct OnairDsnFeed {
+typedef struct ZorcomDsnFeed {
     int64_t timestamp_ms;
     uint32_t n_stations, n_dishes, n_targets, n_signals;
-    OnairDsnStation stations[ONAIR_DSN_MAX_STATIONS];
-    OnairDsnDish dishes[ONAIR_DSN_MAX_DISHES];
-    OnairDsnTarget targets[ONAIR_DSN_MAX_TARGETS];
-    OnairDsnSignal signals[ONAIR_DSN_MAX_SIGNALS];
-} OnairDsnFeed;
+    ZorcomDsnStation stations[ZORCOM_DSN_MAX_STATIONS];
+    ZorcomDsnDish dishes[ZORCOM_DSN_MAX_DISHES];
+    ZorcomDsnTarget targets[ZORCOM_DSN_MAX_TARGETS];
+    ZorcomDsnSignal signals[ZORCOM_DSN_MAX_SIGNALS];
+} ZorcomDsnFeed;
 
-typedef struct OnairDsnSite {
+typedef struct ZorcomDsnSite {
     char name[8];
     char friendly[24];
     double latitude, longitude;
-} OnairDsnSite;
+} ZorcomDsnSite;
 
-typedef struct OnairDsnDishInfo {
+typedef struct ZorcomDsnDishInfo {
     char name[8];
     char kind[12];            // 70M, 34M, 34MHEF ...
     int32_t site;
-} OnairDsnDishInfo;
+} ZorcomDsnDishInfo;
 
-typedef struct OnairDsnSpacecraft {
+typedef struct ZorcomDsnSpacecraft {
     char name[16];
     char friendly[64];
-} OnairDsnSpacecraft;
+} ZorcomDsnSpacecraft;
 
-typedef struct OnairDsnConfig {
+typedef struct ZorcomDsnConfig {
     uint32_t n_sites, n_dishes, n_spacecraft, _pad;
-    OnairDsnSite sites[ONAIR_DSN_MAX_SITES];
-    OnairDsnDishInfo dishes[ONAIR_DSN_MAX_DISHES];
-    OnairDsnSpacecraft spacecraft[ONAIR_DSN_MAX_SPACECRAFT];
-} OnairDsnConfig;
+    ZorcomDsnSite sites[ZORCOM_DSN_MAX_SITES];
+    ZorcomDsnDishInfo dishes[ZORCOM_DSN_MAX_DISHES];
+    ZorcomDsnSpacecraft spacecraft[ZORCOM_DSN_MAX_SPACECRAFT];
+} ZorcomDsnConfig;
 
 // ABI version of this module (1).
-uint32_t onair_dsn_version(void);
-size_t onair_dsn_feed_size(void);
-size_t onair_dsn_config_size(void);
+uint32_t zorcom_dsn_version(void);
+size_t zorcom_dsn_feed_size(void);
+size_t zorcom_dsn_config_size(void);
 // Reads a dsn.xml report into out (cleared first). False when the text is not a DSN report.
-bool onair_dsn_parse(const uint8_t* xml, size_t n, OnairDsnFeed* out);
+bool zorcom_dsn_parse(const uint8_t* xml, size_t n, ZorcomDsnFeed* out);
 // Reads config.xml into out (cleared first). False when the text is not the DSN configuration.
-bool onair_dsn_parse_config(const uint8_t* xml, size_t n, OnairDsnConfig* out);
+bool zorcom_dsn_parse_config(const uint8_t* xml, size_t n, ZorcomDsnConfig* out);
 // The full name of a call sign into out (NUL-terminated, cut to cap); its length, 0 when the config lacks it.
-size_t onair_dsn_spacecraft_name(const OnairDsnConfig* cfg, const uint8_t* call, size_t call_len, uint8_t* out, size_t cap);
+size_t zorcom_dsn_spacecraft_name(const ZorcomDsnConfig* cfg, const uint8_t* call, size_t call_len, uint8_t* out, size_t cap);
 // The index of a dish in cfg->dishes, -1 when not listed.
-int32_t onair_dsn_dish_index(const OnairDsnConfig* cfg, const uint8_t* dish, size_t dish_len);
+int32_t zorcom_dsn_dish_index(const ZorcomDsnConfig* cfg, const uint8_t* dish, size_t dish_len);
 
 #ifdef __cplusplus
 }

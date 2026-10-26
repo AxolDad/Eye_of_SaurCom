@@ -298,7 +298,7 @@ struct Demod::Impl {
         if (!threaded) { runJob(j); produced++; consumed++; return; }
         {
             std::lock_guard<std::mutex> g(qm);
-            if (!worker.joinable()) worker = dect2::namedThread("onair-isdbt", [this] { workerLoop(); });
+            if (!worker.joinable()) worker = dect2::namedThread("zorcom-isdbt", [this] { workerLoop(); });
             produced++;
         }
         cvWork.notify_one();

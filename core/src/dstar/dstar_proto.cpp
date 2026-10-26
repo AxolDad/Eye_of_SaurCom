@@ -1,4 +1,4 @@
-// D-STAR protocol pieces: the sync pattern tables (see dstar_proto.h). The layer itself is Rust: dstar_proto_rs.cpp over rust/onair_dstar.
+// D-STAR protocol pieces: the sync pattern tables (see dstar_proto.h). The layer itself is Rust: dstar_proto_rs.cpp over rust/zorcom_dstar.
 #include "dect2/dstar/dstar_proto.h"
 
 namespace dect2 {

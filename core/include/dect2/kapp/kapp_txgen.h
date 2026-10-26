@@ -2,7 +2,7 @@
 // into the selective-repeat blocks of kapp_arq.h and sent as bursts at one fixed profile. The transmission is one-way: no ACK is waited for, so the whole
 // message is sent `kapp.repeat` times (a receiver that missed a block gets it on the next pass; one that has the message already ignores the repeat).
 // Options: opt "kapp.profile" (0 .. 8, default 2 = QPSK 1/2), opt "kapp.repeat" (1 .. 9 passes, default 2). The callsign is up to 7 characters of
-// A-Z 0-9 and "/" (lower case is raised); empty is the demo identity ONAIR. An empty message is a short demo text.
+// A-Z 0-9 and "/" (lower case is raised); empty is the demo identity ZORCOM. An empty message is a short demo text.
 // The generator is finite: finished() is true after the last pass, and a session ends then. Nothing about mode, frequency or power is limited here.
 #pragma once
 #include "dect2/tx/tx.h"

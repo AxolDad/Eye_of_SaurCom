@@ -37,22 +37,22 @@ def table(cols):
         out.append("| " + " | ".join(cells) + " |")
     return "\n".join(out)
 
-INTRO = """OnAir is released under the **GNU General Public License v3.0 or later** (see [LICENSE](LICENSE)). It stands on the work of many people. This file lists the third-party and derived code, libraries, data and specifications behind it, what each licence asks of us, and where we are not sure. The same list is in the program (Help, Credits and licences), on the website and in the wiki. If you wrote something we use and you are not named correctly, please open an issue and we will fix it at once.
+INTRO = """Eye of ZorCom is released under the **GNU General Public License v3.0 or later** (see [LICENSE](LICENSE)). It stands on the work of many people. This file lists the third-party and derived code, libraries, data and specifications behind it, what each licence asks of us, and where we are not sure. The same list is in the program (Help, Credits and licences), on the website and in the wiki. If you wrote something we use and you are not named correctly, please open an issue and we will fix it at once.
 
-OnAir name and logo © 2026 Kristijonas Adomaitis. All rights reserved; the logo is not covered by the GPL licence of the source code.
+Eye of ZorCom is a fork of [OnAir](https://github.com/adswill/OnAir) by Kristijonas Adomaitis and its contributors; their copyright notices stay with their code.
 
-How to read the "How" column: **vendored** means the source is in this repository and compiled into OnAir; **ported / re-implemented / read** means OnAir's own code was written from that project's source or documentation (file headers name the project); **linked** means a library OnAir is built against; **loaded at run time** means the user installs it and OnAir finds it, it is not shipped.
+How to read the "How" column: **vendored** means the source is in this repository and compiled into Eye of ZorCom; **ported / re-implemented / read** means Eye of ZorCom's own code was written from that project's source or documentation (file headers name the project); **linked** means a library Eye of ZorCom is built against; **loaded at run time** means the user installs it and Eye of ZorCom finds it, it is not shipped.
 """
 
 CONFLICTS = """## Licence audit: decisions and open points, stated plainly
 
-Nothing found is GPL-2.0-only code or a non-commercial licence inside the OnAir binary. What was decided for each point of the audit:
+Nothing found is GPL-2.0-only code or a non-commercial licence inside the Eye of ZorCom binary. What was decided for each point of the audit:
 
-1. **DRA decoder (CDR sound). Not shipped, no source here.** The decoder of maliwen2015 (https://github.com/maliwen2015/ffmpeg_cavs_dra, MIT as published; it sits inside ffmpeg-7.1.2_cavs_dra.patch, state of 2026-08-14, head eb94ceb) was vendored before; where it first came from is not stated there and the patent status of DRA / DRA+ is not verified. So it is now an add-on the user installs (loaded at run time like mbelib and the HDC library): this repository holds only the loader and tools/addons/dra (a script that fetches the source and a CMake file that builds libonair_dra). docs/CODECS.md has the steps.
+1. **DRA decoder (CDR sound). Not shipped, no source here.** The decoder of maliwen2015 (https://github.com/maliwen2015/ffmpeg_cavs_dra, MIT as published; it sits inside ffmpeg-7.1.2_cavs_dra.patch, state of 2026-08-14, head eb94ceb) was vendored before; where it first came from is not stated there and the patent status of DRA / DRA+ is not verified. So it is now an add-on the user installs (loaded at run time like mbelib and the HDC library): this repository holds only the loader and tools/addons/dra (a script that fetches the source and a CMake file that builds libzorcom_dra). docs/CODECS.md has the steps.
 2. **third_party/sddc_fx3/SDDC_FX3.img (RX888 firmware). Kept.** The SDDC project itself distributes this exact image (145868 bytes) as the release asset of https://github.com/renardspark/SDDC_Driver/releases/tag/v2.0.0 under MIT (firmware source: https://github.com/ik1xpv/ExtIO_sddc, SDDC_FX3). The Cypress/Infineon FX3 SDK object code inside is redistributable on FX3 devices under that SDK's licence, which we could not read in full. It is loaded into the radio's RAM and never linked. The note shipped beside it says how to download the image yourself instead.
-3. **acarsdec (core/src/acars). Closed.** acarsdec's `msk.c` is under the GNU Library GPL version 2 only, which cannot be combined into a GPL-3 work. The OnAir MSK demodulator was a close translation of it (same loop constants and structure), so it was re-written from the ARINC 618 description: a half-sine matched filter at the bit boundaries, a decision-directed carrier reference and an early-late bit clock. The parity repair was restructured and gives identical results on 20000 random corruptions. CRC-16/KERMIT, the odd-parity rule, the syndrome table and the frame layout are facts of ARINC 618 / standard algorithms. acarsdec stays in the credits for the documented formats.
-4. **iridium-toolkit (core/src/iridium). Kept, licence unknown.** The repository has no licence file. OnAir's C++ was written from the facts of the air interface (bit layouts, BCH polynomials, field meanings), which are not copyrightable, not from copied code. The owner may ask muccc to add a licence.
-5. **SDRplay API (core/src/source/sdrplay_api_min.h). Closed.** The file contains only the binary interface the library needs (struct layouts, constants, signatures: interoperability facts) in OnAir's own names and wording; a header note says so. No SDRplay header, comment text or library is shipped.
+3. **acarsdec (core/src/acars). Closed.** acarsdec's `msk.c` is under the GNU Library GPL version 2 only, which cannot be combined into a GPL-3 work. The Eye of ZorCom MSK demodulator was a close translation of it (same loop constants and structure), so it was re-written from the ARINC 618 description: a half-sine matched filter at the bit boundaries, a decision-directed carrier reference and an early-late bit clock. The parity repair was restructured and gives identical results on 20000 random corruptions. CRC-16/KERMIT, the odd-parity rule, the syndrome table and the frame layout are facts of ARINC 618 / standard algorithms. acarsdec stays in the credits for the documented formats.
+4. **iridium-toolkit (core/src/iridium). Kept, licence unknown.** The repository has no licence file. Eye of ZorCom's C++ was written from the facts of the air interface (bit layouts, BCH polynomials, field meanings), which are not copyrightable, not from copied code. The owner may ask muccc to add a licence.
+5. **SDRplay API (core/src/source/sdrplay_api_min.h). Closed.** The file contains only the binary interface the library needs (struct layouts, constants, signatures: interoperability facts) in Eye of ZorCom's own names and wording; a header note says so. No SDRplay header, comment text or library is shipped.
 6. **tests/data/drm. Kept as test inputs.** Cells recorded from the Dream project's sample recordings, terms not stated. They are used only by the test suite and are in no release package.
 7. **Packaging notices. Done.** Every release package carries THIRD_PARTY.md, LICENSE, the LICENSES folder and docs/LICENSE-NOTICES-BINARIES.md (licence of each bundled library and the source offer for the LGPL ones).
 8. **rtl_433 and multimon-ng** are GPL-2.0 projects; the files read carry "version 2 or any later version", so they are compatible. If a future port reads a file without "or later", stop and check it first.
@@ -83,7 +83,7 @@ Copyright (c) 2017-2020 Oscar Steila ik1xpv (ExtIO_sddc); SDDC_Driver by renards
 
 ### DRA decoder (MIT)
 
-Copyright (c) 2021 maliwen2015 (ffmpeg_cavs_dra). Not part of OnAir or its packages: the user fetches the source from that repository, which carries the MIT text. See the open points above.
+Copyright (c) 2021 maliwen2015 (ffmpeg_cavs_dra). Not part of Eye of ZorCom or its packages: the user fetches the source from that repository, which carries the MIT text. See the open points above.
 
 ### miniaudio (public domain or MIT-0)
 
@@ -95,7 +95,7 @@ Sean Barrett and contributors; the notices are in the headers `third_party/imgui
 
 ### codec2 (LGPL-2.1)
 
-Copyright David Rowe and the codec2 contributors. The licence text is `third_party/codec2/COPYING` (also `LICENSES/LGPL-2.1.txt`). The sources of the release OnAir ships are in `third_party/codec2/src`; replace the shared library with your own build as described in [docs/CODECS.md](docs/CODECS.md).
+Copyright David Rowe and the codec2 contributors. The licence text is `third_party/codec2/COPYING` (also `LICENSES/LGPL-2.1.txt`). The sources of the release Eye of ZorCom ships are in `third_party/codec2/src`; replace the shared library with your own build as described in [docs/CODECS.md](docs/CODECS.md).
 
 ### dump978 / uat_fec (GPL-2.0-or-later, LGPL)
 
@@ -130,7 +130,7 @@ write("THIRD_PARTY.md", "# Third-party code, data and credits\n\n" + INTRO + "\n
       "\n## Changing this list\n\nEdit `tools/credits_data.tsv`, then run `python3 tools/gen_credits.py`. It rewrites this file, `docs/credits-for-website.md` and the table shown in the program (`app/panels/credits_data.h`); people are in `tools/contributors.tsv`. `tests/app/test_credits.cpp` fails when a field is empty.\n")
 
 write("docs/credits-for-website.md", "# Credits and licences\n\nPaste this block into the website and the wiki. Last generated from tools/credits_data.tsv.\n\n" + INTRO +
-      "\nThe full notices and the open licence points are in [THIRD_PARTY.md](https://github.com/adswill/OnAir/blob/main/THIRD_PARTY.md).\n\n" + table([0, 1, 2, 3, 4]) +
+      "\nThe full notices and the open licence points are in [THIRD_PARTY.md](https://github.com/AxolDad/OnAir-SDR-Suite/blob/main/THIRD_PARTY.md).\n\n" + table([0, 1, 2, 3, 4]) +
       "\n\nLinks: " + "; ".join("[%s](%s)" % (r[0], r[5]) for r in rows) + "\n")
 
 # ---- contributors (tools/contributors.tsv) ----
@@ -172,9 +172,9 @@ for r in crow:
     for m in r[4].split(";"):
         m = m.strip()
         if m.startswith("area:"): byarea.setdefault(m[5:], set()).add(r[0])
-CIN = ("OnAir exists because of the people below: they sent fixes, reported bugs, shared recordings, translated and suggested ideas. "
-       "The maintainer, [Kristijonas Adomaitis](https://github.com/adswill), is the author and is not repeated here. "
-       "Only names people already use in public are shown. **Want your name changed or removed? Tell us on Discord or open an issue.**\n")
+CIN = ("Eye of ZorCom exists because of the people below: they sent fixes, reported bugs, shared recordings, translated and suggested ideas. "
+       "The author of OnAir, the program this one is a fork of, [Kristijonas Adomaitis](https://github.com/adswill), is not repeated here. "
+       "Only names people already use in public are shown. **Want your name changed or removed? Open an issue.**\n")
 def contrib_md():
     t = ["## People (%d)\n" % len(people)]
     t.append("| Who | What | Kind | Where | Reference |\n|---|---|---|---|---|")

@@ -26,7 +26,7 @@ static bool samples(IqRing& ring) {
 int main(int argc, char** argv) {
     if (argc != 2) return 2;
     namespace fs = std::filesystem;
-    const auto dir = fs::temp_directory_path() / ("onair-sdrplay-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    const auto dir = fs::temp_directory_path() / ("zorcom-sdrplay-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     fs::create_directory(dir);
 #ifdef _WIN32
     const auto file = dir / "sdrplay_api.dll";

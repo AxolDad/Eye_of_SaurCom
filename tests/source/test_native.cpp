@@ -423,7 +423,7 @@ static void radiosChecks(const char* dir, const char* ext) {
             for (const auto& d : listNativeDevices(le)) if (d.board == board) l.push_back(d);
             return l;
         };
-        {   // the bladeRF 2.0 lists RX1 (what OnAir used before) and RX2, which streams BLADERF_CHANNEL_RX(1) = 2
+        {   // the bladeRF 2.0 lists RX1 (what Eye of ZorCom used before) and RX2, which streams BLADERF_CHANNEL_RX(1) = 2
             const auto l = entries("bladerf");
             CHECK(l.size() == 2 && has(l[0].name, " RX1 ") && has(l[1].name, " RX2 "), "bladeRF 2.0: %zu entries (%s)", l.size(), l.empty() ? "" : l[0].name.c_str());
             for (size_t i = 0; i < l.size() && i < 2; i++) {
@@ -537,7 +537,7 @@ static void radiosChecks(const char* dir, const char* ext) {
         CHECK(u10 && st("usrp.freq") == 10e6 && has(e, "specified for 70 to 6000 MHz") && has(e, "weak or absent"), "USRP at 10 MHz is passed on with a note: %s", e.c_str());
         if (u10) src->stop();
         src.reset();
-        // a B200 lists RX2 (UHD's default, left alone: what OnAir did before) and TX/RX; a B210 the same on RF A (channel 0) and RF B (1)
+        // a B200 lists RX2 (UHD's default, left alone: what Eye of ZorCom did before) and TX/RX; a B210 the same on RF A (channel 0) and RF B (1)
         struct Want { const char* label; double ch, antenna; };   // antenna 0 = not set, 1 = RX2, 2 = TX/RX
         const Want b200[] = {{" RX2 ", 0, 0}, {" TX/RX ", 0, 2}};
         const Want b210[] = {{" RF A RX2 ", 0, 0}, {" RF A TX/RX ", 0, 2}, {" RF B RX2 ", 1, 1}, {" RF B TX/RX ", 1, 2}};
@@ -571,7 +571,7 @@ static void radiosChecks(const char* dir, const char* ext) {
 
 // ---- radio settings
 // The radios' own settings (DeviceInfo::settings, TuneSettings::radio): each reaches its vendor call, and a radio started without any
-// calls nothing new (what OnAir did before the settings existed).
+// calls nothing new (what Eye of ZorCom did before the settings existed).
 namespace dect2 {
 uint32_t hackrfAutoFilterHz(double sampleRate, double channelMhz);   // hackrf_usb.cpp
 void hackrfBoardRange(int id, double& lo, double& hi);
@@ -1375,7 +1375,7 @@ static void fobosChecks(const char* dir, const char* ext) {
 int main(int argc, char** argv) {
     if (argc < 2) { printf("usage: test_native <fake library>\n"); return 2; }
     const std::string fake = argv[1];
-    char tmpl[] = "/tmp/onair-native-XXXXXX";
+    char tmpl[] = "/tmp/zorcom-native-XXXXXX";
     const char* dir = mkdtemp(tmpl);
     if (!dir) { printf("no temp dir\n"); return 2; }
 #ifdef __APPLE__
@@ -1415,7 +1415,7 @@ int main(int argc, char** argv) {
     for (const auto& c : cases) {
         printf("%s:\n", c.board);
         const DeviceInfo* dev = nullptr;
-        for (const auto& d : list) if (d.board == c.board && !dev) dev = &d;   // the first entry: the input OnAir always used
+        for (const auto& d : list) if (d.board == c.board && !dev) dev = &d;   // the first entry: the input Eye of ZorCom always used
         CHECK(dev, "radio not listed");
         if (!dev) continue;
         CHECK(dev->kind == DeviceInfo::Native && dev->isRadio() && dev->isGeneric(), "wrong kind");

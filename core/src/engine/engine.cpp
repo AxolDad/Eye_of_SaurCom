@@ -128,11 +128,6 @@ void Engine::stop() {
     releaseDevice(receiverId_);
 }
 
-bool Engine::syntheticSource() const {
-    std::lock_guard<std::mutex> lk(tuneMu_);
-    return lastDev_.kind == DeviceInfo::Synthetic;
-}
-
 bool Engine::startRecording(const std::string& path, FileFormat fmt, std::string& err) {
     DeviceInfo::Kind kind;
     { std::lock_guard<std::mutex> lk(tuneMu_); kind = lastDev_.kind; }

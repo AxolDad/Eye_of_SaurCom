@@ -162,7 +162,7 @@ private:
     std::vector<std::vector<uint8_t>> slotAlp(uint64_t count) {
         const int slot = (int)(count % (uint64_t)content_->slots);
         const uint64_t cycle = count / (uint64_t)content_->slots;
-        static const std::string slt = "<SLT bsid=\"4660\"><Service serviceId=\"1001\" majorChannelNo=\"7\" minorChannelNo=\"1\" serviceCategory=\"1\" shortServiceName=\"ONAIR\" sltSvcSeqNum=\"0\">"
+        static const std::string slt = "<SLT bsid=\"4660\"><Service serviceId=\"1001\" majorChannelNo=\"7\" minorChannelNo=\"1\" serviceCategory=\"1\" shortServiceName=\"ZORCOM\" sltSvcSeqNum=\"0\">"
             "<BroadcastSvcSignaling slsProtocol=\"1\" slsDestinationIpAddress=\"239.255.5.1\" slsDestinationUdpPort=\"3000\" slsSourceIpAddress=\"10.1.1.5\"/></Service></SLT>";
         static const std::string stsid =
             "<S-TSID><RS dIpAddr=\"239.255.5.1\" dPort=\"3000\">"

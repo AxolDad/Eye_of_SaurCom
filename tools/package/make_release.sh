@@ -1,8 +1,8 @@
 #!/bin/bash
 # Build every installer on this Mac and collect them in release/ with checksums:
-#   OnAir-<v>-macos-arm64.dmg                         macOS (Apple silicon)
-#   onair_<v>_arm64.deb, onair_<v>_amd64.deb (+ .tar.gz)   Linux
-#   OnAir-<v>-windows-x64-setup.exe, ...-windows-x64.zip   Windows
+#   ZorCom-<v>-macos-arm64.dmg                         macOS (Apple silicon)
+#   zorcom_<v>_arm64.deb, zorcom_<v>_amd64.deb (+ .tar.gz)   Linux
+#   ZorCom-<v>-windows-x64-setup.exe, ...-windows-x64.zip   Windows
 # Needs Docker (Colima) for Linux, mingw-w64 + the Windows dependencies (tools/package/cross_deps_windows.sh) for Windows.
 #
 #   tools/package/make_release.sh                 build everything
@@ -21,25 +21,25 @@ mkdir -p $OUT   # files are overwritten, nothing is deleted
 
 echo "== macOS"
 tools/package/make_dmg.sh "$VERSION" >/dev/null
-cp build-release/OnAir-$VERSION-macos-*.dmg $OUT/
+cp build-release/ZorCom-$VERSION-macos-*.dmg $OUT/
 
 echo "== Linux arm64"
 tools/package/make_deb.sh >/dev/null
-cp build-packages/onair_*_arm64.deb $OUT/ ; for f in build-packages/onair-*.tar.gz; do cp "$f" "$OUT/$(basename "$f" .tar.gz)-arm64.tar.gz"; done
+cp build-packages/zorcom_*_arm64.deb $OUT/ ; for f in build-packages/zorcom-*.tar.gz; do cp "$f" "$OUT/$(basename "$f" .tar.gz)-arm64.tar.gz"; done
 if [ $SKIP_X86 = 0 ]; then
   echo "== Linux x86-64 (emulated, slow)"
   PLATFORM=linux/amd64 tools/package/make_deb.sh >/dev/null
-  cp build-packages/onair_*_amd64.deb $OUT/ ; for f in build-packages/onair-*.tar.gz; do cp "$f" "$OUT/$(basename "$f" .tar.gz)-x86_64.tar.gz"; done
+  cp build-packages/zorcom_*_amd64.deb $OUT/ ; for f in build-packages/zorcom-*.tar.gz; do cp "$f" "$OUT/$(basename "$f" .tar.gz)-x86_64.tar.gz"; done
 fi
 
 echo "== Windows x64"
 tools/package/make_windows_cross.sh "$VERSION" >/dev/null
-cp build-windows/OnAir-$VERSION-windows-x64-setup.exe build-windows/OnAir-$VERSION-windows-x64.zip $OUT/
+cp build-windows/ZorCom-$VERSION-windows-x64-setup.exe build-windows/ZorCom-$VERSION-windows-x64.zip $OUT/
 
 (cd $OUT && shasum -a 256 * > SHA256SUMS.txt)
 echo; ls -la $OUT
 
 if [ -n "$TAG" ]; then
   echo "== publishing $TAG"
-  gh release create "$TAG" $OUT/* --title "OnAir $TAG" --generate-notes
+  gh release create "$TAG" $OUT/* --title "Eye of ZorCom $TAG" --generate-notes
 fi

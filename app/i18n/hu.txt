@@ -201,7 +201,7 @@ Instrument palette	Műszer színséma
 Mono palette	Mono színséma
 Show in Discord	Megjelenítés a Discordon
 Show the frequency	A frekvencia megjelenítése
-Shows on your Discord profile that you are using Eye of ZorCom, the mode and the frequency. Needs the Discord desktop app running.	Megjeleníti a Discord-profilodon, hogy az OnAir-t használod, az üzemmódot és a frekvenciát. A Discord asztali alkalmazásnak futnia kell.
+Shows on your Discord profile that you are using Eye of ZorCom, the mode and the frequency. Needs the Discord desktop app running.	Megjeleníti a Discord-profilodon, hogy az ZorCom-t használod, az üzemmódot és a frekvenciát. A Discord asztali alkalmazásnak futnia kell.
 Discord application ID not set in this build	A Discord alkalmazásazonosító nincs beállítva ebben a kiadásban
 Passes	Átvonulások
 Data feeds...	Adatforrások...
@@ -514,7 +514,7 @@ Auto start at AOS, stop at LOS	Automatikus indítás AOS-nál, leállítás LOS-
 Switches to the satellite's mode and starts the receiver at AOS (when it is stopped), and stops it at LOS	AOS-nál átvált a műhold üzemmódjára és elindítja a vevőt (ha le van állítva), LOS-nál leállítja
 Auto record IQ	Automatikus IQ-felvétel
 Records the radio's IQ during the pass, as Record IQ does (format from the Record IQ setting), into %s/recordings	Az átvonulás alatt rögzíti a rádió IQ-jét, mint az IQ rögzítése (a formátum az IQ rögzítése beállításból), ide: %s/recordings
-Eye of ZorCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	Az OnAirnek nincs dekódere ehhez: az automatikus indítás a Spektrumfelfedezőt nyitja meg, az automatikus felvétel pedig megtartja az IQ-t
+Eye of ZorCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	Az ZorComnek nincs dekódere ehhez: az automatikus indítás a Spektrumfelfedezőt nyitja meg, az automatikus felvétel pedig megtartja az IQ-t
 tracking%s	követés%s
 , recording	, felvétel
 Sends decoded data to other programs while the mode runs. Every feed is off until you turn it on.	Dekódolt adatot küld más programoknak, amíg az üzemmód fut. Minden adatforrás ki van kapcsolva, amíg be nem kapcsolod.
@@ -619,7 +619,7 @@ Downloaded and checked. It is installed when you close Eye of ZorCom.	Letöltve 
 Restart now and update	Újraindítás és frissítés most
 Windows asks for permission to run the installer.	A Windows engedélyt kér a telepítő futtatásához.
 The system asks for your password to install the package.	A rendszer a jelszavadat kéri a csomag telepítéséhez.
-This copy of Eye of ZorCom cannot replace itself.	Ez az OnAir-példány nem tudja lecserélni önmagát.
+This copy of Eye of ZorCom cannot replace itself.	Ez az ZorCom-példány nem tudja lecserélni önmagát.
 The update to v%s did not install (setup exit code %d).	A v%s verzióra frissítés nem települt (telepítő kilépési kódja: %d).
 Only github.com is contacted. Downloads are checked against the SHA-256 GitHub lists for the file.	Csak a github.com-mal létesít kapcsolatot. A letöltéseket a GitHub által a fájlhoz megadott SHA-256 ellenőrzi.
 checking…	ellenőrzés…
@@ -707,7 +707,7 @@ Files: audio and IQ	Fájlok: hang és IQ
 Fill under the line	Vonal alatti kitöltés
 Find "SDRplay API Service" and press Start (or Restart).	Keresse meg az „SDRplay API Service” szolgáltatást, és nyomja meg az Indítás (vagy Újraindítás) gombot.
 Fix the address of the network radio (host:port).	Javítsa ki a hálózati rádió címét (gép:port).
-Download Eye of ZorCom again and unpack or install the whole package: the codec2 library belongs next to the program.	Töltse le újra az OnAirt, és csomagolja ki vagy telepítse a teljes csomagot: a codec2 könyvtár a program mellett van.
+Download Eye of ZorCom again and unpack or install the whole package: the codec2 library belongs next to the program.	Töltse le újra az ZorComt, és csomagolja ki vagy telepítse a teljes csomagot: a codec2 könyvtár a program mellett van.
 Follow the steps in the full instructions to install the codec.	A kodek telepítéséhez kövesse a teljes útmutató lépéseit.
 For an RSP, install the SDRplay API first (sdrplay.com).	RSP esetén először telepítse az SDRplay API-t (sdrplay.com).
 Found %s (%s)	Megtalálva: %s (%s)
@@ -766,7 +766,7 @@ Eye of ZorCom could not open the speakers, so there will be no sound.	Az Eye of 
 Eye of ZorCom could not use the rtl_tcp server, or the connection dropped.	Az Eye of ZorCom nem tudta használni az rtl_tcp szervert, vagy megszakadt a kapcsolat.
 Eye of ZorCom found the SDRplay software, but its background service does not answer, so the RSP cannot be opened.	Az Eye of ZorCom megtalálta az SDRplay szoftvert, de a háttérszolgáltatása nem válaszol, ezért az RSP nem nyitható meg.
 Eye of ZorCom lists a radio when the computer sees it. You can still try everything with the synthetic signal or an IQ file.	Az Eye of ZorCom akkor listáz egy rádiót, amikor a számítógép látja. A szintetikus jellel vagy egy IQ-fájllal így is kipróbálhat mindent.
-Eye of ZorCom needs SDRplay API 3.07 or a newer 3.x.	Az OnAir-hez SDRplay API 3.07 vagy újabb 3.x szükséges.
+Eye of ZorCom needs SDRplay API 3.07 or a newer 3.x.	Az ZorCom-hez SDRplay API 3.07 vagy újabb 3.x szükséges.
 Only one program can use an rtl_tcp server at a time: close any other client.	Egyszerre csak egy program használhat egy rtl_tcp szervert: zárja be a többi klienst.
 Only one program can use the radio at a time.	Egyszerre csak egy program használhatja a rádiót.
 Only one receiver plays its sound at a time: click to hear this one	Egyszerre csak egy vevő játssza a hangját: kattintson, hogy ezt hallja
@@ -802,8 +802,8 @@ Reduce CPU when hidden	CPU-terhelés csökkentése rejtett állapotban
 Remote driver	Távoli illesztő
 Reset	Visszaállítás
 Reset layout	Elrendezés visszaállítása
-Restart Eye of ZorCom (the installer starts SDRplay's background service).	Indítsa újra az OnAir-t (a telepítő elindítja az SDRplay háttérszolgáltatását).
-Restart Eye of ZorCom.	Indítsa újra az OnAir-t.
+Restart Eye of ZorCom (the installer starts SDRplay's background service).	Indítsa újra az ZorCom-t (a telepítő elindítja az SDRplay háttérszolgáltatását).
+Restart Eye of ZorCom.	Indítsa újra az ZorCom-t.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Indítsa újra a Mac-et, vagy futtassa a Terminálban: sudo launchctl kickstart -k system/com.sdrplay.service
 Right-click the speaker icon, open Sound settings and pick an output device.	Kattintson jobb gombbal a hangszóró ikonra, nyissa meg a hangbeállításokat, és válasszon kimeneti eszközt.
 Run in a terminal: sudo systemctl restart sdrplay	Futtassa terminálban: sudo systemctl restart sdrplay
@@ -865,7 +865,7 @@ The radio's USB connection failed	A rádió USB-kapcsolata megszakadt
 The recording file is missing, moved or not readable.	A felvételfájl hiányzik, át lett helyezve vagy nem olvasható.
 The rtl_tcp address is not valid	Az rtl_tcp cím érvénytelen
 The server has no radio	A kiszolgálón nincs rádió
-The text and data are shown, but speech needs the codec2 library. It comes with Eye of ZorCom, so this copy is probably incomplete.	A szöveg és az adatok megjelennek, de a beszédhez a codec2 könyvtár kell. Az OnAirhez tartozik, ezért ez a példány valószínűleg hiányos.
+The text and data are shown, but speech needs the codec2 library. It comes with Eye of ZorCom, so this copy is probably incomplete.	A szöveg és az adatok megjelennek, de a beszédhez a codec2 könyvtár kell. Az ZorComhez tartozik, ezért ez a példány valószínűleg hiányos.
 The voice codec (mbelib) is not installed	A hangkodek (mbelib) nincs telepítve
 This frequency is not reachable through the converter.	Ez a frekvencia nem érhető el a konverteren keresztül.
 This is a Linux problem. On this system, unplug the radio, plug it in again and press the refresh button.	Ez Linux-probléma. Ezen a rendszeren húzza ki a rádiót, dugja vissza, majd nyomja meg a frissítés gombot.
@@ -899,7 +899,7 @@ Weather pictures, 1.7 GHz	Időjárási képek, 1,7 GHz
 What do you want to receive? Tick anything that interests you.	Mit szeretne venni? Jelölje be, ami érdekli.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Mit kell hozzáadni a dBFS szinthez, hogy ennek a rádiónak dBm értéket kapjunk (a kalibrációja: egy ismert jel az antennacsatlakozón megmutatja). A rádió beállításaiban is megtalálható.
 Where are you? This picks the right TV standard and FM band.	Hol van? Ez kiválasztja a megfelelő TV-szabványt és FM-sávot.
-Which language do you want Eye of ZorCom in?	Milyen nyelven szeretné használni az OnAir-t?
+Which language do you want Eye of ZorCom in?	Milyen nyelven szeretné használni az ZorCom-t?
 Which radio do you have?	Milyen rádiója van?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Az üzemmódot bármikor megváltoztathatja, és ezt a beállítást újra futtathatja a Súgó > Beállítási varázsló menüből.
 You can go on without one: the synthetic signal and IQ files work with no hardware.	Folytathatja nélküle is: a szintetikus jel és az IQ-fájlok hardver nélkül is működnek.
@@ -1028,7 +1028,7 @@ Frequency (MHz)	Frekvencia (MHz)
 Repeat until stopped	Ismétlés leállításig
 seconds	másodperc
 START TRANSMITTING	ADÁS INDÍTÁSA
-This radio has no transmit driver in Eye of ZorCom.	Ennek a rádiónak nincs adó-illesztőprogramja az OnAirben.
+This radio has no transmit driver in Eye of ZorCom.	Ennek a rádiónak nincs adó-illesztőprogramja az ZorComben.
 Before you transmit	Adás előtt
 I understand	Megértettem
 TX VGA 0 to 47 dB; the +14 dB amplifier has its own switch	TX VGA 0-tól 47 dB-ig; a +14 dB-es erősítőnek saját kapcsolója van
@@ -1507,9 +1507,9 @@ WAV: 16-bit, large. FLAC: lossless, about half the size. MP3: small (needs libmp
 Saves only while there is sound (like a squelch): silence is cut out, with a short lead-in and tail	Csak akkor ment, amikor van hang (mint egy zajzár): a csend kimarad, rövid előzmény és lecsengés marad
 One file per transmission: a new file starts after 3 s of silence	Adásonként egy fájl: 3 s csend után új fájl kezdődik
 Keeps recording when the mode or the frequency changes. Off: the recording stops then.	Folytatja a felvételt, ha a mód vagy a frekvencia változik. Kikapcsolva: ilyenkor leáll a felvétel.
-The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Ebből az OnAir-telepítésből hiányzik a SoapyRemote modul, ezért nem éri el a távoli rádiót. Telepítse újra az OnAir-t, és jelezze, ha újra előfordul. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
-The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Ebből az OnAir-telepítésből hiányzik a SoapyRemote modul, ezért nem éri el a távoli rádiót. Telepítse újra az OnAir-t (vagy futtassa: brew install soapyremote), és jelezze, ha újra előfordul. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
-SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind.	Ebből a SoapySDR-ből hiányzik a SoapyRemote kliensmodul, ezért nem éri el a távoli rádiót. Telepítse (Debian/Ubuntu: sudo apt install soapysdr-module-remote; más rendszereken: github.com/pothosware/SoapyRemote), majd indítsa újra az OnAir-t. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
+The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Ebből az ZorCom-telepítésből hiányzik a SoapyRemote modul, ezért nem éri el a távoli rádiót. Telepítse újra az ZorCom-t, és jelezze, ha újra előfordul. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
+The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Ebből az ZorCom-telepítésből hiányzik a SoapyRemote modul, ezért nem éri el a távoli rádiót. Telepítse újra az ZorCom-t (vagy futtassa: brew install soapyremote), és jelezze, ha újra előfordul. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
+SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind.	Ebből a SoapySDR-ből hiányzik a SoapyRemote kliensmodul, ezért nem éri el a távoli rádiót. Telepítse (Debian/Ubuntu: sudo apt install soapysdr-module-remote; más rendszereken: github.com/pothosware/SoapyRemote), majd indítsa újra az ZorCom-t. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
 # frequency database
 %zu built in, %zu yours	%zu beépített, %zu saját
 Add entry...	Bejegyzés hozzáadása...
@@ -1749,7 +1749,7 @@ Hides tone-only pages and pages whose text could not be decoded.	Elrejti a csak 
 hidden	elrejtve
 # LBJ (Chinese railway train warning)
 What LBJ carries	Mit visz az LBJ
-LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nOnAir decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	Az LBJ a kínai vonat-közeledési figyelmeztetés kb. 821,2375 MHz-en. Minden mozdony 1200 bit/s sebességű numerikus POCSAG-üzeneteket küld: néhány másodpercenként rövid üzenetet a vonatszámmal, a sebességgel (km/h) és a kilométerszelvénnyel, valamint hosszabb üzeneteket a mozdony típusával, számával és az útvonallal.\n\nAz Eye of ZorCom maga dekódolja az üzeneteket (csak vétel). Az üres érték sérült számjegyeket jelent; a szürke sorban javított hibák voltak, ezért ellenőrizd ugyanannak a vonatnak a következő üzenetével.
+LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of ZorCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	Az LBJ a kínai vonat-közeledési figyelmeztetés kb. 821,2375 MHz-en. Minden mozdony 1200 bit/s sebességű numerikus POCSAG-üzeneteket küld: néhány másodpercenként rövid üzenetet a vonatszámmal, a sebességgel (km/h) és a kilométerszelvénnyel, valamint hosszabb üzeneteket a mozdony típusával, számával és az útvonallal.\n\nAz Eye of ZorCom maga dekódolja az üzeneteket (csak vétel). Az üres érték sérült számjegyeket jelent; a szürke sorban javított hibák voltak, ezért ellenőrizd ugyanannak a vonatnak a következő üzenetével.
 tune to about 821.2375 MHz and start the receiver	hangolj kb. 821,2375 MHz-re és indítsd el a vevőt
 FM, 1200 bit/s FSK, %.2f Msps	FM, 1200 bit/s FSK, %.2f Msps
 %llu messages, %llu sync words, %llu blank, %llu failed checks	%llu üzenet, %llu szinkronszó, %llu üres, %llu sikertelen ellenőrzés
@@ -2197,11 +2197,11 @@ Kind	Fajta
 Map points	Térképpontok
 Modes (in the mode list, group PLUGINS)	Módok (a módlistában, PLUGINS csoport)
 Network: talk to other computers	Hálózat: kommunikálhat más számítógépekkel
-No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .onairplugin file.	Nincs telepített bővítmény. Használja a „Telepítés fájlból” gombot, vagy másoljon egy bővítménymappát a bővítmények mappájába. A bővítmény egy .onairplugin fájl.
+No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .zorcomplugin file.	Nincs telepített bővítmény. Használja a „Telepítés fájlból” gombot, vagy másoljon egy bővítménymappát a bővítmények mappájába. A bővítmény egy .zorcomplugin fájl.
 Not installed	Nincs telepítve
 Open its folder	Mappájának megnyitása
 PLUGINS	BŐVÍTMÉNYEK
-Permissions are what Eye of ZorCom hands the plugin. A plugin running inside Eye of ZorCom can still use the system itself: install plugins you trust, or run them in a helper process.	Az engedélyek azt jelentik, mit ad át az Eye of ZorCom a bővítménynek. Az OnAiren belül futó bővítmény ettől még maga is használhatja a rendszert: csak megbízható bővítményt telepítsen, vagy futtassa segédfolyamatban.
+Permissions are what Eye of ZorCom hands the plugin. A plugin running inside Eye of ZorCom can still use the system itself: install plugins you trust, or run them in a helper process.	Az engedélyek azt jelentik, mit ad át az Eye of ZorCom a bővítménynek. Az ZorComen belül futó bővítmény ettől még maga is használhatja a rendszert: csak megbízható bővítményt telepítsen, vagy futtassa segédfolyamatban.
 Plugin idle	A bővítmény tétlen
 Plugin log	Bővítménynapló
 Plugin modes run on receiver 1.	A bővítménymódok az 1. vevőn futnak.
@@ -3070,7 +3070,7 @@ Tone decoders	Hangdekóderek
 The test signal repeats every 40 s: CTCSS 123.0 Hz under speech-like noise, DCS D023N, DTMF 159#, a ZVEI1 call 12345, SELCAL AM-CP and a two-tone page.	A tesztjel 40 másodpercenként ismétlődik: CTCSS 123,0 Hz beszédszerű zaj alatt, DCS D023N, DTMF 159#, egy ZVEI1 hívás 12345, SELCAL AM-CP és egy kéthangos hívás.
 CTCSS, DCS, DTMF, selcall	CTCSS, DCS, DTMF, szelektív hívás
 # COSPAS-SARSAT 406 MHz
-A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nOnAir only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	A 406 MHz-es vészjeladó (EPIRB hajón, ELT repülőgépben, PLB személynél) körülbelül 50 másodpercenként egy kb. fél másodperces adást küld: modulálatlan vivő, majd 112 vagy 144 bit 400 bit/s sebességgel. Az üzenet tartalmaz egy, a jeladóra egyedi 15 jegyű hexa azonosítót, az országot, a jeladó fajtáját és gyakran egy pozíciót (rövid üzenetben 15 percre, hosszúban 4 másodpercre kerekítve). Két BCH-ellenőrzés védi az üzenetet; az első mező legfeljebb három sérült bitje javítható.\n\nAz Eye of ZorCom csak vesz. A tesztjeladók és az önteszt-adások jelölve vannak. Ha úgy gondolja, valódit hallott, értesítse országa mentési koordinációs központját; biztonsága érdekében ne erre a programra támaszkodjon.
+A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of ZorCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	A 406 MHz-es vészjeladó (EPIRB hajón, ELT repülőgépben, PLB személynél) körülbelül 50 másodpercenként egy kb. fél másodperces adást küld: modulálatlan vivő, majd 112 vagy 144 bit 400 bit/s sebességgel. Az üzenet tartalmaz egy, a jeladóra egyedi 15 jegyű hexa azonosítót, az országot, a jeladó fajtáját és gyakran egy pozíciót (rövid üzenetben 15 percre, hosszúban 4 másodpercre kerekítve). Két BCH-ellenőrzés védi az üzenetet; az első mező legfeljebb három sérült bitje javítható.\n\nAz Eye of ZorCom csak vesz. A tesztjeladók és az önteszt-adások jelölve vannak. Ha úgy gondolja, valódit hallott, értesítse országa mentési koordinációs központját; biztonsága érdekében ne erre a programra támaszkodjon.
 EPIRB (boat)	EPIRB (hajó)
 ELT (aircraft)	ELT (repülőgép)
 PLB (person)	PLB (személy)

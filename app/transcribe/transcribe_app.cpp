@@ -320,7 +320,7 @@ void startLoad(const std::string& file) {
     gLoadingFile = file;
     const std::string path = modelsDir() + "/" + file;
     const int workers = 1;
-    gLoadTh = dect2::namedThread("onair-asrload", [path, workers] {
+    gLoadTh = dect2::namedThread("zorcom-asrload", [path, workers] {
         std::string err;
         auto b = dect2::makeWhisperBackend(path, workers, &err);
         std::lock_guard<std::mutex> lk(gMu);
@@ -662,7 +662,7 @@ void refreshRows() {
 }
 
 void exportRows(const char* ext) {
-    std::string def = std::string("onair_transcripts.") + ext;
+    std::string def = std::string("zorcom_transcripts.") + ext;
     const std::string path = plat::saveFileDialog(def.c_str());
     if (path.empty()) return;
     std::string data;
@@ -1076,7 +1076,7 @@ std::string exportNow(App& a, int rx, bool vtt) {
     localtime_r(&tt, &tmv);
 #endif
     char ts[32]; strftime(ts, sizeof ts, "%Y%m%d-%H%M%S", &tmv);
-    snprintf(nm, sizeof nm, "/captions/onair_captions_%.3fMHz_%s.%s", a.freqMhz, ts, vtt ? "vtt" : "srt");
+    snprintf(nm, sizeof nm, "/captions/zorcom_captions_%.3fMHz_%s.%s", a.freqMhz, ts, vtt ? "vtt" : "srt");
     const std::string path = plat::dataDir() + nm;
     return writeText(path, body) ? path : "";
 }

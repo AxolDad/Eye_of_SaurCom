@@ -51,7 +51,7 @@ int main() {
     CHECK(!planArea(54.6, 25.2, 54.8, 25.4, 8, d).tooMany && planArea(54.6, 25.2, 54.8, 25.4, 8, d + 1).tooMany, "deepest is the last that fits");
 
     // cache
-    const fs::path root = fs::temp_directory_path() / "onair_tilecache_test";
+    const fs::path root = fs::temp_directory_path() / "zorcom_tilecache_test";
     fs::remove_all(root);
     make(root / "3/1/1.png", 1000, std::chrono::seconds(1000));   // oldest
     make(root / "3/1/2.png", 1000, std::chrono::seconds(500));

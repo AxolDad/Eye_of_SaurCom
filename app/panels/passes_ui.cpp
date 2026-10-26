@@ -252,7 +252,7 @@ void startDownload(bool keplerpass = false, std::string customFile = {}, std::st
     plat::prefs().setD("passTleTry", nowSec());
     { std::lock_guard<std::mutex> lk(gDlMu); gDlMsg = tr("downloading..."); }
     const std::string dir = tleDir();
-    dect2::namedThread("onair-passes", [dir, keplerpass, customFile, customUrl] {
+    dect2::namedThread("zorcom-passes", [dir, keplerpass, customFile, customUrl] {
         std::error_code ec;
         fs::create_directories(fsPath(dir), ec);
         int ok = 0, n = 0;
@@ -263,7 +263,7 @@ void startDownload(bool keplerpass = false, std::string customFile = {}, std::st
             const std::string filename = custom ? customFile : source.file;
             const std::string url = custom ? customUrl : source.url;
             const std::string path = dir + "/" + filename, part = path + ".part";
-            if (plat::fetchUrl(url, part, "OnAir/" ONAIR_VERSION " (passes)")) {
+            if (plat::fetchUrl(url, part, "ZorCom/" ZORCOM_VERSION " (passes)")) {
                 const size_t got = dect2::parseTleText(readText(part)).size();
                 if (got > 0) { fs::rename(fsPath(part), fsPath(path), ec); if (!ec) { ok++; n += (int)got; } }
             }
@@ -864,7 +864,7 @@ void schedControls() {
 
 void drawWindow(App& a) {
     static bool full = false;   // the window over the whole display (the shared full-screen button; Esc leaves)
-    { static bool af = std::getenv("ONAIR_MAP_FULL") != nullptr; if (af) { af = false; full = true; } }   // dev: --shot enters full screen
+    { static bool af = std::getenv("ZORCOM_MAP_FULL") != nullptr; if (af) { af = false; full = true; } }   // dev: --shot enters full screen
     if (full && !ImGui::GetIO().WantTextInput && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId) && ImGui::IsKeyPressed(ImGuiKey_Escape, false)) full = false;
     if (full) { ImGui::SetNextWindowPos(ImVec2(0, 0)); ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize); }
     else ImGui::SetNextWindowSize(ImVec2(820 * gUi, 560 * gUi), ImGuiCond_FirstUseEver);

@@ -136,7 +136,7 @@ std::string buildDiagnostics(App& a, const int* answers) {
     std::string os, cpu, gpu;
     systemInfoText(os, cpu, gpu);
     std::string s = "Eye of ZorCom problem report\n";
-    s += std::string("Version: ") + ONAIR_VERSION + "\n";
+    s += std::string("Version: ") + ZORCOM_VERSION + "\n";
     s += "OS: " + clean(os) + "\n";
     s += "CPU: " + clean(cpu) + "\n";
     s += "Graphics: " + clean(gpu) + "\n\n";
@@ -230,7 +230,7 @@ void reportProblemWindow(App& a) {
     ImGui::Spacing();
     ImGui::SeparatorText(tr("Left out"));
     ImGui::PushTextWrapPos(0.0f);
-    ImGui::TextUnformatted(tr("Recordings, settings files, keys, tokens, passwords, serial numbers, device addresses, file paths beyond the folder name, and the map server login."));
+    ImGui::TextUnformatted(tr("Recordings, settings files, keys, tokens, passwords, serial numbers, device addresses, and file paths beyond the folder name."));
     ImGui::PopTextWrapPos();
 
     ImGui::Spacing();
@@ -272,7 +272,7 @@ void reportProblemWindow(App& a) {
     if (ImGui::Button(tr("Refresh preview"))) st.built = false;
     ImGui::SameLine();
     if (ImGui::Button(tr("Save report zip..."))) {
-        const std::string path = plat::saveFileDialog("onair-report.zip");
+        const std::string path = plat::saveFileDialog("zorcom-report.zip");
         if (!path.empty()) {
             std::vector<std::pair<std::string, std::string>> files = {{"diagnostics.txt", st.diag}, {"README.txt", readmeText()}};
             st.status = writeZipFile(path, files)

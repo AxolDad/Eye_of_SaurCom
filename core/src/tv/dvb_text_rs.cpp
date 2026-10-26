@@ -1,4 +1,4 @@
-// dvbText() on top of the Rust crate rust/onair_dvbsi: the prefix dispatch, ISO/IEC 6937 and the clean-up are Rust; the character set tables
+// dvbText() on top of the Rust crate rust/zorcom_dvbsi: the prefix dispatch, ISO/IEC 6937 and the clean-up are Rust; the character set tables
 // the system provides come back through convertCharset() (dvb_text.cpp), registered with the crate before main.
 #include <atomic>
 #include "dect2/tv/dvb_text.h"
@@ -17,7 +17,7 @@ size_t convertCb(const uint8_t* charset, const uint8_t* src, size_t n, uint8_t* 
     memcpy(out, s.data(), k);
     return k;
 }
-struct Register { Register() { onair_dvbsi_set_convert(convertCb); } } registerConvert;
+struct Register { Register() { zorcom_dvbsi_set_convert(convertCb); } } registerConvert;
 } // namespace
 
 static std::atomic<bool> gGbDefault{false};
@@ -26,7 +26,7 @@ void setGbDefaultGlobal(bool on) { gGbDefault.store(on); }
 std::string dvbText(const uint8_t* p, int n, bool gbDefault) {
     if (n <= 0) return {};
     std::vector<uint8_t> b((size_t)n * 4 + 16);
-    const size_t len = onair_dvbsi_dvb_text(p, (size_t)n, gbDefault || gGbDefault.load(), b.data(), b.size());
+    const size_t len = zorcom_dvbsi_dvb_text(p, (size_t)n, gbDefault || gGbDefault.load(), b.data(), b.size());
     return len > b.size() ? std::string() : std::string((const char*)b.data(), len);
 }
 

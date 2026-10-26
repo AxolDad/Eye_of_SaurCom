@@ -48,7 +48,7 @@ static bool run(int opt, double maxSec) {
     CHECK(k.session == 3, "session state %d (3 = complete and verified)", k.session);
     CHECK(k.blocksOk >= 1 && k.blocksBad * 10 <= k.blocksOk, "blocks ok %llu bad %llu", (unsigned long long)k.blocksOk, (unsigned long long)k.blocksBad);
     CHECK(std::fabs(k.cfoHz - 1500.0) < 300.0, "carrier offset read %.0f Hz, sent 1500", k.cfoHz);
-    CHECK(k.peer == "ONAIR" || k.callsign == "ONAIR", "callsign '%s' / '%s'", k.peer.c_str(), k.callsign.c_str());
+    CHECK(k.peer == "ZORCOM" || k.callsign == "ZORCOM", "callsign '%s' / '%s'", k.peer.c_str(), k.callsign.c_str());
     CHECK(k.width == 2, "width %d", k.width);
     CHECK(e.droppedSamples() == 0, "dropped %llu", (unsigned long long)e.droppedSamples());
     e.stop();

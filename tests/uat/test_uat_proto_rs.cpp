@@ -1,5 +1,5 @@
-// Golden-vector test of the Rust UAT message decoder (rust/onair_uat through uat_decode_rs.cpp, the decode functions of dump978's uat_decode.c): the real DO-282
-// vectors, then ONAIR_DIFF_ITERS (default 200000) random / structured / mutated downlink payloads of every message type and the same number of uplink frames
+// Golden-vector test of the Rust UAT message decoder (rust/zorcom_uat through uat_decode_rs.cpp, the decode functions of dump978's uat_decode.c): the real DO-282
+// vectors, then ZORCOM_DIFF_ITERS (default 200000) random / structured / mutated downlink payloads of every message type and the same number of uplink frames
 // (random application data, valid information frame chains with FIS-B headers of all four time formats, truncated / overrun chains), uplink decodes also into a
 // pre-filled (dirty) struct to prove the same fields are written. Every decoded field goes into a digest (tests/common/golden.h; doubles rounded to 1e-6)
 // compared with the one recorded from dump978's C decoder the Rust code replaced.
@@ -100,7 +100,7 @@ static void buildApp(uint8_t* app) {
 }
 
 int main() {
-    const char* itc = getenv("ONAIR_DIFF_ITERS");
+    const char* itc = getenv("ZORCOM_DIFF_ITERS");
     const long iters = itc ? atol(itc) : 200000;
     uint8_t v[UAT_UPLINK_FRAME_BYTES];
     memset(v, 0, sizeof v);

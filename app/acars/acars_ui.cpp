@@ -672,9 +672,6 @@ void meters(const App& a, std::vector<ModeMeter>& out) {
 
 } // namespace
 
-// For the map upload (app/map/map_send.cpp)
-derivedkin::Info acarsKinematics(const dect2::AcarsAircraft& c, double now) { return kinOf(c, now); }
-
 extern const ModeUi kAcarsUi;
 const ModeUi kAcarsUi = {
     .sideTitle = "AIRCRAFT",

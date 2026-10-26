@@ -33,7 +33,7 @@ std::string hostPort(const std::string& host, int port) {
 }
 } // namespace
 
-// the type tables and the settings text of the list are in net_proto.h (C++ or the Rust crate onair_net)
+// the type tables and the settings text of the list are in net_proto.h (C++ or the Rust crate zorcom_net)
 const char* netRadioTypeName(NetRadio::Type t) {
     static const std::string names[13] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8), netp::radioTypeName(9), netp::radioTypeName(10), netp::radioTypeName(11), netp::radioTypeName(12)};
     return names[(unsigned)t < 13 ? (unsigned)t : 1].c_str();

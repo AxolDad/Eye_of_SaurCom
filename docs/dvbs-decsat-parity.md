@@ -1,8 +1,8 @@
-# DVB-S/S2 in OnAir against DecSAT
+# DVB-S/S2 in Eye of ZorCom against DecSAT
 
-[DecSAT](https://github.com/CasualArclamp/DecSAT) by Arclamp (CasualArclamp, GPL-3.0-or-later) is a satellite signal analyser written in Rust. The owner of OnAir asked
-for everything it does that fits OnAir. This table lists every capability of DecSAT (its README, `docs/DESIGN.md`, `docs/STATUS.md`, its crates and apps), what OnAir had
-at the start of this work, what was done, and what was left out and why. Status words: **done** (OnAir already had it), **added** (written in this branch), **partial**,
+[DecSAT](https://github.com/CasualArclamp/DecSAT) by Arclamp (CasualArclamp, GPL-3.0-or-later) is a satellite signal analyser written in Rust. The owner of Eye of ZorCom asked
+for everything it does that fits Eye of ZorCom. This table lists every capability of DecSAT (its README, `docs/DESIGN.md`, `docs/STATUS.md`, its crates and apps), what Eye of ZorCom had
+at the start of this work, what was done, and what was left out and why. Status words: **done** (Eye of ZorCom already had it), **added** (written in this branch), **partial**,
 **planned** (to be added in this branch, in the order of the Chunk column), **skipped** (with the reason). Code taken from DecSAT keeps its notice and has a credits row
 
 Two kinds of skip: "descrambling, not done by policy" (BISS, CSA, any CA or key-based scheme: only detected and labelled) and "no verified spec/capture" (nothing public to implement or test against).
@@ -13,7 +13,7 @@ Chunks: 1 GSE, IP, PCAP and the IP view; 2 MPE and ULE; 3 ACM, VCM, multistream,
 
 ## Physical layer and demodulation
 
-| DecSAT capability | OnAir | Chunk / reason |
+| DecSAT capability | Eye of ZorCom | Chunk / reason |
 |---|---|---|
 | DVB-S2 PL demodulation, frame lock, MODCOD per frame | done (`core/src/dvbs`) | |
 | Carrier recovery, Es/N0 (MER), Eb/N0 | done (Eb/N0 per information bit shown beside Es/N0) | |
@@ -37,7 +37,7 @@ Chunks: 1 GSE, IP, PCAP and the IP view; 2 MPE and ULE; 3 ACM, VCM, multistream,
 
 ## Transport stream and its tables
 
-| DecSAT capability | OnAir | Chunk / reason |
+| DecSAT capability | Eye of ZorCom | Chunk / reason |
 |---|---|---|
 | MPEG-TS out: file, UDP, TCP/HTTP | done (file, UDP, HLS, player) | |
 | TS analyser: PIDs, services, now/next, network, tables, errors, bitrate per PID | done (`TsDemux`) | |
@@ -54,7 +54,7 @@ Chunks: 1 GSE, IP, PCAP and the IP view; 2 MPE and ULE; 3 ACM, VCM, multistream,
 
 ## IP data
 
-| DecSAT capability | OnAir | Chunk / reason |
+| DecSAT capability | Eye of ZorCom | Chunk / reason |
 |---|---|---|
 | GSE de-encapsulation (TS 102 606-1), fragments, CRC-32 | added | 1 (`dvbs_ip`) |
 | GSE variants (length counting the header, split fragment id) chosen from the data; blind IPv4 search | added | 1 |
@@ -74,7 +74,7 @@ Chunks: 1 GSE, IP, PCAP and the IP view; 2 MPE and ULE; 3 ACM, VCM, multistream,
 
 ## Other protocols DecSAT decodes
 
-| DecSAT capability | OnAir | Chunk / reason |
+| DecSAT capability | Eye of ZorCom | Chunk / reason |
 |---|---|---|
 | Satellite beacons: carrier, drift, C/N0, PCM/PSK/PM telemetry, IRIG 106 and CCSDS frames, counter, major frame map, word plot, pointing tone | added earlier in this branch (TV sat beacon decoder: carrier, subcarrier, bi-phase, frames, counter, checksum, decoded view, export); CCSDS Reed-Solomon, randomiser, layout search and TM/AOS headers added; K=7 under the symbols, the word plot and the pointing tone still planned | 5 |
 | Carrier ID (DVB-CID, TS 103 129) | added: framing, BCH, scrambler and fields after DecSAT; receiver of our own (FFT acquisition, early/late tracking, half-bit frequency, four copies combined); Receiver tab "Carrier ID" (off by default); tested on synthetic signals with offset and clock error, no live recording | 5 |
@@ -84,7 +84,7 @@ Chunks: 1 GSE, IP, PCAP and the IP view; 2 MPE and ULE; 3 ACM, VCM, multistream,
 
 ## Apps, tools and project
 
-| DecSAT | OnAir | Chunk / reason |
+| DecSAT | Eye of ZorCom | Chunk / reason |
 |---|---|---|
 | GUI (waterfall, VFOs, cards) | done (own GUI) | |
 | CLI `decsat decode` / `modcods` | done (`dect2cli`) | 1: `--ip-pcap` |

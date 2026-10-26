@@ -65,7 +65,7 @@ std::string labelFromId(const std::string& id) { return netp::sdrppLabelFromId(i
 
 // ---- the server's menu --------------------------------------------------------------------------------------------------------------------
 
-// the menu from the draw list: net_proto.h reads it (C++ or the Rust crate onair_net)
+// the menu from the draw list: net_proto.h reads it (C++ or the Rust crate zorcom_net)
 bool sdrppParseUi(const unsigned char* p, size_t n, std::vector<SdrppWidget>& out) {
     out.clear();
     std::vector<netp::UiWidget> u;

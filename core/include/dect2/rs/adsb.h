@@ -1,4 +1,4 @@
-// C ABI of the Rust crate rust/onair_adsb (ADS-B / Mode S message layer). Written by hand; the Rust test rust/onair/tests/headers.rs checks it against ffi.rs.
+// C ABI of the Rust crate rust/zorcom_adsb (ADS-B / Mode S message layer). Written by hand; the Rust test rust/zorcom/tests/headers.rs checks it against ffi.rs.
 // Out parameters are written only when the function returns true. Strings
 // returned as `const uint8_t*` are static and NUL-terminated ("" when none).
 #pragma once
@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 // What a BDS code inference found in the 56 bit MB field of a DF20 / DF21 message (the same fields as dect2::adsb::CommB; the callsign has no NUL).
-typedef struct OnairAdsbCommB {
+typedef struct ZorcomAdsbCommB {
     int32_t bds;   // 0x10, 0x17, 0x20, 0x30, 0x40, 0x44, 0x45, 0x50, 0x60, or 0 when the field is not one of them (or fits more than one).
     uint8_t callsign[9];   // 2,0: the aircraft identification (trailing spaces removed).
     uint8_t callsign_len;
@@ -68,10 +68,10 @@ typedef struct OnairAdsbCommB {
     int32_t wake_vortex;
     bool has_radio_height;
     int32_t radio_height_ft;
-} OnairAdsbCommB;
+} ZorcomAdsbCommB;
 
 // The decoded message (the same fields as dect2::adsb::Msg).
-typedef struct OnairAdsbMsg {
+typedef struct ZorcomAdsbMsg {
     int32_t df;
     int32_t nbits;
     uint32_t icao;   // DF11 / 17 / 18 / 19: the AA field. Address / parity formats: set by the caller from the remainder.
@@ -134,58 +134,58 @@ typedef struct OnairAdsbMsg {
     int32_t sil;
     int32_t gva;
     int32_t nic_baro;
-    OnairAdsbCommB commb;   // DF20 / 21 Comm-B.
-} OnairAdsbMsg;
+    ZorcomAdsbCommB commb;   // DF20 / 21 Comm-B.
+} ZorcomAdsbMsg;
 
 // ABI version of this module (1).
-uint32_t onair_adsb_version(void);
-// sizeof(OnairAdsbMsg) and sizeof(OnairAdsbCommB) as Rust sees them (the C++ side checks them at start-up).
-void onair_adsb_struct_sizes(size_t* msg, size_t* commb);
+uint32_t zorcom_adsb_version(void);
+// sizeof(ZorcomAdsbMsg) and sizeof(ZorcomAdsbCommB) as Rust sees them (the C++ side checks them at start-up).
+void zorcom_adsb_struct_sizes(size_t* msg, size_t* commb);
 
 // CRC-24 (Annex 10 Vol. IV 3.1.2.3.3): remainder of a whole message / the parity of the first nbits - 24 bits; the length of a DF (0: not searched for).
-uint32_t onair_adsb_crc24(const uint8_t* m, int32_t nbits);
-uint32_t onair_adsb_crc_parity(const uint8_t* m, int32_t nbits);
-int32_t onair_adsb_df_length(int32_t df);
-int32_t onair_adsb_single_bit_position(int32_t nbits, uint32_t rem);
-uint32_t onair_adsb_single_bit_syndrome(int32_t nbits, int32_t pos);
+uint32_t zorcom_adsb_crc24(const uint8_t* m, int32_t nbits);
+uint32_t zorcom_adsb_crc_parity(const uint8_t* m, int32_t nbits);
+int32_t zorcom_adsb_df_length(int32_t df);
+int32_t zorcom_adsb_single_bit_position(int32_t nbits, uint32_t rem);
+uint32_t zorcom_adsb_single_bit_syndrome(int32_t nbits, int32_t pos);
 
 // Altitude, identity and character codes.
-bool onair_adsb_decode_ac13(uint32_t ac, int32_t* alt);
-bool onair_adsb_decode_alt12(uint32_t a12, int32_t* alt);
-bool onair_adsb_gillham_to_altitude(uint32_t code, int32_t* alt);
-bool onair_adsb_altitude_to_gillham(int32_t alt, uint32_t* code);
-int32_t onair_adsb_decode_id13(uint32_t id);
-uint32_t onair_adsb_encode_id13(int32_t squawk);
-uint8_t onair_adsb_char_from_6bit(uint32_t c);
-int32_t onair_adsb_char_to_6bit(uint32_t ch);
-size_t onair_adsb_category_code(int32_t tc, int32_t ca, uint8_t* out);   // 2 bytes ("A3"), returns 2, or 0 when out of range
-const uint8_t* onair_adsb_category_name(int32_t tc, int32_t ca);
-const uint8_t* onair_adsb_emergency_name(int32_t state);
+bool zorcom_adsb_decode_ac13(uint32_t ac, int32_t* alt);
+bool zorcom_adsb_decode_alt12(uint32_t a12, int32_t* alt);
+bool zorcom_adsb_gillham_to_altitude(uint32_t code, int32_t* alt);
+bool zorcom_adsb_altitude_to_gillham(int32_t alt, uint32_t* code);
+int32_t zorcom_adsb_decode_id13(uint32_t id);
+uint32_t zorcom_adsb_encode_id13(int32_t squawk);
+uint8_t zorcom_adsb_char_from_6bit(uint32_t c);
+int32_t zorcom_adsb_char_to_6bit(uint32_t ch);
+size_t zorcom_adsb_category_code(int32_t tc, int32_t ca, uint8_t* out);   // 2 bytes ("A3"), returns 2, or 0 when out of range
+const uint8_t* zorcom_adsb_category_name(int32_t tc, int32_t ca);
+const uint8_t* zorcom_adsb_emergency_name(int32_t state);
 
 // Compact position reporting (17 bit, NZ = 15).
-int32_t onair_adsb_cpr_nl(double lat);
-bool onair_adsb_cpr_global_airborne(int32_t lat_e, int32_t lon_e, int32_t lat_o, int32_t lon_o, uint32_t odd_latest, double* lat, double* lon);
-bool onair_adsb_cpr_local_airborne(int32_t lat_cpr, int32_t lon_cpr, uint32_t odd, double ref_lat, double ref_lon, double* lat, double* lon);
-bool onair_adsb_cpr_global_surface(int32_t lat_e, int32_t lon_e, int32_t lat_o, int32_t lon_o, uint32_t odd_latest, double ref_lat, double ref_lon, double* lat, double* lon);
-bool onair_adsb_cpr_local_surface(int32_t lat_cpr, int32_t lon_cpr, uint32_t odd, double ref_lat, double ref_lon, double* lat, double* lon);
-void onair_adsb_cpr_encode_airborne(double lat, double lon, uint32_t odd, int32_t* lat_cpr, int32_t* lon_cpr);
-void onair_adsb_cpr_encode_surface(double lat, double lon, uint32_t odd, int32_t* lat_cpr, int32_t* lon_cpr);
+int32_t zorcom_adsb_cpr_nl(double lat);
+bool zorcom_adsb_cpr_global_airborne(int32_t lat_e, int32_t lon_e, int32_t lat_o, int32_t lon_o, uint32_t odd_latest, double* lat, double* lon);
+bool zorcom_adsb_cpr_local_airborne(int32_t lat_cpr, int32_t lon_cpr, uint32_t odd, double ref_lat, double ref_lon, double* lat, double* lon);
+bool zorcom_adsb_cpr_global_surface(int32_t lat_e, int32_t lon_e, int32_t lat_o, int32_t lon_o, uint32_t odd_latest, double ref_lat, double ref_lon, double* lat, double* lon);
+bool zorcom_adsb_cpr_local_surface(int32_t lat_cpr, int32_t lon_cpr, uint32_t odd, double ref_lat, double ref_lon, double* lat, double* lon);
+void zorcom_adsb_cpr_encode_airborne(double lat, double lon, uint32_t odd, int32_t* lat_cpr, int32_t* lon_cpr);
+void zorcom_adsb_cpr_encode_surface(double lat, double lon, uint32_t odd, int32_t* lat_cpr, int32_t* lon_cpr);
 
 // Geometry and small physical models.
-double onair_adsb_distance_nm(double lat1, double lon1, double lat2, double lon2);
-double onair_adsb_bearing_deg(double lat1, double lon1, double lat2, double lon2);
-double onair_adsb_mag_declination_deg(double lat, double lon);
-void onair_adsb_wind_triangle(double track_deg, double gs_kt, double true_hdg_deg, double tas_kt, double* from_deg, double* wind_kt);
-double onair_adsb_sat_from_tas_mach(double tas_kt, double mach);
-double onair_adsb_isa_pressure_hpa(double alt_ft);
-double onair_adsb_isa_temp_c(double alt_ft);
+double zorcom_adsb_distance_nm(double lat1, double lon1, double lat2, double lon2);
+double zorcom_adsb_bearing_deg(double lat1, double lon1, double lat2, double lon2);
+double zorcom_adsb_mag_declination_deg(double lat, double lon);
+void zorcom_adsb_wind_triangle(double track_deg, double gs_kt, double true_hdg_deg, double tas_kt, double* from_deg, double* wind_kt);
+double zorcom_adsb_sat_from_tas_mach(double tas_kt, double mach);
+double zorcom_adsb_isa_pressure_hpa(double alt_ft);
+double zorcom_adsb_isa_temp_c(double alt_ft);
 
 // Comm-B: mb = the 7 bytes of the MB field; alt_ft the altitude of the reply or -100000 (kNoAltitude).
-void onair_adsb_infer_commb(const uint8_t* mb, int32_t alt_ft, OnairAdsbCommB* out);
-size_t onair_adsb_ra_text(uint32_t ara, uint32_t rac, uint32_t terminated, uint8_t* out, size_t cap);   // SIZE_MAX when cap is too small
+void zorcom_adsb_infer_commb(const uint8_t* mb, int32_t alt_ft, ZorcomAdsbCommB* out);
+size_t zorcom_adsb_ra_text(uint32_t ara, uint32_t rac, uint32_t terminated, uint8_t* out, size_t cap);   // SIZE_MAX when cap is too small
 
 // Field extraction of a message of nbits bits (the caller has done the CRC and address checks); out is written even when false is returned.
-bool onair_adsb_decode_msg(const uint8_t* bytes, int32_t nbits, OnairAdsbMsg* out);
+bool zorcom_adsb_decode_msg(const uint8_t* bytes, int32_t nbits, ZorcomAdsbMsg* out);
 
 #ifdef __cplusplus
 }

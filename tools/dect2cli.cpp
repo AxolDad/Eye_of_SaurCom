@@ -9,7 +9,7 @@
 //   dect2cli --standard isdbt --isdbt-bw 6|7|8|auto ...   (ISDB-T channel width: 6 MHz Japan / the Americas, 8 MHz the Maldives; auto tries each)
 //   dect2cli --standard orbcomm --freq 137.25 --orbcomm-downlinks 2   (Orbcomm: up to two downlinks in the passband; satellites, Doppler and packets in the status line and the log)
 //   dect2cli --standard tetra --freq 392.5   (TETRA network information: the cells found are listed at the end; receive only, nothing is decrypted)
-//     onair_dvb_554.000MHz_10Msps_20261009-071530.cs8, which reopens with the right rate and format)
+//     zorcom_dvb_554.000MHz_10Msps_20261009-071530.cs8, which reopens with the right rate and format)
 //   dect2cli --standard ble --ble-channel 37|38|39   (Bluetooth LE advertising, receive only: devices and packets in the status line and the log)
 #include "dect2/wisun/wisun_proto.h"
 #include "dect2/ais/ais_proto.h"

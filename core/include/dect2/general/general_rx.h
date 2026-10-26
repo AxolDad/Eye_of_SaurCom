@@ -92,7 +92,7 @@ public:
     bool recording() const;
     // One file per transmission: a file opens when the squelch opens and closes after the recording hang (clips whose squelch-open
     // time is under minSec are deleted). A non-empty prefix keeps the old names dir/prefix_<n>.wav. An empty prefix names each file
-    // from the time, the RF frequency (setListenHz) and the mode: onair_YYYYMMDD-HHMMSS_145.500000MHz_USB.wav.
+    // from the time, the RF frequency (setListenHz) and the mode: zorcom_YYYYMMDD-HHMMSS_145.500000MHz_USB.wav.
     void setTransmissionRecording(bool on, const std::string& dir, const std::string& prefix, double minSec = 0.5);
     // The channel's RF frequency in Hz, read when a per-transmission file opens (the name and the log).
     void setListenHz(double hz);

@@ -1,4 +1,4 @@
-// C ABI of the Rust crate rust/onair_engine (engine core). Written by hand; the Rust test rust/onair/tests/headers.rs checks it against ffi.rs.
+// C ABI of the Rust crate rust/zorcom_engine (engine core). Written by hand; the Rust test rust/zorcom/tests/headers.rs checks it against ffi.rs.
 #pragma once
 #include <stdbool.h>
 #include <stddef.h>
@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 // ABI version of this module (1 for the skeleton).
-uint32_t onair_engine_version(void);
+uint32_t zorcom_engine_version(void);
 
 #ifdef __cplusplus
 }

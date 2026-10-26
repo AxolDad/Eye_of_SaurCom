@@ -1,4 +1,4 @@
-// ACARS messages attached to the aircraft the ADS-B screens (and the map upload) show. The log itself is core/src/acars/acars_log.cpp;
+// ACARS messages attached to the aircraft the ADS-B screens show. The log itself is core/src/acars/acars_log.cpp;
 // this file feeds it from the ACARS, VDL2 and HFDL receivers of every receiver slot and answers "what did this aircraft say".
 #pragma once
 #include "dect2/acars/acars_log.h"

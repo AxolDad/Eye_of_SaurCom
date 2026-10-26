@@ -23,7 +23,7 @@ int configuredThreads() {
 }
 
 ThreadPool::ThreadPool(int workers, const char* prefix, bool background) {
-    std::string base = prefix ? prefix : "onair-w";
+    std::string base = prefix ? prefix : "zorcom-w";
     for (int i = 0; i < workers; i++) {
         std::string name = base + std::to_string(i);
         threads_.emplace_back([this, name, background] { workerLoop(name, background); });
@@ -67,12 +67,12 @@ int autoWorkers() {
 } // namespace
 
 ThreadPool& ThreadPool::shared() {
-    static ThreadPool pool(autoWorkers(), "onair-w", false);
+    static ThreadPool pool(autoWorkers(), "zorcom-w", false);
     return pool;
 }
 
 ThreadPool& ThreadPool::background() {
-    static ThreadPool pool(autoWorkers(), "onair-bg", true);
+    static ThreadPool pool(autoWorkers(), "zorcom-bg", true);
     return pool;
 }
 

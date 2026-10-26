@@ -1198,7 +1198,7 @@ void constDensityPlot(App& a, ImVec2 sz) {
             static int cm = -1;
             if (cm < 0) {   // black -> accent -> white, instead of the rainbow-like "hot" map
                 const ImVec4 cols[4] = {ImVec4(0.02f, 0.03f, 0.05f, 1), ImVec4(0.10f, 0.28f, 0.45f, 1), pal::accent(), ImVec4(0.95f, 0.98f, 1.f, 1)};
-                cm = plt::AddColormap("onair", cols, 4);
+                cm = plt::AddColormap("zorcom", cols, 4);
             }
             plt::PushColormap(cm);
             plt::PlotHeatmap("density", v.data(), G, G, 0, std::max(1.f, mx * 0.85f), nullptr, plt::Point(-1.4, -1.4), plt::Point(1.4, 1.4));

@@ -5,7 +5,7 @@
 //
 // - The FX3 has no firmware of its own: it enumerates as 04b4:00f3 until the image of the SDDC project (SDDC_FX3.img) is written into its
 //   RAM, then as 04b4:00f1 "RX888mk2". Eye of ZorCom does not ship the image (it contains Cypress SDK code under a licence of its own): the driver
-//   looks for it in the Eye of ZorCom codecs folders and in ONAIR_RX888_FIRMWARE (rx888FirmwarePaths()). Loading that image makes the chip drop off
+//   looks for it in the Eye of ZorCom codecs folders and in ZORCOM_RX888_FIRMWARE (rx888FirmwarePaths()). Loading that image makes the chip drop off
 //   the bus and come back at a new address. On Windows the Cypress driver from the official RX-888 setup (HDSDR / ExtIO) binds 04b4:00f1;
 //   Eye of ZorCom uses libusb and needs WinUSB for that device. Eye of ZorCom does not ship a driver.
 // - The converter delivers REAL 16-bit samples at the ADC clock (64 Msps typically, 128 at most 130). HF (below half the clock): the wanted
@@ -278,8 +278,8 @@ void rx888SetReenumPollMs(int ms) { gReenumPollOverrideMs = ms; }
 
 std::vector<std::string> rx888FirmwarePaths() {
     std::vector<std::string> v;
-    if (const char* e = getenv("ONAIR_RX888_FIRMWARE")) if (*e) v.push_back(e);
-    if (const char* n = getenv("ONAIR_RX888_NO_CODEC_SEARCH")) if (*n) return v;   // (tests: a firmware image next to the build must not decide the "no image" cases)
+    if (const char* e = getenv("ZORCOM_RX888_FIRMWARE")) if (*e) v.push_back(e);
+    if (const char* n = getenv("ZORCOM_RX888_NO_CODEC_SEARCH")) if (*n) return v;   // (tests: a firmware image next to the build must not decide the "no image" cases)
     for (const auto& dir : codecFolders()) v.push_back(dir + "SDDC_FX3.img");
     return v;
 }
@@ -590,7 +590,7 @@ protected:
         bool done = false;
         size_t dropped = 0;
         std::thread worker([&] {
-            dect2::setThreadName("onair-rx888");
+            dect2::setThreadName("zorcom-rx888");
             for (;;) {
                 std::vector<int16_t> b;
                 {

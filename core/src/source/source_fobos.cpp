@@ -241,7 +241,7 @@ protected:
         // stream that delivers nothing (no callback to notice the stop in).
         std::atomic<bool> reading{true};
         std::thread guard([&] {
-            dect2::setThreadName("onair-fobos-g");
+            dect2::setThreadName("zorcom-fobos-g");
             while (reading) {
                 if (!run_) fobos().cancel_async(dev);
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));

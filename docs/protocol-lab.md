@@ -92,7 +92,7 @@ overlap, and radios whose preamble or whitening differ from the ones above are u
 
 ## Export formats
 
-* **Protocol JSON** (`"format": "onair-protocol-lab"`): name, modulation, symbol rate, levels, inversion, line coding, byte order,
+* **Protocol JSON** (`"format": "zorcom-protocol-lab"`): name, modulation, symbol rate, levels, inversion, line coding, byte order,
   preamble, sync bits, whitening, length range, the CRC (model, polynomial, init, xorout, reflection, byte order, covered range,
   packets verified) and the fields as runs of bytes with their kind.
 * **Bits** (one packet per line) and **hex**. Tools such as Universal Radio Hacker can open protocol text; this has not been tried here.

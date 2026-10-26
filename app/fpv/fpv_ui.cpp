@@ -62,7 +62,7 @@ bool live(const App& a) { return a.rx.standard == 102; }
 void loadState() {
     if (S.loaded) return;
     S.loaded = true;
-    if (const char* v = std::getenv("ONAIR_FPV_VIEW")) S.view = std::max(0, std::min(2, std::atoi(v)));   // dev: the screen to open on (screenshots)
+    if (const char* v = std::getenv("ZORCOM_FPV_VIEW")) S.view = std::max(0, std::min(2, std::atoi(v)));   // dev: the screen to open on (screenshots)
     S.deint = (int)plat::prefs().getI("fpvDeint", 0) == 1 ? 1 : 0;
     S.sub = (int)std::max<long long>(0, std::min<long long>(2, (long long)plat::prefs().getI("fpvSub", 0)));
 }

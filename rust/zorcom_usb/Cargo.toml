@@ -1,0 +1,10 @@
+[package]
+name = "zorcom_usb"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of ZorCom USB SDR drivers: RTL-SDR protocol layer (RTL2832U, R820T/R828D, E4000) over a transfer trait"
+
+[dependencies]
+zorcom_common = { path = "../zorcom_common" }

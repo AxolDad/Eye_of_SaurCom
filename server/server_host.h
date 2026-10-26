@@ -14,7 +14,7 @@
 #include <thread>
 #include <vector>
 
-namespace onair_server {
+namespace zorcom_server {
 
 // A HackRF's total gain as its stages. The amp stays off unless the settings file says amp=1 (it can be damaged by strong signals), the same
 // rule as the app: without it the scale ends at 102 dB.
@@ -103,4 +103,4 @@ private:
     dect2::TuneSettings buildTune(const dect2::DeviceInfo& d) const;
 };
 
-} // namespace onair_server
+} // namespace zorcom_server

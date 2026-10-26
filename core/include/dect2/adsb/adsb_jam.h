@@ -33,7 +33,6 @@ constexpr double kGpsJamCellDeg = 0.5;
 constexpr int kGpsJamMinAircraft = 3;
 constexpr double kGpsJamWindowSec = 3600;
 constexpr double kGpsJamJumpKt = 2000;      // two fixes that imply a faster ground speed than this are one bad fix, not a flight
-constexpr int kGpsJamMaxCells = 600;        // what the map server accepts in one post
 
 class GpsJamGrid {
 public:
@@ -47,8 +46,6 @@ public:
     std::vector<GpsJamCell> cells(double now, int minAircraft = kGpsJamMinAircraft);
     void clear();
     size_t trackedAircraft() const { return last_.size(); }
-    // The body for the map server's POST /jam: aggregate cells only, no ids. Empty string when there is nothing to send.
-    static std::string toJson(const std::string& station, const std::vector<GpsJamCell>& cells);
 
 private:
     struct Entry { double t = 0; bool bad = false, jump = false; };

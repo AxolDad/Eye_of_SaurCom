@@ -993,7 +993,7 @@ struct S2Rx::Impl {
         stopFlag = false;
         const unsigned hw = std::max(1u, std::thread::hardware_concurrency());
         const unsigned n = std::max(1u, std::min(6u, hw > 2 ? hw - 2 : 1u));
-        for (unsigned i = 0; i < n; i++) workers.emplace_back(dect2::namedThread("onair-dvbs-w", [this] { workerLoop(); }));
+        for (unsigned i = 0; i < n; i++) workers.emplace_back(dect2::namedThread("zorcom-dvbs-w", [this] { workerLoop(); }));
         maxQueue = 2 * n + 2;
     }
     void stopWorkers() {

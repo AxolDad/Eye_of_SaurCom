@@ -1,5 +1,5 @@
-// Linux and Windows services. Linux: dialogs through zenity/kdialog, settings in ~/.config/onair/settings.conf.
-// Windows: the standard Open/Save dialogs, settings in %APPDATA%\\OnAir\\settings.conf.
+// Linux and Windows services. Linux: dialogs through zenity/kdialog, settings in ~/.config/zorcom/settings.conf.
+// Windows: the standard Open/Save dialogs, settings in %APPDATA%\\ZorCom\\settings.conf.
 #include "platform.h"
 #include "dect2/common/png.h"
 #include <algorithm>
@@ -60,7 +60,7 @@ bool fetchUrl(const std::string& url, const std::string& file, const std::string
 
 // reply: when not null, the response body goes there (up to 64 KB)
 static bool postImpl(const std::string& url, const std::string& json, const std::string& userAgent, std::string* reply) {
-    static std::atomic<unsigned> counter{0};   // the map upload and the automations' webhooks may post at the same time
+    static std::atomic<unsigned> counter{0};   // the automations' webhooks may post at the same time
     const std::string file = cacheDir() + "/post_" + std::to_string(counter++ % 1000) + ".json";
     const std::string outFile = file + ".out";
     auto readReply = [&]() {
@@ -327,7 +327,7 @@ HttpResult httpRequest(const std::string& method, const std::string& url, const 
 bool postJson(const std::string& url, const std::string& json, const std::string& userAgent) { return postImpl(url, json, userAgent, nullptr); }
 bool postJsonReply(const std::string& url, const std::string& json, const std::string& userAgent, std::string& reply) { return postImpl(url, json, userAgent, &reply); }
 
-// the map tiles are PNG: OnAir's own decoder (these systems have none it could call without an extra library)
+// the map tiles are PNG: Eye of ZorCom's own decoder (these systems have none it could call without an extra library)
 bool decodeImage(const std::string& path, int& w, int& h, std::vector<uint32_t>& rgba) {
     std::ifstream f(std::filesystem::path(reinterpret_cast<const char8_t*>(path.c_str())), std::ios::binary);
     if (!f) return false;
@@ -339,44 +339,80 @@ bool decodeImage(const std::string& path, int& w, int& h, std::vector<uint32_t>&
     return true;
 }
 
-// Windows: %LOCALAPPDATA%\OnAir\cache; Linux: $XDG_CACHE_HOME/onair or ~/.cache/onair. Paths are UTF-8.
+// The folders of the program before it was renamed (settings, data, cache): each one is moved to the new name, once, when the new folder is
+// not there yet, so the settings, recordings and downloads of an earlier version come along. These are the only places the old name is kept.
+static void adoptLegacyFolders() {
+    static std::atomic<bool> done{false};
+    if (done.exchange(true)) return;
+    namespace fs = std::filesystem;
+    auto move = [](const std::string& from, const std::string& to) {
+        std::error_code ec;
+        const fs::path f(reinterpret_cast<const char8_t*>(from.c_str())), t(reinterpret_cast<const char8_t*>(to.c_str()));
+        if (fs::exists(t, ec) || !fs::is_directory(f, ec)) return;
+        fs::create_directories(t.parent_path(), ec);
+        fs::rename(f, t, ec);
+    };
+#ifdef _WIN32
+    static const char* kLegacy = "OnAir";   // the folder name before the rename
+    if (const wchar_t* la = _wgetenv(L"LOCALAPPDATA")) move(utf8(la) + "\\" + kLegacy, utf8(la) + "\\ZorCom");
+    if (const wchar_t* ad = _wgetenv(L"APPDATA")) move(utf8(ad) + "\\" + kLegacy, utf8(ad) + "\\ZorCom");
+    wchar_t t[MAX_PATH + 1];
+    const DWORD n = GetTempPathW(MAX_PATH, t);
+    if (n) move(utf8(std::wstring(t, n)) + kLegacy, utf8(std::wstring(t, n)) + "ZorCom");
+#else
+    static const char* kLegacy = "onair";   // the folder name before the rename
+    const char* h = getenv("HOME");
+    const std::string home = h ? h : "/tmp";
+    const char* xc = getenv("XDG_CACHE_HOME");
+    const char* xd = getenv("XDG_DATA_HOME");
+    const char* xf = getenv("XDG_CONFIG_HOME");
+    const std::string cache = xc && *xc ? std::string(xc) : home + "/.cache";
+    const std::string data = xd && *xd ? std::string(xd) : home + "/.local/share";
+    const std::string conf = xf && *xf ? std::string(xf) : home + "/.config";
+    for (const std::string& base : {cache, data, conf}) move(base + "/" + kLegacy, base + "/zorcom");
+#endif
+}
+
+// Windows: %LOCALAPPDATA%\ZorCom\cache; Linux: $XDG_CACHE_HOME/zorcom or ~/.cache/zorcom. Paths are UTF-8.
 std::string cacheDir() {
+    adoptLegacyFolders();
     std::string d;
 #ifdef _WIN32
-    if (const wchar_t* la = _wgetenv(L"LOCALAPPDATA")) d = utf8(la) + "\\OnAir\\cache";
-    else { wchar_t t[MAX_PATH + 1]; const DWORD n = GetTempPathW(MAX_PATH, t); d = utf8(std::wstring(t, n)) + "OnAir"; }
+    if (const wchar_t* la = _wgetenv(L"LOCALAPPDATA")) d = utf8(la) + "\\ZorCom\\cache";
+    else { wchar_t t[MAX_PATH + 1]; const DWORD n = GetTempPathW(MAX_PATH, t); d = utf8(std::wstring(t, n)) + "ZorCom"; }
 #else
     const char* x = getenv("XDG_CACHE_HOME");
     const char* h = getenv("HOME");
-    d = x && *x ? std::string(x) + "/onair" : std::string(h ? h : "/tmp") + "/.cache/onair";
+    d = x && *x ? std::string(x) + "/zorcom" : std::string(h ? h : "/tmp") + "/.cache/zorcom";
 #endif
     std::error_code ec;
     std::filesystem::create_directories(std::filesystem::path(reinterpret_cast<const char8_t*>(d.c_str())), ec);
     return d;
 }
-// Windows: %LOCALAPPDATA%\OnAir; Linux: $XDG_DATA_HOME/onair or ~/.local/share/onair. Paths are UTF-8.
+// Windows: %LOCALAPPDATA%\ZorCom; Linux: $XDG_DATA_HOME/zorcom or ~/.local/share/zorcom. Paths are UTF-8.
 std::string dataDir() {
+    adoptLegacyFolders();
     std::string d;
-    // DECT2_DATA_DIR: another folder for everything OnAir writes (test runs keep away from the user's own data)
+    // DECT2_DATA_DIR: another folder for everything Eye of ZorCom writes (test runs keep away from the user's own data)
     if (const char* o = getenv("DECT2_DATA_DIR"); o && *o) {
         std::error_code ec;
         std::filesystem::create_directories(std::filesystem::path(reinterpret_cast<const char8_t*>(o)), ec);
         return o;
     }
 #ifdef _WIN32
-    if (const wchar_t* la = _wgetenv(L"LOCALAPPDATA")) d = utf8(la) + "\\OnAir";
+    if (const wchar_t* la = _wgetenv(L"LOCALAPPDATA")) d = utf8(la) + "\\ZorCom";
     else return cacheDir();
 #else
     const char* x = getenv("XDG_DATA_HOME");
     const char* h = getenv("HOME");
-    d = x && *x ? std::string(x) + "/onair" : std::string(h ? h : "/tmp") + "/.local/share/onair";
+    d = x && *x ? std::string(x) + "/zorcom" : std::string(h ? h : "/tmp") + "/.local/share/zorcom";
 #endif
     std::error_code ec;
     std::filesystem::create_directories(std::filesystem::path(reinterpret_cast<const char8_t*>(d.c_str())), ec);
     return d;
 }
 void locateStart() {}
-int locateState(double&, double&, double&, std::string& msg) { msg = "this system has no location service in OnAir yet: enter the position by hand"; return 3; }
+int locateState(double&, double&, double&, std::string& msg) { msg = "this system has no location service in Eye of ZorCom yet: enter the position by hand"; return 3; }
 
 namespace {
 
@@ -397,8 +433,9 @@ std::wstring wide(const std::string& s) {
 }
 
 std::string configDir() {   // UTF-8, like every path here: getenv() would give the ANSI code page and lose a user name such as "Jūratė"
+    adoptLegacyFolders();
     const wchar_t* a = _wgetenv(L"APPDATA");
-    return (a && *a ? utf8(a) : std::string(".")) + "/OnAir";
+    return (a && *a ? utf8(a) : std::string(".")) + "/ZorCom";
 }
 
 void makeDirs(const std::string& path) {
@@ -447,10 +484,11 @@ std::string shellQuote(const std::string& s) {
 }
 
 std::string configDir() {
+    adoptLegacyFolders();
     const char* x = getenv("XDG_CONFIG_HOME");
-    if (x && *x) return std::string(x) + "/onair";
+    if (x && *x) return std::string(x) + "/zorcom";
     const char* h = getenv("HOME");
-    return std::string(h ? h : ".") + "/.config/onair";
+    return std::string(h ? h : ".") + "/.config/zorcom";
 }
 
 void makeDirs(const std::string& path) {

@@ -375,7 +375,7 @@ IM_MSVC_RUNTIME_CHECKS_RESTORE
 // (Note that ImGui:: being a namespace, you can add extra ImGui:: functions in your own separate file. Please don't modify imgui source files!)
 //-----------------------------------------------------------------------------
 
-// OnAir touch interface hooks (app/ui/touch.cpp sets them; all are off / null in the normal interface, so nothing changes there).
+// Eye of ZorCom touch interface hooks (app/ui/touch.cpp sets them; all are off / null in the normal interface, so nothing changes there).
 //  TouchRowMin: least height in pixels of a Selectable / menu / combo row (0 = off).
 //  TouchTooltipGate: when set and it returns false, tooltips are not shown (touch: only after a long press).
 //  TouchEndChild: called at the end of every child window (and table body) so the touch interface can drag-scroll it.

@@ -104,17 +104,17 @@ const std::vector<cf32>& phaseReferenceSymbol() {
 std::vector<TxService> defaultServices() {
     std::vector<TxService> v;
     TxService a;
-    a.sid = 0xCE01; a.label = "OnAir Tones 1"; a.subId = 1; a.bitrate = 48; a.sampleRate = 48000; a.leftHz = 1000; a.rightHz = 3000;
+    a.sid = 0xCE01; a.label = "Eye of ZorCom Tones 1"; a.subId = 1; a.bitrate = 48; a.sampleRate = 48000; a.leftHz = 1000; a.rightHz = 3000;
     v.push_back(a);
     TxService b;
-    b.sid = 0xCE02; b.label = "OnAir Tones 2"; b.subId = 2; b.bitrate = 32; b.sampleRate = 32000; b.leftHz = 2000; b.rightHz = 500;
+    b.sid = 0xCE02; b.label = "Eye of ZorCom Tones 2"; b.subId = 2; b.bitrate = 32; b.sampleRate = 32000; b.leftHz = 2000; b.rightHz = 500;
     v.push_back(b);
     TxService c;
-    c.sid = 0xCE03; c.label = "OnAir Melody"; c.subId = 3; c.bitrate = 64; c.sampleRate = 48000; c.melody = true;
+    c.sid = 0xCE03; c.label = "Eye of ZorCom Melody"; c.subId = 3; c.bitrate = 64; c.sampleRate = 48000; c.melody = true;
     v.push_back(c);
     if (avcodec_find_encoder_by_name("mp2")) {
         TxService d;
-        d.sid = 0xCE04; d.label = "OnAir MP2"; d.subId = 4; d.bitrate = 128; d.dabPlus = false; d.sampleRate = 48000; d.leftHz = 1500; d.rightHz = 750;
+        d.sid = 0xCE04; d.label = "Eye of ZorCom MP2"; d.subId = 4; d.bitrate = 128; d.dabPlus = false; d.sampleRate = 48000; d.leftHz = 1500; d.rightHz = 750;
         v.push_back(d);
     }
     return v;
@@ -686,7 +686,7 @@ dabgen::TxConfig dabDemoConfig() {
     dabgen::TxConfig tc;
     tc.services = dabgen::defaultServices();
     tc.services.push_back(dabgen::dmbService());
-    tc.services[2].slide = true;   // "OnAir Melody" sends a picture
+    tc.services[2].slide = true;   // "Eye of ZorCom Melody" sends a picture
     tc.tii = {{1, 1, 0.0}, {1, 3, -5.0}, {1, 7, -11.0}};
     return tc;
 }

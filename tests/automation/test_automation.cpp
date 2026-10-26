@@ -266,12 +266,12 @@ void testRecipes() {
     CHECK(recipeFromText(recipeToText(r), imp, err, true) && imp.rule.enabled, "kept from the program's own store");
     CHECK(!recipeFromText("not json", imp, err) && !err.empty(), "not JSON: %s", err.c_str());
     CHECK(!recipeFromText("{\"format\":\"other\"}", imp, err), "wrong format");
-    CHECK(!recipeFromText("{\"format\":\"onair-automation\",\"version\":99,\"kind\":\"rule\"}", imp, err) && err.find("newer") != std::string::npos, "newer version");
-    CHECK(!recipeFromText("{\"format\":\"onair-automation\",\"version\":1,\"kind\":\"rule\",\"name\":\"x\",\"trigger\":\"adsb.aircraft\",\"actions\":[{\"type\":\"format_disk\"}]}", imp, err) && err.find("unknown action") != std::string::npos, "unknown action: %s", err.c_str());
-    CHECK(!recipeFromText("{\"format\":\"onair-automation\",\"version\":1,\"kind\":\"rule\",\"name\":\"x\",\"trigger\":\"adsb.aircraft\",\"when\":\"squawk ==\",\"actions\":[{\"type\":\"sound\"}]}", imp, err) && err.find("character") != std::string::npos, "bad condition reported with position: %s", err.c_str());
-    CHECK(!recipeFromText("{\"format\":\"onair-automation\",\"version\":1,\"kind\":\"rule\",\"name\":\"x\",\"trigger\":\"nope.event\",\"actions\":[{\"type\":\"sound\"}]}", imp, err), "unknown trigger");
-    CHECK(!recipeFromText("{\"format\":\"onair-automation\",\"version\":1,\"kind\":\"rule\",\"name\":\"x\",\"trigger\":\"*\",\"actions\":[]}", imp, err), "no actions");
-    std::string many = "{\"format\":\"onair-automation\",\"version\":1,\"kind\":\"rule\",\"name\":\"x\",\"trigger\":\"*\",\"actions\":[";
+    CHECK(!recipeFromText("{\"format\":\"zorcom-automation\",\"version\":99,\"kind\":\"rule\"}", imp, err) && err.find("newer") != std::string::npos, "newer version");
+    CHECK(!recipeFromText("{\"format\":\"zorcom-automation\",\"version\":1,\"kind\":\"rule\",\"name\":\"x\",\"trigger\":\"adsb.aircraft\",\"actions\":[{\"type\":\"format_disk\"}]}", imp, err) && err.find("unknown action") != std::string::npos, "unknown action: %s", err.c_str());
+    CHECK(!recipeFromText("{\"format\":\"zorcom-automation\",\"version\":1,\"kind\":\"rule\",\"name\":\"x\",\"trigger\":\"adsb.aircraft\",\"when\":\"squawk ==\",\"actions\":[{\"type\":\"sound\"}]}", imp, err) && err.find("character") != std::string::npos, "bad condition reported with position: %s", err.c_str());
+    CHECK(!recipeFromText("{\"format\":\"zorcom-automation\",\"version\":1,\"kind\":\"rule\",\"name\":\"x\",\"trigger\":\"nope.event\",\"actions\":[{\"type\":\"sound\"}]}", imp, err), "unknown trigger");
+    CHECK(!recipeFromText("{\"format\":\"zorcom-automation\",\"version\":1,\"kind\":\"rule\",\"name\":\"x\",\"trigger\":\"*\",\"actions\":[]}", imp, err), "no actions");
+    std::string many = "{\"format\":\"zorcom-automation\",\"version\":1,\"kind\":\"rule\",\"name\":\"x\",\"trigger\":\"*\",\"actions\":[";
     for (int i = 0; i < 9; i++) many += std::string(i ? "," : "") + "{\"type\":\"sound\"}";
     CHECK(!recipeFromText(many + "]}", imp, err), "9 actions");
     CHECK(!recipeFromText(std::string(40, '[') + std::string(40, ']'), imp, err), "deep JSON refused");
@@ -279,12 +279,12 @@ void testRecipes() {
     for (int i = 0; i < 100000; i++) deep += "[";
     CHECK(!recipeFromText(deep, imp, err), "100000 nested arrays refused without a crash");
     CHECK(!recipeFromText(std::string(2'000'000, ' '), imp, err), "2 MB refused");
-    CHECK(!recipeFromText("{\"format\":\"onair-automation\",\"version\":1,\"kind\":\"script\",\"name\":\"s\",\"events\":[\"zzz.x\"],\"code\":\"function on_event(e) end\"}", imp, err), "script with unknown event");
-    CHECK(recipeFromText("{\"format\":\"onair-automation\",\"version\":1,\"kind\":\"script\",\"name\":\"s\",\"code\":\"function on_event(e) end\"}", imp, err) && imp.script.id == "s", "script, id made from the name");
+    CHECK(!recipeFromText("{\"format\":\"zorcom-automation\",\"version\":1,\"kind\":\"script\",\"name\":\"s\",\"events\":[\"zzz.x\"],\"code\":\"function on_event(e) end\"}", imp, err), "script with unknown event");
+    CHECK(recipeFromText("{\"format\":\"zorcom-automation\",\"version\":1,\"kind\":\"script\",\"name\":\"s\",\"code\":\"function on_event(e) end\"}", imp, err) && imp.script.id == "s", "script, id made from the name");
     CHECK(makeId("Squawk 7700!") == "squawk-7700" && makeId("!!!") == "rule" && makeId("Ünï") == "n" , "makeId: %s", makeId("Ünï").c_str());
     CHECK(validId("abc-1_2") && !validId("../x") && !validId("") && !validId(std::string(49, 'a')), "validId");
     // path-like ids from a file are replaced
-    CHECK(recipeFromText("{\"format\":\"onair-automation\",\"version\":1,\"kind\":\"script\",\"id\":\"../../evil\",\"name\":\"Nice\",\"code\":\"function on_event(e) end\"}", imp, err) && imp.script.id == "nice", "bad id replaced");
+    CHECK(recipeFromText("{\"format\":\"zorcom-automation\",\"version\":1,\"kind\":\"script\",\"id\":\"../../evil\",\"name\":\"Nice\",\"code\":\"function on_event(e) end\"}", imp, err) && imp.script.id == "nice", "bad id replaced");
 }
 
 struct Sink : ActionSink {
@@ -494,7 +494,7 @@ void testEngine() {
     }
     {   // actions: several, in order, failure reported, log file, run gate
         Rig r;
-        const fs::path dir = fs::temp_directory_path() / "onair_automation_test_logs";
+        const fs::path dir = fs::temp_directory_path() / "zorcom_automation_test_logs";
         fs::remove_all(dir);
         r.eng.setLogDir(dir.string());
         Rule x = simple("Multi", "pager.message", "", notify("first"));

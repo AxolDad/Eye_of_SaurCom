@@ -1,4 +1,4 @@
-// 24000 bytes (about 1.7 s) of the DRA+ sound of one real Guangzhou CDR station as OnAir saved it with Save stream (issue #138):
+// 24000 bytes (about 1.7 s) of the DRA+ sound of one real Guangzhou CDR station as Eye of ZorCom saved it with Save stream (issue #138):
 // the raw audio units one after the other, first service of the multiplex, 24 kHz. Used to check that the receiver's audio path
 // survives corrupted and missing units. Not audible content of interest; no sound is played by the tests.
 #pragma once

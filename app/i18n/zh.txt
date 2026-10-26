@@ -1763,7 +1763,7 @@ Hides tone-only pages and pages whose text could not be decoded.	隐藏仅有音
 hidden	已隐藏
 # LBJ (Chinese railway train warning)
 What LBJ carries	LBJ 传送的内容
-LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nOnAir decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ 是中国铁路列车接近预警，频率约 821.2375 MHz。每台机车以 1200 bit/s 发送 POCSAG 数字寻呼：每隔几秒一条短报文，含车次、速度(km/h)和公里标；另有较长报文，含机车型号、机车号和线路。\n\nOnAir 自行解码这些寻呼(仅接收)。空白的值表示数字受损；灰色的行曾纠正过错误，请与同一列车的下一条报文核对。
+LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of ZorCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ 是中国铁路列车接近预警，频率约 821.2375 MHz。每台机车以 1200 bit/s 发送 POCSAG 数字寻呼：每隔几秒一条短报文，含车次、速度(km/h)和公里标；另有较长报文，含机车型号、机车号和线路。\n\nEye of ZorCom 自行解码这些寻呼(仅接收)。空白的值表示数字受损；灰色的行曾纠正过错误，请与同一列车的下一条报文核对。
 tune to about 821.2375 MHz and start the receiver	调谐到约 821.2375 MHz 并启动接收机
 FM, 1200 bit/s FSK, %.2f Msps	FM，1200 bit/s FSK，%.2f Msps
 %llu messages, %llu sync words, %llu blank, %llu failed checks	%llu 条报文，%llu 个同步字，%llu 条空白，%llu 条校验失败
@@ -2211,7 +2211,7 @@ Kind	类型
 Map points	地图点
 Modes (in the mode list, group PLUGINS)	模式(在模式列表的 PLUGINS 组中)
 Network: talk to other computers	网络:与其他计算机通信
-No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .onairplugin file.	尚未安装插件。请使用“从文件安装”,或把插件文件夹复制到插件文件夹中。插件是一个 .onairplugin 文件。
+No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .zorcomplugin file.	尚未安装插件。请使用“从文件安装”,或把插件文件夹复制到插件文件夹中。插件是一个 .zorcomplugin 文件。
 Not installed	未安装
 Open its folder	打开其文件夹
 PLUGINS	插件
@@ -3084,7 +3084,7 @@ Tone decoders	音调解码器
 The test signal repeats every 40 s: CTCSS 123.0 Hz under speech-like noise, DCS D023N, DTMF 159#, a ZVEI1 call 12345, SELCAL AM-CP and a two-tone page.	测试信号每40秒重复一次：类语音噪声下的CTCSS 123.0 Hz、DCS D023N、DTMF 159#、ZVEI1呼叫12345、SELCAL AM-CP和一次双音呼叫。
 CTCSS, DCS, DTMF, selcall	CTCSS、DCS、DTMF、选呼
 # COSPAS-SARSAT 406 MHz
-A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nOnAir only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	406 MHz 遇险信标(船上的 EPIRB、飞机上的 ELT、个人携带的 PLB)大约每 50 秒发送一次约半秒的突发:先是未调制的载波,然后以 400 bit/s 发送 112 或 144 比特。报文包含信标独有的 15 位十六进制 ID、国家、信标类型,通常还有位置(短报文取整到 15 分,长报文取整到 4 秒)。报文由两个 BCH 校验保护;第一字段中最多三个损坏的比特会被修复。\n\nOnAir 只接收。测试信标和自检突发会被标出。如果您认为听到了真正的信标,请通知您所在国家的救援协调中心;请勿依赖本程序来保障安全。
+A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of ZorCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	406 MHz 遇险信标(船上的 EPIRB、飞机上的 ELT、个人携带的 PLB)大约每 50 秒发送一次约半秒的突发:先是未调制的载波,然后以 400 bit/s 发送 112 或 144 比特。报文包含信标独有的 15 位十六进制 ID、国家、信标类型,通常还有位置(短报文取整到 15 分,长报文取整到 4 秒)。报文由两个 BCH 校验保护;第一字段中最多三个损坏的比特会被修复。\n\nEye of ZorCom 只接收。测试信标和自检突发会被标出。如果您认为听到了真正的信标,请通知您所在国家的救援协调中心;请勿依赖本程序来保障安全。
 EPIRB (boat)	EPIRB(船)
 ELT (aircraft)	ELT(飞机)
 PLB (person)	PLB(个人)

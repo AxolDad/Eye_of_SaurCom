@@ -281,7 +281,7 @@ public:
         rate_ = effectiveRate(s);
         if (!prepare(s, err)) return false;
         run_ = true;
-        th_ = dect2::namedThread("onair-src", [this] { loop(); });
+        th_ = dect2::namedThread("zorcom-src", [this] { loop(); });
         return true;
     }
     void stop() override {

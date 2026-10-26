@@ -128,7 +128,7 @@ dect2::OcidLookup& ocid() {
         const std::string tmp = plat::cacheDir() + "/ocid-answer.json";
         S.ocid = std::make_unique<dect2::OcidLookup>([tmp](const std::string& url, std::string& body) {
             std::remove(tmp.c_str());
-            if (!plat::fetchUrl(url, tmp, "OnAir/" ONAIR_VERSION)) return false;
+            if (!plat::fetchUrl(url, tmp, "ZorCom/" ZORCOM_VERSION)) return false;
             std::ifstream f(tmp); std::stringstream ss; ss << f.rdbuf(); body = ss.str();
             std::remove(tmp.c_str());
             return true;

@@ -18,12 +18,12 @@
 
 namespace discord {
 
-// Application ID of the Discord application named OnAir (see README, "Discord status"). The official builds ship with it; ONAIR_DISCORD_APP_ID overrides it.
-static const char* const kDiscordAppId = "1558882824717602895";
+// No Discord application is built in: register one at discord.com/developers and give its id in ZORCOM_DISCORD_APP_ID to show the status.
+static const char* const kDiscordAppId = "";
 
 const char* appId() {
     static std::string id;
-    const char* e = getenv("ONAIR_DISCORD_APP_ID");
+    const char* e = getenv("ZORCOM_DISCORD_APP_ID");
     id = (e && *e) ? e : kDiscordAppId;
     return id.c_str();
 }
@@ -63,7 +63,7 @@ std::string activityJson(const Presence& p, int pid, const std::string& nonce) {
         j += "{\"details\":\"" + jsonEscape(p.running ? "Listening to " + p.mode : std::string("Idle")) + "\"";
         if (p.running && !p.freq.empty()) j += ",\"state\":\"" + jsonEscape(p.freq) + "\"";
         if (p.running && p.startUnix > 0) j += ",\"timestamps\":{\"start\":" + std::to_string(p.startUnix) + "}";
-        j += ",\"assets\":{\"large_image\":\"onair\",\"large_text\":\"OnAir\"}}";
+        j += ",\"assets\":{\"large_image\":\"zorcom\",\"large_text\":\"Eye of ZorCom\"}}";
     }
     return j + "},\"nonce\":\"" + jsonEscape(nonce) + "\"}";
 }
@@ -170,7 +170,7 @@ Rpc::Rpc() : id_(appId()) {
 #ifndef _WIN32
     signal(SIGPIPE, SIG_IGN);
 #endif
-    th_ = dect2::namedThread("onair-discord", [this] { loop(); });
+    th_ = dect2::namedThread("zorcom-discord", [this] { loop(); });
 }
 
 Rpc::~Rpc() {

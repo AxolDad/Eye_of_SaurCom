@@ -18,7 +18,7 @@ bool kaalBeaconFromRequest(const TxRequest& r, std::string& callsign, std::strin
     callsign.clear();
     for (char c : r.callsign) callsign += (char)std::toupper((unsigned char)c);
     while (!callsign.empty() && callsign.back() == ' ') callsign.pop_back();
-    if (callsign.empty()) callsign = "ONAIR";   // an empty field is the demo identity, like every other mode
+    if (callsign.empty()) callsign = "ZORCOM";   // an empty field is the demo identity, like every other mode
     if (callsign.size() > 9) { err = "KAAL: the callsign is at most 9 characters"; return false; }
     for (char c : callsign) {
         if (!(c == ' ' || c == '/' || c == '-' || (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z'))) { err = "KAAL: the callsign may hold only letters, digits, space, / and -"; return false; }
@@ -119,7 +119,7 @@ std::unique_ptr<TxGenerator> makeKaalTxGenerator(const TxRequest& r, double rate
         std::string cs;
         for (char c : r.callsign) cs += (char)std::toupper((unsigned char)c);
         while (!cs.empty() && cs.back() == ' ') cs.pop_back();
-        if (cs.empty()) cs = "ONAIR";
+        if (cs.empty()) cs = "ZORCOM";
         g->tx_.setSweepCallsign(cs);
     }
     const bool beacon = r.o("kaal.beacon", 1) > 0.5;

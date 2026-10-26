@@ -88,7 +88,7 @@ static void show(const Run& r) {
 
 int main() {
     // ---- two channels at 20 Msps
-    const std::string two = writeCapture("onair_mtv_two_20Msps.cs8", {{false, -4e6, 8, 101, "Alpha TV", 0, 0, 0x1001, 1}, {false, 4e6, 8, 202, "Beta TV", -3, 3, 0x1002, 2}}, 20e6, 3.0);
+    const std::string two = writeCapture("zorcom_mtv_two_20Msps.cs8", {{false, -4e6, 8, 101, "Alpha TV", 0, 0, 0x1001, 1}, {false, 4e6, 8, 202, "Beta TV", -3, 3, 0x1002, 2}}, 20e6, 3.0);
     CHECK(!two.empty(), "capture written");
     if (two.empty()) return 1;
     printf("two DVB-T2 channels, 20 Msps, multi-channel on\n");
@@ -142,7 +142,7 @@ int main() {
 
     // ---- three channels at 28 Msps, the middle slot empty
     {
-        const std::string gap = writeCapture("onair_mtv_gap_28Msps.cs8", {{false, -8e6, 8, 11, "Left TV", 0, 0, 0x1001, 1}, {false, 8e6, 8, 33, "Right TV", 0, 1, 0x1003, 3}}, 28e6, 3.0);
+        const std::string gap = writeCapture("zorcom_mtv_gap_28Msps.cs8", {{false, -8e6, 8, 11, "Left TV", 0, 0, 0x1001, 1}, {false, 8e6, 8, 33, "Right TV", 0, 1, 0x1003, 3}}, 28e6, 3.0);
         CHECK(!gap.empty(), "capture written");
         printf("DVB-T2 at -8 and +8 MHz, nothing in the middle, 28 Msps, up to 3 channels\n");
         Run r = play(gap, 28e6, true, 3, 1, [&](Engine&, Run& r) { return r.active && hasName(r.svc, "Left TV", -1) && hasName(r.svc, "Right TV", +1); });
@@ -156,7 +156,7 @@ int main() {
 
     // ---- one channel: the switch changes nothing
     {
-        const std::string one = writeCapture("onair_mtv_one_10Msps.cs8", {{false, 0, 8, 7, "Solo TV", 0, 0, 0x1001, 1}}, 10e6, 2.5);
+        const std::string one = writeCapture("zorcom_mtv_one_10Msps.cs8", {{false, 0, 8, 7, "Solo TV", 0, 0, 0x1001, 1}}, 10e6, 2.5);
         CHECK(!one.empty(), "capture written");
         for (int multi = 0; multi < 2; multi++) {
             printf("one DVB-T2 channel at 10 Msps, multi-channel %s\n", multi ? "on (the capture holds one channel)" : "off");

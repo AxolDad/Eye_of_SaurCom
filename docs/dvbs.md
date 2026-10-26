@@ -1,4 +1,4 @@
-# DVB-S, DVB-S2 and DVB-S2X in OnAir
+# DVB-S, DVB-S2 and DVB-S2X in Eye of ZorCom
 
 The receiver takes the L-band IF of an LNB and finds the carrier, symbol rate, roll-off, modulation and code rate by itself (DVB-S: EN 300 421; DVB-S2: EN 302 307-1;
 DVB-S2X: EN 302 307-2, including the VL-SNR frames). See `docs/dvbs-decsat-parity.md` for what was added from the study of DecSAT and what was left out.

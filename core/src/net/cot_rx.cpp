@@ -16,7 +16,7 @@ constexpr int64_t kNoStaleMs = 5 * 60 * 1000;   // an event without a stale time
 constexpr size_t kMaxContacts = 5000;           // a flood cannot grow the table without end
 
 struct AbiCheck {
-    AbiCheck() { rsAbiCheck("onair_cot", {onair_cot_struct_size()}, {sizeof(OnairCotEvent)}); }
+    AbiCheck() { rsAbiCheck("zorcom_cot", {zorcom_cot_struct_size()}, {sizeof(ZorcomCotEvent)}); }
 } abiCheck;
 
 int64_t wallMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(); }
@@ -39,8 +39,8 @@ CotListener::CotListener() : impl_(new Impl) {}
 CotListener::~CotListener() { stop(); }
 
 bool CotListener::take(const uint8_t* d, size_t n, int64_t nowMs) {
-    OnairCotEvent e{};
-    if (!onair_cot_decode(d, n, &e)) return false;
+    ZorcomCotEvent e{};
+    if (!zorcom_cot_decode(d, n, &e)) return false;
     Contact c;
     c.type = (const char*)e.cot_type;
     c.callsign = (const char*)e.callsign;

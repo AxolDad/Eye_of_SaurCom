@@ -18,13 +18,13 @@ static int fails = 0;
 
 int main(int argc, char** argv) {
     if (argc > 1) setenv("SOAPY_SDR_PLUGIN_PATH", argv[1], 1);
-    setenv("ONAIR_TEST_PACE", "0.5", 1);   // half speed: independent of how fast the machine is
+    setenv("ZORCOM_TEST_PACE", "0.5", 1);   // half speed: independent of how fast the machine is
     CHECK(soapySupported(), "built without SoapySDR");
 
     std::string err;
     DeviceInfo radio;
     bool found = false;
-    for (auto& d : listSoapyDevices(err)) if (d.board == "onairtest") { radio = d; found = true; }
+    for (auto& d : listSoapyDevices(err)) if (d.board == "zorcomtest") { radio = d; found = true; }
     CHECK(found, "fake radio not listed (%s)", err.c_str());
     if (!found) { printf("soapy tests FAILED\n"); return 1; }
     printf("listed: %s, rates %.3f..%.3f Msps, gain %.0f..%.0f dB, args '%s'\n", radio.name.c_str(), radio.minRateHz / 1e6, radio.maxRateHz / 1e6, radio.gainMinDb, radio.gainMaxDb, radio.soapyArgs.c_str());
@@ -44,19 +44,19 @@ int main(int argc, char** argv) {
     CHECK(std::abs(e.sampleRate() - 64e6 / 7.0) < 10, "sample rate %.1f", e.sampleRate());
     {   // after a start the listing knows the ranges, without opening the radio again
         DeviceInfo again;
-        for (auto& d : listSoapyDevices(err)) if (d.board == "onairtest") again = d;
+        for (auto& d : listSoapyDevices(err)) if (d.board == "zorcomtest") again = d;
         CHECK(again.maxRateHz > 9e6 && again.maxRateHz < 9.2e6, "max rate after start %.3f", again.maxRateHz / 1e6);
         CHECK(again.gainMinDb == 0 && again.gainMaxDb == 60, "gain range after start %.0f..%.0f", again.gainMinDb, again.gainMaxDb);
     }
-    CHECK(!getenv("ONAIR_TEST_ANTENNA"), "the default entry picked an antenna (%s)", getenv("ONAIR_TEST_ANTENNA"));
+    CHECK(!getenv("ZORCOM_TEST_ANTENNA"), "the default entry picked an antenna (%s)", getenv("ZORCOM_TEST_ANTENNA"));
     DeviceInfo rx2;
     {   // ... and its antenna inputs: one more entry per input after the default one, whose name is unchanged
         std::vector<DeviceInfo> l;
-        for (auto& d : listSoapyDevices(err)) if (d.board == "onairtest") l.push_back(d);
+        for (auto& d : listSoapyDevices(err)) if (d.board == "zorcomtest") l.push_back(d);
         CHECK(l.size() == 3, "%zu entries after start (default, RX1, RX2 expected)", l.size());
         if (l.size() == 3) {
             CHECK(l[0].name == radio.name && l[0].soapyArgs == radio.soapyArgs, "default entry changed: %s", l[0].name.c_str());
-            CHECK(l[1].name == "OnAir synthetic radio antenna RX1" && l[2].name == "OnAir synthetic radio antenna RX2", "antenna entries: %s / %s", l[1].name.c_str(), l[2].name.c_str());
+            CHECK(l[1].name == "Eye of ZorCom synthetic radio antenna RX1" && l[2].name == "Eye of ZorCom synthetic radio antenna RX2", "antenna entries: %s / %s", l[1].name.c_str(), l[2].name.c_str());
             CHECK(l[2].maxRateHz == l[0].maxRateHz && l[2].maxRateHz > 0 && l[2].serial == radio.serial, "antenna entry lost the ranges");
             rx2 = l[2];
         }
@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
         auto src = makeSource(rx2);
         std::string e2;
         CHECK(src && src->start(t, ring, e2), "RX2 entry did not start: %s", e2.c_str());
-        const char* a = getenv("ONAIR_TEST_ANTENNA");
+        const char* a = getenv("ZORCOM_TEST_ANTENNA");
         CHECK(a && std::string(a) == "RX2", "RX2 entry picked antenna %s", a ? a : "(none)");
         if (src) src->stop();
     }
@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
         auto src = makeSource(radio);
         std::string e3;
         const bool okf = src && src->start(tf, ring, e3);
-        const char* got = getenv("ONAIR_TEST_FREQ");
+        const char* got = getenv("ZORCOM_TEST_FREQ");
         CHECK(okf && got && std::atoll(got) == (long long)fq, "%.0f Hz: started %d, the driver got %s (%s)", fq, (int)okf, got ? got : "(nothing)", e3.c_str());
         CHECK(e3.find("weak or absent") != std::string::npos, "%.0f Hz: no note: '%s'", fq, e3.c_str());
         if (okf) src->stop();
@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
     // ---- radio settings: the driver's own settings (learned at the first start), the frequency correction, a gain-reduction driver
     {
         DeviceInfo d;
-        for (auto& x : listSoapyDevices(err)) if (x.board == "onairtest" && x.soapyArgs == radio.soapyArgs) d = x;
+        for (auto& x : listSoapyDevices(err)) if (x.board == "zorcomtest" && x.soapyArgs == radio.soapyArgs) d = x;
         auto find = [&](const char* key) -> const RadioSetting* { for (const auto& r : d.settings) if (r.key == key) return &r; return nullptr; };
         const RadioSetting* ds = find("soapy.direct_samp");
         const RadioSetting* tm = find("soapy.testmode");
@@ -116,14 +116,14 @@ int main(int argc, char** argv) {
         auto src = makeSource(d);
         std::string e2;
         bool ok = src && src->start(t2, ring, e2);
-        CHECK(ok && !getenv("ONAIR_TEST_SET_direct_samp") && !getenv("ONAIR_TEST_SET_testmode") && !getenv("ONAIR_TEST_PPM"), "defaults: a setting or the correction was written (%s)", e2.c_str());
+        CHECK(ok && !getenv("ZORCOM_TEST_SET_direct_samp") && !getenv("ZORCOM_TEST_SET_testmode") && !getenv("ZORCOM_TEST_PPM"), "defaults: a setting or the correction was written (%s)", e2.c_str());
         if (src) src->stop();
         t2.radio = {{"soapy.direct_samp", "2"}, {"soapy.testmode", "1"}, {"ppm", "3"}};
         auto s2 = makeSource(d);
         ok = s2 && s2->start(t2, ring, e2);
-        const char* a = getenv("ONAIR_TEST_SET_direct_samp");
-        const char* b = getenv("ONAIR_TEST_SET_testmode");
-        const char* p = getenv("ONAIR_TEST_PPM");
+        const char* a = getenv("ZORCOM_TEST_SET_direct_samp");
+        const char* b = getenv("ZORCOM_TEST_SET_testmode");
+        const char* p = getenv("ZORCOM_TEST_PPM");
         CHECK(ok && a && std::string(a) == "2" && b && std::string(b) == "true" && p && std::fabs(atof(p) - 3) < 1e-9, "settings: direct_samp %s testmode %s ppm %s", a ? a : "-", b ? b : "-", p ? p : "-");
         if (s2) s2->stop();
         // clock and time sources the driver lists: offered with the radio's own choice as default, written only when another is picked
@@ -131,18 +131,18 @@ int main(int argc, char** argv) {
         const RadioSetting* ts = find("timesrc");
         CHECK(ck && ck->type == RadioSetting::Choice && ck->def == "internal" && ck->values.size() == 2 && ck->restart, "clock source setting: %s", ck ? ck->def.c_str() : "missing");
         CHECK(ts && ts->values.size() == 3 && ts->names[2] == "MIMO cable", "time source setting");
-        CHECK(!getenv("ONAIR_TEST_CLOCK") && !getenv("ONAIR_TEST_TIMESRC"), "defaults wrote a clock or time source");
+        CHECK(!getenv("ZORCOM_TEST_CLOCK") && !getenv("ZORCOM_TEST_TIMESRC"), "defaults wrote a clock or time source");
         t2.radio = {{"clocksrc", "external"}, {"timesrc", "mimo"}};
         auto s3 = makeSource(d);
         ok = s3 && s3->start(t2, ring, e2);
-        const char* c3 = getenv("ONAIR_TEST_CLOCK");
-        const char* m3 = getenv("ONAIR_TEST_TIMESRC");
+        const char* c3 = getenv("ZORCOM_TEST_CLOCK");
+        const char* m3 = getenv("ZORCOM_TEST_TIMESRC");
         CHECK(ok && c3 && std::string(c3) == "external" && m3 && std::string(m3) == "mimo", "clock %s time %s", c3 ? c3 : "-", m3 ? m3 : "-");
         if (s3) s3->stop();
     }
     {   // a driver whose gains are reductions: the top of the gain slider is the least reduction
         DeviceInfo g;
-        for (auto& x : listSoapyDevices(err)) if (x.board == "onairtestgr") g = x;
+        for (auto& x : listSoapyDevices(err)) if (x.board == "zorcomtestgr") g = x;
         CHECK(g.isRadio(), "gain-reduction radio not listed");
         IqRing ring(1 << 20);
         TuneSettings t3 = t;
@@ -151,8 +151,8 @@ int main(int argc, char** argv) {
             auto src = makeSource(g);
             std::string e3;
             const bool ok = src && src->start(t3, ring, e3);
-            const char* ifgr = getenv("ONAIR_TEST_IFGR");
-            const char* rfgr = getenv("ONAIR_TEST_RFGR");
+            const char* ifgr = getenv("ZORCOM_TEST_IFGR");
+            const char* rfgr = getenv("ZORCOM_TEST_RFGR");
             const bool full = gain > 0;
             CHECK(ok && ifgr && rfgr && atoi(ifgr) == (full ? 20 : 59) && atoi(rfgr) == (full ? 0 : 9), "gain %.0f of 48: IFGR %s RFGR %s (%s)", gain, ifgr ? ifgr : "-", rfgr ? rfgr : "-", e3.c_str());
             if (src) src->stop();
@@ -161,14 +161,14 @@ int main(int argc, char** argv) {
         auto srcMid = makeSource(g);
         std::string eMid;
         const bool okMid = srcMid && srcMid->start(t3, ring, eMid);
-        const char* ifgrM = getenv("ONAIR_TEST_IFGR");
-        const char* rfgrM = getenv("ONAIR_TEST_RFGR");
+        const char* ifgrM = getenv("ZORCOM_TEST_IFGR");
+        const char* rfgrM = getenv("ZORCOM_TEST_RFGR");
         CHECK(okMid && ifgrM && rfgrM && atoi(ifgrM) == 40 && atoi(rfgrM) == 5, "gain 24 of 48: IFGR %s RFGR %s (not max LNA)", ifgrM ? ifgrM : "-", rfgrM ? rfgrM : "-");
         if (srcMid) srcMid->stop();
     }
     {   // the RF stage (RFGR) is a setting of its own; picked by hand, the gain slider drives the IF gain alone
         DeviceInfo g;
-        for (auto& x : listSoapyDevices(err)) if (x.board == "onairtestgr") g = x;
+        for (auto& x : listSoapyDevices(err)) if (x.board == "zorcomtestgr") g = x;
         const RadioSetting* rf = nullptr;
         for (const auto& r : g.settings) if (r.key == "rfgr") rf = &r;
         CHECK(rf && rf->type == RadioSetting::Choice && rf->def == "auto" && rf->values.size() == 11 && rf->values[1] == "0", "RF gain setting missing or wrong");
@@ -180,15 +180,15 @@ int main(int argc, char** argv) {
         auto src = makeSource(g);
         std::string e3;
         const bool ok = src && src->start(t3, ring, e3);
-        const char* ifgr = getenv("ONAIR_TEST_IFGR");
-        const char* rfgr = getenv("ONAIR_TEST_RFGR");
+        const char* ifgr = getenv("ZORCOM_TEST_IFGR");
+        const char* rfgr = getenv("ZORCOM_TEST_RFGR");
         CHECK(ok && ifgr && rfgr && atoi(ifgr) == 20 && atoi(rfgr) == 6, "manual RF state 6, gain 48: IFGR %s RFGR %s (%s)", ifgr ? ifgr : "-", rfgr ? rfgr : "-", e3.c_str());
         if (src) src->stop();
     }
     {   // offset tuning on a radio: an 8 MHz channel needs more than this radio's 9.14 Msps, so it falls back to the DC removal and says so;
         // a 1.7 MHz channel fits, and the radio is tuned that far below the channel
         DeviceInfo r;
-        for (auto& d : listSoapyDevices(err)) if (d.board == "onairtest" && d.name == radio.name) r = d;
+        for (auto& d : listSoapyDevices(err)) if (d.board == "zorcomtest" && d.name == radio.name) r = d;
         Engine eo;
         eo.setStandard(1);
         eo.setAutoOffset(true);
@@ -200,13 +200,13 @@ int main(int argc, char** argv) {
         to.bandwidthMhz = 1.7;
         CHECK(eo.start(r, to, fo), "offset 1.7 MHz: engine did not start");
         const OffsetPlan p = planOffset(1.7e6, to.sampleRate, r.maxRateHz, r.minRateHz);
-        const char* f = getenv("ONAIR_TEST_FREQ");
+        const char* f = getenv("ZORCOM_TEST_FREQ");
         printf("offset tuning: %.0f Hz, radio at %s for a channel at %.0f\n", eo.offsetHz(), f ? f : "-", to.centerHz);
         CHECK(p.ok && std::fabs(eo.offsetHz() - p.offsetHz) < 1 && f && std::fabs(atof(f) - (to.centerHz - p.offsetHz)) < 2, "1.7 MHz: offset %.0f (plan %.0f), radio at %s", eo.offsetHz(), p.offsetHz, f ? f : "-");
         CHECK(std::fabs(eo.sampleRate() - to.sampleRate) < 1, "receiver rate %.0f, %.0f expected", eo.sampleRate(), to.sampleRate);
         to.centerHz += 8e6;   // a retune keeps the radio beside the channel
         CHECK(eo.retune(to), "offset retune failed");
-        f = getenv("ONAIR_TEST_FREQ");
+        f = getenv("ZORCOM_TEST_FREQ");
         CHECK(f && std::fabs(atof(f) - (to.centerHz - p.offsetHz)) < 2, "after a retune the radio is at %s, %.0f expected", f ? f : "-", to.centerHz - p.offsetHz);
         eo.stop();
         {   // a mode that asks for 4 Msps: the radio runs at its 9.14 Msps, and after the shift the receivers get 4 Msps again
@@ -216,7 +216,7 @@ int main(int argc, char** argv) {
         }
         eo.setAutoOffset(false);
         CHECK(eo.start(r, to, fo) && eo.offsetHz() == 0, "offset still in use after switching it off");
-        f = getenv("ONAIR_TEST_FREQ");
+        f = getenv("ZORCOM_TEST_FREQ");
         CHECK(f && std::fabs(atof(f) - to.centerHz) < 2, "without offset the radio is at %s, %.0f expected", f ? f : "-", to.centerHz);
         eo.stop();
     }

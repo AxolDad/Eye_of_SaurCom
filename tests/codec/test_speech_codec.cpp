@@ -31,7 +31,7 @@ void writeFile(const fs::path& p) {
 } // namespace
 
 int main() {
-    const fs::path dir = fs::temp_directory_path() / "onair-test-speech-codec";
+    const fs::path dir = fs::temp_directory_path() / "zorcom-test-speech-codec";
     std::error_code ec;
     fs::remove_all(dir, ec);
     fs::create_directories(dir, ec);
@@ -40,7 +40,7 @@ int main() {
 
     // The notice text is there and says what the user takes on.
     const std::string notice = speechCodecNotice();
-    CHECK(notice.find("does not include") != std::string::npos, "notice says OnAir does not include the codec");
+    CHECK(notice.find("does not include") != std::string::npos, "notice says Eye of ZorCom does not include the codec");
     CHECK(notice.find("laws") != std::string::npos, "notice mentions local laws");
     CHECK(notice.find("licence") != std::string::npos, "notice mentions the licence");
 
@@ -92,7 +92,7 @@ int main() {
     r = loadSpeechCodec("tetra", folder, false, codec, fakeOpen);
     CHECK(r.status == CodecStatus::NoticeRequired && !codec, "notice required until accepted");
     r = loadSpeechCodec("nothere", folder, true, codec, fakeOpen);
-    CHECK(r.status == CodecStatus::NotInstalled && r.message.find("onair-codec-nothere") != std::string::npos, "not installed names the file");
+    CHECK(r.status == CodecStatus::NotInstalled && r.message.find("zorcom-codec-nothere") != std::string::npos, "not installed names the file");
 
     // 5. Bad ids are refused before any file is looked at.
     r = loadSpeechCodec("../tetra", folder, true, codec, fakeOpen);

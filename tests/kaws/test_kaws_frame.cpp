@@ -18,14 +18,14 @@ static Bits randomBits(size_t n, uint64_t seed) {
 int main() {
     // CRC: the C++ foundation and the Rust crate agree on the known vectors
     const uint8_t chk[] = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
-    CHECK(onair_kaws_crc16(chk, 9) == 0x29B1u, "crc16 %04x", onair_kaws_crc16(chk, 9));
+    CHECK(zorcom_kaws_crc16(chk, 9) == 0x29B1u, "crc16 %04x", zorcom_kaws_crc16(chk, 9));
     CHECK(kris::crc16(chk, 9) == 0x29B1u, "kris crc16");
-    CHECK(onair_kaws_crc24(chk, 9) == 0x21CF02u, "crc24 %06x", onair_kaws_crc24(chk, 9));
-    CHECK(onair_kaws_version() == 1u, "version");
+    CHECK(zorcom_kaws_crc24(chk, 9) == 0x21CF02u, "crc24 %06x", zorcom_kaws_crc24(chk, 9));
+    CHECK(zorcom_kaws_version() == 1u, "version");
 
     // weave: the first 16 directions are the spec string 1000011100100011 (1 = falling)
     int dirs[16];
-    CHECK(onair_kaws_weave(16, dirs) == 16, "weave");
+    CHECK(zorcom_kaws_weave(16, dirs) == 16, "weave");
     const char* want = "1000011100100011";
     for (int i = 0; i < 16; i++) CHECK((dirs[i] < 0) == (want[i] == '1'), "weave bit %d", i);
 

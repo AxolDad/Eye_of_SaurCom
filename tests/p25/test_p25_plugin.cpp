@@ -41,7 +41,7 @@ int main() {
 #else
     setenv("DECT2_MBELIB_PATH", "none", 1);
 #endif
-    const fs::path dir = fs::temp_directory_path() / "onair-test-p25-plugin";
+    const fs::path dir = fs::temp_directory_path() / "zorcom-test-p25-plugin";
     std::error_code ec;
     fs::remove_all(dir, ec);
     fs::create_directories(dir, ec);

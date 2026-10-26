@@ -7,7 +7,7 @@
 
 namespace dect2::plugin {
 
-constexpr uint32_t kAbiVersion = 1;            // onair_plugin.h ONAIR_PLUGIN_ABI_VERSION
+constexpr uint32_t kAbiVersion = 1;            // zorcom_plugin.h ZORCOM_PLUGIN_ABI_VERSION
 constexpr size_t kMaxManifestBytes = 64 * 1024;
 constexpr size_t kMaxModes = 16, kMaxSettings = 64, kMaxOptions = 64;
 
@@ -31,7 +31,7 @@ struct SettingDef {
 
 struct Manifest {
     std::string id, name, version, author, license, homepage, description, kind;   // kind: mode, action, source, panel-lite
-    std::string minOnAir;                       // "0.2.7" or empty
+    std::string minZorCom;                       // "0.2.7" or empty
     uint32_t abi = 0;
     uint32_t permissions = 0;
     std::string libMac, libLinux, libWindows;   // file names inside the plugin folder

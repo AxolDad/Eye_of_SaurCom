@@ -34,7 +34,7 @@ const char* kindName(FieldKind k) {
 
 std::string protocolJson(const Candidate& c, const FieldReport& f, const std::string& name, double fs) {
     std::string j = "{\n";
-    j += "  \"format\": \"onair-protocol-lab\",\n  \"version\": 1,\n";
+    j += "  \"format\": \"zorcom-protocol-lab\",\n  \"version\": 1,\n";
     j += "  \"name\": \"" + esc(name) + "\",\n";
     j += "  \"modulation\": \"" + esc(demodName(c.demod)) + "\",\n";
     j += "  \"symbol_rate_baud\": " + num(c.baud) + ",\n";

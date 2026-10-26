@@ -87,7 +87,7 @@ static void testDummy() {
             double g = 0;
             CHECK(l.getFreq(g, e) && std::fabs(g - f) < 1.0, "freq reads back in hertz");
         }
-        // every mode OnAir offers
+        // every mode Eye of ZorCom offers
         const char* ms[] = {"USB", "LSB", "AM", "FM", "WFM", "CW", "CWR", "RTTY", "PKTUSB", "PKTLSB", "PKTFM"};
         for (const char* m : ms) {
             std::string back; int pb = 0;
@@ -253,7 +253,7 @@ static void testNetwork(const std::string& tmp) {
     CHECK(l.open(c, e), "open netrigctl");
     double hz = 0;
     CHECK(l.setFreq(145.5e6, e) && l.getFreq(hz, e) && std::fabs(hz - 145.5e6) < 1, "net: freq round trip");
-    CHECK(rawAsk(port, "f").find("145500000") == 0, "rigctld itself reports what OnAir set (hertz)");
+    CHECK(rawAsk(port, "f").find("145500000") == 0, "rigctld itself reports what Eye of ZorCom set (hertz)");
     std::string m; int pb;
     CHECK(l.setMode("WFM", 0, e) && l.getMode(m, pb, e) && m == "WFM", "net: mode round trip");
     CHECK(rawAsk(port, "m").find("WFM") == 0, "rigctld itself reports the mode");

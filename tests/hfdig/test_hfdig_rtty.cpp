@@ -150,7 +150,7 @@ int main() {
     while (std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count() < 40.0) {
         if (e.latestRx(rx, seq)) {
             seq = rx.seq;
-            if (rx.hfdig.rtty.text.find("CQ CQ DE ONAIR TEST 0123456789 1/2 -.:? THE QUICK BROWN FOX\n") != std::string::npos) { got = true; break; }
+            if (rx.hfdig.rtty.text.find("CQ CQ DE ZORCOM TEST 0123456789 1/2 -.:? THE QUICK BROWN FOX\n") != std::string::npos) { got = true; break; }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }

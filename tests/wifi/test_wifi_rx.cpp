@@ -35,8 +35,8 @@ static bool twoAps(const WifiTelemetry& t, const char* what) {
     const WifiAp* h = find(t, "00:04:0E:12:34:56");
     const WifiAp* c = find(t, "FC:EC:DA:AB:CD:EF");
     bool ok = true;
-    CHECK(h && h->ssid == "OnAir-Home" && h->security == Wpa2 && h->vendor == "AVM" && h->channel == 6 && h->interval == 100, "%s: home AP", what); ok &= h != nullptr;
-    CHECK(c && c->ssid == "OnAir-Cafe" && c->security == Wpa2Wpa3 && c->vendor == "Ubiquiti" && c->channel == 6, "%s: cafe AP", what); ok &= c != nullptr;
+    CHECK(h && h->ssid == "ZorCom-Home" && h->security == Wpa2 && h->vendor == "AVM" && h->channel == 6 && h->interval == 100, "%s: home AP", what); ok &= h != nullptr;
+    CHECK(c && c->ssid == "ZorCom-Cafe" && c->security == Wpa2Wpa3 && c->vendor == "Ubiquiti" && c->channel == 6, "%s: cafe AP", what); ok &= c != nullptr;
     return ok;
 }
 

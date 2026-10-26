@@ -1,5 +1,5 @@
 // Tone detector: finds the strongest tone in the channel and reports its frequency offset and level. About 100 lines, no dependencies beyond the C ABI.
-#include "onair_plugin.h"
+#include "zorcom_plugin.h"
 #include <cmath>
 #include <cstdio>
 #include <vector>
@@ -8,7 +8,7 @@ namespace {
 constexpr uint32_t N = 4096;
 
 struct Tone {
-    const OnAirHostApi* host;
+    const ZorComHostApi* host;
     double centre = 0, rate = 0;
     std::vector<float> re, im;   // collected block
     uint32_t fill = 0;
@@ -39,17 +39,17 @@ void fft(std::vector<float>& re, std::vector<float>& im) {   // in-place radix-2
     }
 }
 
-void* create(const OnAirHostApi* host, const char*) {
+void* create(const ZorComHostApi* host, const char*) {
     auto* t = new Tone{host, 0, 0, std::vector<float>(N), std::vector<float>(N), 0, 0, std::vector<float>(N)};
-    const OnAirColumn cols[] = {{"Time", ONAIR_COL_TIME}, {"Offset", ONAIR_COL_FREQ_HZ}, {"Level dBFS", ONAIR_COL_FLOAT}};
+    const ZorComColumn cols[] = {{"Time", ZORCOM_COL_TIME}, {"Offset", ZORCOM_COL_FREQ_HZ}, {"Level dBFS", ZORCOM_COL_FLOAT}};
     host->table_define(host->ctx, "tones", "Strongest tone", 3, cols);
-    host->status(host->ctx, "tone", "waiting for samples", ONAIR_LAMP_OFF);
+    host->status(host->ctx, "tone", "waiting for samples", ZORCOM_LAMP_OFF);
     return t;
 }
 void destroy(void* p) { delete (Tone*)p; }
 void configure(void* p, double centre, double rate) { auto* t = (Tone*)p; t->centre = centre; t->rate = rate; t->fill = 0; }
 
-void process(void* p, const float* iq, uint32_t n, const OnAirIqMeta* meta) {
+void process(void* p, const float* iq, uint32_t n, const ZorComIqMeta* meta) {
     auto* t = (Tone*)p;
     for (uint32_t i = 0; i < n; i++) {
         t->re[t->fill] = iq[2 * i]; t->im[t->fill] = iq[2 * i + 1];
@@ -69,16 +69,16 @@ void process(void* p, const float* iq, uint32_t n, const OnAirIqMeta* meta) {
         const float level = t->db[best];
         char text[96];
         snprintf(text, sizeof text, "%+.1f Hz from centre, %.1f dBFS", hz, level);
-        t->host->status(t->host->ctx, "tone", text, level > -60 ? ONAIR_LAMP_OK : ONAIR_LAMP_WARN);
-        t->host->plot(t->host->ctx, "spectrum", "Spectrum", ONAIR_PLOT_SPECTRUM, t->db.data(), N, -t->rate / 2, t->rate / N);
+        t->host->status(t->host->ctx, "tone", text, level > -60 ? ZORCOM_LAMP_OK : ZORCOM_LAMP_WARN);
+        t->host->plot(t->host->ctx, "spectrum", "Spectrum", ZORCOM_PLOT_SPECTRUM, t->db.data(), N, -t->rate / 2, t->rate / N);
         if (t->blocks % 80 == 0) {
-            const OnAirCell cells[] = {{ONAIR_COL_TIME, 0, meta ? meta->timestamp : 0, nullptr}, {ONAIR_COL_FREQ_HZ, 0, hz, nullptr}, {ONAIR_COL_FLOAT, 0, level, nullptr}};
+            const ZorComCell cells[] = {{ZORCOM_COL_TIME, 0, meta ? meta->timestamp : 0, nullptr}, {ZORCOM_COL_FREQ_HZ, 0, hz, nullptr}, {ZORCOM_COL_FLOAT, 0, level, nullptr}};
             t->host->table_row(t->host->ctx, "tones", 3, cells);
         }
     }
 }
 
-const OnAirPluginVTable kVt = {sizeof(OnAirPluginVTable), ONAIR_PLUGIN_ABI_VERSION, ONAIR_CAP_IQ_SINK, "tone-detector", create, destroy, configure, process, nullptr, nullptr, nullptr};
+const ZorComPluginVTable kVt = {sizeof(ZorComPluginVTable), ZORCOM_PLUGIN_ABI_VERSION, ZORCOM_CAP_IQ_SINK, "tone-detector", create, destroy, configure, process, nullptr, nullptr, nullptr};
 }  // namespace
 
-extern "C" ONAIR_EXPORT const OnAirPluginVTable* onair_plugin_entry(uint32_t host_abi) { return host_abi >= ONAIR_PLUGIN_ABI_VERSION ? &kVt : nullptr; }
+extern "C" ZORCOM_EXPORT const ZorComPluginVTable* zorcom_plugin_entry(uint32_t host_abi) { return host_abi >= ZORCOM_PLUGIN_ABI_VERSION ? &kVt : nullptr; }

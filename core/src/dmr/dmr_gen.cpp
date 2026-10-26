@@ -44,8 +44,8 @@ struct NoiseTable {
 
 const uint32_t kUsers[8] = {2145007, 2145016, 2623266, 2308155, 250997, 2504105, 3101234, 2621042};
 const uint32_t kGroups[8] = {9, 91, 2149, 3100, 262, 2621, 9990, 31337};
-const char* kAliases[8] = {"Test Station 1", "OnAir", "Dispatch", "Mobile 7", "Base North", "Truck 12", "Ops Desk", "Radio 2623266"};
-const char* kTexts[6] = {"OnAir DMR test message", "Hello from the synthetic DMR source", "Meeting at the main gate at 14:30", "Battery low on unit 7",
+const char* kAliases[8] = {"Test Station 1", "Eye of ZorCom", "Dispatch", "Mobile 7", "Base North", "Truck 12", "Ops Desk", "Radio 2623266"};
+const char* kTexts[6] = {"Eye of ZorCom DMR test message", "Hello from the synthetic DMR source", "Meeting at the main gate at 14:30", "Battery low on unit 7",
                          "Caf\xC3\xA9 is open, 20% off today", "Status: all clear"};
 
 constexpr uint8_t kIdleInfo[12] = {0xFF, 0x83, 0xDF, 0x17, 0x32, 0x09, 0x4E, 0xD1, 0xE7, 0xCD, 0x8A, 0x91};   // table D.2

@@ -83,10 +83,10 @@ UpTransport curlTransport() {
         UpResponse r;
         if (!isHttps(url)) { r.err = "refused: not https"; return r; }
         const char* t = getenv("TMPDIR"); if (!t) t = getenv("TEMP"); if (!t) t = "/tmp";
-        const std::string stem = std::string(t) + "/onair_up_" + std::to_string((long long)time(nullptr)) + "_" + std::to_string(rand());
+        const std::string stem = std::string(t) + "/zorcom_up_" + std::to_string((long long)time(nullptr)) + "_" + std::to_string(rand());
         const std::string outF = stem + ".out", codeF = stem + ".code";
         std::string cfg = "silent\nshow-error\nproto = \"=https\"\nmax-time = 30\nconnect-timeout = 15\nmax-filesize = 65536\n";
-        cfg += "url = \"" + url + "\"\nheader = \"Content-Type: application/x-www-form-urlencoded\"\nheader = \"User-Agent: OnAir-ham-upload\"\n";
+        cfg += "url = \"" + url + "\"\nheader = \"Content-Type: application/x-www-form-urlencoded\"\nheader = \"User-Agent: ZorCom-ham-upload\"\n";
         cfg += "data = \"" + body + "\"\noutput = \"" + outF + "\"\nwrite-out = \"%output{" + codeF + "}%{http_code}\"\n";
 #ifdef _WIN32
         FILE* p = popen("curl --config - >NUL 2>&1", "w");
@@ -220,7 +220,7 @@ int HamUploader::poll(long long now) {
 void HamUploader::startWorker() {
     if (th_.joinable()) return;
     quit_ = false;
-    th_ = dect2::namedThread("onair-hamup", [this] {
+    th_ = dect2::namedThread("zorcom-hamup", [this] {
         while (!quit_) {
             poll((long long)time(nullptr));
             for (int i = 0; i < 10 && !quit_; i++) std::this_thread::sleep_for(std::chrono::milliseconds(300));

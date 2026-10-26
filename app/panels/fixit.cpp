@@ -8,8 +8,8 @@ namespace {
 constexpr const char* kZadig = "https://zadig.akeo.ie";
 constexpr const char* kSdrplay = "https://sdrplay.com/hardware-api/";
 constexpr const char* kHackrfFw = "https://hackrf.readthedocs.io/en/latest/updating_firmware.html";
-constexpr const char* kCodecs = "https://github.com/adswill/OnAir/blob/main/docs/CODECS.md";
-constexpr const char* kDevices = "https://github.com/adswill/OnAir/blob/main/DEVICES.md";
+constexpr const char* kCodecs = "https://github.com/AxolDad/OnAir-SDR-Suite/blob/main/docs/CODECS.md";
+constexpr const char* kDevices = "https://github.com/AxolDad/OnAir-SDR-Suite/blob/main/DEVICES.md";
 constexpr const char* kSddcReleases = "https://github.com/renardspark/SDDC_Driver/releases";
 constexpr const char* kUhdImages = "https://files.ettus.com/manual/page_images.html";
 constexpr const char* kUdevCmd = "sudo ./install-udev-rules.sh   # in the Eye of ZorCom folder; then unplug and replug the radio";

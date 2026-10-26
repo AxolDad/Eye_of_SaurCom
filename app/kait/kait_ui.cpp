@@ -184,7 +184,7 @@ std::string kaitPictureFile(const std::string& path) {
         im.rgb[3 * i + 1] = (uint8_t)((px[i] >> 8) & 0xFF);
         im.rgb[3 * i + 2] = (uint8_t)((px[i] >> 16) & 0xFF);
     }
-    const std::string out = (std::filesystem::temp_directory_path() / "onair_kait_picture.ppm").string();
+    const std::string out = (std::filesystem::temp_directory_path() / "zorcom_kait_picture.ppm").string();
     return dect2::kait::writePpm(out, dect2::kait::fitPicture(im)) ? out : path;
 }
 
@@ -198,7 +198,7 @@ void kaitPanel(TxUi& s, bool running) {
         s.kaitProfile = std::max(0, std::min(3, (int)p.getI("tx.kait.profile", 0)));
     }
     ImGui::TextWrapped("%s", "KAIT: a picture in a 10 s burst, 190 kHz wide. The picture is shrunk to fit 1920 x 1080 and coded in layers, the coarse picture in the most "
-                              "robust coding first. Empty file: a demo picture. Empty callsign: ONAIR. Eye of ZorCom sets no limit on the frequency or the power.");
+                              "robust coding first. Empty file: a demo picture. Empty callsign: ZORCOM. Eye of ZorCom sets no limit on the frequency or the power.");
     ImGui::BeginDisabled(running);
     ImGui::SetNextItemWidth(160 * gUi);
     if (ImGui::InputText("Callsign (9 characters at most)", s.callsign, sizeof s.callsign, ImGuiInputTextFlags_CharsUppercase)) clampText(s.callsign, 9);

@@ -39,7 +39,7 @@ static void pushN(DiskTimeshift& ts, uint64_t from, uint64_t to, double off = 0)
 }
 
 int main() {
-    const fs::path dir = fs::temp_directory_path() / "onair_tshift_test";
+    const fs::path dir = fs::temp_directory_path() / "zorcom_tshift_test";
     fs::remove_all(dir);
     {   // ---- time map
         PcrTimeline tl;

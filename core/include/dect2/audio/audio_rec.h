@@ -46,7 +46,7 @@ public:
         AudioRecorder& r = instance();
         if (r.active_.load(std::memory_order_relaxed)) r.push(src, stereo, frames, rate);
     }
-    static std::string fileName(const std::string& modeId, double freqHz, AudioRecFormat f);   // "onair_audio_fm_93.900MHz_20261017-101500.wav"
+    static std::string fileName(const std::string& modeId, double freqHz, AudioRecFormat f);   // "zorcom_audio_fm_93.900MHz_20261017-101500.wav"
     static const char* extension(AudioRecFormat f);
     AudioRecorder();
     ~AudioRecorder();

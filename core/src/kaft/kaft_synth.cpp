@@ -13,7 +13,7 @@ std::unique_ptr<ModeSynth> makeKaftSynth(const SynthConfig& s, double sampleRate
     auto synth = std::make_unique<TxLoopSynth>(rate, 1500.0 + s.cfoHz, s.snrDb, 1.0, [rate, profile](int pass) -> std::unique_ptr<TxGenerator> {
     TxRequest r;
     r.modeId = "kaft";
-    r.callsign = "ONAIR";
+    r.callsign = "ZORCOM";
     r.opt["kaft.profile"] = profile;
     r.opt["kaft.width"] = 2;
     r.opt["kaft.repeat"] = 1;

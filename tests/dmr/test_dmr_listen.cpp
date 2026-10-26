@@ -1,4 +1,4 @@
-// Listen-pack WAVs of a spoken phrase through every vocoder OnAir is allowed to encode with (Codec 2: M17 and FreeDV).
+// Listen-pack WAVs of a spoken phrase through every vocoder Eye of ZorCom is allowed to encode with (Codec 2: M17 and FreeDV).
 // DMR / NXDN / dPMR / P25 / D-STAR have no encoder here (mbelib is decode-only), so those files are not written.
 // Set DECT2_VOICE_LISTEN_DIR (or writes next to the binary). Optional DECT2_VOICE_WAV, else voice_listen/00_original.wav.
 #include "dect2/hfdig/hfdig_freedv.h"
@@ -230,7 +230,7 @@ int main() {
     } else printf("codec2 missing: skip 06_m17_air.wav\n");
 
     const char* note =
-        "These files are the spoken phrase encoded and decoded where OnAir is allowed to encode.\n"
+        "These files are the spoken phrase encoded and decoded where Eye of ZorCom is allowed to encode.\n"
         "\n"
         "00  original (8 kHz)\n"
         "01  M17 Codec 2 3200 (vocoder only)\n"
@@ -242,10 +242,10 @@ int main() {
         "\n"
         "Not in this pack, and they cannot contain this recording:\n"
         "DMR (4FSK), NXDN 4800/9600, dPMR, P25 Phase 1, D-STAR.\n"
-        "Those vocoders are patented. OnAir loads mbelib to decode only; there is no encoder,\n"
+        "Those vocoders are patented. Eye of ZorCom loads mbelib to decode only; there is no encoder,\n"
         "so the phrase cannot be turned into AMBE/IMBE bits. Earlier 03/04 files were random\n"
         "decoder output, not speech — they were removed.\n"
-        "TETRA / TETRAPOL: no speech codec in OnAir (signalling only).\n"
+        "TETRA / TETRAPOL: no speech codec in Eye of ZorCom (signalling only).\n"
         "FreeDV RADE: UI slot only, not encoded here.\n";
     std::string err;
     CHECK(wb::writeTextFile(dir + "/LISTEN.txt", note, err), "LISTEN.txt %s", err.c_str());

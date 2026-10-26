@@ -1,8 +1,8 @@
 # Live transcripts: airband and marine voice as text
 
-> **Off until you turn it on, and no speech model is included.** OnAir downloads one only when you click, or reads a file you put in the models folder.
+> **Off until you turn it on, and no speech model is included.** Eye of ZorCom downloads one only when you click, or reads a file you put in the models folder.
 
-OnAir can turn what is said on a voice channel into text while you listen, keep it, and tie it to the aircraft on the map. The speech engine
+Eye of ZorCom can turn what is said on a voice channel into text while you listen, keep it, and tie it to the aircraft on the map. The speech engine
 (whisper.cpp, MIT) runs **on your computer**: the audio never leaves it. Open it from **View > Transcripts**. The airband screen shows the last
 calls as **live captions**; **ADS-B** shows the calls that name the selected aircraft in a **Voice (radio calls)** section.
 
@@ -22,11 +22,11 @@ calls as **live captions**; **ADS-B** shows the calls that name the selected air
 1. **View > Transcripts**, then **Settings and speech model**.
 2. Tick **Transcribe speech**.
 3. Get a model, one of two ways:
-   - **Download speech model:** `tiny.en` (75 MB), `base.en` (142 MB) or `small.en` (466 MB). A confirmation names the file and the address. OnAir asks
+   - **Download speech model:** `tiny.en` (75 MB), `base.en` (142 MB) or `small.en` (466 MB). A confirmation names the file and the address. Eye of ZorCom asks
      `huggingface.co/ggerganov/whisper.cpp` for that one file, sends nothing else, and checks the file against a SHA-256 it was built with; a file that
      does not match is deleted. Other languages: *Other languages (multilingual models)* has `tiny`, `base` and `small` without `.en`.
    - **Your own file:** press **Open models folder** and put a whisper.cpp `ggml-*.bin` there (the folder is `<data folder>/models`: on macOS
-     `~/Library/Application Support/OnAir/models`, on Windows `%LOCALAPPDATA%\OnAir\models`, on Linux `~/.local/share/onair/models`). It appears in the
+     `~/Library/Application Support/ZorCom/models`, on Windows `%LOCALAPPDATA%\ZorCom\models`, on Linux `~/.local/share/zorcom/models`). It appears in the
      model list within a few seconds. What such a file contains is your responsibility.
 4. Choose the model and the language. **English** is the default; **Auto-detect** and other languages need a multilingual model.
 
@@ -35,7 +35,7 @@ clear airband speech. `base.en` and `small.en` mistake fewer words and need a st
 
 ## What it does
 
-- Per channel, OnAir cuts the audio into transmissions: a transmission starts when the level passes the gate (the airband squelch already gates it),
+- Per channel, Eye of ZorCom cuts the audio into transmissions: a transmission starts when the level passes the gate (the airband squelch already gates it),
   keeps 0.35 s in front and 0.7 s behind, and ends when the speaker stops. Clicks shorter than half a second are dropped; a transmission is cut at 27 s.
 - Each transmission goes to a queue (at most 6 waiting; **the oldest is dropped** when the speech engine is slower than the radio) and is transcribed on
   a background thread, never in the audio path. While the channels are quiet nothing runs, so it costs no battery. **CPU threads** limits the processor.
@@ -51,7 +51,7 @@ clear airband speech. `base.en` and `small.en` mistake fewer words and need a st
 ## What the speech engine is given
 
 The engine does not read the sound you hear. A radio channel carries things that are not speech and that a speech engine will nevertheless try to turn
-into words, so OnAir conditions a separate copy for it. **Nothing you hear or record goes through this** — the chain that cleans up your listening is a
+into words, so Eye of ZorCom conditions a separate copy for it. **Nothing you hear or record goes through this** — the chain that cleans up your listening is a
 different one (`docs/audio-cleanup.md`), with different settings, for a different reason.
 
 In *Settings and speech model*, under **What the speech engine is given**:
@@ -71,7 +71,7 @@ and will not open below it, and a squelch tail sits at the noise floor by defini
 A speech engine guesses from what it has heard before, and it has never heard of the aircraft overhead this minute. It will turn *Ryanair three four
 alpha* into "Ryan air 34 alpha". Giving it the names that are genuinely in the air fixes most of that, and costs nothing.
 
-Once a second OnAir collects:
+Once a second Eye of ZorCom collects:
 
 - the **call signs of the aircraft in range**, said the way they are said on the radio (`BAW472` → "Speedbird 472"), and their **registrations**;
   an aircraft close to you counts for more than one at the edge of coverage
@@ -159,4 +159,4 @@ downloader), `whisper_backend` (whisper.cpp behind `SpeechBackend`), `audio_tap`
 `app/transcribe`. Tests: `test_transcribe` (fake speech backend: segmentation, queue overflow, filters, callsigns, search, exports, files, model list)
 and `test_whisper_model`, which needs a model: `DECT2_WHISPER_MODEL=/path/ggml-tiny.en.bin ctest -R whisper_model` checks that silence, noise and a
 tone produce no text, and prints the speed. Models are never committed. The vendored sources are in `third_party/whisper` (see its
-`README-OnAir.md`); build without them with `-DDECT2_WITH_WHISPER=OFF`.
+`README-ZorCom.md`); build without them with `-DDECT2_WITH_WHISPER=OFF`.

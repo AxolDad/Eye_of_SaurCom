@@ -82,7 +82,7 @@ void startDownload() {
         const std::string d = dir();
         std::error_code ec;
         fs::create_directories(fsPath(d), ec);
-        const std::string ua = "OnAir/" ONAIR_VERSION " (SatNOGS DB read-only list)";
+        const std::string ua = "ZorCom/" ZORCOM_VERSION " (SatNOGS DB read-only list)";
         bool ok = false;
         std::string msg;
         // each list goes to a .part file and replaces the cached one only when it parses

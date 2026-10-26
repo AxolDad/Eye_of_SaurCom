@@ -38,7 +38,7 @@ int main() {
     Report rep;
     rep.setPosition(54.6872, 25.2797);
     rep.setTelephone("+370 600 12345 ext 7");
-    rep.setUserText("OnAir test uplink");
+    rep.setUserText("Eye of ZorCom test uplink");
     const auto pairs = rep.frameFields();
     CHECK(pairs.size() == 6, "%zu frames of fields", pairs.size());
     {
@@ -74,7 +74,7 @@ int main() {
         double la = 0, lo = 0;
         CHECK(r2.latitude(la) && std::fabs(la - 54.6872) < 1e-3 && r2.longitude(lo) && std::fabs(lo - 25.2797) < 1e-3, "position %.4f %.4f", la, lo);
         CHECK(r2.telephone() == "+37060012345 ext. 7", "telephone '%s'", r2.telephone().c_str());
-        CHECK(r2.userText() == "OnAir test uplink", "text '%s'", r2.userText().c_str());
+        CHECK(r2.userText() == "Eye of ZorCom test uplink", "text '%s'", r2.userText().c_str());
         CHECK(r2.haveGuid && r2.guid == guid, "guid");
     }
     // the receiver

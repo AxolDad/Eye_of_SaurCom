@@ -55,8 +55,8 @@ int main() {
     CHECK(t.state == 2 && t.dataValid && t.rateOk, "state %d dataValid %d rateOk %d", t.state, (int)t.dataValid, (int)t.rateOk);
     CHECK(std::fabs(t.cfoHz - 1500.0) < 5.0, "CFO %.1f Hz (sent 1500)", t.cfoHz);
     CHECK(d.mode == 1 && d.occupancy == 3 && d.mscQam == 64, "mode %d occupancy %d %d-QAM", d.mode, d.occupancy, d.mscQam);
-    CHECK(d.services.size() == 1 && d.services[0].label == "OnAir DRM", "service label");
-    CHECK(d.textMessage == "OnAir DRM test signal", "text message '%s'", d.textMessage.c_str());
+    CHECK(d.services.size() == 1 && d.services[0].label == "Eye of ZorCom DRM", "service label");
+    CHECK(d.textMessage == "Eye of ZorCom DRM test signal", "text message '%s'", d.textMessage.c_str());
     CHECK(d.timeValid && d.year == 2026, "time");
     CHECK(d.blocksOk > 20 && d.blocksBad == 0, "audio frames %llu ok %llu bad", (unsigned long long)d.blocksOk, (unsigned long long)d.blocksBad);
     CHECK(t.dataSnrDb > 24 && t.dataSnrDb < 32, "SNR %.1f dB", t.dataSnrDb);

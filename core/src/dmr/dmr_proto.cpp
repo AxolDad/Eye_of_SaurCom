@@ -43,7 +43,7 @@ void putBe24(uint8_t* p, uint32_t v) { p[0] = (uint8_t)(v >> 16); p[1] = (uint8_
 
 
 // the test signal's alias PDU builder stays C++ in every build
-static int aliasPieces(int format, int length) { return onair_dmr_alias_pieces(format, length); }
+static int aliasPieces(int format, int length) { return zorcom_dmr_alias_pieces(format, length); }
 int talkerAliasPdus(const std::string& alias, int format, FullLc out[4]) {
     std::vector<uint8_t> bytes;
     int length = 0;

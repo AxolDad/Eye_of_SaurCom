@@ -19,36 +19,16 @@ struct ReleaseInfo {
     bool prerelease = false;
     std::string assetName, assetUrl, sha256;   // the package for this computer
     uint64_t size = 0;
-    bool fromMirror = false;         // the list of releases came through the user's mirror (not from github.com)
-    bool officialVerified = false;   // the checksum was confirmed by github.com itself (its API or its SHA256SUMS file)
 };
 
-// Where to ask. Automatic = GitHub, and only when `fallback` is on (off by default) the mirror after GitHub failed; GitHubOnly = never the
-// mirror; MirrorOnly = only the mirror. The mirror is a web address the user typed: nothing is sent to it unless they chose it.
-enum class UpdateSource { Automatic = 0, GitHubOnly = 1, MirrorOnly = 2 };
-struct MirrorConfig {
-    UpdateSource source = UpdateSource::Automatic;
-    bool fallback = false;      // Automatic only: also try the mirror when GitHub fails
-    std::string tmpl;           // "https://mirror.example/{url}" or a base address "https://mirror.example/gh" (the address is appended)
-};
-// True when the mirror may be contacted at all (it has an address and the choices allow it).
-bool mirrorEnabled(const MirrorConfig& c);
-// The address to ask the mirror for `url`: {url} in the template is replaced by it (also {urlenc}: percent-encoded); without a placeholder the
-// address is appended after a "/". "" when the template is not an https address (http only if allowHttp, for tests), has spaces or control
-// characters, is longer than 400 characters, or when `url` is not one of the project's own GitHub addresses (the mirror is never asked for
-// anything else).
-std::string mirrorUrl(const std::string& tmpl, const std::string& url, bool allowHttp = false);
 inline constexpr const char* kUpdateRepo = "AxolDad/OnAir-SDR-Suite";   // owner/name of the GitHub repository whose releases are the updates
-bool isOfficialUrl(const std::string& url);   // api.github.com/repos/<kUpdateRepo>/... or github.com/<kUpdateRepo>/releases/...
-// The checksum of `name` in the text of a SHA256SUMS file ("<64 hex>  name" per line, also "*name"); "" if absent.
-std::string checksumFor(const std::string& sums, const std::string& name);
 
 // How this copy of the program was installed: decides what an update can do.
 enum class InstallKind {
     Unknown,         // a development build or a place we cannot replace
-    MacApp,          // OnAir.app
+    MacApp,          // ZorCom.app
     WindowsInstall,  // installed by the setup program (or unpacked from the zip)
-    LinuxPortable,   // the .tar.gz: a directory with bin/onair in it
+    LinuxPortable,   // the .tar.gz: a directory with bin/zorcom in it
     LinuxDeb         // installed by the .deb: needs the administrator to change
 };
 
@@ -106,22 +86,17 @@ public:
         double checkedAt = 0;              // seconds since 1970 of the last successful check
         std::string applyError;            // why the last apply() did not start the installation (the update stays Ready)
         UpdateResult lastResult;           // what the helper of an earlier start recorded (see loadResult)
-        bool viaMirror = false;            // the last check was answered by the mirror
-        bool mirrorUnverified = false;     // from the mirror and github.com could not confirm the checksum: needs the user's explicit yes
     };
     explicit Updater(const std::string& currentVersion);
     ~Updater();
     const std::string& currentVersion() const { return current_; }
-    // Where to ask: the GitHub releases of the project, or what ONAIR_UPDATE_URL says (also a file:// address, for tests)
+    // Where to ask: the GitHub releases of the project, or what ZORCOM_UPDATE_URL says (also a file:// address, for tests)
     void setApiUrl(const std::string& url) { api_ = url; if (url.compare(0, 8, "https://") != 0) insecure_ = true; }   // an address that is not https (tests, file://) lifts the https-only rule
     void setExecutable(const std::string& path, int kindOverride = -1);   // for tests; defaults to this program
     void setWaitPid(int pid) { waitPid_ = pid; }     // for tests: the process the helper waits for (default: this one)
     void check(bool includePrerelease);              // in the background
-    void download(bool confirmMirrorOnly = false);   // in the background: fetch, verify, prepare (needs phase Available). A package whose checksum
-                                                     // only the mirror gave is fetched only with confirmMirrorOnly (the user's explicit yes).
-    void setMirror(const MirrorConfig& c) { mirror_ = c; }
+    void download();                                 // in the background: fetch, verify, prepare (needs phase Available)
     void setAllowInsecure(bool v) { insecure_ = v; }  // for tests: http:// and file:// addresses
-    void setReleaseBase(const std::string& dl) { dlBase_ = dl; }   // for tests: where github.com/.../releases/download/ is
     Status status() const;
     // Starts the helper that replaces the installed program once this process has ended (needs phase Ready). The caller then exits.
     // With restart the new version is started afterwards. For a .deb the package is handed to the system's installer (asks for a password).
@@ -138,12 +113,8 @@ private:
     bool prepare(const std::string& file, std::string& err);
     std::string workDir() const;
     std::string current_, api_, exe_;
-    MirrorConfig mirror_;
-    bool insecure_ = false, confirmed_ = false;
-    std::string dlBase_ = "https://github.com/adswill/OnAir/releases/download/";
+    bool insecure_ = false;
     int fetch(const std::string& url, std::string* body, const std::string& outFile, int maxTime, uint64_t maxBytes, const std::function<void()>& tick = {});
-    int fetchWithFallback(const std::string& url, std::string* body, const std::string& outFile, int maxTime, uint64_t maxBytes, bool* usedMirror, const std::function<void()>& tick = {});
-    bool confirmOfficial(ReleaseInfo& r);
     InstallKind kind_ = InstallKind::Unknown;
     mutable std::mutex mu_;
     Status st_;
@@ -153,7 +124,7 @@ private:
     int waitPid_ = 0;
 };
 
-// Opens a web address in the user's browser (the shared channel database uses it for its pre-filled issue).
+// Opens a web address in the user's browser.
 void openUrl(const std::string& url);
 
 } // namespace dect2
