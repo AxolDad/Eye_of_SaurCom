@@ -354,7 +354,8 @@ bool recipeFromText(const std::string& text, Recipe& out, std::string& err, bool
     json::Value j;
     if (!json::parse(text, j, err)) return false;
     if (j.type != json::Value::Obj) { err = "not an Eye of SaurCom automation file"; return false; }
-    if (j.str("format") != "saurcom-automation") { err = "not an Eye of SaurCom automation file (\"format\" is missing)"; return false; }
+    // also files exported from OnAir before the rename
+    if (j.str("format") != "saurcom-automation" && j.str("format") != "onair-automation") { err = "not an Eye of SaurCom automation file (\"format\" is missing)"; return false; }
     if (j.num("version", 0) > 1) { err = "this file is from a newer Eye of SaurCom"; return false; }
     const std::string kind = j.str("kind");
     Recipe r;

@@ -66,7 +66,7 @@ int main() {
         const LrFrame* f = findText(t, "SaurCom LoRa raw SF7 125k");
         if (f) {
             CHECK(std::fabs(f->cfoHz - 1500) < 150, "carrier offset %.0f Hz (1500 sent)", f->cfoHz);
-            CHECK(f->hex.substr(0, 8) == "4F 6E 41", "hex '%s'", f->hex.c_str());
+            CHECK(f->hex.substr(0, 8) == "53 61 75", "hex '%s'", f->hex.c_str());
         }
         f = findText(t, "Hello from SF12");
         CHECK(f && std::fabs(f->cfoHz + 900) < 150, "SF12 carrier offset %.0f Hz (-900 sent)", f ? f->cfoHz : 0);

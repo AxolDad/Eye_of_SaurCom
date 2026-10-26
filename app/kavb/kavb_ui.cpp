@@ -207,7 +207,7 @@ void kavbPanel(TxUi& s, bool running) {
     }
     ImGui::TextWrapped("%s", "KAVB: amateur digital video, 1 to 2 MHz wide. No AV1 or Opus encoder is built in, so a camera is not a source: the payload is either the bytes of a file, "
                               "sent as data packets (a KAVB receiver that saves the payload gets the file back), or a synthetic test stream with video- and audio-sized units. "
-                              "The station ID goes out as a text packet. The transmission ends when the file or the test stream is sent. Empty callsign sends SAURCOM. "
+                              "The station ID goes out as a text packet. The transmission ends when the file or the test stream is sent. Empty callsign sends SAURCM. "
                               "Eye of SaurCom sets no limit on the frequency or the power.");
     ImGui::BeginDisabled(running);
     ImGui::SetNextItemWidth(160 * gUi);

@@ -42,7 +42,7 @@ int main() {
     CHECK(d.region == "ANZ" && d.loMhz < 915.5 && d.hiMhz > 927.5, "coverage %s %.1f - %.1f", d.region.c_str(), d.loMhz, d.hiMhz);
     CHECK(d.pans.size() == 1 && d.nodes.size() == 3 && d.blocksOk > 100 && d.blocksBad == 0, "%zu PANs, %zu nodes, %llu frames", d.pans.size(), d.nodes.size(),
           (unsigned long long)d.blocksOk);
-    CHECK(!d.pans.empty() && d.pans[0].netName == "SaurCom-Test-FAN", "network name");
+    CHECK(!d.pans.empty() && d.pans[0].netName == "SaurComTestFAN", "network name");
     CHECK(d.ppsHist.size() >= 3 && d.pps > 10, "pps %.0f, %zu history", d.pps, d.ppsHist.size());
     CHECK(e.droppedSamples() == 0, "dropped %llu", (unsigned long long)e.droppedSamples());
     e.wisun().clearResults();

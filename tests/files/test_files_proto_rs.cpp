@@ -471,5 +471,5 @@ int main() {
     containerFamily(iters);
     abiMisuse();
     if (abiFails) return 1;
-    return golden::check("files_proto_rs", dig, 0x0b36799fd0e615aaull, !getenv("SAURCOM_DIFF_ITERS"));
+    return golden::check("files_proto_rs", dig, 0xce69a97f8451fa3eull, !getenv("SAURCOM_DIFF_ITERS"));
 }

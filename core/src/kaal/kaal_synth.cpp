@@ -16,9 +16,9 @@ public:
         if (kb != 12 && kb != 16 && kb != 24 && kb != 32) kb = 16;
         tx_.configure(rate);
         tx_.setBitrate(kb);
-        tx_.setSweepCallsign("SAURCOM");
+        tx_.setSweepCallsign("SAURCM");
         kaal::BeaconFields f;
-        f.callsign = "SAURCOM"; f.grid = "KO26ab"; f.lat = 54.687; f.lon = 25.279; f.powerDbm = 20; f.frameType = 1;
+        f.callsign = "SAURCM"; f.grid = "KO26ab"; f.lat = 54.687; f.lon = 25.279; f.powerDbm = 20; f.frameType = 1;
         tx_.setBeacon(f, "SaurCom test signal: KAAL voice and beacon.");
         tx_.setBeaconMix(true);
         dph_ = 2 * 3.141592653589793 * (1200.0 + s.cfoHz) / rate;

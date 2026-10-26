@@ -58,7 +58,7 @@ int main() {
         printf("%s: sync %d snr %.1f dB, speech frames %llu (%zu samples), text \"%s\"\n", freedvModeName(m), (int)t.sync[m], t.snrDb[m],
                (unsigned long long)t.speechFrames, speech, t.text.c_str());
         CHECK(t.open[m] && t.sync[m], "%s: no sync", freedvModeName(m));
-        CHECK(t.text.compare(0, 5, "SAURCOM") == 0, "%s: text \"%s\"", freedvModeName(m), t.text.c_str());
+        CHECK(t.text.compare(0, 7, "SAURCOM") == 0, "%s: text \"%s\"", freedvModeName(m), t.text.c_str());
         CHECK(t.speechFrames > 0 && speech > 0, "%s: no speech", freedvModeName(m));
     }
     // 1600 at lower SNR (where it stops is printed)

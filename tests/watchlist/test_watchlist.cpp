@@ -142,7 +142,7 @@ void testBuild() {
     Hit h; h.list = "L"; h.kind = "aircraft"; h.matched = "4840D6"; h.ident = "4840D6"; h.summary = "x \"y\"";
     au::Event ev("adsb.aircraft"); ev.at(kT0, "ADS-B", 1090e6);
     CHECK(buildWebhook(c, h, ev, r, err), "webhook ok");
-    CHECK(r.body.find("\"source\":\"SaurCom\"") != std::string::npos && r.body.find("\\\"y\\\"") != std::string::npos, "webhook json: %s", r.body.c_str());
+    CHECK(r.body.find("\"source\":\"Eye of SaurCom\"") != std::string::npos && r.body.find("\\\"y\\\"") != std::string::npos, "webhook json: %s", r.body.c_str());
     CHECK(r.headers.size() == 1 && r.headers[0] == "Authorization: Bearer wh", "webhook auth");
     c.webhookUrl = "ftp://x";
     CHECK(!buildWebhook(c, h, ev, r, err), "webhook not http");

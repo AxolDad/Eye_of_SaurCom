@@ -218,7 +218,8 @@ bool parseSession(const std::string& t, Session& s) {
     s = Session();
     std::istringstream is(t);
     std::string l;
-    if (!std::getline(is, l) || l.compare(0, 20, "#saurcom-hline-session") != 0) return false;
+    // the header of this program, or of OnAir (sessions saved before the rename)
+    if (!std::getline(is, l) || (l.rfind("#saurcom-hline-session", 0) != 0 && l.rfind("#onair-hline-session", 0) != 0)) return false;
     while (std::getline(is, l)) {
         if (l.compare(0, 5, "spec ") == 0) {
             std::istringstream ls(l.substr(5));
