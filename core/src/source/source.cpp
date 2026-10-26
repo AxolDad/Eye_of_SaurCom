@@ -346,7 +346,7 @@ protected:
 #else
         f_ = fopen(path_.c_str(), "rb");
 #endif
-        if (!f_) { err = "cannot open " + path_ + ": " + strerror(errno); return false; }
+        if (!f_) { err = "cannot open the file " + path_ + ": " + strerror(errno); return false; }
         if (off_ && fseek(f_, (long)off_, SEEK_SET) != 0) { err = "cannot seek in " + path_; return false; }
         pos_ = off_;
         return true;

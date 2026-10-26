@@ -207,7 +207,6 @@ HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, an
 Classic interface	Klassieke interface
 New interface	Nieuwe interface
 Try the new interface. You can switch back at any time.	Probeer de nieuwe interface. Je kunt op elk moment terugschakelen.
-Guided tour	Rondleiding
 Tour	Rondleiding
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Dank aan iedereen die bugs meldde, opnames instuurde en pull requests opende.
 Source	Bron
@@ -651,7 +650,6 @@ Start the radio first	Start eerst de radio
 Saves the radio's raw samples to a file, for a bug report	Bewaart de ruwe samples van de radio in een bestand, voor een bugmelding
 Copy diagnostics	Diagnose kopiëren
 Copied	Gekopieerd
-Copies the version, system, radios, messages and radio log lines, for a bug report	Kopieert de versie, het systeem, de radio's, berichten en radiologregels, voor een bugmelding
 spectrum dB	spectrum dB
 waterfall dB	waterval dB
 # added for 0.2.6: setup wizard, radio troubleshooting, converter, spectrum and waterfall options
@@ -807,7 +805,7 @@ Receivers at once	Ontvangers tegelijk
 Reduce CPU when hidden	CPU-gebruik verlagen als verborgen
 Remote driver	Extern stuurprogramma
 Reset	Herstellen
-Reset layout	Indeling herstellen
+Reset panel sizes	Indeling herstellen
 Restart Eye of SaurCom (the installer starts SDRplay's background service).	Herstart Eye of SaurCom (het installatieprogramma start de achtergronddienst van SDRplay).
 Restart Eye of SaurCom.	Herstart Eye of SaurCom.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Herstart de Mac of voer uit in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service
@@ -820,8 +818,6 @@ SDR	SDR
 SNR dB	SNR dB
 Satellites	Satellieten
 Satellites, 1.6 GHz	Satellieten, 1.6 GHz
-Save bug report	Bugmelding opslaan
-Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue	Slaat één zipbestand op met de diagnose, het logboek en het laatste crashrapport: voeg het toe aan een GitHub-issue
 Search	Zoeken
 Seen	Gezien
 Send spots to PSK Reporter (pskreporter.info)	Spots naar PSK Reporter sturen (pskreporter.info)
@@ -900,13 +896,11 @@ Waterfall: colour map, intensity range, speed and pause (then drag or use the wh
 Wave buoys, HF	Golfboeien, HF
 Weather alerts, 162.55 MHz	Weerwaarschuwingen, 162.55 MHz
 Weather pictures, 1.7 GHz	Weerbeelden, 1.7 GHz
-What do you want to receive? Tick anything that interests you.	Wat wil je ontvangen? Vink alles aan wat je interesseert.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Wat je bij een niveau in dBFS optelt om dBm voor deze radio te krijgen (zijn kalibratie: een bekend signaal in de antenne-aansluiting toont het). Ook in de radio-instellingen.
 Where are you? This picks the right TV standard and FM band.	Waar ben je? Dit kiest de juiste tv-norm en FM-band.
 Which language do you want Eye of SaurCom in?	In welke taal wil je Eye of SaurCom?
 Which radio do you have?	Welke radio heb je?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Je kunt de modus op elk moment wijzigen en deze installatie opnieuw starten via Help > Installatiewizard.
-You can go on without one: the synthetic signal and IQ files work with no hardware.	Je kunt ook zonder doorgaan: het synthetische signaal en IQ-bestanden werken zonder hardware.
 Your callsign	Je roepletters
 Your locator	Je locator
 Zoom: mouse wheel (both axes), Ctrl+wheel (frequency), Shift+wheel (level).\nCtrl+PageUp / PageDown: step the view by one screen in frequency. Double click: reset.	Zoom: muiswiel (beide assen), Ctrl+wiel (frequentie), Shift+wiel (niveau).\nCtrl+PageUp / PageDown: beeld een scherm opschuiven in frequentie. Dubbelklik: herstellen.
@@ -1565,8 +1559,6 @@ Click to tune and scroll to zoom. Peak hold keeps the strongest level seen on ea
 Each mode has its own tabs for decoded output, settings and tools. They change with the selected mode.	Elke modus heeft eigen tabbladen voor gedecodeerde uitvoer, instellingen en hulpmiddelen. Ze veranderen met de gekozen modus.
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Geheugen bewaart frequenties met hun modus en instellingen. Frequenties en bandplannen tonen wat er per modus in de lucht is.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Elke ontvanger koppelt een radio aan een modus. Deze balk schakelt ertussen en bepaalt welke het geluid afspeelt.
-Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen speelt het gedemoduleerde signaal af. Volume en dempen staan hier; Record audio slaat het op in een bestand.
-Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Hier staan documentatie, probleemoplossing, dankwoord en licenties. Rondleiding start deze rondleiding opnieuw.
 Monitor audio	Audio meeluisteren
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Luister in elke modus naar het afgestemde kanaal om een signaal te herkennen: de samples van de radio worden gedemoduleerd als USB, LSB, smalle FM of AM. Stil zolang de modus eigen geluid speelt.
 Auto: USB below 30 MHz, narrow FM above	Auto: USB onder 30 MHz, smalle FM erboven
@@ -2008,7 +2000,6 @@ The DRA+ decoder add-on cannot be used: %s. How to install:	De DRA+-decoder-add-
 How to install	Zo installeer je het
 The services, signal information and data work without it.	De diensten, signaalinformatie en data werken ook zonder.
 Interface and windows	Interface en vensters
-View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.	Beeld wisselt de indeling (Sidebar, Scope, Tiles, Faceplate, Panel), de klassieke interface, tekstgrootte en palet; de touchinterface staat onder Tools. Vensters zoals Frequenties, Sweepscanner, Peilontvanger en Automatiseringen openen vanaf hier.
 # programme guide (SPI)
 Guide	Gids
 until	tot

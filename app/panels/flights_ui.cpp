@@ -6,6 +6,8 @@
 // The recorder is driven from here, once a frame, whichever screen the user is on, so flights go on being recorded while they look at
 // something else. The store is opened the first time this runs.
 #include "../app.h"
+#include <any>
+#include <map>
 #include "../state/receivers.h"
 #include "photo_links_ui.h"
 #include "dect2/airports/airports.h"
@@ -204,6 +206,19 @@ void barRow(const char* label, const std::vector<fl::Bucket>& v, int bins, const
 
 const char* const kDayNames[7] = {"Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"};
 
+// A query of the Flights and Overview tabs, run again only when the filter changed or every 3 s: at every frame they held the store's lock
+// against the recorder and made a large store stutter the whole window.
+template <class T, class F> const T& memo(const std::string& slot, const fl::Filter& f, F fn) {
+    struct E { double at = -1e9; std::string key; std::any v; };
+    static std::map<std::string, E> m;
+    const std::string key = std::to_string(S.range) + "|" + std::to_string(f.kind) + "|" + f.airport + "|" + f.callsign + "|" + (f.emergenciesOnly ? "1" : "0") +
+                            "|" + std::to_string(f.limit);
+    E& e = m[slot];
+    const double now = ImGui::GetTime();
+    if (e.key != key || now - e.at > 3.0 || !e.v.has_value()) { e.v = fn(); e.at = now; e.key = key; }
+    return *std::any_cast<T>(&e.v);
+}
+
 fl::Filter currentFilter() {
     fl::Filter f;
     const double now = (double)std::time(nullptr);
@@ -259,7 +274,7 @@ void rankTable(const char* id, const char* what, const std::vector<fl::Ranked>& 
 
 void overview(App& a) {
     fl::Db& db = fl::global();
-    const fl::Stats st = db.stats();
+    const fl::Stats& st = memo<fl::Stats>("stats", fl::Filter(), [&] { return db.stats(); });
     const fl::Recorder::Status rs = fl::globalRecorder().status();
     bool on = rs.enabled;
     if (ImGui::Checkbox("Record flights", &on)) fl::globalRecorder().setEnabled(on);
@@ -278,7 +293,7 @@ void overview(App& a) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("In your airspace the most");
-        const auto top = db.topAircraft(f, 12);
+        const auto& top = memo<std::vector<fl::Ranked>>("top", f, [&] { return db.topAircraft(f, 12); });
         if (ImGui::BeginTable("##ovtop", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit)) {
             ImGui::TableSetupColumn("Aircraft");
             ImGui::TableSetupColumn("Flights");
@@ -298,20 +313,20 @@ void overview(App& a) {
         }
         ImGui::Spacing();
         ImGui::TextUnformatted("What kind of flying");
-        rankTable("##ovkind", "Kind", db.byKind(f), true);
+        rankTable("##ovkind", "Kind", memo<std::vector<fl::Ranked>>("kinds", f, [&] { return db.byKind(f); }), true);
 
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Busiest airports");
-        rankTable("##ovap", "Airport", db.topAirports(f, 10), false);
+        rankTable("##ovap", "Airport", memo<std::vector<fl::Ranked>>("airports", f, [&] { return db.topAirports(f, 10); }), false);
         ImGui::Spacing();
         ImGui::TextUnformatted("Busiest operators");
-        rankTable("##ovop", "Operator", db.topOperators(f, 8), false);
+        rankTable("##ovop", "Operator", memo<std::vector<fl::Ranked>>("operators", f, [&] { return db.topOperators(f, 8); }), false);
         ImGui::EndTable();
     }
 
     ImGui::Separator();
     ImGui::TextUnformatted("What stood out");
-    const auto an = db.anomalies(f, 12);
+    const auto& an = memo<std::vector<fl::Anomaly>>("anomalies", f, [&] { return db.anomalies(f, 12); });
     if (an.empty()) ImGui::TextDisabled("nothing unusual in this period");
     else if (ImGui::BeginTable("##ovan", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit)) {
         ImGui::TableSetupColumn("When");
@@ -388,12 +403,13 @@ void flightsTab(App& a) {
     filterRow();
     fl::Db& db = fl::global();
     fl::Filter f = currentFilter();
-    const int64_t n = db.countFlights(f);
+    const int64_t n = memo<int64_t>("count", f, [&] { return db.countFlights(f); });
+    const auto& v = memo<std::vector<fl::Flight>>("flights", f, [&] { return db.flights(f); });
     ImGui::SameLine();
-    ImGui::TextDisabled("%lld flights", (long long)n);
+    if (n > (int64_t)v.size()) ImGui::TextDisabled("%lld flights (the newest %zu shown)", (long long)n, v.size());
+    else ImGui::TextDisabled("%lld flights", (long long)n);
     ImGui::SameLine();
     if (ImGui::SmallButton("Copy list (CSV)")) { ImGui::SetClipboardText(db.exportFlights(f, "csv").c_str()); say("list copied"); }
-    const auto v = db.flights(f);
     const float lw = std::min(560 * gUi, ImGui::GetContentRegionAvail().x * 0.55f);
     if (ImGui::BeginChild("##fllist", ImVec2(lw, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_Borders)) {
         if (ImGui::BeginTable("##fltab", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit)) {

@@ -204,7 +204,6 @@ HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, an
 Classic interface	Interfaccia classica
 New interface	Nuova interfaccia
 Try the new interface. You can switch back at any time.	Prova la nuova interfaccia. Puoi tornare indietro in qualsiasi momento.
-Guided tour	Tour guidato
 Tour	Tour
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Grazie a tutti coloro che hanno segnalato bug, inviato registrazioni e aperto pull request.
 Source	Sorgente
@@ -635,7 +634,6 @@ Start the radio first	Avvia prima la radio
 Saves the radio's raw samples to a file, for a bug report	Salva i campioni grezzi della radio in un file, per una segnalazione di bug
 Copy diagnostics	Copia diagnostica
 Copied	Copiato
-Copies the version, system, radios, messages and radio log lines, for a bug report	Copia versione, sistema, radio, messaggi e righe del registro radio, per una segnalazione di bug
 spectrum dB	spettro dB
 waterfall dB	waterfall dB
   (mirrored: I/Q swapped)	  (specchiato: I/Q scambiati)
@@ -790,7 +788,7 @@ Receivers at once	Ricevitori contemporanei
 Reduce CPU when hidden	Riduci CPU quando nascosto
 Remote driver	Driver remoto
 Reset	Ripristina
-Reset layout	Ripristina disposizione
+Reset panel sizes	Ripristina disposizione
 Restart Eye of SaurCom (the installer starts SDRplay's background service).	Riavvia Eye of SaurCom (il programma di installazione avvia il servizio in background di SDRplay).
 Restart Eye of SaurCom.	Riavvia Eye of SaurCom.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Riavvia il Mac, oppure esegui nel Terminale: sudo launchctl kickstart -k system/com.sdrplay.service
@@ -803,8 +801,6 @@ SDR	SDR
 SNR dB	SNR dB
 Satellites	Satelliti
 Satellites, 1.6 GHz	Satelliti, 1,6 GHz
-Save bug report	Salva segnalazione bug
-Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue	Salva un file zip con la diagnostica, il registro e l'ultimo rapporto di crash: allegalo a una issue su GitHub
 Search	Cerca
 Seen	Visto
 Send spots to PSK Reporter (pskreporter.info)	Invia spot a PSK Reporter (pskreporter.info)
@@ -883,13 +879,11 @@ Waterfall: colour map, intensity range, speed and pause (then drag or use the wh
 Wave buoys, HF	Boe ondametriche, HF
 Weather alerts, 162.55 MHz	Allerte meteo, 162,55 MHz
 Weather pictures, 1.7 GHz	Immagini meteo, 1,7 GHz
-What do you want to receive? Tick anything that interests you.	Cosa vuoi ricevere? Spunta tutto ciò che ti interessa.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Cosa sommare a un livello in dBFS per ottenere dBm per questa radio (la sua calibrazione: un segnale noto sulla porta d'antenna la mostra). Anche nelle impostazioni della radio.
 Where are you? This picks the right TV standard and FM band.	Dove sei? Serve a scegliere lo standard TV e la banda FM giusti.
 Which language do you want Eye of SaurCom in?	In quale lingua vuoi Eye of SaurCom?
 Which radio do you have?	Che radio hai?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Puoi cambiare il modo in qualsiasi momento ed eseguire di nuovo questa configurazione da Aiuto > Configurazione guidata.
-You can go on without one: the synthetic signal and IQ files work with no hardware.	Puoi andare avanti senza: il segnale sintetico e i file IQ funzionano senza hardware.
 Your callsign	Il tuo nominativo
 Your locator	Il tuo locatore
 Zoom: mouse wheel (both axes), Ctrl+wheel (frequency), Shift+wheel (level).\nCtrl+PageUp / PageDown: step the view by one screen in frequency. Double click: reset.	Zoom: rotella del mouse (entrambi gli assi), Ctrl+rotella (frequenza), Shift+rotella (livello).\nCtrl+PagSu / PagGiù: sposta la vista di una schermata in frequenza. Doppio clic: ripristina.
@@ -1548,8 +1542,6 @@ Click to tune and scroll to zoom. Peak hold keeps the strongest level seen on ea
 Each mode has its own tabs for decoded output, settings and tools. They change with the selected mode.	Ogni modo ha schede proprie per l'uscita decodificata, le impostazioni e gli strumenti. Cambiano con il modo selezionato.
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Memoria conserva le frequenze con il loro modo e le impostazioni. Frequenze e piani di banda elencano cosa è in onda, per modo.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Ogni ricevitore abbina una radio a un modo. Questa barra permette di passare dall'uno all'altro e sceglie quale riproduce l'audio.
-Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen riproduce il segnale demodulato. Volume e muto sono qui; Record audio lo salva in un file.
-Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Qui trovi documentazione, risoluzione dei problemi, crediti e licenze. Tour guidato avvia di nuovo questo tour.
 Monitor audio	Monitor audio
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Ascolta il canale sintonizzato in qualsiasi modo per riconoscere un segnale: i campioni della radio sono demodulati come USB, LSB, FM stretta o AM. Muto mentre il modo riproduce il proprio audio.
 Auto: USB below 30 MHz, narrow FM above	Auto: USB sotto i 30 MHz, FM stretta sopra
@@ -1991,7 +1983,6 @@ The DRA+ decoder add-on cannot be used: %s. How to install:	Il componente decodi
 How to install	Come installare
 The services, signal information and data work without it.	I servizi, le informazioni sul segnale e i dati funzionano anche senza.
 Interface and windows	Interfaccia e finestre
-View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.	Vista cambia il layout (Sidebar, Scope, Tiles, Faceplate, Panel), l'interfaccia classica, la dimensione del testo e la palette; l'interfaccia touch è sotto Strumenti. Finestre come Frequenze, Scanner di sweep, Radiogoniometro e Automazioni si aprono da qui.
 # programme guide (SPI)
 Guide	Guida
 until	fino alle

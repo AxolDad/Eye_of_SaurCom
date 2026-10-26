@@ -163,9 +163,9 @@ void infoPopup() {
         ImGui::Text("%.5f, %.5f  (%s)", mk->lat, mk->lon, dect2::toMaidenhead(mk->lat, mk->lon, 6).c_str());
         if (mk->hasAlt) ImGui::Text("altitude %.0f m (%.0f ft)", mk->altM, mk->altM / 0.3048);
         if (mk->hasSpeed) ImGui::Text("speed %.0f kn (%.0f km/h)", mk->speedKt, mk->speedKt * 1.852);
-        if (mk->headingDeg >= 0) ImGui::Text("heading %.0fÂ°", mk->headingDeg);
+        if (mk->headingDeg >= 0) ImGui::Text("heading %.0f\xC2\xB0", mk->headingDeg);
         double rl, ro, km, brg; receiverLocation(rl, ro); dect2::greatCircle(rl, ro, mk->lat, mk->lon, km, brg);
-        ImGui::Text("%.1f km at %.0fÂ° from the receiver", km, brg);
+        ImGui::Text("%.1f km at %.0f\xC2\xB0 from the receiver", km, brg);
         if (ImGui::Button(tr("Point antenna rotator"))) rotatorPointBearing(brg, 0);
         ImGui::Text("last heard %s ago", dect2::ageText(mk->ageSec).c_str());
         if (!mk->detail.empty()) ImGui::TextDisabled("%s", mk->detail.c_str());
@@ -308,6 +308,12 @@ void mapView(App& a) {
 }
 
 } // namespace
+
+void mapShow(App& a, double lat, double lon) {
+    load();   // first, or the first draw would centre on the receiver again
+    place(lat, lon, true, 9);
+    a.mapOpen = true;
+}
 
 void mapWindow(App& a) {
     if (!a.mapOpen) return;

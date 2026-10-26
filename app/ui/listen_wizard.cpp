@@ -31,8 +31,8 @@ const Preset kPresets[] = {
     {N_("FM broadcast"), "", 0},
     {N_("Airband (aircraft voice)"), "airband", 0},
     {N_("Marine VHF (ships and harbours)"), "marine", 0},
-    {N_("Weather radio (NOAA, 162.550 MHz)"), "", 162.550},
-    {N_("Ham radio, 2 m (SSB and FM, 144.200 MHz)"), "general", 144.200},
+    {N_("Weather radio (US and Canada, NOAA, 162.550 MHz)"), "same", 162.550},   // the SAME mode: narrow FM, alerts decoded, Listen in its panel
+    {N_("Ham radio, 2 m (SSB calling, 144.200 MHz)"), "general", 144.200},
 };
 constexpr int kNumPresets = (int)(sizeof kPresets / sizeof *kPresets);
 
@@ -118,14 +118,25 @@ void listenWizard(App& a, ImVec2 disp) {
             if (a.devices[i].isRadio()) radios++;
             if (ImGui::RadioButton((a.devices[i].name + "##s" + std::to_string(i)).c_str(), gDev == i)) gDev = i;
         }
+        // an IQ recording: choose it here, or the start would have nothing to play
+        if (gDev >= 0 && gDev < (int)a.devices.size() && a.devices[gDev].kind == DeviceInfo::File) {
+            if (ImGui::Button(tr("Choose file..."))) {
+                const std::string p = openFileDialog();
+                if (!p.empty()) { a.file.path = p; a.file.format = guessFormat(p); const double r = guessSampleRate(p); if (r > 0) a.file.sampleRate = r; }
+            }
+            ImGui::SameLine();
+            ImGui::TextDisabled("%s", a.file.path.empty() ? tr("no file chosen yet") : a.file.path.c_str());
+        }
         if (!radios) {
             ImGui::Spacing();
             ImGui::TextColored(pal::warnAmber(), "%s", tr("No radio found"));
-            ImGui::TextUnformatted(tr("You can go on without one: the demo signal and IQ files work with no hardware."));
-            ImGui::TextUnformatted(tr("A radio on the network is not found by looking: add it under Setup wizard or the source list."));
+            ImGui::TextUnformatted(tr("You can go on without one: the synthetic test signal and IQ recordings work with no hardware."));
+            ImGui::TextUnformatted(tr("A radio on the network is not found by looking: add it by its address."));
         }
         ImGui::Spacing();
         if (ImGui::Button(tr("Look again"))) { refreshDevices(a); if (gDev >= (int)a.devices.size()) gDev = 0; }
+        ImGui::SameLine();
+        if (ImGui::Button(tr("Add a network radio..."))) { a.netAddOpen = true; a.netAddErr.clear(); }
         break;
     }
     case 1: {
@@ -157,7 +168,11 @@ void listenWizard(App& a, ImVec2 disp) {
     if (gStep > 0) ImGui::SameLine();
     const bool last = gStep == kListenSteps - 1;
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.34f, 0.40f, 1)); ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.27f, 0.45f, 0.53f, 1));
+    const bool needFile = gDev >= 0 && gDev < (int)a.devices.size() && a.devices[gDev].kind == DeviceInfo::File && a.file.path.empty();
+    ImGui::BeginDisabled(needFile);   // an IQ recording without a file cannot start
     if (ImGui::Button(tr(last ? "Start listening" : "Next"), ImVec2(130 * u, 0))) { if (last) finishWizard(a); else gStep++; }
+    ImGui::EndDisabled();
+    if (needFile && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s", tr("Choose the IQ recording first"));
     ImGui::PopStyleColor(2);
     ImGui::SameLine(0, 18 * u);
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));

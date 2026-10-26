@@ -213,7 +213,6 @@ HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, an
 Classic interface	Klasszikus felület
 New interface	Új felület
 Try the new interface. You can switch back at any time.	Próbáld ki az új felületet. Bármikor visszaválthatsz.
-Guided tour	Vezetett bemutató
 Tour	Bemutató
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Köszönet mindenkinek, aki hibákat jelentett, felvételeket küldött és pull requesteket nyitott.
 Source	Forrás
@@ -644,7 +643,6 @@ Start the radio first	Előbb indítsd el a rádiót
 Saves the radio's raw samples to a file, for a bug report	Elmenti a rádió nyers mintáit egy fájlba, hibajelentéshez
 Copy diagnostics	Diagnosztika másolása
 Copied	Másolva
-Copies the version, system, radios, messages and radio log lines, for a bug report	Kimásolja a verziót, a rendszert, a rádiókat, az üzeneteket és a rádió naplósorait, hibajelentéshez
 spectrum dB	spektrum dB
 waterfall dB	vízesés dB
 # added for 0.2.6: setup wizard, radio troubleshooting, converter, spectrum and waterfall options
@@ -800,7 +798,7 @@ Receivers at once	Vevők egyszerre
 Reduce CPU when hidden	CPU-terhelés csökkentése rejtett állapotban
 Remote driver	Távoli illesztő
 Reset	Visszaállítás
-Reset layout	Elrendezés visszaállítása
+Reset panel sizes	Elrendezés visszaállítása
 Restart Eye of SaurCom (the installer starts SDRplay's background service).	Indítsa újra az SaurCom-t (a telepítő elindítja az SDRplay háttérszolgáltatását).
 Restart Eye of SaurCom.	Indítsa újra az SaurCom-t.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Indítsa újra a Mac-et, vagy futtassa a Terminálban: sudo launchctl kickstart -k system/com.sdrplay.service
@@ -813,8 +811,6 @@ SDR	SDR
 SNR dB	SNR dB
 Satellites	Műholdak
 Satellites, 1.6 GHz	Műholdak, 1,6 GHz
-Save bug report	Hibajelentés mentése
-Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue	Egy zip fájlt ment a diagnosztikával, a naplóval és az utolsó összeomlási jelentéssel: csatolja egy GitHub-hibajegyhez
 Search	Keresés
 Seen	Látva
 Send spots to PSK Reporter (pskreporter.info)	Spotok küldése a PSK Reporternek (pskreporter.info)
@@ -895,13 +891,11 @@ Waterfall: colour map, intensity range, speed and pause (then drag or use the wh
 Wave buoys, HF	Hullámmérő bóják, HF
 Weather alerts, 162.55 MHz	Időjárási riasztások, 162,55 MHz
 Weather pictures, 1.7 GHz	Időjárási képek, 1,7 GHz
-What do you want to receive? Tick anything that interests you.	Mit szeretne venni? Jelölje be, ami érdekli.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Mit kell hozzáadni a dBFS szinthez, hogy ennek a rádiónak dBm értéket kapjunk (a kalibrációja: egy ismert jel az antennacsatlakozón megmutatja). A rádió beállításaiban is megtalálható.
 Where are you? This picks the right TV standard and FM band.	Hol van? Ez kiválasztja a megfelelő TV-szabványt és FM-sávot.
 Which language do you want Eye of SaurCom in?	Milyen nyelven szeretné használni az SaurCom-t?
 Which radio do you have?	Milyen rádiója van?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Az üzemmódot bármikor megváltoztathatja, és ezt a beállítást újra futtathatja a Súgó > Beállítási varázsló menüből.
-You can go on without one: the synthetic signal and IQ files work with no hardware.	Folytathatja nélküle is: a szintetikus jel és az IQ-fájlok hardver nélkül is működnek.
 Your callsign	Az Ön hívójele
 Your locator	Az Ön lokátora
 Zoom: mouse wheel (both axes), Ctrl+wheel (frequency), Shift+wheel (level).\nCtrl+PageUp / PageDown: step the view by one screen in frequency. Double click: reset.	Nagyítás: egérgörgő (mindkét tengely), Ctrl+görgő (frekvencia), Shift+görgő (szint).\nCtrl+PageUp / PageDown: a nézet léptetése egy képernyőnyivel frekvenciában. Dupla kattintás: visszaállítás.
@@ -1551,8 +1545,6 @@ Click to tune and scroll to zoom. Peak hold keeps the strongest level seen on ea
 Each mode has its own tabs for decoded output, settings and tools. They change with the selected mode.	Minden módnak saját fülei vannak a dekódolt kimenethez, a beállításokhoz és az eszközökhöz. A kiválasztott móddal együtt változnak.
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	A Memória a frekvenciákat móddal és beállításokkal együtt tárolja. A Frekvenciák és a sávtervek módonként mutatják, mi van adásban.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Minden vevő egy rádiót párosít egy móddal. Ez a sáv vált közöttük, és kijelöli, melyik szólaljon meg.
-Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	A Listen a demodulált jelet játssza le. A hangerő és a némítás itt van; a Record audio fájlba menti.
-Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Itt található a dokumentáció, a hibaelhárítás, a közreműködők és a licencek. Az Útmutató újra elindítja ezt a bemutatót.
 Monitor audio	Hang figyelése
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Hallgasd a behangolt csatornát bármely módban egy jel felismeréséhez: a rádió mintáit USB, LSB, keskeny FM vagy AM szerint demodulálja. Néma, amíg a mód saját hangot játszik.
 Auto: USB below 30 MHz, narrow FM above	Auto: USB 30 MHz alatt, keskeny FM felette
@@ -1994,7 +1986,6 @@ The DRA+ decoder add-on cannot be used: %s. How to install:	A DRA+ dekóder-kieg
 How to install	Telepítés menete
 The services, signal information and data work without it.	A szolgáltatások, a jelinformációk és az adatok enélkül is működnek.
 Interface and windows	Felület és ablakok
-View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.	A Nézet menüben váltható az elrendezés (Sidebar, Scope, Tiles, Faceplate, Panel), a klasszikus felület, a szövegméret és a paletta; az érintőfelület az Eszközök alatt van. Az olyan ablakok, mint a Frekvenciák, a Végigsöprő szkenner, az Iránykereső és az Automatizálások innen nyílnak.
 # programme guide (SPI)
 Guide	Műsorfüzet
 until	eddig:

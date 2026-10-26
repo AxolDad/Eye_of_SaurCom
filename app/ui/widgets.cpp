@@ -305,12 +305,12 @@ void gaugePill(float width, float frac, ImU32 fill, const char* text) {
 
 void lamp(const char* label, int state /*0 grey 1 green 2 amber 3 red*/, int icon) {
     ImVec4 c = state == 1 ? pal::okGreen() : state == 2 ? pal::warnAmber()
-             : state == 3 ? pal::badRed() : ImVec4(0.26f, 0.29f, 0.33f, 1);
+             : state == 3 ? pal::badRed() : ImVec4(0.40f, 0.43f, 0.47f, 1);   // off: an outline that still shows (about 3.4:1)
     ImDrawList* dl = ImGui::GetWindowDrawList();
     ImVec2 p = ImGui::GetCursorScreenPos();
     const ImU32 cu = ImGui::ColorConvertFloat4ToU32(c);
     (void)icon;
-    const float sq = 7.f, cy = p.y + ImGui::GetTextLineHeight() * 0.5f;
+    const float sq = std::round(7.f * gUi), cy = p.y + ImGui::GetTextLineHeight() * 0.5f;
     if (pal::panel()) {   // a round LED in a dark bezel, with a small highlight when lit
         const ImVec2 c(p.x + 6.f * gUi, cy);
         dl->AddCircleFilled(c, 6.f * gUi, IM_COL32(8, 8, 8, 255));
@@ -321,9 +321,13 @@ void lamp(const char* label, int state /*0 grey 1 green 2 amber 3 red*/, int ico
         } else dl->AddCircleFilled(c, 4.4f * gUi, IM_COL32(30, 31, 31, 255));
         ImGui::Dummy(ImVec2(14.f * gUi, ImGui::GetTextLineHeight()));
     } else {
-    if (state) dl->AddRectFilled(ImVec2(p.x + 1, cy - sq * 0.5f), ImVec2(p.x + 1 + sq, cy + sq * 0.5f), cu);
-    else dl->AddRect(ImVec2(p.x + 1, cy - sq * 0.5f), ImVec2(p.x + 1 + sq, cy + sq * 0.5f), cu);
-    ImGui::Dummy(ImVec2(sq + 5, ImGui::GetTextLineHeight()));
+    // the state is also in the shape, not only the colour: green a full square, amber the lower half, red a cross, off an outline
+    const float x0 = p.x + 1 * gUi, x1 = x0 + sq, y0 = cy - sq * 0.5f, y1 = cy + sq * 0.5f;
+    if (state == 1) dl->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), cu);
+    else if (state == 2) { dl->AddRectFilled(ImVec2(x0, cy), ImVec2(x1, y1), cu); dl->AddRect(ImVec2(x0, y0), ImVec2(x1, y1), cu); }
+    else if (state == 3) { dl->AddRect(ImVec2(x0, y0), ImVec2(x1, y1), cu); dl->AddLine(ImVec2(x0, y0), ImVec2(x1, y1), cu, 1.5f * gUi); dl->AddLine(ImVec2(x0, y1), ImVec2(x1, y0), cu, 1.5f * gUi); }
+    else dl->AddRect(ImVec2(x0, y0), ImVec2(x1, y1), cu);
+    ImGui::Dummy(ImVec2(sq + 5 * gUi, ImGui::GetTextLineHeight()));
     }
     ImGui::SameLine(0, 0);
     ImGui::TextDisabled("%s", tr(label));

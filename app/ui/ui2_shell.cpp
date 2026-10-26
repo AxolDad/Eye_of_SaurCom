@@ -6,6 +6,7 @@
 #include "ui2_internal.h"
 #include "../codec/speech_codec_ui.h"
 #include "ui_common.h"
+#include "command_palette.h"
 #include "tour_logic.h"
 #include "../state/workspace.h"
 #include "../state/layout.h"
@@ -224,6 +225,7 @@ void sidebar(App& a) {
             if (ImGui::Checkbox(tr(label), &on)) savePrefs(a);
             if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr(tipText));
         };
+        tool("The Eye", a.eyeOpen, N_("Everything this station decodes, from every mode, on one scope and one timeline (Ctrl+E)"));
         tool("Passes", a.passesOpen, "Satellite passes and automatic tuning");
         tool("Direction finder", a.dfOpen, N_("Bearing and position of a transmitter from an antenna array such as the KrakenSDR"));
         tool("Interference hunter", a.rfiOpen, N_("Watch a band for new interference, tell what kind it is, and walk to find it with a loud / quiet meter"));
@@ -372,12 +374,14 @@ static void viewMenu(App& a) {
             ImGui::TextDisabled("%s", tr("Ctrl + / Ctrl - / Ctrl 0"));
             ImGui::EndMenu();
         }
-        if (!a.touchUi && ImGui::MenuItem(tr("Reset layout"))) layoutReset();   // forgets the saved window positions of every mode
+        if (!a.touchUi && ImGui::MenuItem(tr("Reset window positions"))) layoutReset();   // forgets the saved window positions of every mode
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Forget where every window was moved to; they open in their usual places again"));
         if (ImGui::MenuItem(tr("Touch interface"), nullptr, &a.touchUi)) savePrefs(a);   // the same flag as the side panel: big targets, bottom dock (ui/touch.h)
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("For tablets and touch screens: big buttons, an on-screen keypad for the frequency, a full-screen mode picker."));
-        if (ImGui::MenuItem(tr("Reset layout"))) { a.splitSide = a.splitRight = a.splitBottom = a.splitDock = a.splitBot2 = 0; savePrefs(a); }
-        if (ImGui::MenuItem(tr("Reset spectrum"))) resetSpectrum(a);
+        if (ImGui::MenuItem(tr("Reset panel sizes"))) { a.splitSide = a.splitRight = a.splitBottom = a.splitDock = a.splitBot2 = 0; savePrefs(a); }
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Put the panels back to their automatic sizes (drag the bars between panels to resize them)"));
+        if (ImGui::MenuItem(tr("Reset spectrum"))) resetSpectrum(a);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Restore the default spectrum and waterfall levels and the usual half-and-half split (does not change panel layout)"));
         if (ImGui::MenuItem(tr("Full screen"), "F11", gWindow && glfwGetWindowMonitor(gWindow))) toggleFullscreen();
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Fill the display, hiding the taskbar (F11 or Alt+Enter). The same shortcut leaves it."));
         ImGui::Separator();
@@ -407,6 +411,8 @@ static void viewMenu(App& a) {
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Tools"))) {
+        ImGui::MenuItem(tr("The Eye"), "Ctrl+E", &a.eyeOpen);
+        ImGui::Separator();
         if (ImGui::MenuItem(tr("Transcripts ..."), nullptr, tx::windowOpen())) tx::windowOpen() = !tx::windowOpen();
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on."));
         if (ImGui::MenuItem(tr("Passes"), nullptr, &a.passesOpen)) {}
@@ -505,13 +511,22 @@ float menuBar(App& a) {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu(tr("Mode"))) {
-            int key = 0;
+            int key = 0;   // Alt+1 .. Alt+9: the first nine modes in this order (ui2.cpp)
             for (int g = 0; g < kNumGroups; g++) {
-                if (g) ImGui::Separator();
+                bool any = false;
+                for (int i = 0; i < kNumModes && !any; i++) any = kModes[i].group == g;
+                if (!any) continue;
+                bool here = false;
+                for (int i = 0; i < kNumModes; i++) if (kModes[i].group == g && modeSelected(a, kModes[i])) here = true;
+                const bool open = ImGui::BeginMenu(tr(kGroupNames[g]));
+                if (here) { ImGui::SameLine(); ImGui::TextDisabled("*"); }
                 for (int i = 0; i < kNumModes; i++) if (kModes[i].group == g) {
-                    char k[4]; snprintf(k, sizeof k, "%d", ++key);
-                    if (ImGui::MenuItem(kModes[i].name, key <= 9 ? k : nullptr, modeSelected(a, kModes[i]))) selectMode(a, kModes[i].family, kModes[i].subId);   // only 1-9 are keys
+                    char k[12]; snprintf(k, sizeof k, "Alt+%d", ++key);
+                    if (!open) continue;
+                    if (ImGui::MenuItem(kModes[i].name, key <= 9 ? k : nullptr, modeSelected(a, kModes[i]))) selectMode(a, kModes[i].family, kModes[i].subId);
+                    if (ImGui::IsItemHovered() && kModes[i].tip && kModes[i].tip[0]) ImGui::SetTooltip("%s", tr(kModes[i].tip));
                 }
+                if (open) ImGui::EndMenu();
             }
             ImGui::EndMenu();
         }
@@ -522,8 +537,7 @@ float menuBar(App& a) {
         tourMark("memory", ImVec2(mx0, my0), ImVec2(mx1, my1));
         const float hx0 = ImGui::GetCursorScreenPos().x;
         if (ImGui::BeginMenu(tr("Help"))) {
-            if (ImGui::MenuItem(tr("Credits"))) { a.creditsOpen = true; a.creditsTab = 0; }
-            ImGui::Separator();
+            if (ImGui::MenuItem(tr("Get me listening"))) listenWizardOpen(a);
             if (ImGui::MenuItem(tr("Setup wizard"))) setupWizardOpen(a);
             if (ImGui::BeginMenu(tr("Guided tours"))) {
                 if (ImGui::MenuItem(tr("Overview"))) tourStart(a);
@@ -533,8 +547,7 @@ float menuBar(App& a) {
                 for (int i = 0; i < nt; i++) if (ImGui::MenuItem(tr(ts[i].title))) tourStartTour(a, i);
                 ImGui::EndMenu();
             }
-            if (ImGui::MenuItem(tr("Get me listening"))) listenWizardOpen(a);
-            if (ImGui::MenuItem(tr("Guided tour"))) tourStart(a);
+            if (ImGui::MenuItem(tr("Command palette"), "Ctrl+K")) commandPaletteOpen();
             ImGui::Separator();
             if (ImGui::MenuItem(tr("Documentation"))) dect2::openUrl("https://github.com/AxolDad/Eye_of_SaurCom/tree/main/docs");
             if (ImGui::MenuItem(tr("Troubleshooting"))) dect2::openUrl("https://github.com/AxolDad/Eye_of_SaurCom#troubleshooting");
@@ -569,6 +582,7 @@ void topBar(App& a, ImVec2 disp) {
         const bool running = a.engine.running();
         const ImVec2 o = ImGui::GetCursorScreenPos();
         if (runButton(running, 40 * gUi) || (!running && a.wizStart)) { if (running) a.engine.stop(); else startReceiver(a); a.wizStart = false; }
+        tourMark("run", ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
         const float W = ImGui::GetContentRegionAvail().x;
         ImGui::SetCursorScreenPos(ImVec2(o.x + 58 * gUi, o.y));
         const float digitsEnd = freqDigits(a);

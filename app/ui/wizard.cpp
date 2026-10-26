@@ -29,6 +29,8 @@ const Region kRegions[] = {
     {N_("Elsewhere"), 0, 1, 100.0, nullptr},
 };
 constexpr int kNumRegions = (int)(sizeof kRegions / sizeof *kRegions);
+// the band plan (bandplans data, "Get me listening") each region starts on, so the place is asked once; "" leaves the plan as it is
+const char* const kRegionPlan[kNumRegions] = {"eu", "gb", "us", "ae", "au", "jp", "cn", ""};
 
 struct Goal { const char* label; const char* modeId; };   // the first ticked one (in this order) picks the starting mode
 const Goal kGoals[] = {
@@ -91,7 +93,11 @@ void setupWizardOpen(App& a) {
 
 static void setupFinish(App& a, bool apply) {
     a.setupOpen = false;
-    if (apply) applyGoal(a, pickGoal(a.setupGoals), kRegions[a.setupRegion]);
+    if (apply) {
+        applyGoal(a, pickGoal(a.setupGoals), kRegions[a.setupRegion]);
+        a.wizStart = true;   // the last page says the program starts here: the top bar's run button starts the receiver on the next frame
+        if (kRegionPlan[a.setupRegion][0]) a.bandPlan = kRegionPlan[a.setupRegion];
+    }
     plat::prefs().setB("setupDone", true);
     plat::prefs().setI("setupRegion", a.setupRegion);
     plat::prefs().setI("setupGoals", (long)a.setupGoals);
@@ -132,9 +138,11 @@ void setupWizard(App& a, ImVec2 disp) {
         ImGui::TextUnformatted(tr("Which radio do you have?"));
         ImGui::Spacing();
         int radios = 0;
+        for (int i = 0; i < (int)a.devices.size(); i++) if (a.devices[i].isRadio()) radios++;
+        // with no radio, the test signal is the choice: it is offered (and picked) here, not only promised in the text below
+        if (!radios && (a.devIdx < 0 || a.devIdx >= (int)a.devices.size() || !a.devices[a.devIdx].isRadio())) a.devIdx = 0;
         for (int i = 0; i < (int)a.devices.size(); i++) {
-            if (!a.devices[i].isRadio()) continue;
-            radios++;
+            if (!(a.devices[i].isRadio() || a.devices[i].kind == DeviceInfo::Synthetic)) continue;
             if (ImGui::RadioButton((a.devices[i].name + "##r" + std::to_string(i)).c_str(), a.devIdx == i)) a.devIdx = i;
         }
         if (!radios) {
@@ -155,7 +163,7 @@ void setupWizard(App& a, ImVec2 disp) {
                 }
             }
             ImGui::Spacing();
-            ImGui::TextUnformatted(tr("You can go on without one: the synthetic signal and IQ files work with no hardware."));
+            ImGui::TextUnformatted(tr("You can go on without one: the synthetic test signal above, and IQ recordings, work with no hardware."));
             ImGui::TextUnformatted(tr("A radio on the network is not found by looking: add it by its address."));
         }
         ImGui::Spacing();
@@ -186,12 +194,10 @@ void setupWizard(App& a, ImVec2 disp) {
         break;
     }
     case 3: {
-        ImGui::TextUnformatted(tr("What do you want to receive? Tick anything that interests you."));
+        ImGui::TextUnformatted(tr("What do you want to try first? Every other mode is one click away later."));
         ImGui::Spacing();
-        for (int i = 0; i < kNumGoals; i++) {
-            bool on = (a.setupGoals >> i) & 1u;
-            if (ImGui::Checkbox(tr(kGoals[i].label), &on)) a.setupGoals = on ? (a.setupGoals | (1u << i)) : (a.setupGoals & ~(1u << i));
-        }
+        const int cur = pickGoal(a.setupGoals);
+        for (int i = 0; i < kNumGoals; i++) if (ImGui::RadioButton(tr(kGoals[i].label), cur == i)) a.setupGoals = 1u << i;
         break;
     }
     default: {

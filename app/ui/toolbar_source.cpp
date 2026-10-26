@@ -66,14 +66,16 @@ std::string rateWarning(const App& a) {
 }
 
 void startReceiver(App& a) {
-    if (std::string why; receiverModeBusy(a, &why)) { a.engine.log(why); return; }   // two receivers in one mode share screen state (docs/multi-sdr.md)
+    // a refusal goes to the log and to the message under the source (startErr), so pressing Start never does nothing visible
+    auto refuse = [&a](const std::string& why) { a.engine.log(why); a.startErr = why; a.startErrKey.clear(); };
+    if (std::string why; receiverModeBusy(a, &why)) { refuse(why); return; }   // two receivers in one mode share screen state (docs/multi-sdr.md)
     // a running scan has the radio: the receiver opening it too would take it away from the scan (SDRplay) or fail
-    if (a.scanner.progress().running && a.devices[a.devIdx].isRadio()) { a.engine.log("a scan is using the radio: stop the scan first"); return; }
+    if (a.scanner.progress().running && a.devices[a.devIdx].isRadio()) { refuse("A channel scan is using the radio. Stop the scan, then press Start."); return; }
     const bool isFile = a.devices[a.devIdx].kind == DeviceInfo::File;
     a.tune.centerHz = a.freqMhz * 1e6;
     applyBandwidth(a);
     if (isFile && a.file.offsetBytes == 0) { const double r = guessSampleRate(a.file.path); if (r > 0) a.file.sampleRate = r; } // the name says the rate (a SigMF / WAV file says it itself)
-    if (isFile && a.file.path.empty()) a.engine.log("choose an IQ file first");
+    if (isFile && a.file.path.empty()) refuse("Choose an IQ recording first: press Open… next to the file name under the source.");
     else {
         if (a.devices[a.devIdx].isAudio() || a.devices[a.devIdx].kind == DeviceInfo::Hamlib) applyAudioSettings(a);
         a.engine.setComputeMode(a.computeMode); a.engine.setStandard(engineStd(a));

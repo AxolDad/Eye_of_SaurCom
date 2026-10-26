@@ -110,14 +110,18 @@ void workspaceDialogs(App& a) {
         ImGui::Text("Last session: %s, %.3f MHz", w.devName.empty() ? "no radio" : w.devName.c_str(), w.freqMhz);
         if (!w.panels.empty()) ImGui::Text("Windows open: %s", w.panels.c_str());
         ImGui::TextUnformatted("Restore last session? The settings come back; press Start to listen again.");
-        if (ImGui::Button("Restore")) {
+        ImGui::TextDisabled("Enter: Restore   Esc: Start fresh");
+        // the keyboard answers too (the dialog opens by itself after a crash; without them a keyboard-only user cannot get past it)
+        const bool keyYes = ImGui::IsKeyPressed(ImGuiKey_Enter, false) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter, false);
+        const bool keyNo = ImGui::IsKeyPressed(ImGuiKey_Escape, false);
+        if (ImGui::Button("Restore") || keyYes) {
             std::string why;
             workspaceRestoreAnswer(a, true, why);
             if (!why.empty()) a.engine.log("Last session: " + why);
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
-        if (ImGui::Button("Start fresh")) {
+        if (ImGui::Button("Start fresh") || (keyNo && !keyYes)) {
             std::string why;
             workspaceRestoreAnswer(a, false, why);
             ImGui::CloseCurrentPopup();

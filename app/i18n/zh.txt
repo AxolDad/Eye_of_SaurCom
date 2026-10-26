@@ -214,7 +214,6 @@ HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, an
 Classic interface	经典界面
 New interface	新界面
 Try the new interface. You can switch back at any time.	试用新界面。随时可以切换回来。
-Guided tour	新手导览
 Tour	导览
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	感谢所有报告问题、提供录制文件和提交拉取请求的朋友。
 Source	信号源
@@ -658,7 +657,6 @@ Start the radio first	请先启动设备
 Saves the radio's raw samples to a file, for a bug report	把设备的原始样本保存到文件，用于问题报告
 Copy diagnostics	复制诊断信息
 Copied	已复制
-Copies the version, system, radios, messages and radio log lines, for a bug report	复制版本、系统、设备、消息和设备日志行，用于问题报告
 spectrum dB	频谱 dB
 waterfall dB	瀑布图 dB
 # added for 0.2.6: setup wizard, radio troubleshooting, converter, spectrum and waterfall options
@@ -814,7 +812,7 @@ Receivers at once	同时接收器数量
 Reduce CPU when hidden	隐藏时降低 CPU 占用
 Remote driver	远程驱动
 Reset	重置
-Reset layout	重置布局
+Reset panel sizes	重置布局
 Restart Eye of SaurCom (the installer starts SDRplay's background service).	重启 Eye of SaurCom（安装程序会启动 SDRplay 的后台服务）。
 Restart Eye of SaurCom.	重启 Eye of SaurCom。
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	重启 Mac，或在终端中运行：sudo launchctl kickstart -k system/com.sdrplay.service
@@ -827,8 +825,6 @@ SDR	SDR
 SNR dB	SNR dB
 Satellites	卫星
 Satellites, 1.6 GHz	卫星，1.6 GHz
-Save bug report	保存错误报告
-Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue	保存一个包含诊断信息、日志和最近崩溃报告的 zip 文件：请附到 GitHub issue 中
 Search	搜索
 Seen	最后出现
 Send spots to PSK Reporter (pskreporter.info)	向 PSK Reporter 发送接收报告 (pskreporter.info)
@@ -909,13 +905,11 @@ Waterfall: colour map, intensity range, speed and pause (then drag or use the wh
 Wave buoys, HF	波浪浮标，短波
 Weather alerts, 162.55 MHz	天气警报，162.55 MHz
 Weather pictures, 1.7 GHz	气象图像，1.7 GHz
-What do you want to receive? Tick anything that interests you.	您想接收什么？勾选您感兴趣的任何内容。
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	要加到 dBFS 电平上才能得到这台电台 dBm 的数值（即其校准值：向天线口输入已知信号即可得出）。也可在电台设置中修改。
 Where are you? This picks the right TV standard and FM band.	您在哪里？这将选择合适的电视标准和 FM 频段。
 Which language do you want Eye of SaurCom in?	您希望使用哪种语言的 Eye of SaurCom？
 Which radio do you have?	您有哪种电台？
 You can change the mode any time, and run this setup again from Help > Setup wizard.	您可以随时更改模式，也可以从“帮助 > 设置向导”重新运行此设置。
-You can go on without one: the synthetic signal and IQ files work with no hardware.	没有电台也可以继续：合成信号和 IQ 文件无需硬件即可使用。
 Your callsign	您的呼号
 Your locator	您的网格定位符
 Zoom: mouse wheel (both axes), Ctrl+wheel (frequency), Shift+wheel (level).\nCtrl+PageUp / PageDown: step the view by one screen in frequency. Double click: reset.	缩放：鼠标滚轮（两个轴）、Ctrl+滚轮（频率）、Shift+滚轮（电平）。\nCtrl+PageUp / PageDown：按一屏频率步进视图。双击：重置。
@@ -1565,8 +1559,6 @@ Click to tune and scroll to zoom. Peak hold keeps the strongest level seen on ea
 Each mode has its own tabs for decoded output, settings and tools. They change with the selected mode.	每种模式都有各自的标签页，用于显示解码输出、设置和工具，并随所选模式变化。
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	存储会保存频率及其模式和设置。频率与频段规划按模式列出正在广播的内容。
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	每个接收机将一台电台与一种模式配对。此栏用于在它们之间切换，并选择由哪一个播放声音。
-Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen 播放解调后的信号。音量和静音在此处；Record audio 会将声音保存为文件。
-Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	文档、故障排除、致谢和许可证都在这里。导览会重新开始此导览。
 Monitor audio	监听音频
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	在任何模式下收听已调谐的频道以识别信号:无线电采样按USB、LSB、窄带FM或AM解调。模式播放自身声音时保持静音。
 Auto: USB below 30 MHz, narrow FM above	自动:30 MHz以下USB,以上窄带FM
@@ -2008,7 +2000,6 @@ The DRA+ decoder add-on cannot be used: %s. How to install:	无法使用 DRA+ �
 How to install	安装方法
 The services, signal information and data work without it.	没有它,服务、信号信息和数据仍可正常使用。
 Interface and windows	界面与窗口
-View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.	“视图”菜单可切换布局（Sidebar、Scope、Tiles、Faceplate、Panel）、经典界面、文字大小和配色；触控界面位于“工具”下。频率、扫频扫描器、测向和自动化等窗口也从这里打开。
 # programme guide (SPI)
 Guide	节目指南
 until	直到

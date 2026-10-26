@@ -200,15 +200,15 @@ void bodyTiles(App& a, float bodyH, ImVec2 disp) {
 }  // namespace ui2
 
 void drawShell2(App& a, ImVec2 disp) {
-    {   // keyboard: 1-9 pick a mode, space starts and stops (not while typing)
+    {   // keyboard: Alt+1 .. Alt+9 pick a mode (a bare digit is too easy to hit and restarts the radio), Space starts and stops (not while typing)
         ImGuiIO& io = ImGui::GetIO();
-        if (!io.WantTextInput && !ImGui::IsAnyItemActive() && !io.KeyCtrl && !io.KeyAlt && !io.KeySuper) {
-            if (!gFreqHovered) for (int k = 0; k < 9; k++) if (ImGui::IsKeyPressed((ImGuiKey)(ImGuiKey_1 + k), false)) {
+        if (!io.WantTextInput && !ImGui::IsAnyItemActive() && !io.KeyCtrl && !io.KeySuper) {
+            if (io.KeyAlt && !gFreqHovered) for (int k = 0; k < 9; k++) if (ImGui::IsKeyPressed((ImGuiKey)(ImGuiKey_1 + k), false)) {
                 int n = 0;
                 for (int g = 0; g < kNumGroups; g++) for (int i = 0; i < kNumModes; i++) if (kModes[i].group == g && n++ == k) selectMode(a, kModes[i].family, kModes[i].subId);
             }
             // not in the TX view: there Space keys the transmitter (tx_panel.cpp), and must not also start or stop the receiver
-            if (!txViewFlag() && ImGui::IsKeyPressed(ImGuiKey_Space, false)) { if (a.engine.running()) a.engine.stop(); else startReceiver(a); }
+            if (!io.KeyAlt && !txViewFlag() && ImGui::IsKeyPressed(ImGuiKey_Space, false)) { if (a.engine.running()) a.engine.stop(); else startReceiver(a); }
         }
     }
     const float menuH = menuBar(a);

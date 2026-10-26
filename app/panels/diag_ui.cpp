@@ -622,23 +622,15 @@ void fixitUi(App& a, const fixit::Entry* e, const char* idKey) {
     ImGui::PopID();
 }
 
-void radioMessagesUi(App& a, bool vertical) {
-    pollStartError(a);
-    const auto msgs = radioMessages(a);
-    if (!vertical) {   // the one-line top bar has no room for text: a mark with the messages as its tooltip
-        if (msgs.empty()) return;
-        ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.95f, 0.4f, 0.35f, 1), "(!)");
-        if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(420 * gUi); for (auto& m : msgs) ImGui::TextWrapped("%s", m.text.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
-        return;
-    }
+// the messages, each with its dismiss button and its "How to fix": under the source, and in the top bar's popup
+static void radioMessageList(App& a, const std::vector<RadioMsg>& msgs) {
     for (size_t i = 0; i < msgs.size(); i++) {
         const RadioMsg& m = msgs[i];
         const ImVec4 col = m.kind <= 1 ? ImVec4(0.95f, 0.4f, 0.35f, 1) : m.kind == 2 ? ImVec4(0.95f, 0.78f, 0.25f, 1) : ImVec4(0.62f, 0.66f, 0.72f, 1);
         ImGui::PushID((int)i);
         if (m.kind <= 1) {   // errors can be dismissed; the range and the hints go away by themselves
             if (ImGui::SmallButton("x")) { if (m.kind == 0) a.hackrfErrHidden = true; else a.startErr.clear(); }
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("Dismiss");
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Dismiss"));
             ImGui::SameLine();
         }
         ImGui::PushStyleColor(ImGuiCol_Text, col);
@@ -649,7 +641,33 @@ void radioMessagesUi(App& a, bool vertical) {
         fixitUi(a, fixit::lookup(m.text), "fix");
         ImGui::PopID();
     }
-    if (a.devices.size() <= 2) {   // nothing listed: say so and say what helps
+}
+
+void radioMessagesUi(App& a, bool vertical) {
+    pollStartError(a);
+    const auto msgs = radioMessages(a);
+    if (!vertical) {   // the one-line top bar has no room for the text: a mark that shows it on hover and opens it, with the fixes, on a click
+        if (msgs.empty()) return;
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.4f, 0.35f, 1));
+        if (ImGui::SmallButton("(!)##radiomsgsbtn")) ImGui::OpenPopup("##radiomsgs");
+        ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip(); ImGui::PushTextWrapPos(420 * gUi);
+            for (auto& m : msgs) ImGui::TextWrapped("%s", m.text.c_str());
+            ImGui::TextDisabled("%s", tr("Click for what to do"));
+            ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+        }
+        if (ImGui::BeginPopup("##radiomsgs")) {
+            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 460 * gUi);
+            radioMessageList(a, msgs);
+            ImGui::PopTextWrapPos();
+            ImGui::EndPopup();
+        }
+        return;
+    }
+    radioMessageList(a, msgs);
+    if (std::none_of(a.devices.begin(), a.devices.end(), [](const DeviceInfo& d) { return d.isRadio(); })) {   // no radio listed (sound cards do not count): say so and say what helps
         ImGui::TextDisabled("%s", tr("No radio found"));
         ImGui::SameLine();
         fixitUi(a, fixit::byId("no_radio"), "fixnone");
@@ -659,22 +677,11 @@ void radioMessagesUi(App& a, bool vertical) {
         ImGui::SetClipboardText(diagnosticsText(a).c_str());
         a.diagCopiedAt = ImGui::GetTime();
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Copies the version, system, radios, messages and radio log lines, for a bug report"));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Copies the version, system, radios (with their serial numbers), messages and radio log lines, for a bug report"));
     ImGui::SameLine();
-    if (ImGui::SmallButton(tr("Save bug report"))) {
-        const std::string path = plat::saveFileDialog("saurcom-bug-report.zip");
-        if (!path.empty()) {
-            const std::filesystem::path d = std::filesystem::path(std::u8string(reinterpret_cast<const char8_t*>(dect2::crash::logDir().data()), dect2::crash::logDir().size()));
-            std::vector<std::pair<std::string, std::string>> f;
-            f.push_back({"diagnostics.txt", diagnosticsText(a)});
-            for (const char* n : {"saurcom.log", "saurcom-prev.log", "crash.txt"}) {
-                std::error_code ec;
-                if (std::filesystem::exists(d / n, ec)) f.push_back({n, slurp(d / n)});
-            }
-            a.diagCopiedAt = writeZip(path, f) ? ImGui::GetTime() : -10.0;
-        }
-    }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue"));
+    // the zip comes from Report a problem, which leaves serial numbers, device addresses and paths out (as it says): one bug report, one promise
+    if (ImGui::SmallButton(tr("Report a problem..."))) a.reportOpen = true;
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Saves one zip file with the diagnostics, the log and the last crash report, with serial numbers, addresses and paths left out: attach it to a GitHub issue"));
     flowNext(6 * gUi);
     recordUi(a);
     flowNext(6 * gUi);

@@ -74,7 +74,7 @@ void hfdigFreedvTab(App& a, const dect2::HfdigTelemetry& t) {
     ImGui::SameLine(0, 5 * gUi);
     {
         const float fr = live ? std::min(1.f, std::max(0.f, (f.snr + 5.f) / 25.f)) : 0.f;
-        const ImU32 col = fr < 0.25f ? IM_COL32(176, 66, 58, 255) : fr < 0.45f ? IM_COL32(176, 130, 48, 255) : pal::remap(IM_COL32(40, 112, 150, 255));
+        const ImU32 col = fr < 0.25f ? IM_COL32(176, 66, 58, 255) : fr < 0.45f ? IM_COL32(176, 130, 48, 255) : pal::gaugeGood();
         snprintf(b, sizeof b, live ? "%.1f dB" : "-", f.snr);
         gaugePill(130, fr, col, b);
         if (ImGui::IsItemHovered() && live) ImGui::SetTooltip("The codec2 library's SNR estimate in 3 kHz. FreeDV 700D/E work down to about 0 dB.");

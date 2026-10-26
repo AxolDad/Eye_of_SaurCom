@@ -207,7 +207,6 @@ HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, an
 Classic interface	クラシックインターフェース
 New interface	新しいインターフェース
 Try the new interface. You can switch back at any time.	新しいインターフェースを試せます。いつでも元に戻せます。
-Guided tour	ガイドツアー
 Tour	ツアー
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	不具合の報告、録音の提供、プルリクエストをしてくださったみなさん、ありがとうございます。
 Source	ソース
@@ -651,7 +650,6 @@ Start the radio first	先に無線機を開始してください
 Saves the radio's raw samples to a file, for a bug report	不具合報告用に、無線機の生サンプルをファイルに保存します
 Copy diagnostics	診断情報をコピー
 Copied	コピーしました
-Copies the version, system, radios, messages and radio log lines, for a bug report	不具合報告用に、バージョン、システム、無線機、メッセージ、無線機のログ行をコピーします
 spectrum dB	スペクトラム dB
 waterfall dB	ウォーターフォール dB
 # added for 0.2.6: setup wizard, radio troubleshooting, converter, spectrum and waterfall options
@@ -807,7 +805,7 @@ Receivers at once	同時受信数
 Reduce CPU when hidden	非表示時に CPU 使用を抑える
 Remote driver	リモートドライバー
 Reset	リセット
-Reset layout	レイアウトをリセット
+Reset panel sizes	レイアウトをリセット
 Restart Eye of SaurCom (the installer starts SDRplay's background service).	Eye of SaurCom を再起動してください (インストーラーが SDRplay のバックグラウンドサービスを開始します)。
 Restart Eye of SaurCom.	Eye of SaurCom を再起動してください。
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Mac を再起動するか、ターミナルで次を実行してください: sudo launchctl kickstart -k system/com.sdrplay.service
@@ -820,8 +818,6 @@ SDR	SDR
 SNR dB	SNR dB
 Satellites	衛星
 Satellites, 1.6 GHz	衛星、1.6 GHz
-Save bug report	不具合報告を保存
-Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue	診断情報、ログ、直近のクラッシュレポートを 1 つの zip ファイルに保存します。GitHub の issue に添付してください
 Search	検索
 Seen	確認日時
 Send spots to PSK Reporter (pskreporter.info)	スポットを PSK Reporter (pskreporter.info) に送信
@@ -900,13 +896,11 @@ Waterfall: colour map, intensity range, speed and pause (then drag or use the wh
 Wave buoys, HF	波浪ブイ、HF
 Weather alerts, 162.55 MHz	気象警報、162.55 MHz
 Weather pictures, 1.7 GHz	気象画像、1.7 GHz
-What do you want to receive? Tick anything that interests you.	何を受信したいですか? 興味のあるものをすべてチェックしてください。
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	この無線機の dBm を得るために dBFS のレベルに加算する値です (校正値で、既知の信号をアンテナ端子に入力すると求められます)。無線機の設定にもあります。
 Where are you? This picks the right TV standard and FM band.	どこにお住まいですか? これにより、適切なテレビ規格と FM バンドが選ばれます。
 Which language do you want Eye of SaurCom in?	Eye of SaurCom の言語を選んでください。
 Which radio do you have?	お持ちの無線機はどれですか?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	モードはいつでも変更でき、このセットアップはヘルプ > セットアップウィザードから再実行できます。
-You can go on without one: the synthetic signal and IQ files work with no hardware.	無くても続けられます。合成信号と IQ ファイルはハードウェアなしで動作します。
 Your callsign	あなたのコールサイン
 Your locator	あなたのロケーター
 Zoom: mouse wheel (both axes), Ctrl+wheel (frequency), Shift+wheel (level).\nCtrl+PageUp / PageDown: step the view by one screen in frequency. Double click: reset.	ズーム: マウスホイール (両軸)、Ctrl+ホイール (周波数)、Shift+ホイール (レベル)。\nCtrl+PageUp / PageDown: 表示を周波数方向に 1 画面分ずらします。ダブルクリック: リセット。
@@ -1565,8 +1559,6 @@ Click to tune and scroll to zoom. Peak hold keeps the strongest level seen on ea
 Each mode has its own tabs for decoded output, settings and tools. They change with the selected mode.	各モードには、デコード結果、設定、ツール用の専用タブがあります。選択したモードに応じて変わります。
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	メモリは周波数をモードと設定とともに保存します。周波数とバンドプランは、モードごとの運用状況を示します。
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	各受信機は無線機とモードの組み合わせです。このバーで切り替え、音声を出す受信機を選びます。
-Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen は復調した信号を再生します。音量とミュートはここにあり、Record audio はファイルに保存します。
-Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	ドキュメント、トラブルシューティング、クレジット、ライセンスはここにあります。ガイドツアーでこのツアーを再開できます。
 Monitor audio	音声モニター
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	どのモードでも同調したチャンネルを聞いて信号を識別できます。無線のサンプルをUSB、LSB、狭帯域FM、AMとして復調します。モードが自分の音を出している間は無音です。
 Auto: USB below 30 MHz, narrow FM above	自動: 30 MHz未満はUSB、以上は狭帯域FM
@@ -2008,7 +2000,6 @@ The DRA+ decoder add-on cannot be used: %s. How to install:	DRA+デコーダー�
 How to install	インストール方法
 The services, signal information and data work without it.	サービス、信号情報、データはアドオンなしでも動作します。
 Interface and windows	インターフェースとウィンドウ
-View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.	表示メニューでは、レイアウト（Sidebar、Scope、Tiles、Faceplate、Panel）、クラシックインターフェース、文字サイズ、パレットを切り替えられます。タッチインターフェースは「ツール」にあります。周波数、スイープスキャナー、方向探知、オートメーションなどのウィンドウもここから開きます。
 # programme guide (SPI)
 Guide	番組ガイド
 until	終了

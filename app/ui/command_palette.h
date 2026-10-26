@@ -6,6 +6,8 @@
 
 // Once a frame at the end of drawUI() (after the windows): opens or closes the palette on Ctrl+K and draws it while it is open.
 void commandPalette(App& a);
+// Help > Command palette: opens it on the next frame, the same as Ctrl+K.
+void commandPaletteOpen();
 
 // tabItem() reports each tab it draws (in the frame it is drawn), so that the palette can list the tabs of the mode on screen.
 void paletteNoteTab(const char* name);

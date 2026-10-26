@@ -204,7 +204,6 @@ HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, an
 Classic interface	Interface clássica
 New interface	Nova interface
 Try the new interface. You can switch back at any time.	Experimente a nova interface. Você pode voltar quando quiser.
-Guided tour	Tour guiado
 Tour	Tour
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Obrigado a todos que relataram bugs, enviaram gravações e abriram pull requests.
 Source	Fonte
@@ -635,7 +634,6 @@ Start the radio first	Inicie o rádio primeiro
 Saves the radio's raw samples to a file, for a bug report	Salva as amostras brutas do rádio em um arquivo, para um relatório de bug
 Copy diagnostics	Copiar diagnóstico
 Copied	Copiado
-Copies the version, system, radios, messages and radio log lines, for a bug report	Copia a versão, o sistema, os rádios, as mensagens e as linhas do registro do rádio, para um relatório de bug
 spectrum dB	espectro dB
 waterfall dB	cascata dB
   (mirrored: I/Q swapped)	  (espelhado: I/Q trocados)
@@ -790,7 +788,7 @@ Receivers at once	Receptores em simultâneo
 Reduce CPU when hidden	Reduzir CPU quando oculto
 Remote driver	Controlador remoto
 Reset	Repor
-Reset layout	Repor disposição
+Reset panel sizes	Repor disposição
 Restart Eye of SaurCom (the installer starts SDRplay's background service).	Reinicie o Eye of SaurCom (o instalador inicia o serviço em segundo plano da SDRplay).
 Restart Eye of SaurCom.	Reinicie o Eye of SaurCom.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Reinicie o Mac, ou execute no Terminal: sudo launchctl kickstart -k system/com.sdrplay.service
@@ -803,8 +801,6 @@ SDR	SDR
 SNR dB	SNR dB
 Satellites	Satélites
 Satellites, 1.6 GHz	Satélites, 1,6 GHz
-Save bug report	Guardar relatório de erro
-Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue	Guarda um ficheiro zip com o diagnóstico, o registo e o último relatório de falha: anexe-o a uma issue no GitHub
 Search	Procurar
 Seen	Visto
 Send spots to PSK Reporter (pskreporter.info)	Enviar spots para o PSK Reporter (pskreporter.info)
@@ -883,13 +879,11 @@ Waterfall: colour map, intensity range, speed and pause (then drag or use the wh
 Wave buoys, HF	Bóias ondógrafo, HF
 Weather alerts, 162.55 MHz	Alertas meteorológicos, 162,55 MHz
 Weather pictures, 1.7 GHz	Imagens meteorológicas, 1,7 GHz
-What do you want to receive? Tick anything that interests you.	O que quer receber? Assinale tudo o que lhe interessa.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	O que somar a um nível em dBFS para obter dBm para este rádio (a sua calibração: um sinal conhecido na porta da antena mostra-o). Também nas definições do rádio.
 Where are you? This picks the right TV standard and FM band.	Onde está? Isto escolhe a norma de TV e a banda FM certas.
 Which language do you want Eye of SaurCom in?	Em que idioma quer o Eye of SaurCom?
 Which radio do you have?	Que rádio tem?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Pode mudar o modo a qualquer momento e executar esta configuração novamente em Ajuda > Assistente de configuração.
-You can go on without one: the synthetic signal and IQ files work with no hardware.	Pode continuar sem um: o sinal sintético e os ficheiros IQ funcionam sem hardware.
 Your callsign	O seu indicativo
 Your locator	O seu localizador
 Zoom: mouse wheel (both axes), Ctrl+wheel (frequency), Shift+wheel (level).\nCtrl+PageUp / PageDown: step the view by one screen in frequency. Double click: reset.	Zoom: roda do rato (ambos os eixos), Ctrl+roda (frequência), Shift+roda (nível).\nCtrl+PageUp / PageDown: avança a vista um ecrã em frequência. Duplo clique: repor.
@@ -1548,8 +1542,6 @@ Click to tune and scroll to zoom. Peak hold keeps the strongest level seen on ea
 Each mode has its own tabs for decoded output, settings and tools. They change with the selected mode.	Cada modo tem separadores próprios para a saída descodificada, as definições e as ferramentas. Mudam com o modo escolhido.
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Memória guarda frequências com o respetivo modo e definições. Frequências e planos de banda mostram o que está no ar, por modo.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Cada recetor associa um rádio a um modo. Esta barra alterna entre eles e escolhe qual reproduz o som.
-Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen reproduz o sinal desmodulado. O volume e o silêncio estão aqui; Record audio guarda-o num ficheiro.
-Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Aqui encontra a documentação, a resolução de problemas, os créditos e as licenças. Visita guiada inicia esta visita novamente.
 Monitor audio	Monitorizar áudio
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Ouve o canal sintonizado em qualquer modo para reconhecer um sinal: as amostras do rádio são desmoduladas como USB, LSB, FM estreita ou AM. Silencioso enquanto o modo toca o seu próprio som.
 Auto: USB below 30 MHz, narrow FM above	Auto: USB abaixo de 30 MHz, FM estreita acima
@@ -1991,7 +1983,6 @@ The DRA+ decoder add-on cannot be used: %s. How to install:	O complemento decodi
 How to install	Como instalar
 The services, signal information and data work without it.	Os serviços, as informações do sinal e os dados funcionam sem ele.
 Interface and windows	Interface e janelas
-View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.	Ver altera a disposição (Sidebar, Scope, Tiles, Faceplate, Panel), a interface clássica, o tamanho do texto e a paleta; a interface tátil está em Ferramentas. Janelas como Frequências, Scanner de varrimento, Radiogoniómetro e Automatizações abrem-se a partir daqui.
 # programme guide (SPI)
 Guide	Guia
 until	até

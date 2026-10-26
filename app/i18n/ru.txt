@@ -204,7 +204,6 @@ HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, an
 Classic interface	Классический интерфейс
 New interface	Новый интерфейс
 Try the new interface. You can switch back at any time.	Попробуйте новый интерфейс. Вернуться назад можно в любой момент.
-Guided tour	Обзор программы
 Tour	Обзор
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Спасибо всем, кто сообщал об ошибках, присылал записи и отправлял pull request'ы.
 Source	Источник
@@ -635,7 +634,6 @@ Start the radio first	Сначала запустите радио
 Saves the radio's raw samples to a file, for a bug report	Сохраняет необработанные отсчёты радио в файл для отчёта об ошибке
 Copy diagnostics	Копировать диагностику
 Copied	Скопировано
-Copies the version, system, radios, messages and radio log lines, for a bug report	Копирует версию, систему, радио, сообщения и строки журнала радио для отчёта об ошибке
 spectrum dB	спектр dB
 waterfall dB	водопад dB
   (mirrored: I/Q swapped)	  (зеркально: I/Q поменяны местами)
@@ -790,7 +788,7 @@ Receivers at once	Одновременно приёмников
 Reduce CPU when hidden	Снижать нагрузку на CPU в скрытом окне
 Remote driver	Удалённый драйвер
 Reset	Сброс
-Reset layout	Сбросить раскладку
+Reset panel sizes	Сбросить раскладку
 Restart Eye of SaurCom (the installer starts SDRplay's background service).	Перезапустите Eye of SaurCom (установщик запускает фоновую службу SDRplay).
 Restart Eye of SaurCom.	Перезапустите Eye of SaurCom.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Перезагрузите Mac или выполните в Терминале: sudo launchctl kickstart -k system/com.sdrplay.service
@@ -803,8 +801,6 @@ SDR	SDR
 SNR dB	SNR dB
 Satellites	Спутники
 Satellites, 1.6 GHz	Спутники, 1.6 GHz
-Save bug report	Сохранить отчёт об ошибке
-Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue	Сохраняет один zip-файл с диагностикой, журналом и последним отчётом о сбое: приложите его к issue на GitHub
 Search	Поиск
 Seen	Замечено
 Send spots to PSK Reporter (pskreporter.info)	Отправлять споты в PSK Reporter (pskreporter.info)
@@ -883,13 +879,11 @@ Waterfall: colour map, intensity range, speed and pause (then drag or use the wh
 Wave buoys, HF	Волновые буи, КВ
 Weather alerts, 162.55 MHz	Штормовые предупреждения, 162.55 MHz
 Weather pictures, 1.7 GHz	Погодные снимки, 1.7 GHz
-What do you want to receive? Tick anything that interests you.	Что вы хотите принимать? Отметьте всё, что интересно.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Что прибавить к уровню в dBFS, чтобы получить dBm для этого радио (его калибровка: её показывает известный сигнал на антенном порту). Также в настройках радио.
 Where are you? This picks the right TV standard and FM band.	Где вы находитесь? Это выбирает подходящий стандарт ТВ и диапазон FM.
 Which language do you want Eye of SaurCom in?	На каком языке вы хотите видеть Eye of SaurCom?
 Which radio do you have?	Какое у вас радио?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Режим можно сменить в любой момент, а эту настройку запустить снова через Справка > Мастер настройки.
-You can go on without one: the synthetic signal and IQ files work with no hardware.	Можно продолжить и без него: синтетический сигнал и файлы IQ работают без оборудования.
 Your callsign	Ваш позывной
 Your locator	Ваш локатор
 Zoom: mouse wheel (both axes), Ctrl+wheel (frequency), Shift+wheel (level).\nCtrl+PageUp / PageDown: step the view by one screen in frequency. Double click: reset.	Масштаб: колесо мыши (обе оси), Ctrl+колесо (частота), Shift+колесо (уровень).\nCtrl+PageUp / PageDown: сдвиг вида на один экран по частоте. Двойной щелчок: сброс.
@@ -1548,8 +1542,6 @@ Click to tune and scroll to zoom. Peak hold keeps the strongest level seen on ea
 Each mode has its own tabs for decoded output, settings and tools. They change with the selected mode.	У каждого режима свои вкладки для декодированных данных, настроек и инструментов. Они меняются вместе с выбранным режимом.
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Память хранит частоты вместе с режимом и настройками. Частоты и диапазонные планы показывают, что есть в эфире, по режимам.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Каждый приёмник сочетает радио и режим. Эта панель переключает их и выбирает, какой воспроизводит звук.
-Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen воспроизводит демодулированный сигнал. Громкость и отключение звука здесь; Record audio сохраняет звук в файл.
-Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Здесь находятся документация, устранение неполадок, благодарности и лицензии. Обзор запускает этот обзор снова.
 Monitor audio	Прослушивание
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Слушать настроенный канал в любом режиме, чтобы опознать сигнал: отсчёты радио демодулируются как USB, LSB, узкая FM или AM. Тишина, пока режим играет свой звук.
 Auto: USB below 30 MHz, narrow FM above	Авто: USB ниже 30 МГц, узкая FM выше
@@ -1991,7 +1983,6 @@ The DRA+ decoder add-on cannot be used: %s. How to install:	Модуль-дек�
 How to install	Как установить
 The services, signal information and data work without it.	Службы, информация о сигнале и данные работают и без него.
 Interface and windows	Интерфейс и окна
-View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.	Меню «Вид» переключает компоновку (Sidebar, Scope, Tiles, Faceplate, Panel), классический интерфейс, размер текста и палитру; сенсорный интерфейс находится в разделе «Инструменты». Окна «Частоты», «Сканер-обзор», «Пеленгатор» и «Автоматизации» открываются отсюда.
 # programme guide (SPI)
 Guide	Телегид
 until	до

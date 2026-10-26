@@ -91,6 +91,10 @@ It started as a fork of [OnAir](https://github.com/adswill/OnAir), Kristijonas A
 
 Everything above came from OnAir. This is what Eye of SaurCom built on top of it. Most of it has been tested on generated signals and recordings; a few parts say *experimental* in the app.
 
+**Seeing it all**
+
+- **The Eye** (*Tools > The Eye*, Ctrl+E): everything the station decodes, from every mode, in one window. Live counts per kind of contact, a scope that places every aircraft, ship, APRS station, sonde and drone by bearing and distance from you, and one timeline of first sightings and messages. [docs/eye.md](docs/eye.md)
+
 **Talking back**
 
 - **Transmit, unlocked.** Every mode with a signal generator can be sent through a radio that transmits. A one-time agreement ("I will transmit only within my legal authority") turns it on; after that there are no band, power or mode locks, and **TX ON AIR** stays in the top bar while you are on the air. See [Transmit](#transmit).
@@ -544,7 +548,7 @@ Off, and unavailable until you give it a Discord application: none is built in. 
 - **macOS will not open the app.** It is not signed with a developer certificate yet: right-click it and choose *Open* on the first launch.
 - **No voice in DMR, P25, NXDN, dPMR or D-STAR.** Install mbelib yourself, see [Good to know](#good-to-know) and [docs/CODECS.md](docs/CODECS.md).
 - **No radio at all.** Open an IQ recording through the *IQ recording file* source, or press **Tour**.
-- **Still stuck.** Press **Save bug report** (one zip with diagnostics, log and crash report) and attach it to an issue in [GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues).
+- **Still stuck.** Use **Help > Report a problem** (one zip with diagnostics, log and crash report, with serial numbers, addresses and paths left out) and attach it to an issue in [GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues).
 </details>
 
 ## Build from source
@@ -619,7 +623,7 @@ To use a HackRF, RTL-SDR or Airspy, install the WinUSB driver once with [Zadig](
 ## Community
 
 - **[Docs](docs/)**: the guides and notes in this repository.
-- **[GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues)**: bug reports. Attach an IQ recording of the problem: press **Record IQ** in the Source panel (or run `saurcom-cli --record auto --secs 10`); files go to the `recordings` folder of the app data folder, and **Show recording** opens it. With **SigMF** ticked (the default) every recording also gets a `.sigmf-meta` file, so it opens directly in [IQEngine](https://iqengine.org). **Save bug report** makes one zip with diagnostics, log and crash report.
+- **[GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues)**: bug reports. Attach an IQ recording of the problem: press **Record IQ** in the Source panel (or run `saurcom-cli --record auto --secs 10`); files go to the `recordings` folder of the app data folder, and **Show recording** opens it. With **SigMF** ticked (the default) every recording also gets a `.sigmf-meta` file, so it opens directly in [IQEngine](https://iqengine.org). **Help > Report a problem** makes one zip with diagnostics, log and crash report.
 - **[Pull requests](https://github.com/AxolDad/Eye_of_SaurCom/pulls)** are welcome.
 
 ## License

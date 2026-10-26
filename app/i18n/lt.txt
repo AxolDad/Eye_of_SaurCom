@@ -214,7 +214,6 @@ HIGHLY EXPERIMENTAL: step through a list of frequencies and modes, or a band, an
 Classic interface	Klasikinė sąsaja
 New interface	Nauja sąsaja
 Try the new interface. You can switch back at any time.	Išbandykite naują sąsają. Grįžti galima bet kada.
-Guided tour	Apžvalga su gidu
 Tour	Apžvalga
 Thank you to everyone who reported bugs, sent recordings and opened pull requests.	Ačiū visiems, kurie pranešė apie klaidas, atsiuntė įrašus ir pateikė „pull request“.
 Source	Šaltinis
@@ -658,7 +657,6 @@ Start the radio first	Pirmiausia paleiskite radiją
 Saves the radio's raw samples to a file, for a bug report	Išsaugo neapdorotus radijo mėginius faile klaidos ataskaitai
 Copy diagnostics	Kopijuoti diagnostiką
 Copied	Nukopijuota
-Copies the version, system, radios, messages and radio log lines, for a bug report	Nukopijuoja versiją, sistemą, radijus, pranešimus ir radijo žurnalo eilutes klaidos ataskaitai
 spectrum dB	spektras dB
 waterfall dB	krioklys dB
 # added for 0.2.6: setup wizard, radio troubleshooting, converter, spectrum and waterfall options
@@ -814,7 +812,7 @@ Receivers at once	Vienu metu imtuvų
 Reduce CPU when hidden	Mažinti procesoriaus apkrovą, kai paslėpta
 Remote driver	Nuotolinė tvarkyklė
 Reset	Nustatyti iš naujo
-Reset layout	Atstatyti išdėstymą
+Reset panel sizes	Atstatyti išdėstymą
 Restart Eye of SaurCom (the installer starts SDRplay's background service).	Paleiskite Eye of SaurCom iš naujo (diegimo programa paleidžia SDRplay foninę tarnybą).
 Restart Eye of SaurCom.	Paleiskite Eye of SaurCom iš naujo.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Perkraukite „Mac“ arba terminale paleiskite: sudo launchctl kickstart -k system/com.sdrplay.service
@@ -827,8 +825,6 @@ SDR	SDR
 SNR dB	SNR dB
 Satellites	Palydovai
 Satellites, 1.6 GHz	Palydovai, 1,6 GHz
-Save bug report	Išsaugoti klaidos ataskaitą
-Saves one zip file with the diagnostics, the log and the last crash report: attach it to a GitHub issue	Išsaugo vieną zip failą su diagnostika, žurnalu ir paskutine strigties ataskaita: pridėkite jį prie GitHub pranešimo
 Search	Ieškoti
 Seen	Matyta
 Send spots to PSK Reporter (pskreporter.info)	Siųsti spotus į PSK Reporter (pskreporter.info)
@@ -909,13 +905,11 @@ Waterfall: colour map, intensity range, speed and pause (then drag or use the wh
 Wave buoys, HF	Bangų plūdurai, HF
 Weather alerts, 162.55 MHz	Oro perspėjimai, 162,55 MHz
 Weather pictures, 1.7 GHz	Orų paveikslėliai, 1,7 GHz
-What do you want to receive? Tick anything that interests you.	Ką norite priimti? Pažymėkite viską, kas jus domina.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Ką pridėti prie dBFS lygio, kad gautumėte šio radijo dBm (jo kalibravimas: žinomas signalas antenos lizde jį parodo). Taip pat radijo nustatymuose.
 Where are you? This picks the right TV standard and FM band.	Kur esate? Pagal tai parenkamas tinkamas TV standartas ir FM juosta.
 Which language do you want Eye of SaurCom in?	Kokia kalba norite naudoti Eye of SaurCom?
 Which radio do you have?	Kokį radiją turite?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Režimą galite keisti bet kada ir šią sąranką paleisti iš naujo per Pagalba > Sąrankos vedlys.
-You can go on without one: the synthetic signal and IQ files work with no hardware.	Galite tęsti ir be jo: sintetinis signalas ir IQ failai veikia be aparatūros.
 Your callsign	Jūsų šaukinys
 Your locator	Jūsų lokatorius
 Zoom: mouse wheel (both axes), Ctrl+wheel (frequency), Shift+wheel (level).\nCtrl+PageUp / PageDown: step the view by one screen in frequency. Double click: reset.	Mastelis: pelės ratukas (abi ašys), Ctrl+ratukas (dažnis), Shift+ratukas (lygis).\nCtrl+PageUp / PageDown: perstumti vaizdą per vieną ekraną dažniu. Dukart spustelėkite: atstatyti.
@@ -1565,8 +1559,6 @@ Click to tune and scroll to zoom. Peak hold keeps the strongest level seen on ea
 Each mode has its own tabs for decoded output, settings and tools. They change with the selected mode.	Kiekvienas režimas turi savo korteles dekoduotai išvesčiai, nustatymams ir įrankiams. Jos keičiasi pagal pasirinktą režimą.
 Memory stores frequencies with their mode and settings. Frequencies and band plans list what is on air, per mode.	Atmintis saugo dažnius su jų režimu ir nustatymais. Dažniai ir juostų planai parodo, kas transliuojama, pagal režimą.
 Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.	Kiekvienas imtuvas sieja radiją su režimu. Ši juosta perjungia juos ir parenka, kuris groja garsą.
-Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.	Listen groja demoduliuotą signalą. Garsumas ir nutildymas čia; Record audio įrašo garsą į failą.
-Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.	Čia rasite dokumentaciją, trikčių šalinimą, padėkas ir licencijas. Gidas paleidžia šį gidą iš naujo.
 Monitor audio	Garso stebėjimas
 Listen to the tuned channel in any mode, to recognise a signal: the radio's samples are demodulated as USB, LSB, narrow FM or AM. Silent while the mode plays its own sound.	Klausykitės suderinto kanalo bet kuriuo režimu, kad atpažintumėte signalą: radijo mėginiai demoduliuojami kaip USB, LSB, siaura FM arba AM. Tylu, kol režimas groja savo garsą.
 Auto: USB below 30 MHz, narrow FM above	Auto: USB žemiau 30 MHz, siaura FM aukščiau
@@ -2008,7 +2000,6 @@ The DRA+ decoder add-on cannot be used: %s. How to install:	DRA+ dekoderio pried
 How to install	Kaip įdiegti
 The services, signal information and data work without it.	Paslaugos, signalo informacija ir duomenys veikia ir be jo.
 Interface and windows	Sąsaja ir langai
-View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.	Rodinys perjungia išdėstymą (Sidebar, Scope, Tiles, Faceplate, Panel), klasikinę sąsają, teksto dydį ir paletę; lietimui skirta sąsaja yra skiltyje Įrankiai. Tokie langai kaip Dažniai, Skenavimo skeneris, Krypties ieškiklis ir Automatizavimas atidaromi iš čia.
 # programme guide (SPI)
 Guide	Gidas
 until	iki

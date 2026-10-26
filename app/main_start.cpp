@@ -117,6 +117,7 @@ void parseDevFlags(App& app, int argc, char** argv, DevOpts& o) {
         if (std::string(argv[i]) == "--netadd" && i + 1 < argc) { app.netAddOpen = true; app.netAddType = atoi(argv[++i]); app.netAddPort = dect2::netRadioDefaultPort((dect2::NetRadio::Type)app.netAddType); }   // dev: the add network radio window, on that type
         if (std::string(argv[i]) == "--dsn") dsnDevOpen(app);   // dev: open Tools > Deep Space Network
         if (std::string(argv[i]) == "--webradio") app.webRadioOpen = true;   // dev: open View > Internet radio
+        if (std::string(argv[i]) == "--eye") app.eyeOpen = true;             // dev: open Tools > The Eye
         if (std::string(argv[i]) == "--wifisense") wifiSenseDevOpen(app);   // dev: open View > WiFi sensing, listening   // dev: open View > Scanner   // dev: open View > Passes
         if (std::string(argv[i]) == "--tle" && i + 1 < argc) passesDevTle(argv[++i]);   // dev: TLEs from a file for the pass planner (no download)
         if (std::string(argv[i]) == "--rx2") addReceiver();   // dev: a second receiver at once (no warning dialog)

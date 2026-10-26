@@ -33,6 +33,8 @@ inline const Step* steps(int* n) {
     static const Step kSteps[] = {
         {"source", N_("Source"),
          N_("Choose the radio or recording that supplies samples. Record IQ saves the raw signal for later playback.")},
+        {"run", N_("Start"),
+         N_("The green triangle starts and stops the receiver (Space does the same). Nothing is received until it runs.")},
         {"tuning", N_("Tuning and gain"),
          N_("Set the frequency, band and sample rate here. Gain and AGC set the input level; Second mode decodes another mode from the same capture.")},
         {"modes", N_("Modes"),
@@ -46,11 +48,11 @@ inline const Step* steps(int* n) {
         {"receivers", N_("Receivers"),
          N_("Each receiver pairs a radio with a mode. This strip switches between them and chooses which one plays sound.")},
         {"audio", N_("Audio"),
-         N_("Listen plays the demodulated signal. Volume and mute are here; Record audio saves it to a file.")},
+         N_("Volume and mute are here, with the audio cleanup. Record audio, in the Source section, saves the sound to a file.")},
         {"view", N_("Interface and windows"),
-         N_("View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, text size and palette; Touch interface is under Tools. Windows such as Frequencies, Sweep scanner, Direction finder and Automations open from here.")},
+         N_("View switches the layout (Sidebar, Scope, Tiles, Faceplate, Panel), the classic interface, the touch interface, text size and palette. The Tools menu opens windows such as The Eye, Frequencies, Sweep scanner, Direction finder and Automations.")},
         {"help", N_("Help"),
-         N_("Documentation, troubleshooting, credits and licences are here. Guided tour starts this tour again.")},
+         N_("Documentation, troubleshooting, credits and licences are here. Guided tours > Overview starts this tour again.")},
     };
     if (n) *n = (int)(sizeof kSteps / sizeof *kSteps);
     return kSteps;
@@ -60,13 +62,13 @@ inline const Step* steps(int* n) {
 inline const Tour* tours(int* n) {
     static const Step kFirst[] = {
         {"source", N_("Source"),
-         N_("Pick the radio or recording that supplies the samples. Nothing is received until a source is chosen.")},
+         N_("Pick the radio or recording that supplies the samples, then press the green Start button (or Space). Nothing is received until it runs.")},
         {"modes", N_("Mode"),
          N_("The mode decides what is decoded. Use the search box to find one by name.")},
         {"tuning", N_("Tuning"),
          N_("Enter the frequency and sample rate here. Gain and AGC set the input level.")},
         {"audio", N_("Listen"),
-         N_("Listen plays the demodulated sound. Volume and mute are on this strip.")},
+         N_("Volume and mute are on this strip. Every mode with sound plays it here while the receiver runs.")},
     };
     static const Step kSpectrum[] = {
         {"spectrum", N_("Spectrum and waterfall"),
@@ -80,11 +82,11 @@ inline const Tour* tours(int* n) {
         {"source", N_("Record the samples"),
          N_("Record IQ saves the raw signal to a file for later playback.")},
         {"audio", N_("Record the sound"),
-         N_("Record audio saves the sound you hear to a file. Volume and mute are on the same strip.")},
+         N_("Record audio, in the Source section next to Record IQ, saves the sound you hear to a file.")},
     };
     static const Step kScanning[] = {
         {"view", N_("Open a scanner"),
-         N_("View opens the Sweep scanner for a fast wideband sweep, and the Scanner, which is experimental, that steps through a list of frequencies.")},
+         N_("The Tools menu opens the Sweep scanner for a fast wideband sweep, and the Scanner, which is experimental, that steps through a list of frequencies.")},
         {"memory", N_("Frequencies"),
          N_("Memory stores frequencies with their mode and settings. Frequencies lists what is on air, per mode.")},
         {"spectrum", N_("Peak hold"),

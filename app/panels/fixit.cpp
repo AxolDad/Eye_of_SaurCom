@@ -166,7 +166,7 @@ const Entry kTable[] = {
      {N_("Right-click the speaker icon, open Sound settings and pick an output device."), N_("Close programs that hold the sound device exclusively."), N_("Restart Eye of SaurCom."), nullptr},
      {N_("Check that PulseAudio or PipeWire runs, and that an output is chosen in the sound settings."), N_("Restart Eye of SaurCom."), nullptr},
      {{Act::OpenDiagnostics, N_("Copy diagnostics"), "", OsAll}}},
-    {"file_open", "cannot open ", N_("The file could not be opened"),
+    {"file_open", "cannot open the file", N_("The file could not be opened"),
      N_("The recording file is missing, moved or not readable."),
      {N_("Check that the file still exists and that you may read it."), N_("Choose the file again."), nullptr}, NONE, NONE, NONE, {}},
     {"no_radio", "no radio", N_("No radio found"),

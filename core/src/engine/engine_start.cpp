@@ -39,12 +39,12 @@ bool Engine::start(const DeviceInfo& dev, const TuneSettings& tune, const FileOp
     lastRadioMissNs_ = 0; lastCpuDropNs_ = 0; loadPct_ = 0; loadT_ = 0; deliveredPct_ = -1; rateT0_ = 0;
     holdDelivery(1000);   // a radio often stutters while its stream starts
     std::string err;
-    if (int holder = 0; !claimDevice(dev, receiverId_, &holder)) { log("this radio is in use by " + deviceHolderText(holder)); return false; }
+    if (int holder = 0; !claimDevice(dev, receiverId_, &holder)) { log("source start failed: this radio is in use by " + deviceHolderText(holder)); return false; }
     if (dev.kind == DeviceInfo::File)
         src_ = makeFileSource(file.path, file.format, file.sampleRate, file.loop);
     else
         src_ = makeSource(dev);
-    if (!src_) { log("no source"); releaseDevice(receiverId_); return false; }
+    if (!src_) { log("source start failed: this source is not available in this build"); releaseDevice(receiverId_); return false; }
     offHz_ = 0; offRate_ = 0; offsetDc_ = false;
     std::string offNote;
     if (autoOffset_ && dev.isRadio() && offsetAllowed() && mtvOn_.load() && multiChannelSupported(stdMode_.load()) && slotsInSpan(tune.sampleRate, tune.bandwidthMhz, 0) >= 2) {

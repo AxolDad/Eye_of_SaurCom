@@ -156,10 +156,12 @@ void refreshDevices(App& a) {
         int idx = -1;
         for (int i = 2; i < (int)a.devices.size(); i++) if (a.devices[i].name == keep) { idx = i; break; }
         if (idx < 0 && inUse) { a.devices.push_back(keepDev); idx = (int)a.devices.size() - 1; }
-        if (idx < 0) {   // it is gone: another radio must not inherit its antenna power
+        if (idx < 0) {   // it is gone: another radio must not inherit its antenna power, and Start must not open whatever now sits at its place
             a.tune.biasTee = false;
+            a.startErr = "The radio \"" + keep + "\" is no longer connected. Plug it in and press Refresh, or choose another source.";
+            a.startErrKey.clear();
         }
-        a.devIdx = idx >= 0 ? idx : std::min(a.devIdx, (int)a.devices.size() - 1);
+        a.devIdx = idx >= 0 ? idx : 0;   // the test signal, never a different radio by surprise
     }
     size_t nHack = 0, nAudio = 0;
     for (const auto& d : a.devices) { if (d.kind == DeviceInfo::HackRF) nHack++; if (d.isAudio()) nAudio++; }

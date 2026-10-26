@@ -350,7 +350,7 @@ public:
         try {
             dev_ = makeDevice(args_, err);
             if (!dev_ && !err.empty()) return false;
-            if (!dev_) { err = "cannot open " + args_; const std::string h = soapyRemoteFailureHelp(args_); if (!h.empty()) err = h; return false; }
+            if (!dev_) { err = "SoapySDR: cannot open the radio (" + args_ + ")"; const std::string h = soapyRemoteFailureHelp(args_); if (!h.empty()) err = h; return false; }
             rememberRanges(key_, dev_);   // for the next listing
             biasKey_ = biasSetting(dev_);
             bias_ = false;
@@ -577,7 +577,7 @@ public:
         try {
             dev_ = makeDevice(args_, err);
             if (!dev_ && !err.empty()) return false;
-            if (!dev_) { err = "cannot open " + args_; const std::string h = soapyRemoteFailureHelp(args_); if (!h.empty()) err = h; return false; }
+            if (!dev_) { err = "SoapySDR: cannot open the radio (" + args_ + ")"; const std::string h = soapyRemoteFailureHelp(args_); if (!h.empty()) err = h; return false; }
             rememberRanges(key_, dev_);
             const int nTx = (int)dev_->getNumChannels(SOAPY_SDR_TX);
             if (nTx <= 0) { err = "this radio has no transmit channel"; shut(); return false; }
