@@ -322,6 +322,7 @@ void Engine::configureDecoderReceivers(const DeviceInfo& dev, const TuneSettings
     rxAero_.configure(rate_);
     rxAero_.setLogCallback([this](const std::string& s) { log(s); });
     rxIridium_.configure(rate_);
+    rxIridium_.setOffline(!src_->realtimeHardware());   // a recording or the test signal waits for the burst worker: only a live radio drops bursts
     rxIridium_.setLogCallback([this](const std::string& s) { log(s); });
     rxMesh_.configure(rate_);
     rxMesh_.setLogCallback([this](const std::string& s) { log(s); });

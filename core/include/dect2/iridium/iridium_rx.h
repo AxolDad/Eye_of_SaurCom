@@ -30,7 +30,7 @@ public:
 
     void setCenterMhz(double mhz);       // the tuned centre (default 1622): absolute burst frequencies, simplex channels
     void setThresholdDb(double db);      // burst detection threshold over the noise floor per FFT bin (default 13)
-    // Files and tests: feed() waits for the worker instead of dropping bursts when it falls behind (never in the app).
+    // Files, the test signal and tests: feed() waits for the worker instead of dropping bursts when it falls behind (never for a live radio).
     void setOffline(bool on);
     void flush();                        // waits until every burst found so far is demodulated and decoded
     // Every burst with a unique word, with its frame (tool output, tests). Called on the worker thread.
