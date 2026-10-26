@@ -281,7 +281,7 @@ public:
         rate_ = effectiveRate(s);
         if (!prepare(s, err)) return false;
         run_ = true;
-        th_ = dect2::namedThread("zorcom-src", [this] { loop(); });
+        th_ = dect2::namedThread("saurcom-src", [this] { loop(); });
         return true;
     }
     void stop() override {
@@ -629,7 +629,7 @@ std::unique_ptr<IqSource> makeSource(const DeviceInfo& d) {
     }
 }
 
-// The transmit path of a radio: HackRF (Eye of ZorCom's own USB driver), the PlutoSDR (libiio) and SoapySDR radios with a transmit channel;
+// The transmit path of a radio: HackRF (Eye of SaurCom's own USB driver), the PlutoSDR (libiio) and SoapySDR radios with a transmit channel;
 // nullptr for every other radio, files and the test signal.
 #ifdef DECT2_HAVE_SOAPY
 std::unique_ptr<TxSink> makeSoapyTxSink(const DeviceInfo& d);

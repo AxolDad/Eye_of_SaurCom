@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace zorcom_server {
+namespace saurcom_server {
 
 class ConfigFile {
 public:
@@ -26,7 +26,7 @@ private:
     std::vector<Line> lines_;
 };
 
-// The default place of the file: $ZORCOM_SERVER_CONFIG, else ~/.config/zorcom/server.conf (%APPDATA%\ZorCom\server.conf on Windows)
+// The default place of the file: $SAURCOM_SERVER_CONFIG, else ~/.config/saurcom/server.conf (%APPDATA%\SaurCom\server.conf on Windows)
 std::string defaultConfigPath();
 
-} // namespace zorcom_server
+} // namespace saurcom_server

@@ -365,8 +365,8 @@ static void testAir(double snrDb, bool strict) {
     char what[48];
     snprintf(what, sizeof what, "C/N %.0f dB", snrDb);
     auto it = e.services.find(dabgen::dmbService().sid);
-    const bool listed = it != e.services.end() && it->second.label == "ZorCom TV" && it->second.dmb() && it->second.dmb()->subId == 5 && it->second.userApp == 0x009 && it->second.dmbProfile == 2;
-    printf("over the air, %s: lock %d, SNR %.1f dB, \"ZorCom TV\" listed as DMB %s; DMB sync %d, RS blocks %llu ok (%llu bytes fixed), %llu failed; %llu packets, %zu out\n", what, t.state == 2, t.snrDb,
+    const bool listed = it != e.services.end() && it->second.label == "SaurCom TV" && it->second.dmb() && it->second.dmb()->subId == 5 && it->second.userApp == 0x009 && it->second.dmbProfile == 2;
+    printf("over the air, %s: lock %d, SNR %.1f dB, \"SaurCom TV\" listed as DMB %s; DMB sync %d, RS blocks %llu ok (%llu bytes fixed), %llu failed; %llu packets, %zu out\n", what, t.state == 2, t.snrDb,
            listed ? "yes" : "no", t.dmb.sync, (unsigned long long)t.dmb.rsOk, (unsigned long long)t.dmb.rsCorrected, (unsigned long long)t.dmb.rsFailed, (unsigned long long)raw, plain.size() / 188);
     if (!strict) return;
     CHECK(listed, "%s: the DMB service in the ensemble (FIG 0/2 DSCTy 24, FIG 0/13 DMB profile 2, FIG 1/5 label)", what);

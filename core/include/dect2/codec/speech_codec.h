@@ -1,14 +1,14 @@
-// User-installed speech codecs for the voice modes (TETRA voice now, Iridium voice later). Eye of ZorCom ships no speech codec: a codec is a
+// User-installed speech codecs for the voice modes (TETRA voice now, Iridium voice later). Eye of SaurCom ships no speech codec: a codec is a
 // plug-in file the user puts in the codecs folder under the app data folder, and it is loaded only after the user has accepted the legal
 // notice. See docs/CODECS.md. Nothing here knows any particular codec.
 //
 // Plug-in ABI (C, so it does not depend on the compiler): the file exports these functions. A codec is a shared library named
-// zorcom-codec-<id>.dll / .dylib / .so (speechCodecFileName).
+// saurcom-codec-<id>.dll / .dylib / .so (speechCodecFileName).
 //
-//   void*   zorcom_speech_open(void);                     // a new decoder state, nullptr on failure
-//   void    zorcom_speech_close(void* state);
-//   int     zorcom_speech_sample_rate(void);              // PCM sample rate in Hz, e.g. 8000
-//   int     zorcom_speech_decode(void* state, const uint8_t* coded, size_t nbytes,
+//   void*   saurcom_speech_open(void);                     // a new decoder state, nullptr on failure
+//   void    saurcom_speech_close(void* state);
+//   int     saurcom_speech_sample_rate(void);              // PCM sample rate in Hz, e.g. 8000
+//   int     saurcom_speech_decode(void* state, const uint8_t* coded, size_t nbytes,
 //                               int16_t* pcm, size_t max_samples);
 //                                                        // one coded frame in, PCM samples out; returns the count, -1 on error
 #pragma once
@@ -45,7 +45,7 @@ struct CodecLookup {
 
 // The legal notice the user accepts once per codec. English; the same text for every codec.
 std::string speechCodecNotice();
-// The file name a plug-in must have for this codec id on this OS, e.g. "zorcom-codec-tetra.dylib".
+// The file name a plug-in must have for this codec id on this OS, e.g. "saurcom-codec-tetra.dylib".
 std::string speechCodecFileName(const std::string& id);
 // Opens a plug-in file and returns its decoder, or nullptr with err set. Test code replaces it.
 using CodecOpener = std::function<std::unique_ptr<SpeechCodec>(const std::string& path, std::string& err)>;

@@ -1,6 +1,6 @@
 // Seeded mutation run of the DRM signalling and data layers, meant for DECT2_SANITIZE=ON: FAC / SDC parsing, the CRC checks,
 // the super frame split, the text segment check and the data service helpers must never crash or hang on any bytes at any length (the input is copied to an
-// exactly sized heap block). Also a libFuzzer target with -DZORCOM_LIBFUZZER.
+// exactly sized heap block). Also a libFuzzer target with -DSAURCOM_LIBFUZZER.
 #include "dect2/drm/drm_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -32,11 +32,11 @@ static void one(const uint8_t* d, size_t n) {
     free(p);
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const long iters = getenv("ZORCOM_FUZZ_ITERS") ? atol(getenv("ZORCOM_FUZZ_ITERS")) : 60000;
+    const long iters = getenv("SAURCOM_FUZZ_ITERS") ? atol(getenv("SAURCOM_FUZZ_ITERS")) : 60000;
     std::mt19937 g(97531);
     std::vector<uint8_t> seed = {0x06, 0x01, 0x00, 0x00, 0x0A, 0x10, 0x20, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x14, 0x80, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
     for (long it = 0; it < iters; it++) {

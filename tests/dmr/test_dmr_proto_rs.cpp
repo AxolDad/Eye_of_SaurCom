@@ -1,6 +1,6 @@
-// Golden-vector test of the Rust DMR frame layer (rust/zorcom_dmr, dect2::dmr): the short codes over their whole word space, Reed-Solomon, CRCs, BPTC, embedded LC,
+// Golden-vector test of the Rust DMR frame layer (rust/saurcom_dmr, dect2::dmr): the short codes over their whole word space, Reed-Solomon, CRCs, BPTC, embedded LC,
 // short LC, CACH, trellis (noisy, NaN and random soft values), rate 1, sync matching, burst assembly and slicing, slot type / EMB, link control, CSBK, data headers
-// and blocks, every text format and the talker alias, over ZORCOM_DIFF_ITERS (default 200000) seeded random / mutated inputs per family. Every result goes into a
+// and blocks, every text format and the talker alias, over SAURCOM_DIFF_ITERS (default 200000) seeded random / mutated inputs per family. Every result goes into a
 // digest (tests/common/golden.h) compared with the one recorded from the C++ layer the Rust code replaced.
 #include "dect2/dmr/dmr_proto.h"
 #include "../common/golden.h"
@@ -352,7 +352,7 @@ static void protoTests(long iters) {
 }
 
 int main() {
-    const char* it = getenv("ZORCOM_DIFF_ITERS");
+    const char* it = getenv("SAURCOM_DIFF_ITERS");
     const long iters = it ? atol(it) : 200000;
     fecTests(iters);
     protoTests(iters);

@@ -48,7 +48,7 @@ void tab(App& a) {
     ImGui::PushTextWrapPos(0);
     ImGui::TextDisabled("KAPP is amateur packet data 100 kHz wide: bursts of LDPC blocks from BPSK 1/4 to 1024-QAM 5/6, each block with its own CRC, "
                         "and a message is rebuilt block by block (selective repeat). This receiver only listens: it sends no acknowledgement, so a sender that waits for "
-                        "ACKs cannot finish through it; a one-way sender repeats the message instead (the Eye of ZorCom transmitter does). A message has no check of its own beyond the block CRCs. "
+                        "ACKs cannot finish through it; a one-way sender repeats the message instead (the Eye of SaurCom transmitter does). A message has no check of its own beyond the block CRCs. "
                         "To transmit, switch to TX and pick KAPP.");
     ImGui::PopTextWrapPos();
     ImGui::Spacing();
@@ -159,7 +159,7 @@ void kappPanel(TxUi& s, bool running) {
     }
     ImGui::TextWrapped("%s", "KAPP: packet data, 100 kHz wide. The message goes out as bursts of blocks, one-way: no acknowledgement is waited for, so the whole message is sent "
                               "several times (a receiver that missed a block gets it on the next pass; one that has the message ignores the repeat). "
-                              "Empty callsign sends the demo identity ZORCOM; an empty message sends a short demo text. Eye of ZorCom sets no limit on the frequency or the power.");
+                              "Empty callsign sends the demo identity SAURCOM; an empty message sends a short demo text. Eye of SaurCom sets no limit on the frequency or the power.");
     ImGui::BeginDisabled(running);
     ImGui::SetNextItemWidth(160 * gUi);
     if (ImGui::InputText("Callsign (7 characters at most)", s.callsign, sizeof s.callsign, ImGuiInputTextFlags_CharsUppercase)) clampText(s.callsign, 7);

@@ -286,7 +286,7 @@ void startFile(App& a, const RecordingEntry& e) {
     if (s.loader.joinable()) s.loader.join();
     const std::string path = e.tsPath;
     const std::string title = e.title.empty() ? path : e.title;
-    s.loader = dect2::namedThread("zorcom-tvload", [path, title, &a] {
+    s.loader = dect2::namedThread("saurcom-tvload", [path, title, &a] {
         TvRec& t = S();
         if (t.file.open(path)) {
             t.playCues.clear();
@@ -649,7 +649,7 @@ void tvRecordingsTab(App& a) {
     init(a);
     const double t = glfwGetTime();
     ImGui::PushTextWrapPos(0);
-    ImGui::TextDisabled("%s", tr("Recordings run only while Eye of ZorCom is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only."));
+    ImGui::TextDisabled("%s", tr("Recordings run only while Eye of SaurCom is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only."));
     ImGui::PopTextWrapPos();
     if (!s.msg.empty() && t - s.msgT < 12) ImGui::TextColored(pal::warnAmber(), "%s", s.msg.c_str());
     tvPlaybackBar(a);

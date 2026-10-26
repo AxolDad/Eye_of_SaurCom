@@ -65,14 +65,14 @@ int main() {
                    (unsigned long long)t.framesOk, (unsigned long long)t.framesBad, t.segTotal);
             CHECK(t.filesDone == 1 && sameFile(t, pic), "%+.0f Hz: the file is not byte-exact", off);
             if (!t.history.empty()) {
-                CHECK(t.history[0]->name == "zorcom-test.jpg" && t.history[0]->callsign == "LY0AIR" && t.history[0]->mime == "image/jpeg",
+                CHECK(t.history[0]->name == "saurcom-test.jpg" && t.history[0]->callsign == "LY0AIR" && t.history[0]->mime == "image/jpeg",
                       "name '%s' callsign '%s' mime '%s'", t.history[0]->name.c_str(), t.history[0]->callsign.c_str(), t.history[0]->mime.c_str());
                 CHECK(t.history[0]->transmissions == 1, "%d transmissions", t.history[0]->transmissions);
             }
             CHECK(t.mode == 1 && t.occ == 1 && t.qam == 1, "frame information: mode %d occ %d qam %d", t.mode, t.occ, t.qam);
             CHECK(std::abs(t.offsetHz - off) < 3, "offset %.1f Hz, sent %+.0f", t.offsetHz, off);
             CHECK(t.snrDb > 14, "SNR %.1f dB", t.snrDb);
-            CHECK(t.name == "zorcom-test.jpg" && t.callsign == "LY0AIR" && t.segHave == t.segTotal && t.segTotal == hamdrmBodySegments(c, pic.size()),
+            CHECK(t.name == "saurcom-test.jpg" && t.callsign == "LY0AIR" && t.segHave == t.segTotal && t.segTotal == hamdrmBodySegments(c, pic.size()),
                   "progress: %d / %d, name '%s'", t.segHave, t.segTotal, t.name.c_str());
         }
     }

@@ -169,7 +169,7 @@ struct FileOptions {
 };
 
 // Where samples were lost since the radio was started. Callback gaps: the library delivered less than the radio's rate (the radio or its
-// driver), found by comparing what arrived with that rate. Ring overflow: samples the library did hand over, which Eye of ZorCom then discarded
+// driver), found by comparing what arrived with that rate. Ring overflow: samples the library did hand over, which Eye of SaurCom then discarded
 // because it did not read the input ring in time. Receiver load (loadPct) is processing time against the block's duration, a third thing:
 // it can be high while every sample is kept, and samples can be lost while it is low. deliveredPct is the rate that actually arrived.
 struct SampleLoss {
@@ -244,7 +244,7 @@ public:
     RecordingStats recordingStats() const { return rec_.stats(); }
     // A file name for a recording of what the radio is tuned to right now (see recordingFileName())
     std::string recordingName(FileFormat fmt) const;
-    uint64_t droppedSamples() const { return ring_.dropped(); }   // the Eye of ZorCom side only, in samples (see sampleLoss())
+    uint64_t droppedSamples() const { return ring_.dropped(); }   // the Eye of SaurCom side only, in samples (see sampleLoss())
     SampleLoss sampleLoss() const;
     std::string loadProfile() const;   // seconds the analysis thread spent on the spectrum and on the receiver, and the signal it has processed (diagnostics)
 
@@ -849,7 +849,7 @@ private:
     TuneSettings lastTune_;
     std::chrono::steady_clock::time_point lastSamples_{}, nextReconnect_{}, lastSkipLog_{}, lostSince_{};
     uint64_t skippedSamples_ = 0, skipEvents_ = 0;   // analysis thread only
-    // sampleLoss(): the radio's deliveries checked against its rate (checkDelivery(), analysis thread), the Eye of ZorCom side from the ring
+    // sampleLoss(): the radio's deliveries checked against its rate (checkDelivery(), analysis thread), the Eye of SaurCom side from the ring
     void checkDelivery();
     void holdDelivery(int ms);   // start the check again after a start, retune or reset (the radio may pause around them)
     std::atomic<int64_t> delivHoldNs_{0};

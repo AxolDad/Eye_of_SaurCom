@@ -10,8 +10,8 @@
 #include "dect2/common/str.h"
 #include "dect2/rs/cot.h"
 
-#ifndef ZORCOM_VERSION
-#define ZORCOM_VERSION "dev"
+#ifndef SAURCOM_VERSION
+#define SAURCOM_VERSION "dev"
 #endif
 
 namespace dect2::feedfmt {
@@ -164,7 +164,7 @@ std::string aprsIsLine(const std::string& from, const std::string& to, const std
 }
 
 std::string aprsIsLogin(const std::string& call, const std::string& pass) {
-    return "user " + upper(call) + " pass " + pass + " vers EyeOfZorCom " ZORCOM_VERSION "\r\n";
+    return "user " + upper(call) + " pass " + pass + " vers EyeOfSaurCom " SAURCOM_VERSION "\r\n";
 }
 
 // ---------------------------------------------------------------- ACARS / VDL2
@@ -188,7 +188,7 @@ std::string acarsJson(const AcarsMessage& m, const std::string& station) {
     }
     if (!m.text.empty()) addStr(o, "text", m.text);
     if (m.finalBlock) addRaw(o, "end", "true");
-    o += ",\"app\":{\"name\":\"Eye of ZorCom\",\"ver\":\"" ZORCOM_VERSION "\"}}";
+    o += ",\"app\":{\"name\":\"Eye of SaurCom\",\"ver\":\"" SAURCOM_VERSION "\"}}";
     return o;
 }
 
@@ -202,7 +202,7 @@ std::string vdl2Json(const Vdl2Message& m, const std::string& station) {
         }
     };
     auto hex6 = [](uint32_t a) { char b[8]; snprintf(b, sizeof b, "%06X", a & 0xFFFFFF); return std::string(b); };
-    std::string o = "{\"vdl2\":{\"app\":{\"name\":\"Eye of ZorCom\",\"ver\":\"" ZORCOM_VERSION "\"}";
+    std::string o = "{\"vdl2\":{\"app\":{\"name\":\"Eye of SaurCom\",\"ver\":\"" SAURCOM_VERSION "\"}";
     addStr(o, "station", station);
     o += ",\"t\":{\"sec\":" + std::to_string((long long)m.wallTime) + ",\"usec\":0}";
     addRaw(o, "freq", std::to_string((long long)std::llround(m.freqHz)));
@@ -330,12 +330,12 @@ std::string cotEvent(const MapMarker& m, int64_t wallMs, int staleSec) {
     static const struct { const char* prefix; uint32_t kind; } kLayer[] = {{"ICAO-", 0}, {"MMSI-", 1}, {"APRS-", 2}, {"SONDE-", 3}};
     if (m.layer < 0 || m.layer >= (int)(sizeof kLayer / sizeof kLayer[0]) || m.id.empty()) return {};
     const std::string uid = std::string(kLayer[m.layer].prefix) + m.id;
-    const char* type = reinterpret_cast<const char*>(zorcom_cot_type(kLayer[m.layer].kind));
+    const char* type = reinterpret_cast<const char*>(saurcom_cot_type(kLayer[m.layer].kind));
     const std::string& call = m.label.empty() ? m.id : m.label;
     const double hae = m.hasAlt ? m.altM : NAN, speed = m.hasSpeed ? m.speedKt * 0.514444 : -1;
     std::string out(1024 + m.detail.size() * 6, '\0');   // room for the escaped remarks
     const auto u8 = [](const std::string& t) { return reinterpret_cast<const uint8_t*>(t.data()); };
-    const size_t n = zorcom_cot_encode(u8(uid), uid.size(), reinterpret_cast<const uint8_t*>(type), std::strlen(type), u8(call), call.size(),
+    const size_t n = saurcom_cot_encode(u8(uid), uid.size(), reinterpret_cast<const uint8_t*>(type), std::strlen(type), u8(call), call.size(),
                                       u8(m.detail), m.detail.size(), m.lat, m.lon, hae, m.headingDeg, speed, wallMs, staleSec,
                                       reinterpret_cast<uint8_t*>(out.data()), out.size());
     if (n == SIZE_MAX) return {};

@@ -1,4 +1,4 @@
-// 64 consecutive frames (two major frames) of the recorded Ku-band beacon (zorcom_general_11705.250MHz_2Msps), as the receiver delivered them: the test vector of the decoded view.
+// 64 consecutive frames (two major frames) of the recorded Ku-band beacon (saurcom_general_11705.250MHz_2Msps), as the receiver delivered them: the test vector of the decoded view.
 // Frames of 256 bytes, sync FAF320, counter in byte 4. The recording itself is not in the repository.
 #pragma once
 static const char* const kSbRealFrames[64] = {

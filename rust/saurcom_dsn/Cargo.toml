@@ -1,0 +1,9 @@
+[package]
+name = "saurcom_dsn"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of SaurCom Deep Space Network Now: the live dish, target and signal XML of eyes.nasa.gov and its spacecraft names"
+
+[dependencies]

@@ -106,7 +106,7 @@ void workspaceDialogs(App& a) {
     if (ImGui::BeginPopupModal("Restore last session?", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         if (!workspaceRestorePending()) { ImGui::CloseCurrentPopup(); ImGui::EndPopup(); return; }
         const Workspace& w = workspaceRecovered();
-        ImGui::TextUnformatted("Eye of ZorCom did not close cleanly last time.");
+        ImGui::TextUnformatted("Eye of SaurCom did not close cleanly last time.");
         ImGui::Text("Last session: %s, %.3f MHz", w.devName.empty() ? "no radio" : w.devName.c_str(), w.freqMhz);
         if (!w.panels.empty()) ImGui::Text("Windows open: %s", w.panels.c_str());
         ImGui::TextUnformatted("Restore last session? The settings come back; press Start to listen again.");

@@ -85,7 +85,7 @@ static TuneSettings cfg(int mode, double ifHz, int rate, bool invert = false) {
 
 // A 12 kHz IF carrying a tone 1000 Hz above the IF (USB): after the shift it is at +1000 Hz; inverted, at -1000 Hz.
 static void testShiftAndSideband() {
-    const std::string w = writeWav("zorcom_if_12k.wav", 48000, 3, {{13000, 0.5}});
+    const std::string w = writeWav("saurcom_if_12k.wav", 48000, 3, {{13000, 0.5}});
     double rate = 0;
     auto x = capture(w, cfg(3, 12000, 48000), rate, 40000);
     CHECK(x.size() > 30000 && std::fabs(rate - 48000) < 1, "captured %zu at %g", x.size(), rate);
@@ -123,7 +123,7 @@ static void testRates() {
     for (int i = 0; i < n; i++) {
         const int rate = r[i];
         const double ifHz = rate / 4.0;
-        const std::string w = writeWav("zorcom_if_rate.wav", rate, 1.5, {{ifHz + 500, 0.5}});
+        const std::string w = writeWav("saurcom_if_rate.wav", rate, 1.5, {{ifHz + 500, 0.5}});
         double got = 0;
         auto x = capture(w, cfg(3, ifHz, rate), got, (size_t)rate / 2 + 2000);
         const double f = peakHz(x, 1500, 400, 600, got);
@@ -139,12 +139,12 @@ static void testModeSignals() {
     std::vector<std::pair<double, double>> ft8;
     for (int k = 0; k < 8; k++) ft8.push_back({ifHz + 1500 + 6.25 * k, 0.05});
     double rate = 0;
-    auto x = capture(writeWav("zorcom_if_ft8.wav", 48000, 4, ft8), cfg(3, ifHz, 48000), rate, 100000);
+    auto x = capture(writeWav("saurcom_if_ft8.wav", 48000, 4, ft8), cfg(3, ifHz, 48000), rate, 100000);
     const double c = peakHz(x, 3000, 1450, 1600, rate);
     CHECK(c >= 1499 && c <= 1545, "FT8-like tones start at %g Hz (want ~1500..1544)", c);
     CHECK(power(x, 3000, 1500, rate) > 20 * power(x, 3000, -1500, rate), "FT8-like: only the wanted sideband");
     // RTTY: mark 2125 / space 2295 on a 12 kHz IF (LSB receiver output would be mirrored: invert gives the same decode frequencies mirrored)
-    auto y = capture(writeWav("zorcom_if_rtty.wav", 48000, 3, {{ifHz + 2125, 0.3}, {ifHz + 2295, 0.3}}), cfg(3, ifHz, 48000), rate, 80000);
+    auto y = capture(writeWav("saurcom_if_rtty.wav", 48000, 3, {{ifHz + 2125, 0.3}, {ifHz + 2295, 0.3}}), cfg(3, ifHz, 48000), rate, 80000);
     const double m = peakHz(y, 3000, 2100, 2150, rate), s = peakHz(y, 3000, 2270, 2320, rate);
     CHECK(std::fabs(m - 2125) < 3 && std::fabs(s - 2295) < 3 && std::fabs((s - m) - 170) < 4, "RTTY-like mark %g space %g", m, s);
 }

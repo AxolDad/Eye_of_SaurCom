@@ -28,7 +28,7 @@ constexpr int kConnectMs = 8000;   // an unreachable server is reported after th
 constexpr int kGreetingMs = 10000; // a server still closing the previous client can take seconds to greet
 constexpr int kStallMs = 3000;     // no samples for this long: the connection is taken as lost
 
-// The tuner's gains, its name and the "host:port" form: net_proto.h (C++ or the Rust crate zorcom_net)
+// The tuner's gains, its name and the "host:port" form: net_proto.h (C++ or the Rust crate saurcom_net)
 std::vector<int> tunerGains(int tuner) { return netp::rtlTunerGains(tuner); }
 std::string tunerName(int t) { return netp::rtlTunerName(t); }
 bool splitHostPort(const std::string& a, std::string& host, int& port) { return netp::splitHostPort(a, host, port); }
@@ -107,7 +107,7 @@ protected:
         sentRate_ = sentFreq_ = 0;
         sentGain_ = sentPpm_ = sentDs_ = sentBias_ = -1000;
         carry_ = -1;
-        if (!command(kCmdGainMode, 1) || !command(kCmdAgc, 0)) { err = "rtl_tcp: the connection to " + addr_ + " dropped"; return false; }   // manual gain: Eye of ZorCom runs its own AGC
+        if (!command(kCmdGainMode, 1) || !command(kCmdAgc, 0)) { err = "rtl_tcp: the connection to " + addr_ + " dropped"; return false; }   // manual gain: Eye of SaurCom runs its own AGC
         return configure(s, err, false);
     }
     bool configure(const TuneSettings& s, std::string& err, bool live) override {
@@ -147,7 +147,7 @@ protected:
         requested_ = s.sampleRate;
         const double f = std::max(s.centerHz, 0.0);
         // Auto: nothing is sent, the server's own library picks the way down (an RTL-SDR Blog V4 server upconverts HF itself; a direct-sampling
-        // request would break it, and the server does not say which dongle it is). Eye of ZorCom does not refuse the frequency: a V3 or modified
+        // request would break it, and the server does not say which dongle it is). Eye of SaurCom does not refuse the frequency: a V3 or modified
         // dongle behind the server takes the I or Q input below. The server's tuner is only told so far, hence the note.
         const std::string mode = radioOption(s, "ds", "auto");
         const int ds = (mode == "i" || mode == "q") && f < 24e6 ? (mode == "i" ? 1 : 2) : 0;
@@ -242,7 +242,7 @@ DeviceInfo rtlTcpDevice(const std::string& host, int port) {
     d.gainMinDb = 0; d.gainMaxDb = 49.6;
     d.hasBiasTee = true;   // rtl_tcp of the RTL-SDR Blog library (command 0x0e); other servers ignore it
     d.settings = {choiceSetting("server", "Server radio",
-                                "The radio behind this rtl_tcp server. A real RTL-SDR drops samples above 2.56 Msps, so Eye of ZorCom holds it there and\n"
+                                "The radio behind this rtl_tcp server. A real RTL-SDR drops samples above 2.56 Msps, so Eye of SaurCom holds it there and\n"
                                 "picks its gains from the tuner's list. Auto (the default): the same, but if a mode needs more than 2.56 Msps the\n"
                                 "rate is allowed up to 20 Msps (samples may drop if the server is a real RTL-SDR). RTL-SDR: always held at\n"
                                 "2.56 Msps, nothing above 3.2 Msps. Other radio: an rtl_tcp-compatible server of another radio (rsp_tcp for\n"

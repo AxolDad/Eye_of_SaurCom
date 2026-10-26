@@ -128,7 +128,7 @@ dect2::OcidLookup& ocid() {
         const std::string tmp = plat::cacheDir() + "/ocid-answer.json";
         S.ocid = std::make_unique<dect2::OcidLookup>([tmp](const std::string& url, std::string& body) {
             std::remove(tmp.c_str());
-            if (!plat::fetchUrl(url, tmp, "ZorCom/" ZORCOM_VERSION)) return false;
+            if (!plat::fetchUrl(url, tmp, "SaurCom/" SAURCOM_VERSION)) return false;
             std::ifstream f(tmp); std::stringstream ss; ss << f.rdbuf(); body = ss.str();
             std::remove(tmp.c_str());
             return true;
@@ -401,7 +401,7 @@ void keyHelpButton() {
         ImGui::TextUnformatted("OpenCelliD API key");
         ImGui::Separator();
         ImGui::TextUnformatted("Cell towers broadcast who they are (operator, area code, cell id) but not where they stand. OpenCelliD is an open, "
-                               "crowd-sourced database of tower positions; Eye of ZorCom asks it where each decoded cell is. It needs a free personal API key.");
+                               "crowd-sourced database of tower positions; Eye of SaurCom asks it where each decoded cell is. It needs a free personal API key.");
         ImGui::Spacing();
         ImGui::TextUnformatted("1. Sign up (free) at https://opencellid.org and confirm the e-mail.\n2. Log in and open your account page (My Account / API "
                                "access): your API token (pk.\xE2\x80\xA6) is shown there.\n3. Paste it into the key field here. It is saved with the other settings.");

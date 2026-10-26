@@ -353,7 +353,7 @@ void nmsFetch(const std::string& ua, int env, const std::string& id, const std::
 }
 
 void threadBody() {
-    const std::string ua = std::string("ZorCom/") + ZORCOM_VERSION + " (NOTAMs)";
+    const std::string ua = std::string("SaurCom/") + SAURCOM_VERSION + " (NOTAMs)";
     tfrLoadKept();
     double nextTfr = 0, nextApi = 0, nextNms = 0;
     while (!S.stop.load(std::memory_order_relaxed)) {
@@ -403,7 +403,7 @@ void threadBody() {
 void startThread() {
     if (S.th.joinable()) return;
     S.stop.store(false);
-    S.th = dect2::namedThread("zorcom-notam", threadBody);
+    S.th = dect2::namedThread("saurcom-notam", threadBody);
 }
 
 void stopThread() {

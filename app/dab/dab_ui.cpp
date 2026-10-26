@@ -605,11 +605,11 @@ void dabStations(App& a) {
             else if (!au.decoder.empty()) row(Ic::Layers, "Decoder", "%s", au.decoder.c_str());
             if (p.sbr && !au.sbrDecoded && !dect2::dabFaadAvailable()) {   // where the library goes, for this system
 #ifdef _WIN32
-                row(Ic::Info, "libfaad", "%s", "Put libfaad2.dll (a 64-bit build, also named libfaad.dll or faad2.dll) in the folder with ZorCom.exe, then restart Eye of ZorCom.");
+                row(Ic::Info, "libfaad", "%s", "Put libfaad2.dll (a 64-bit build, also named libfaad.dll or faad2.dll) in the folder with SaurCom.exe, then restart Eye of SaurCom.");
 #elif defined(__APPLE__)
-                row(Ic::Info, "libfaad", "%s", "In Terminal: brew install faad2, then restart Eye of ZorCom.");
+                row(Ic::Info, "libfaad", "%s", "In Terminal: brew install faad2, then restart Eye of SaurCom.");
 #else
-                row(Ic::Info, "libfaad", "%s", "Install the package libfaad2 (sudo apt install libfaad2), then restart Eye of ZorCom.");
+                row(Ic::Info, "libfaad", "%s", "Install the package libfaad2 (sudo apt install libfaad2), then restart Eye of SaurCom.");
 #endif
             }
             row(Ic::Speaker, "Channels", "core %s%s%s", p.coreChannels == 2 ? "stereo" : "mono", p.ps ? " + PS: output stereo" : "", p.surround ? " + MPEG Surround" : "");

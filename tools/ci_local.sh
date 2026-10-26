@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The CI checks, run on this Mac instead of GitHub:
 #   macOS    build (app, tools, tests) and run the tests
-#   Linux    the same in the zorcom-linux-dev Docker image (arm64, Colima)
+#   Linux    the same in the saurcom-linux-dev Docker image (arm64, Colima)
 #   Windows  cross-build of the app, tools and tests with MinGW, and the tests run through Wine when it is installed (tools/wine_test.sh)
 # The three run at the same time (the Colima VM has 6 of the 10 cores, so one after the other left the Mac half idle), with progress
 # bars while they run (tools/ci_progress.sh draws them; it also works on its own in another window).
@@ -58,11 +58,11 @@ linux() {
     # sources read-only, the build in a Docker volume so that it is incremental; updater is left out: the image has no curl and the
     # container no network
     step "Linux arm64 build" "$LOGS/linux-build.log" \
-        docker run --rm -v "$ROOT":/src:ro -v zorcom-build-ci:/b zorcom-linux-dev bash -c \
+        docker run --rm -v "$ROOT":/src:ro -v saurcom-build-ci:/b saurcom-linux-dev bash -c \
         "cmake -S /src -B /b -DCMAKE_BUILD_TYPE=Release -DDECT2_BUILD_APP=OFF && cmake --build /b -j $LINUX_JOBS" &&
     [ $BUILD_ONLY = 0 ] || return 0
     step "Linux arm64 tests" "$LOGS/linux-test.log" \
-        docker run --rm -e CI=true -v "$ROOT":/src:ro -v zorcom-build-ci:/b zorcom-linux-dev \
+        docker run --rm -e CI=true -v "$ROOT":/src:ro -v saurcom-build-ci:/b saurcom-linux-dev \
         ctest --test-dir /b -j $LINUX_JOBS ${LABEL[@]+"${LABEL[@]}"} -E '^updater$' --output-on-failure --timeout 1500
 }
 windows() {
@@ -86,11 +86,11 @@ running() { for pid in "${PIDS[@]}"; do kill -0 "$pid" 2>/dev/null && return 0; 
 if [ $BARS = 1 ] && [ -t 1 ]; then
     clear
     while running; do
-        printf '\033[H'; echo "Eye of ZorCom local CI  $(date +%H:%M:%S)  ($(( (SECONDS - T0) / 60 )) min $(( (SECONDS - T0) % 60 )) s)"
+        printf '\033[H'; echo "Eye of SaurCom local CI  $(date +%H:%M:%S)  ($(( (SECONDS - T0) / 60 )) min $(( (SECONDS - T0) % 60 )) s)"
         "$ROOT/tools/ci_progress.sh" --once
         sleep 2
     done
-    printf '\033[H'; echo "Eye of ZorCom local CI  done in $(( (SECONDS - T0) / 60 )) min $(( (SECONDS - T0) % 60 )) s"
+    printf '\033[H'; echo "Eye of SaurCom local CI  done in $(( (SECONDS - T0) / 60 )) min $(( (SECONDS - T0) % 60 )) s"
     "$ROOT/tools/ci_progress.sh" --once
 fi
 wait

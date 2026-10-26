@@ -1,4 +1,4 @@
-// The actions of the Automations inside Eye of ZorCom: notification, sound (respects Mute), recording, tuning, memories, screenshot, webhook, run.
+// The actions of the Automations inside Eye of SaurCom: notification, sound (respects Mute), recording, tuning, memories, screenshot, webhook, run.
 #include "dect2/common/thread_name.h"
 #include "../app.h"
 #include "../memory/memory_options.h"
@@ -55,7 +55,7 @@ void hookWorker() {
             job = gHookQ.front();
             gHookQ.pop_front();
         }
-        const bool ok = plat::postJson(job.first, job.second, std::string("ZorCom/") + ZORCOM_VERSION + " (automation)");
+        const bool ok = plat::postJson(job.first, job.second, std::string("SaurCom/") + SAURCOM_VERSION + " (automation)");
         char b[240];
         std::string host = job.first.substr(0, 60);
         snprintf(b, sizeof b, "%s %s", ok ? "webhook sent:" : "webhook failed:", host.c_str());
@@ -135,13 +135,13 @@ std::pair<bool, std::string> doOnUi(App& a, const Pending& p) {
     auto get = [&](const char* k) { auto it = p.p.find(k); return it == p.p.end() ? std::string() : it->second; };
     const double now = nowS();
     if (p.kind == "notify") {
-        const std::string title = get("title").empty() ? "Eye of ZorCom" : get("title"), body = get("body");
+        const std::string title = get("title").empty() ? "Eye of SaurCom" : get("title"), body = get("body");
         {
             std::lock_guard<std::mutex> lk(gMu);
             gBanner = {title, body, now + 10};
         }
         const bool ok = plat::notify(title, body);
-        return {true, ok ? "shown" : "shown in Eye of ZorCom (the system could not show it)"};
+        return {true, ok ? "shown" : "shown in Eye of SaurCom (the system could not show it)"};
     }
     if (p.kind == "sound") {
         std::string note;
@@ -209,7 +209,7 @@ std::pair<bool, std::string> doOnUi(App& a, const Pending& p) {
         fs::create_directories(fs::path(reinterpret_cast<const char8_t*>((plat::dataDir() + "/screenshots").c_str())), ec);
         char b[64];
         const time_t t = time(nullptr);
-        strftime(b, sizeof b, "zorcom_%Y%m%d-%H%M%S.png", localtime(&t));
+        strftime(b, sizeof b, "saurcom_%Y%m%d-%H%M%S.png", localtime(&t));
         gAutomationShotPath = plat::dataDir() + "/screenshots/" + b;
         return {true, "saved as " + gAutomationShotPath};
     }
@@ -224,7 +224,7 @@ public:
             if (u == p.end() || b == p.end()) { detail = "no address"; return false; }
             {
                 std::lock_guard<std::mutex> lk(gHookMu);
-                if (!gHookTh.joinable()) gHookTh = dect2::namedThread("zorcom-hook", hookWorker);
+                if (!gHookTh.joinable()) gHookTh = dect2::namedThread("saurcom-hook", hookWorker);
                 if (gHookQ.size() >= 50) { detail = "too many webhooks waiting"; return false; }
                 gHookQ.push_back({u->second, b->second});
             }

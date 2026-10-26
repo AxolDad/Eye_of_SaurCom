@@ -186,7 +186,7 @@ std::string sigmfMeta(double fc, double rate, const std::string& desc, const std
     char b[400];
     std::string s = "{\n  \"global\": {\n    \"core:datatype\": \"cf32_le\",\n    \"core:version\": \"1.0.0\",\n";
     snprintf(b, sizeof b, "    \"core:sample_rate\": %.3f,\n", rate); s += b;
-    s += "    \"core:description\": \"" + jsonEsc(desc) + "\",\n    \"core:recorder\": \"Eye of ZorCom hydrogen line toolkit\",\n";
+    s += "    \"core:description\": \"" + jsonEsc(desc) + "\",\n    \"core:recorder\": \"Eye of SaurCom hydrogen line toolkit\",\n";
     snprintf(b, sizeof b, "    \"core:geolocation\": {\"type\": \"Point\", \"coordinates\": [%.5f, %.5f]}\n  },\n", lon, lat); s += b;
     s += "  \"captures\": [\n    {\"core:sample_start\": 0, ";
     snprintf(b, sizeof b, "\"core:frequency\": %.3f, \"core:datetime\": \"%s\"}\n  ],\n", fc, jsonEsc(iso).c_str()); s += b;
@@ -194,7 +194,7 @@ std::string sigmfMeta(double fc, double rate, const std::string& desc, const std
     for (size_t i = 0; i < fits.size(); i++) {
         const auto& g = fits[i];
         snprintf(b, sizeof b, "    {\"core:sample_start\": 0, \"core:sample_count\": %llu, \"core:label\": \"HI component %zu\", "
-                 "\"zorcom:peak_k\": %.5g, \"zorcom:centre_kms\": %.4f, \"zorcom:centre_err_kms\": %.4f, \"zorcom:fwhm_kms\": %.4f, \"zorcom:area_k_kms\": %.5g}%s\n",
+                 "\"saurcom:peak_k\": %.5g, \"saurcom:centre_kms\": %.4f, \"saurcom:centre_err_kms\": %.4f, \"saurcom:fwhm_kms\": %.4f, \"saurcom:area_k_kms\": %.5g}%s\n",
                  (unsigned long long)n, i + 1, g.amp, g.centre, g.dCentre, g.fwhm(), g.area(), i + 1 < fits.size() ? "," : "");
         s += b;
     }
@@ -203,7 +203,7 @@ std::string sigmfMeta(double fc, double rate, const std::string& desc, const std
 }
 
 std::string sessionText(const Session& s) {
-    std::string o = "#zorcom-hline-session 1\n";
+    std::string o = "#saurcom-hline-session 1\n";
     for (const auto& kv : s.info) o += kv.first + "=" + kv.second + "\n";
     char b[64];
     for (size_t i = 0; i < s.spectra.size(); i++) {
@@ -218,7 +218,7 @@ bool parseSession(const std::string& t, Session& s) {
     s = Session();
     std::istringstream is(t);
     std::string l;
-    if (!std::getline(is, l) || l.compare(0, 20, "#zorcom-hline-session") != 0) return false;
+    if (!std::getline(is, l) || l.compare(0, 20, "#saurcom-hline-session") != 0) return false;
     while (std::getline(is, l)) {
         if (l.compare(0, 5, "spec ") == 0) {
             std::istringstream ls(l.substr(5));

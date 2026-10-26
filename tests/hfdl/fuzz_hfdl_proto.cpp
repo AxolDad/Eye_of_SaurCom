@@ -1,5 +1,5 @@
 // Seeded mutation run of the HFDL layers, meant for DECT2_SANITIZE=ON: the PDU parser, the FCS, the convolutional decoder with
-// arbitrary soft values and the mask / station functions must never crash or hang on any bytes. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
+// arbitrary soft values and the mask / station functions must never crash or hang on any bytes. Also a libFuzzer target with -DSAURCOM_LIBFUZZER.
 #include "dect2/hfdl/hfdl_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -41,11 +41,11 @@ static void one(const uint8_t* d, size_t n) {
     hfdlScramblerSigns((int)(n * 5), s);
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* it = getenv("ZORCOM_FUZZ_ITERS");
+    const char* it = getenv("SAURCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 20000;
     std::mt19937 g(5150);
     for (long i = 0; i < iters; i++) {

@@ -53,7 +53,7 @@ std::string ttxRowText(const TtxGrid& g, int row);
 // 3 Italian, 4 French, 5 Portuguese/Spanish, 6 Czech/Slovak, 7 falls back to English)
 uint32_t ttxG0(uint8_t code, int national);
 
-// The pure layer below the decoder (Rust crate rust/zorcom_dvbsi, teletext_rs.cpp). One teletext data unit decoded: the 44 byte
+// The pure layer below the decoder (Rust crate rust/saurcom_dvbsi, teletext_rs.cpp). One teletext data unit decoded: the 44 byte
 // payload of a PES data unit (field / line, framing code, 2 address bytes, 40 data bytes, bit reversed) as a header, row or Fastext record.
 struct TtxUnit {
     enum Kind { Ignore = 0, Header = 1, Row = 2, Fastext = 3, Other = 4 };   // Ignore: bad framing code or address (not counted); Other: counted, no effect

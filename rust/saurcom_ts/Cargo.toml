@@ -1,0 +1,10 @@
+[package]
+name = "saurcom_ts"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of SaurCom MPEG-TS packet header, PSI/SI section parsers (PAT, PMT, SDT, NIT, EIT, TVCT, TDT), section CRC-32"
+
+[dependencies]
+saurcom_common = { path = "../saurcom_common" }

@@ -1,4 +1,4 @@
-// Transmit: which modes Eye of ZorCom can send, how it makes the signal, and the session that feeds a radio's TxSink (source.h).
+// Transmit: which modes Eye of SaurCom can send, how it makes the signal, and the session that feeds a radio's TxSink (source.h).
 //
 // THE LIST (txModes() in tx.cpp is the single source of truth). Deny-list, not allow-list: every engine mode that has a generator is offered,
 // except pointless / jammer / impersonation cases below. The first eight (DVB-T2/T, ATSC, DAB, ISDB-T, DVB-S/S2/S2X, DTMB, ADS-B) and a few
@@ -24,7 +24,7 @@
 // Carrier tune (every mode): an unmodulated carrier at DC for setting drive / SWR; independent of the payload, not saved as transmitting.
 //   (see txModes() for the complete rows)
 //
-// NOT OFFERED: only a mode with no generator (txRefusalReason says "this mode has no transmit generator"). Eye of ZorCom refuses no mode, frequency or power.
+// NOT OFFERED: only a mode with no generator (txRefusalReason says "this mode has no transmit generator"). Eye of SaurCom refuses no mode, frequency or power.
 //
 // No frequency and no power limit is applied here: see TxTune in source.h.
 #pragma once
@@ -174,7 +174,7 @@ struct TxRequest {
     double o(const char* key, double def) const { const auto it = opt.find(key); return it == opt.end() ? def : it->second; }
 };
 
-// Whether this mode's vocoder can encode live speech with a library Eye of ZorCom already loads (Codec 2 for M17 / FreeDV).
+// Whether this mode's vocoder can encode live speech with a library Eye of SaurCom already loads (Codec 2 for M17 / FreeDV).
 bool txCanEncodeVoice(const TxModeSpec& m);
 // Plain words for the panel: encode path, or why live encode is off (AMBE/IMBE decode-only, library missing). Empty when not a voice mode.
 std::string txVocoderNote(const TxModeSpec& m);

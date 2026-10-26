@@ -75,8 +75,8 @@ struct FakeStation {
             sockRecvTimeout(c, 3000);
             char buf[2048]; std::string req;
             while (req.find("\r\n\r\n") == std::string::npos) { const long long k = sockRecv(c, buf, sizeof buf); if (k <= 0) break; req.append(buf, (size_t)k); }
-            got = req.rfind("GET /live HTTP/1.1\r\n", 0) == 0 && req.find("User-Agent: EyeOfZorCom") != std::string::npos;
-            const std::string h = "HTTP/1.1 200 OK\r\nContent-Type: audio/mpeg\r\nicy-name: ZorCom FM\r\nConnection: close\r\n\r\n";
+            got = req.rfind("GET /live HTTP/1.1\r\n", 0) == 0 && req.find("User-Agent: EyeOfSaurCom") != std::string::npos;
+            const std::string h = "HTTP/1.1 200 OK\r\nContent-Type: audio/mpeg\r\nicy-name: SaurCom FM\r\nConnection: close\r\n\r\n";
             sockSendAll(c, h.data(), h.size());
             sockSendAll(c, body.data(), body.size());
             sockClose(c);

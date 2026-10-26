@@ -1,5 +1,5 @@
 // Seeded mutation run of the ADS-B / Mode S message layer, meant for DECT2_SANITIZE=ON: decoding, the CRC,
-// single-bit correction, Comm-B inference and CPR must never crash or hang on any bytes or numbers. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
+// single-bit correction, Comm-B inference and CPR must never crash or hang on any bytes or numbers. Also a libFuzzer target with -DSAURCOM_LIBFUZZER.
 #include "dect2/adsb/adsb_msg.h"
 #include <cstdio>
 #include <cstdlib>
@@ -34,11 +34,11 @@ static void one(const uint8_t* d, size_t n) {
     sink += raText(v, m[5], m[6] & 1).size();
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* it = getenv("ZORCOM_FUZZ_ITERS");
+    const char* it = getenv("SAURCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 200000;
     std::mt19937 g(31337);
     const uint8_t seed[14] = {0x8D, 0x48, 0x40, 0xD6, 0x20, 0x2C, 0xC3, 0x71, 0xC3, 0x2C, 0xE0, 0x57, 0x60, 0x98};

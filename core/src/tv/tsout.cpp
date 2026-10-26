@@ -77,7 +77,7 @@ struct OutputManager::Impl {
     }
     void startSender() {
         running = true;
-        sender = dect2::namedThread("zorcom-tsout", [this] {
+        sender = dect2::namedThread("saurcom-tsout", [this] {
             // A condition_variable timed wait on a normal thread is coalesced by the OS to about 100 ms, so every datagram that
             // came due in that window left in one lump and the player stalled until the next lump. This thread asks for a tight
             // timer and sleeps until the datagram's own time.

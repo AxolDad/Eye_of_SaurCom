@@ -1,4 +1,4 @@
-// P25 Phase 1 protocol pieces: the frame sync table (see p25_proto.h). The layer itself is Rust: p25_proto_rs.cpp over rust/zorcom_p25.
+// P25 Phase 1 protocol pieces: the frame sync table (see p25_proto.h). The layer itself is Rust: p25_proto_rs.cpp over rust/saurcom_p25.
 #include "dect2/p25/p25_proto.h"
 
 namespace dect2 {

@@ -186,7 +186,7 @@ struct PskReporter::Impl {
     void flush(int64_t now) {   // called with mu held
         const std::vector<pskr::Spot> sp = bat.take(now);
         if (!credsOk() || !openSock()) { st.active = false; return; }
-        const pskr::Receiver rx{cfg.call, cfg.locator, "Eye of ZorCom", cfg.antenna};
+        const pskr::Receiver rx{cfg.call, cfg.locator, "Eye of SaurCom", cfg.antenna};
         size_t at = 0;
         while (at < sp.size()) {
             const bool tpl = packetsWithTemplates < 3 || now - lastTemplates >= 600;   // the first few packets, then every 10 minutes
@@ -231,7 +231,7 @@ void PskReporter::configure(const PskReporterConfig& c) {
         start = cc.on && !p.th.joinable();
         if (start) p.quit = false;
     }
-    if (start) p.th = dect2::namedThread("zorcom-psk", [&p] { p.run(); });
+    if (start) p.th = dect2::namedThread("saurcom-psk", [&p] { p.run(); });
     p.cv.notify_all();
 }
 PskReporterConfig PskReporter::config() const { std::lock_guard<std::mutex> lk(impl_->mu); return impl_->cfg; }

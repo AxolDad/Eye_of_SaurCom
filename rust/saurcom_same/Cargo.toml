@@ -1,0 +1,10 @@
+[package]
+name = "saurcom_same"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of SaurCom SAME / EAS: header parser, tables, location text, issue/purge time, county CSV reader"
+
+[dependencies]
+saurcom_common = { path = "../saurcom_common" }

@@ -98,7 +98,7 @@ const char* kindShort(int k) { static const char* const n[] = {"public", "static
 
 void privacyNote() {
     ImGui::PushTextWrapPos(0);
-    ImGui::TextDisabled("Receive only: the advertising packets devices broadcast openly, as a scanner app sees them. Eye of ZorCom never connects, pairs or "
+    ImGui::TextDisabled("Receive only: the advertising packets devices broadcast openly, as a scanner app sees them. Eye of SaurCom never connects, pairs or "
                         "transmits. Most phones use random private addresses that change every few minutes, so one phone can show up as several devices.");
     ImGui::PopTextWrapPos();
 }
@@ -263,7 +263,7 @@ void tuner(App& a, bool& retune) {
         ImGui::EndCombo();
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("The three advertising channels. Devices send each advert on all three in turn, so any one of them hears every device;\n"
-                                                  "together they span 78 MHz, more than a radio takes in, so Eye of ZorCom listens to one at a time (4 Msps).");
+                                                  "together they span 78 MHz, more than a radio takes in, so Eye of SaurCom listens to one at a time (4 Msps).");
     ImGui::SameLine(0, 8 * gUi);
     if (ImGui::Checkbox("hop", &S.hop)) { plat::prefs().setB("bleHop", S.hop); plat::prefs().flush(); }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Step through channels 37, 38 and 39 (some devices skip a channel, and interference differs between them)");

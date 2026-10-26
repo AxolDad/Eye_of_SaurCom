@@ -1,6 +1,6 @@
-// Golden-vector test of the DRM signalling and data layers (dect2::drmp, the Rust crate zorcom_drm): the CRCs, FAC blocks (both robustness mode families, good and
+// Golden-vector test of the DRM signalling and data layers (dect2::drmp, the Rust crate saurcom_drm): the CRCs, FAC blocks (both robustness mode families, good and
 // corrupted), SDC data fields (every entity type, parsed twice into the same record so the in-place refinement is covered), SDC block checks, the audio super frame
-// split (consistent and corrupt borders), the text message segment check, the tables, MJD conversion and the data service helpers, over ZORCOM_DIFF_ITERS (default
+// split (consistent and corrupt borders), the text message segment check, the tables, MJD conversion and the data service helpers, over SAURCOM_DIFF_ITERS (default
 // 200000) seeded inputs per family. Buffers are exactly as long as the input (sanitizer builds see overruns). Every result goes into a digest (tests/common/golden.h)
 // compared with the one recorded from the C++ layer the Rust code replaced.
 #include "dect2/drm/drm_proto.h"
@@ -204,9 +204,9 @@ static void testMisc() {
 }
 
 int main() {
-    const long iters = getenv("ZORCOM_DIFF_ITERS") ? atol(getenv("ZORCOM_DIFF_ITERS")) : 200000;
+    const long iters = getenv("SAURCOM_DIFF_ITERS") ? atol(getenv("SAURCOM_DIFF_ITERS")) : 200000;
     testTables();
     for (long i = 0; i < iters; i++) { testFac(); testSdc(); testAac(); testMisc(); }
     printf("drm proto: ok: fac %ld sdc %ld sdc-other %ld sdc-crc %ld aac bad %ld good %ld group %ld text %ld segment %ld\n", okc[0], okc[1], okc[2], okc[3], okc[4], okc[5], okc[6], okc[7], okc[8]);
-    return golden::check("drm_proto_rs", dig, 0x9214822683311cdfull, !getenv("ZORCOM_DIFF_ITERS"));
+    return golden::check("drm_proto_rs", dig, 0x9214822683311cdfull, !getenv("SAURCOM_DIFF_ITERS"));
 }

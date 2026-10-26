@@ -1,6 +1,6 @@
-# How Eye of ZorCom is put together
+# How Eye of SaurCom is put together
 
-Eye of ZorCom is a C++20 program in two layers: a **receiver library** (`core/`) that knows nothing about windows, and a **graphical app** (`app/`) that draws what the library reports. The command-line tools in `tools/` use the same library.
+Eye of SaurCom is a C++20 program in two layers: a **receiver library** (`core/`) that knows nothing about windows, and a **graphical app** (`app/`) that draws what the library reports. The command-line tools in `tools/` use the same library.
 
 ## The path of a signal
 
@@ -19,7 +19,7 @@ radio ──► ring buffer ──► Engine ──► standard receiver ──�
 
 Threads: the analysis thread runs the receiver (it must never wait for the interface), the error-correction work runs on helper threads or the GPU, the player has its own reader thread and audio callback, and the interface runs on the main thread.
 
-Every thread has a name (profilers, htop, Activity Monitor and crash reports show it): create threads with `dect2::namedThread("zorcom-xxx", fn, args...)` or call `dect2::setThreadName("zorcom-xxx")` first thing in the thread function (`core/include/dect2/common/thread_name.h`). Names are short and stable, `zorcom-<what>`, 15 characters at most (the Linux limit; longer ones are cut), with the receiver number appended where several run (`zorcom-rx2`).
+Every thread has a name (profilers, htop, Activity Monitor and crash reports show it): create threads with `dect2::namedThread("saurcom-xxx", fn, args...)` or call `dect2::setThreadName("saurcom-xxx")` first thing in the thread function (`core/include/dect2/common/thread_name.h`). Names are short and stable, `saurcom-<what>`, 15 characters at most (the Linux limit; longer ones are cut), with the receiver number appended where several run (`saurcom-rx2`).
 
 ## Folders
 
@@ -48,28 +48,28 @@ Every thread has a name (profilers, htop, Activity Monitor and crash reports sho
 
 ## Rust protocol layers
 
-The frame, packet and file-format layers listed below are written in Rust (the workspace `rust/`, one static library `libzorcom_rs.a`; `rust/README.md` is the guide) and the C++ they replaced is deleted: Rust is required to build (`cmake/ZorcomRust.cmake` stops with an error without cargo). The public C++ headers did not change, so callers do not know the difference; the functions of each header are implemented in the `<name>_rs.cpp` next to it, which calls the C ABI (`core/include/dect2/rs/<module>.h`). What is still C++ in those folders is receivers, demodulators, generators, trackers, key-dependent code and state (class stores, caches, locks).
+The frame, packet and file-format layers listed below are written in Rust (the workspace `rust/`, one static library `libsaurcom_rs.a`; `rust/README.md` is the guide) and the C++ they replaced is deleted: Rust is required to build (`cmake/SaurcomRust.cmake` stops with an error without cargo). The public C++ headers did not change, so callers do not know the difference; the functions of each header are implemented in the `<name>_rs.cpp` next to it, which calls the C ABI (`core/include/dect2/rs/<module>.h`). What is still C++ in those folders is receivers, demodulators, generators, trackers, key-dependent code and state (class stores, caches, locks).
 
 | Module (crate) | C++ header and Rust-backed implementation | Still C++ in that folder |
 |---|---|---|
-| AIS (`zorcom_proto`) | `ais/ais_proto.h`, `ais_proto_rs.cpp` | generator side (`ais_proto.cpp`), receiver |
-| ADS-B (`zorcom_adsb`) | `adsb/adsb_msg.h`, `adsb_msg_rs.cpp` | bit helpers (`adsb_msg.cpp`), generator, tracker, register |
-| ACARS (`zorcom_acars`) | `acars/acars_proto.h`, `acars_proto_rs.cpp` | `acarsBuildFrame`, receiver |
-| SAME (`zorcom_same`) | `same/same_proto.h`, `same_proto_rs.cpp` | county table and file loader |
-| POCSAG / FLEX (`zorcom_pager`) | `pager/pager_proto.h`, `pager_proto_rs.cpp` | generators, POCSAG message assembler |
-| AX.25 / APRS (`zorcom_ax25`) | `packet/packet_ax25.h`, `packet_aprs.h`, `packet_ax25_rs.cpp`, `packet_aprs_rs.cpp` | frame builder and transmit helpers |
-| DMR (`zorcom_dmr`) | `dmr/dmr_fec.h`, `dmr_proto.h`, `dmr_fec_rs.cpp`, `dmr_proto_rs.cpp` | bit helpers, sync table, burst slicers, alias PDU builder |
-| P25, NXDN, D-STAR (`zorcom_p25`, `zorcom_nxdn`, `zorcom_dstar`) | `<mode>/<mode>_proto.h`, `<mode>_proto_rs.cpp` | sync tables, receivers, generators, vocoder glue |
-| TETRA (`zorcom_tetra`) | `tetra/tetra_pdu.h`, `tetra_pdu_rs.cpp` | encoders and generator PDUs |
-| VDL2, HFDL (`zorcom_vdl2`, `zorcom_hfdl`) | `vdl2/vdl2_proto.h`, `hfdl/hfdl_proto.h`, `*_rs.cpp` | burst / PDU builders for the test signal, ACARS readers, demodulators |
-| Mesh (`zorcom_mesh`) | `mesh/mesh_proto.h`, `mesh_pb.h`, `mesh_proto_rs.cpp`, `mesh_proto_lora_rs.cpp`, `mesh_pb_rs.cpp` | crypto, builders, settings tables, LoRa PHY |
-| Wi-SUN (`zorcom_wisun`) | `wisun/wisun_proto.h`, `wisun_proto_rs.cpp` | channel plans, MPDU builder, receiver |
-| UAT (`zorcom_uat`) | `uat/uat_decode_c.h`, `uat_decode_rs.cpp` | dump978 display functions (`uat_decode.c`), FEC, receiver |
-| MPEG-TS (`zorcom_ts`) | `tv/ts_proto.h`, `ts_proto_rs.cpp` | demux state, EPG store (`ts.cpp`) |
-| DVB service information (`zorcom_dvbsi`) | `common/text_charset.h`, `tv/dvb_text.h`, `teletext.h`, `dvbsub.h`, `*_rs.cpp` | decoder classes, iconv wrapper |
-| DAB, DRM data (`zorcom_dab`, `zorcom_drm`) | `dab/dab_proto.h`, `drm/drm_proto.h`, `*_rs.cpp` | the decoder classes with their state |
-| FEC (`zorcom_fec`) | `fec/fec_proto.h`, `fec_proto_rs.cpp` | the K = 7 Viterbi decoder (`fec_proto.cpp`): the C++ NEON / SSE2 / AVX2 one is the faster one |
-| Files, network (`zorcom_files`, `zorcom_net`) | `files/files_proto.h`, `net/net_proto.h`, `*_rs.cpp` | file access, sockets, threads, state |
+| AIS (`saurcom_proto`) | `ais/ais_proto.h`, `ais_proto_rs.cpp` | generator side (`ais_proto.cpp`), receiver |
+| ADS-B (`saurcom_adsb`) | `adsb/adsb_msg.h`, `adsb_msg_rs.cpp` | bit helpers (`adsb_msg.cpp`), generator, tracker, register |
+| ACARS (`saurcom_acars`) | `acars/acars_proto.h`, `acars_proto_rs.cpp` | `acarsBuildFrame`, receiver |
+| SAME (`saurcom_same`) | `same/same_proto.h`, `same_proto_rs.cpp` | county table and file loader |
+| POCSAG / FLEX (`saurcom_pager`) | `pager/pager_proto.h`, `pager_proto_rs.cpp` | generators, POCSAG message assembler |
+| AX.25 / APRS (`saurcom_ax25`) | `packet/packet_ax25.h`, `packet_aprs.h`, `packet_ax25_rs.cpp`, `packet_aprs_rs.cpp` | frame builder and transmit helpers |
+| DMR (`saurcom_dmr`) | `dmr/dmr_fec.h`, `dmr_proto.h`, `dmr_fec_rs.cpp`, `dmr_proto_rs.cpp` | bit helpers, sync table, burst slicers, alias PDU builder |
+| P25, NXDN, D-STAR (`saurcom_p25`, `saurcom_nxdn`, `saurcom_dstar`) | `<mode>/<mode>_proto.h`, `<mode>_proto_rs.cpp` | sync tables, receivers, generators, vocoder glue |
+| TETRA (`saurcom_tetra`) | `tetra/tetra_pdu.h`, `tetra_pdu_rs.cpp` | encoders and generator PDUs |
+| VDL2, HFDL (`saurcom_vdl2`, `saurcom_hfdl`) | `vdl2/vdl2_proto.h`, `hfdl/hfdl_proto.h`, `*_rs.cpp` | burst / PDU builders for the test signal, ACARS readers, demodulators |
+| Mesh (`saurcom_mesh`) | `mesh/mesh_proto.h`, `mesh_pb.h`, `mesh_proto_rs.cpp`, `mesh_proto_lora_rs.cpp`, `mesh_pb_rs.cpp` | crypto, builders, settings tables, LoRa PHY |
+| Wi-SUN (`saurcom_wisun`) | `wisun/wisun_proto.h`, `wisun_proto_rs.cpp` | channel plans, MPDU builder, receiver |
+| UAT (`saurcom_uat`) | `uat/uat_decode_c.h`, `uat_decode_rs.cpp` | dump978 display functions (`uat_decode.c`), FEC, receiver |
+| MPEG-TS (`saurcom_ts`) | `tv/ts_proto.h`, `ts_proto_rs.cpp` | demux state, EPG store (`ts.cpp`) |
+| DVB service information (`saurcom_dvbsi`) | `common/text_charset.h`, `tv/dvb_text.h`, `teletext.h`, `dvbsub.h`, `*_rs.cpp` | decoder classes, iconv wrapper |
+| DAB, DRM data (`saurcom_dab`, `saurcom_drm`) | `dab/dab_proto.h`, `drm/drm_proto.h`, `*_rs.cpp` | the decoder classes with their state |
+| FEC (`saurcom_fec`) | `fec/fec_proto.h`, `fec_proto_rs.cpp` | the K = 7 Viterbi decoder (`fec_proto.cpp`): the C++ NEON / SSE2 / AVX2 one is the faster one |
+| Files, network (`saurcom_files`, `saurcom_net`) | `files/files_proto.h`, `net/net_proto.h`, `*_rs.cpp` | file access, sockets, threads, state |
 
 Two implementations stay on purpose, both opt-in with the C++ one as the default: the ring buffer (`-DDECT2_RUST_RING=ON`, `common/ring.h` keeps both) and the Android USB drivers (`-DDECT2_RUST_USB=ON`), plus the Rust NEON Viterbi kernel (`-DDECT2_RUST_VITERBI=ON`, about 4% slower than the C++ one). Each Rust-backed layer has a golden-vector test, `tests/<mode>/test_<mode>_proto_rs.cpp` (a digest of a seeded run, recorded from the C++ it replaced, helper `tests/common/golden.h`), and a seeded mutation run `fuzz_<mode>_proto` for the sanitizer builds.
 
@@ -89,4 +89,4 @@ Two implementations stay on purpose, both opt-in with the C++ one as the default
 
 ## Notes for outside builds
 
-The Android bridge (`zorcom-android/native`, outside this repo) includes headers as `dect2/<name>.h`. Since 0.2.7 the headers live in folders: `dect2/remote_api.h` is `dect2/net/remote_api.h`, `dect2/modes.h` is `dect2/engine/modes.h`, `dect2/rx_json.h` is `dect2/results/rx_json.h`, `dect2/adsb_tel.h` is `dect2/adsb/adsb_tel.h`, and so on (mode headers go to their mode folder). `tools/dev/path_moves_0.2.7.txt` lists every old and new path. The bridge only needs `core/include` and the `dect2core` target, so its CMake does not change.
+The Android bridge (`saurcom-android/native`, outside this repo) includes headers as `dect2/<name>.h`. Since 0.2.7 the headers live in folders: `dect2/remote_api.h` is `dect2/net/remote_api.h`, `dect2/modes.h` is `dect2/engine/modes.h`, `dect2/rx_json.h` is `dect2/results/rx_json.h`, `dect2/adsb_tel.h` is `dect2/adsb/adsb_tel.h`, and so on (mode headers go to their mode folder). `tools/dev/path_moves_0.2.7.txt` lists every old and new path. The bridge only needs `core/include` and the `dect2core` target, so its CMake does not change.

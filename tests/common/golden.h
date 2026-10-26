@@ -2,7 +2,7 @@
 //
 // The Rust crates replaced C++ implementations. The old tests compared both on seeded random and damaged inputs; the C++ is gone, so each test now feeds
 // every result of the same seeded run into a Digest (FNV-1a, 64 bit) and compares the final value with kGolden, recorded once from the C++ implementation
-// the Rust one replaced (and checked equal to the Rust one). A different digest means some result changed: run with ZORCOM_GOLDEN_DUMP=1 to print the
+// the Rust one replaced (and checked equal to the Rust one). A different digest means some result changed: run with SAURCOM_GOLDEN_DUMP=1 to print the
 // digest of every stage, and see git history of the test for how the value was recorded. Floating point values are rounded to 1e-6 before hashing so
 // the digest does not depend on the last bit of libm.
 #pragma once
@@ -62,11 +62,11 @@ struct Dual {
     void bytes(const void* p, size_t n) { all.bytes(p, n); portable.bytes(p, n); }
 };
 
-// Compares the digest of a finished run with the recorded one. A run with a non-default iteration count (ZORCOM_DIFF_ITERS) or ZORCOM_GOLDEN_DUMP=1
+// Compares the digest of a finished run with the recorded one. A run with a non-default iteration count (SAURCOM_DIFF_ITERS) or SAURCOM_GOLDEN_DUMP=1
 // only prints. Returns the test's exit code contribution (0 = fine).
 inline int check(const char* name, const Digest& d, uint64_t expected, bool defaultRun) {
     printf("%s: digest %016llx", name, (unsigned long long)d.value());
-    if (!defaultRun || getenv("ZORCOM_GOLDEN_DUMP")) { printf(" (not compared)\n"); return 0; }
+    if (!defaultRun || getenv("SAURCOM_GOLDEN_DUMP")) { printf(" (not compared)\n"); return 0; }
     if (d.value() != expected) { printf(" != recorded %016llx\n", (unsigned long long)expected); return 1; }
     printf(" ok\n");
     return 0;

@@ -53,7 +53,7 @@ int main() {
         printf("  scene: %s, %zu in the log\n", loraRawSummary(t).c_str(), t.log.size());
         CHECK(t.blocksOk >= 8 && t.blocksBad == 0, "%llu good, %llu bad", (unsigned long long)t.blocksOk, (unsigned long long)t.blocksBad);
         struct W { const char* text; int sf; double bw; int cr; bool crc; };
-        const W want[] = {{"ZorCom LoRa raw SF7 125k", 7, 125e3, 5, true}, {"cr4/6", 8, 125e3, 6, true}, {"ZorCom raw SF9 250k", 9, 250e3, 5, true},
+        const W want[] = {{"SaurCom LoRa raw SF7 125k", 7, 125e3, 5, true}, {"cr4/6", 8, 125e3, 6, true}, {"SaurCom raw SF9 250k", 9, 250e3, 5, true},
                           {"no crc", 10, 500e3, 8, false}, {"SF7 500k cr4/7", 7, 500e3, 7, true}, {"\"t\":21.5", 11, 125e3, 5, true},
                           {"Hello from SF12", 12, 125e3, 5, true}, {"node=7 bat=3.71V", 9, 125e3, 5, true}, {"binary", 8, 250e3, 6, true}};
         for (const W& w : want) {
@@ -63,7 +63,7 @@ int main() {
             CHECK(f->sf == w.sf && std::fabs(f->bwHz - w.bw) < 1 && f->cr == w.cr && f->hasCrc == w.crc && (f->crcOk || !w.crc), "'%s': SF%d %.0f 4/%d crc %d ok %d", w.text, f->sf, f->bwHz, f->cr - 4, f->hasCrc, f->crcOk);
             CHECK(!f->hex.empty() && f->hex.size() >= f->payload.size() * 3 - 1 && f->snrDb > 10 && f->levelDb < 0 && f->levelDb > -80, "'%s': hex %zu snr %.1f level %.1f", w.text, f->hex.size(), f->snrDb, f->levelDb);
         }
-        const LrFrame* f = findText(t, "ZorCom LoRa raw SF7 125k");
+        const LrFrame* f = findText(t, "SaurCom LoRa raw SF7 125k");
         if (f) {
             CHECK(std::fabs(f->cfoHz - 1500) < 150, "carrier offset %.0f Hz (1500 sent)", f->cfoHz);
             CHECK(f->hex.substr(0, 8) == "4F 6E 41", "hex '%s'", f->hex.c_str());
@@ -79,7 +79,7 @@ int main() {
         const LoraRawTelemetry t = run(c, autoSet, scheduleSec(c.frames) + 0.2);
         printf("  0 dB, 20 ppm, +3.5 kHz: %llu good, %llu bad\n", (unsigned long long)t.blocksOk, (unsigned long long)t.blocksBad);
         CHECK(t.blocksOk >= 5, "only %llu frames decoded at 0 dB", (unsigned long long)t.blocksOk);
-        CHECK(findText(t, "Hello from SF12") && findText(t, "ZorCom LoRa raw SF7 125k"), "SF12 / SF7 frames lost");
+        CHECK(findText(t, "Hello from SF12") && findText(t, "SaurCom LoRa raw SF7 125k"), "SF12 / SF7 frames lost");
     }
     {   // the channel off the centre of the capture (433.92 MHz LoRa, 300 kHz away from the dial), receiver told the offset
         LoraRawGenConfig c;
@@ -95,7 +95,7 @@ int main() {
         LoraRawSettings s;
         s.autoSf = false; s.sf = 9; s.autoBw = false; s.bwKhz = 250;
         const LoraRawTelemetry t = run(c, s, scheduleSec(c.frames) + 0.2);
-        CHECK(findText(t, "ZorCom raw SF9 250k") && !findText(t, "SF12") && !findText(t, "SF7 125k"), "fixed SF9 / 250 kHz: %zu frames", t.log.size());
+        CHECK(findText(t, "SaurCom raw SF9 250k") && !findText(t, "SF12") && !findText(t, "SF7 125k"), "fixed SF9 / 250 kHz: %zu frames", t.log.size());
         CHECK(t.blocksOk == 1, "%llu frames", (unsigned long long)t.blocksOk);
     }
     {   // implicit header: SF8, 250 kHz, 4/6, 12 bytes, CRC (agreed beforehand); with the wrong length nothing good comes out

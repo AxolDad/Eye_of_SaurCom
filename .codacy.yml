@@ -1,4 +1,4 @@
-# Codacy analysis scope: only Eye of ZorCom's own source. Vendored libraries, generated and data files are not ours to grade.
+# Codacy analysis scope: only Eye of SaurCom's own source. Vendored libraries, generated and data files are not ours to grade.
 exclude_paths:
   - "third_party/**"
   - "app/i18n/**"

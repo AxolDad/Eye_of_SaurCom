@@ -70,7 +70,7 @@ bool speechCodecGate(const char* id, std::unique_ptr<dect2::codec::SpeechCodec>&
             dect2::openUrl(folder);
         }
         ImGui::SameLine();
-        if (ImGui::Button("Full instructions")) dect2::openUrl("https://github.com/AxolDad/OnAir-SDR-Suite/blob/main/docs/CODECS.md");
+        if (ImGui::Button("Full instructions")) dect2::openUrl("https://github.com/AxolDad/Eye_of_ZorCom/blob/main/docs/CODECS.md");
         return false;
     }
 
@@ -165,10 +165,10 @@ void codecInstallHelper(const char* id) {
         dect2::openUrl(folder);
     }
     ImGui::SameLine();
-    if (ImGui::Button("Build steps")) dect2::openUrl("https://github.com/AxolDad/OnAir-SDR-Suite/blob/main/docs/CODECS.md#speech-codec-plug-ins-voice-modes");
+    if (ImGui::Button("Build steps")) dect2::openUrl("https://github.com/AxolDad/Eye_of_ZorCom/blob/main/docs/CODECS.md#speech-codec-plug-ins-voice-modes");
     ImGui::SameLine();
     if (ImGui::Button("Rescan for plug-in")) speechCodecRescan(id);
-    ImGui::TextDisabled("Upstream mbelib project page: https://github.com/lwvmobile/mbelib. Eye of ZorCom downloads nothing for you.");
+    ImGui::TextDisabled("Upstream mbelib project page: https://github.com/lwvmobile/mbelib. Eye of SaurCom downloads nothing for you.");
 }
 
 void voiceCodecsWindow(App& a) {
@@ -177,7 +177,7 @@ void voiceCodecsWindow(App& a) {
     if (!ImGui::Begin("Voice codecs", &a.voiceCodecsOpen)) { ImGui::End(); return; }
     for (const char* id : {"ambe2", "ambe", "imbe"}) voiceCodecTick(id);
     ImGui::PushTextWrapPos(0);
-    ImGui::TextUnformatted("Eye of ZorCom never ships a patented voice codec. Patented codecs are loaded at run time from a plug-in (or library) that you install yourself in the codecs folder; open codecs need nothing. Encrypted calls are never decoded. Check the patent and radio rules where you live.");
+    ImGui::TextUnformatted("Eye of SaurCom never ships a patented voice codec. Patented codecs are loaded at run time from a plug-in (or library) that you install yourself in the codecs folder; open codecs need nothing. Encrypted calls are never decoded. Check the patent and radio rules where you live.");
     ImGui::PopTextWrapPos();
     ImGui::Spacing();
     const std::string folder = codecsFolder();
@@ -198,7 +198,7 @@ void voiceCodecsWindow(App& a) {
                 std::string p, v;
                 if (std::string(ci.name) == "Codec 2") {
                     if (dect2::hfdigFreedvLibrary(&p, &v)) ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.6f, 1), "loaded: %s", p.c_str());
-                    else ImGui::TextColored(ImVec4(0.95f, 0.75f, 0.3f, 1), "libcodec2 missing: reinstall Eye of ZorCom");
+                    else ImGui::TextColored(ImVec4(0.95f, 0.75f, 0.3f, 1), "libcodec2 missing: reinstall Eye of SaurCom");
                 } else ImGui::TextUnformatted(ci.note);
             } else if (ci.kind == cd::CodecKind::Unsupported) {
                 ImGui::TextWrapped("%s", ci.note);
@@ -232,7 +232,7 @@ void voiceCodecsWindow(App& a) {
         dect2::openUrl(folder);
     }
     ImGui::SameLine();
-    if (ImGui::Button("Instructions")) dect2::openUrl("https://github.com/AxolDad/OnAir-SDR-Suite/blob/main/docs/CODECS.md");
+    if (ImGui::Button("Instructions")) dect2::openUrl("https://github.com/AxolDad/Eye_of_ZorCom/blob/main/docs/CODECS.md");
     ImGui::End();
 }
 

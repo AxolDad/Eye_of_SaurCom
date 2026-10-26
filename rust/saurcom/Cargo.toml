@@ -1,0 +1,48 @@
+[package]
+name = "saurcom"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of SaurCom Rust code as ONE static library (libsaurcom_rs.a): re-exports every module's extern \"C\" functions"
+
+[lib]
+name = "saurcom_rs"
+crate-type = ["staticlib", "rlib"]
+
+[features]
+bare = []
+
+[dependencies]
+saurcom_common = { path = "../saurcom_common" }
+saurcom_proto = { path = "../saurcom_proto" }
+saurcom_adsb = { path = "../saurcom_adsb" }
+saurcom_acars = { path = "../saurcom_acars" }
+saurcom_same = { path = "../saurcom_same" }
+saurcom_pager = { path = "../saurcom_pager" }
+saurcom_ax25 = { path = "../saurcom_ax25" }
+saurcom_dmr = { path = "../saurcom_dmr" }
+saurcom_p25 = { path = "../saurcom_p25" }
+saurcom_nxdn = { path = "../saurcom_nxdn" }
+saurcom_dstar = { path = "../saurcom_dstar" }
+saurcom_tetra = { path = "../saurcom_tetra" }
+saurcom_vdl2 = { path = "../saurcom_vdl2" }
+saurcom_hfdl = { path = "../saurcom_hfdl" }
+saurcom_mesh = { path = "../saurcom_mesh" }
+saurcom_wisun = { path = "../saurcom_wisun" }
+saurcom_uat = { path = "../saurcom_uat" }
+saurcom_ts = { path = "../saurcom_ts" }
+saurcom_dvbsi = { path = "../saurcom_dvbsi" }
+saurcom_dab = { path = "../saurcom_dab" }
+saurcom_drm = { path = "../saurcom_drm" }
+saurcom_files = { path = "../saurcom_files" }
+saurcom_net = { path = "../saurcom_net" }
+saurcom_engine = { path = "../saurcom_engine" }
+saurcom_fec = { path = "../saurcom_fec" }
+saurcom_usb = { path = "../saurcom_usb" }
+saurcom_ring = { path = "../saurcom_ring" }
+saurcom_kris = { path = "../saurcom_kris" }
+saurcom_kaws = { path = "../saurcom_kaws" }
+saurcom_cot = { path = "../saurcom_cot" }
+saurcom_wifisense = { path = "../saurcom_wifisense" }
+saurcom_dsn = { path = "../saurcom_dsn" }

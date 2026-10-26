@@ -222,8 +222,8 @@ std::string AudioRecorder::fileName(const std::string& modeId, double freqHz, Au
     std::string id = modeId.empty() ? "audio" : modeId;
     for (auto& c : id) if (!isalnum((unsigned char)c)) c = '-';
     char b[200];
-    if (freqHz > 0) snprintf(b, sizeof b, "zorcom_audio_%s_%.3fMHz_%s.%s", id.c_str(), freqHz / 1e6, stamp, extension(f));
-    else snprintf(b, sizeof b, "zorcom_audio_%s_%s.%s", id.c_str(), stamp, extension(f));
+    if (freqHz > 0) snprintf(b, sizeof b, "saurcom_audio_%s_%.3fMHz_%s.%s", id.c_str(), freqHz / 1e6, stamp, extension(f));
+    else snprintf(b, sizeof b, "saurcom_audio_%s_%s.%s", id.c_str(), stamp, extension(f));
     return b;
 }
 
@@ -243,7 +243,7 @@ bool AudioRecorder::start(const std::string& path, const AudioRecOptions& o, std
     { std::lock_guard<std::mutex> lk(s.statMu); s.path = path; s.error.clear(); }
     s.stopReq = false;
     active_.store(true, std::memory_order_release);
-    s.th = dect2::namedThread("zorcom-rec", [&s] { s.run(); });
+    s.th = dect2::namedThread("saurcom-rec", [&s] { s.run(); });
     return true;
 }
 

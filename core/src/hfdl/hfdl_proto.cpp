@@ -1,4 +1,4 @@
-// HFDL layers (hfdl_proto.h): the bit layers, FCS, station table and PDU parser are Rust (rust/zorcom_hfdl through hfdl_proto_rs.cpp). The PSK maps (libm), the
+// HFDL layers (hfdl_proto.h): the bit layers, FCS, station table and PDU parser are Rust (rust/saurcom_hfdl through hfdl_proto_rs.cpp). The PSK maps (libm), the
 // burst and PDU builders for the test signal and the ACARS reader stay here.
 #include "dect2/hfdl/hfdl_proto.h"
 #include "dect2/acars/acars_proto.h"

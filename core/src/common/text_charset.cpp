@@ -1,4 +1,4 @@
-// Broadcast character sets to UTF-8: appendUtf8 (see text_charset.h). The converters and their tables are Rust (text_charset_rs.cpp over rust/zorcom_dvbsi); the
+// Broadcast character sets to UTF-8: appendUtf8 (see text_charset.h). The converters and their tables are Rust (text_charset_rs.cpp over rust/saurcom_dvbsi); the
 // tables are generated from: welle.io src/backend/charsets.cpp (EBU Latin, GPL-2+), checked entry by entry against ODR-PadEnc src/charset.cpp; glibc
 // iconvdata/iso_6937.c (ISO/IEC 6937, LGPL-2.1+).
 #include "dect2/common/text_charset.h"

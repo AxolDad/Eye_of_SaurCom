@@ -129,7 +129,7 @@ void toggleFullscreen() {
     if (glfwGetWindowMonitor(gWindow)) { glfwSetWindowMonitor(gWindow, nullptr, gWinX, gWinY, gWinW, gWinH, 0); return; }
     if (!gWayland) glfwGetWindowPos(gWindow, &gWinX, &gWinY);
     glfwGetWindowSize(gWindow, &gWinW, &gWinH);
-    // Full screen on the monitor the window is on (the one holding most of it), not always the primary one: someone who drags Eye of ZorCom to a
+    // Full screen on the monitor the window is on (the one holding most of it), not always the primary one: someone who drags Eye of SaurCom to a
     // TV on the second output wants the picture there (issue #29).
     GLFWmonitor* m = monitorFor(gWinX, gWinY, gWinW, gWinH);
     if (!m) return;
@@ -478,10 +478,10 @@ void lossTooltip(const SampleLoss& l) {
             : tr("The sample rate actually handed over by the radio, over the last seconds. A warning appears below 97% of the set rate."));
         ImGui::Spacing();
         ImGui::Text(tr("Callback gaps: %.2f s in %llu gaps, last %s"), l.radioSec, (unsigned long long)l.radioEvents, ago(l.sinceRadioSec).c_str());
-        ImGui::TextDisabled("%s", tr("Gaps between the library's callbacks: the radio or its driver delivered less than the set rate, so those samples never entered Eye of ZorCom."));
+        ImGui::TextDisabled("%s", tr("Gaps between the library's callbacks: the radio or its driver delivered less than the set rate, so those samples never entered Eye of SaurCom."));
         ImGui::Spacing();
         ImGui::Text(tr("Ring overflow: %.2f s discarded %llu times, last %s"), l.cpuSec, (unsigned long long)l.cpuEvents, ago(l.sinceCpuSec).c_str());
-        ImGui::TextDisabled("%s", tr("Eye of ZorCom did not read the input ring fast enough, so samples the radio had already delivered were thrown away. Close other programs, or pick a lower sample rate or a narrower channel."));
+        ImGui::TextDisabled("%s", tr("Eye of SaurCom did not read the input ring fast enough, so samples the radio had already delivered were thrown away. Close other programs, or pick a lower sample rate or a narrower channel."));
         ImGui::Spacing();
         ImGui::Text(tr("Receiver load: %.0f%% of real time"), l.loadPct);
         ImGui::TextDisabled("%s", tr("Processing time of a block versus its duration, on the sample thread. Near 100% the receiver is just keeping up. High load and lost samples are separate: load can be high with every sample kept, and samples can be lost while load is low."));

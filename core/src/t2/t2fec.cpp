@@ -66,7 +66,7 @@ const LdpcCode& ldpcFor(const PlpFec& f) {
     return *c;
 }
 
-// ============================================================================ BCH: core/src/fec/fec_proto.cpp (C++) or the Rust crate zorcom_fec (BchCode wraps fecp::Bch)
+// ============================================================================ BCH: core/src/fec/fec_proto.cpp (C++) or the Rust crate saurcom_fec (BchCode wraps fecp::Bch)
 BchCode::BchCode(bool shortFrame, int t) : bch_(shortFrame, t) {}
 void BchCode::encode(std::vector<uint8_t>& bits, int k) const { bch_.encode(bits, k); }
 int BchCode::decode(std::vector<uint8_t>& bits) const { return bch_.decode(bits); }

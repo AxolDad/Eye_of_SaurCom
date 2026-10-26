@@ -579,7 +579,7 @@ void receiver(App& a) {
     sectionHeader(Ic::Warning, "Not supported");
     ImGui::PushTextWrapPos(0);
     ImGui::TextDisabled("AAC with SBR or parametric stereo: only the AAC core plays (no SBR for 960-sample frames in the audio library), so the sound is band-limited and mono for PS services.");
-    ImGui::TextDisabled("xHE-AAC: some streams need the optional libfdk-aac (install it yourself, Eye of ZorCom loads it at run time and never ships it); the state above says whether it is used. See docs/CODECS.md, section AAC, xHE-AAC.");
+    ImGui::TextDisabled("xHE-AAC: some streams need the optional libfdk-aac (install it yourself, Eye of SaurCom loads it at run time and never ships it); the state above says whether it is used. See docs/CODECS.md, section AAC, xHE-AAC.");
     ImGui::TextDisabled("Data services: the MOT slide show, MOT broadcast website, EPG, TPEG and Journaline applications are decoded (the website as text, EPG and TPEG listed and counted only). Not decoded: stream mode data, single packet mode, compressed MOT directories, scrambled MOT bodies, other applications (named only), alternative frequency applications and hierarchical mappings. DRM+ with unequal error protection is untested.");
     ImGui::TextDisabled("DRM+ (mode E, 100 kHz) needs a radio rate of at least 100 ksps. Below 30 MHz a HackRF needs an upconverter or a long antenna.");
     ImGui::PopTextWrapPos();

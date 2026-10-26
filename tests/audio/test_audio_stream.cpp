@@ -53,9 +53,9 @@ static bool hasMp3Frame(const std::string& b) {
 
 static void requestChecks() {
     AudioStreamConfig c;
-    c.host = "radio.example"; c.port = 8000; c.mount = "zorcom"; c.password = "hackme"; c.name = "Eye\r\nX-Evil: 1"; c.kbps = 96;
+    c.host = "radio.example"; c.port = 8000; c.mount = "saurcom"; c.password = "hackme"; c.name = "Eye\r\nX-Evil: 1"; c.kbps = 96;
     const std::string r = icecastRequest(c);
-    CHECK(r.rfind("PUT /zorcom HTTP/1.1\r\n", 0) == 0, "PUT to the mount, '/' added: %s", r.c_str());
+    CHECK(r.rfind("PUT /saurcom HTTP/1.1\r\n", 0) == 0, "PUT to the mount, '/' added: %s", r.c_str());
     CHECK(r.find("\r\nAuthorization: Basic c291cmNlOmhhY2ttZQ==\r\n") != std::string::npos, "Basic source:hackme");
     CHECK(r.find("\r\nContent-Type: audio/mpeg\r\n") != std::string::npos && r.find("Ice-Audio-Info: bitrate=96") != std::string::npos, "MP3 and its bit rate");
     CHECK(r.find("\r\nX-Evil") == std::string::npos && r.find("Ice-Name: Eye  X-Evil: 1\r\n") != std::string::npos, "a line break cannot add a header");

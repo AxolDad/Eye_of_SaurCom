@@ -24,7 +24,7 @@ struct RecordingStats {
     std::string error;           // why a recording ended by itself (disk full, ...); empty otherwise
 };
 
-// "zorcom_dvb_554.000MHz_10Msps_20261009-071530.cs8": guessSampleRate() and guessFormat() read the rate and the format back from it
+// "saurcom_dvb_554.000MHz_10Msps_20261009-071530.cs8": guessSampleRate() and guessFormat() read the rate and the format back from it
 std::string recordingFileName(const std::string& modeId, double centerHz, double rateHz, FileFormat fmt);
 // The short name of an engine standard as used in recording names ("dvb", "fm", "dab", ...)
 std::string recordingModeId(int stdMode);

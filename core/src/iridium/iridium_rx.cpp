@@ -90,7 +90,7 @@ struct IridiumReceiver::Impl {
     bool loggedTime = false;
 
     void startWorker() {
-        worker = dect2::namedThread("zorcom-iridium", [this] { run(); });
+        worker = dect2::namedThread("saurcom-iridium", [this] { run(); });
     }
     void run() {
         for (;;) {

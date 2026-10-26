@@ -1,4 +1,4 @@
-// UAT message decoding on top of the Rust crate rust/zorcom_uat: uat_decode_adsb_mdb and uat_decode_uplink_mdb of dump978's uat_decode.c (which
+// UAT message decoding on top of the Rust crate rust/saurcom_uat: uat_decode_adsb_mdb and uat_decode_uplink_mdb of dump978's uat_decode.c (which
 // keeps the display functions; the decoding half of the C code was replaced by this Rust implementation). The Rust side fills flat records; this file copies them into the C structs with
 // their bit fields and the pointers into the application data.
 #include "dect2/common/rs_abi.h"
@@ -12,15 +12,15 @@ namespace {
 struct AbiCheck {
     AbiCheck() {
         size_t s[2];
-        zorcom_uat_struct_sizes(s);
-        dect2::rsAbiCheck("zorcom_uat", s, {sizeof(ZorcomUatAdsb), sizeof(ZorcomUatUplink)});
+        saurcom_uat_struct_sizes(s);
+        dect2::rsAbiCheck("saurcom_uat", s, {sizeof(SaurcomUatAdsb), sizeof(SaurcomUatUplink)});
     }
 } abiCheck;
 } // namespace
 
 extern "C" void uat_decode_adsb_mdb(uint8_t* frame, struct uat_adsb_mdb* mdb) {
-    ZorcomUatAdsb r;
-    zorcom_uat_decode_adsb(frame, UAT_LONG_FRAME_DATA_BYTES, &r);
+    SaurcomUatAdsb r;
+    saurcom_uat_decode_adsb(frame, UAT_LONG_FRAME_DATA_BYTES, &r);
     memset(mdb, 0, sizeof *mdb);
     mdb->has_sv = r.has_sv; mdb->has_ms = r.has_ms; mdb->has_auxsv = r.has_auxsv;
     mdb->position_valid = r.position_valid; mdb->ns_vel_valid = r.ns_vel_valid; mdb->ew_vel_valid = r.ew_vel_valid;
@@ -45,8 +45,8 @@ extern "C" void uat_decode_adsb_mdb(uint8_t* frame, struct uat_adsb_mdb* mdb) {
 }
 
 extern "C" void uat_decode_uplink_mdb(uint8_t* frame, struct uat_uplink_mdb* mdb) {
-    ZorcomUatUplink r;
-    zorcom_uat_decode_uplink(frame, UAT_UPLINK_FRAME_DATA_BYTES, &r);
+    SaurcomUatUplink r;
+    saurcom_uat_decode_uplink(frame, UAT_UPLINK_FRAME_DATA_BYTES, &r);
     mdb->position_valid = r.position_valid;
     mdb->lat = r.lat; mdb->lon = r.lon;
     mdb->utc_coupled = r.utc_coupled; mdb->app_data_valid = r.app_data_valid;
@@ -56,7 +56,7 @@ extern "C" void uat_decode_uplink_mdb(uint8_t* frame, struct uat_uplink_mdb* mdb
     mdb->num_info_frames = r.num_info_frames;
     for (unsigned i = 0; i < r.num_info_frames; i++) {
         uat_uplink_info_frame& f = mdb->info_frames[i];
-        const ZorcomUatInfo& s = r.info[i];
+        const SaurcomUatInfo& s = r.info[i];
         f.length = s.length; f.type = s.kind; f.data = mdb->app_data + s.data_off;
         f.is_fisb = s.is_fisb;
         if (!s.is_fisb) continue;

@@ -68,7 +68,7 @@ void Randomizer::apply(uint8_t* data, size_t n) {
     }
 }
 
-// ---------------------------------------------------------------- Reed-Solomon (207,187): core/src/fec/fec_proto.cpp (C++) or the Rust crate zorcom_fec
+// ---------------------------------------------------------------- Reed-Solomon (207,187): core/src/fec/fec_proto.cpp (C++) or the Rust crate saurcom_fec
 void rsEncode(const uint8_t* in, uint8_t* out) { fecp::rs207Encode(in, out); }
 int rsDecode(uint8_t* r) { return fecp::rs207Decode(r); }
 

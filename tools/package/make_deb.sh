@@ -1,23 +1,23 @@
 #!/bin/bash
 # Build the Linux packages inside a container (needs Docker, for example via Colima on macOS):
-#   zorcom_<v>_<arch>.deb                       Debian and Ubuntu
-#   zorcom-<v>-Linux-<arch>.tar.gz              the same files, for unpacking by hand
-#   zorcom-<v>-linux-<arch>-portable.tar.gz     everything it needs inside, for any Linux (no installation, run bin/zorcom)
+#   saurcom_<v>_<arch>.deb                       Debian and Ubuntu
+#   saurcom-<v>-Linux-<arch>.tar.gz              the same files, for unpacking by hand
+#   saurcom-<v>-linux-<arch>-portable.tar.gz     everything it needs inside, for any Linux (no installation, run bin/saurcom)
 # FFmpeg is built static into the program, so the packages do not depend on the FFmpeg version of the system they are installed on.
 #   tools/package/make_deb.sh                       native architecture (arm64 on an Apple-silicon Mac); packages land in build-packages/
 #   PLATFORM=linux/amd64 tools/package/make_deb.sh  the x86-64 packages (built under emulation: slow, but the result is a normal x86-64 binary)
 set -e
 cd "$(dirname "$0")/../.."
 PLATFORM=${PLATFORM:-}
-IMAGE=zorcom-linux-pkg; VOL=zorcom-pkg-build; FFV=zorcom-pkg-ffmpeg; PF=
-if [ -n "$PLATFORM" ]; then IMAGE=zorcom-linux-pkg-x86; VOL=zorcom-pkg-build-x86; FFV=zorcom-pkg-ffmpeg-x86; PF="--platform $PLATFORM"; fi
+IMAGE=saurcom-linux-pkg; VOL=saurcom-pkg-build; FFV=saurcom-pkg-ffmpeg; PF=
+if [ -n "$PLATFORM" ]; then IMAGE=saurcom-linux-pkg-x86; VOL=saurcom-pkg-build-x86; FFV=saurcom-pkg-ffmpeg-x86; PF="--platform $PLATFORM"; fi
 if ! docker image inspect $IMAGE >/dev/null 2>&1; then
   if [ -n "$PLATFORM" ]; then
     # the legacy docker builder ignores --platform when the base image is cached for another architecture, so the x86 image is made by hand
     PKGS=$(tr '\n\\' '  ' < tools/dev/Dockerfile.package | grep -o 'install -y [^&]*' | sed 's/install -y //')
-    docker rm -f zorcom-x86-setup >/dev/null 2>&1 || true
-    docker run --platform $PLATFORM --name zorcom-x86-setup -e DEBIAN_FRONTEND=noninteractive ubuntu:22.04 bash -c "apt-get update && apt-get install -y $PKGS"
-    docker commit zorcom-x86-setup $IMAGE >/dev/null && docker rm zorcom-x86-setup >/dev/null
+    docker rm -f saurcom-x86-setup >/dev/null 2>&1 || true
+    docker run --platform $PLATFORM --name saurcom-x86-setup -e DEBIAN_FRONTEND=noninteractive ubuntu:22.04 bash -c "apt-get update && apt-get install -y $PKGS"
+    docker commit saurcom-x86-setup $IMAGE >/dev/null && docker rm saurcom-x86-setup >/dev/null
   else
     docker build -t $IMAGE -f tools/dev/Dockerfile.package tools/dev
   fi
@@ -36,4 +36,4 @@ docker run --rm $PF $JOBS -v "$PWD":/src:ro -v $VOL:/build -v $FFV:/ffmpeg -v "$
   cmake --build /build -j$(nproc) --target dect2 dect2cli dect2scan 2>&1 | grep -E "error|Error" -A3 | head -30
   cpack -G "DEB;TGZ" 2>&1 | tail -4
   /src/tools/package/make_portable_linux.sh /build /out
-  cp /build/zorcom_*.deb /build/zorcom-*.tar.gz /out/ 2>/dev/null; ls -la /out'
+  cp /build/saurcom_*.deb /build/saurcom-*.tar.gz /out/ 2>/dev/null; ls -la /out'

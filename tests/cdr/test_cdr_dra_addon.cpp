@@ -1,4 +1,4 @@
-// CDR sound through the user-installed DRA+ add-on (cdr_dra.h), tested with fake libraries (tests/cdr/fake_zorcom_dra.c): no codec, no sound device.
+// CDR sound through the user-installed DRA+ add-on (cdr_dra.h), tested with fake libraries (tests/cdr/fake_saurcom_dra.c): no codec, no sound device.
 //  1  the loader: no file, a library without the functions, one whose decoder cannot be made (all refused with a reason), a good one, "Look again"
 //  2  CdrAudio without the add-on: nothing counted, nothing played, no crash
 //  3  the add-on is installed after the audio object was made: sound starts after "Look again"
@@ -33,18 +33,18 @@ static uint64_t feed(CdrAudio& a, CdrTelemetry& t, size_t unitCount) {
 int main() {
     std::string path, prob;
     // ---------------------------------------------------------------- 1 the loader
-    setEnv("DECT2_DRA_PATH", "/nonexistent/libzorcom_dra_missing");
+    setEnv("DECT2_DRA_PATH", "/nonexistent/libsaurcom_dra_missing");
     CHECK(!cdr::draRescan(), "a missing file was accepted");
     CHECK(!cdr::draAvailable(&path, &prob) && prob.empty() && cdr::draApi() == nullptr, "missing: the problem stays empty ('%s')", prob.c_str());
     CHECK(!cdr::draFileNames().empty() && !cdr::draCandidatePaths().empty(), "file names and search paths are listed");
-    for (const std::string& n : cdr::draFileNames()) CHECK(n.find("zorcom_dra") != std::string::npos, "file name %s", n.c_str());
+    for (const std::string& n : cdr::draFileNames()) CHECK(n.find("saurcom_dra") != std::string::npos, "file name %s", n.c_str());
     setEnv("DECT2_DRA_PATH", FAKE_DRA_NOFUNC);
     CHECK(!cdr::draRescan() && !cdr::draAvailable(&path, &prob) && prob.find("DRADecRecvFrame") != std::string::npos && path == FAKE_DRA_NOFUNC, "no functions: '%s'", prob.c_str());
     setEnv("DECT2_DRA_PATH", FAKE_DRA_NOCREATE);
     CHECK(!cdr::draRescan() && !cdr::draAvailable(&path, &prob) && prob.find("no decoder") != std::string::npos, "no decoder: '%s'", prob.c_str());
 
     // ---------------------------------------------------------------- 2 not installed
-    setEnv("DECT2_DRA_PATH", "/nonexistent/libzorcom_dra_missing");
+    setEnv("DECT2_DRA_PATH", "/nonexistent/libsaurcom_dra_missing");
     cdr::draRescan();
     {
         CdrAudio a(true);

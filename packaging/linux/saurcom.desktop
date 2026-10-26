@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Eye of SaurCom
+GenericName=DVB-T2 / DVB-T / ATSC receiver
+Comment=Digital TV receiver for HackRF and other software-defined radios
+Exec=saurcom
+Icon=saurcom
+Terminal=false
+Categories=AudioVideo;Video;HamRadio;
+Keywords=DVB;DVB-T2;ATSC;SDR;HackRF;television;

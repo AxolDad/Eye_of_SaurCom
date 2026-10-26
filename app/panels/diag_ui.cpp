@@ -246,7 +246,7 @@ void audioRecordUi(App& a) {
             o.format = (dect2::AudioRecFormat)a.audioRecFmt; o.gated = a.audioRecGate; o.split = a.audioRecGate && a.audioRecSplit;
             const int m = a.engine.standardMode();
             const double hz = a.freqMhz * 1e6;
-            char tag[96]; snprintf(tag, sizeof tag, "Eye of ZorCom %s %.3f MHz", dect2::recordingModeId(m).c_str(), a.freqMhz);
+            char tag[96]; snprintf(tag, sizeof tag, "Eye of SaurCom %s %.3f MHz", dect2::recordingModeId(m).c_str(), a.freqMhz);
             o.tag = tag;
             const std::string path = plat::dataDir() + "/recordings/" + dect2::AudioRecorder::fileName(dect2::recordingModeId(m), hz, o.format);
             std::string err;
@@ -337,7 +337,7 @@ void audioStreamUi(App& a) {
     };
     field("##host", "icecast.example.net", c.host, 150); flowNext(4 * gUi);
     ImGui::SetNextItemWidth(70 * gUi); ImGui::InputInt("##port", &c.port, 0, 0); c.port = std::max(1, std::min(65535, c.port)); flowNext(4 * gUi);
-    field("##mount", "/zorcom", c.mount, 90); flowNext(4 * gUi);
+    field("##mount", "/saurcom", c.mount, 90); flowNext(4 * gUi);
     field("##pass", tr("password"), c.password, 90, ImGuiInputTextFlags_Password); flowNext(4 * gUi);
     const bool can = a.engine.running() && dect2::Mp3Enc::available();
     ImGui::BeginDisabled(!can);
@@ -453,10 +453,10 @@ std::string radioRangeWarning(const DeviceInfo& d, double freqMhz, const std::ma
     if (c.active) {   // the radio is tuned to the converter's output
         hz = c.rfToIf(hz);
         if (hz >= d.minFreqHz && hz <= d.maxFreqHz) return "";
-        return fmt("%.3f MHz at the antenna is %.3f MHz at the radio, outside what this radio is specified for (%.6g-%.6g MHz); Eye of ZorCom still asks for it, but the driver may not reach it or the signal may be weak or absent", freqMhz, hz / 1e6, d.minFreqHz / 1e6, d.maxFreqHz / 1e6);
+        return fmt("%.3f MHz at the antenna is %.3f MHz at the radio, outside what this radio is specified for (%.6g-%.6g MHz); Eye of SaurCom still asks for it, but the driver may not reach it or the signal may be weak or absent", freqMhz, hz / 1e6, d.minFreqHz / 1e6, d.maxFreqHz / 1e6);
     }
     if (hz >= d.minFreqHz && hz <= d.maxFreqHz) return "";
-    return fmt("%.3f MHz is outside what this radio is specified for (%.6g-%.6g MHz); Eye of ZorCom still asks for it, but the driver may not reach it or the signal may be weak or absent", freqMhz, d.minFreqHz / 1e6, d.maxFreqHz / 1e6);
+    return fmt("%.3f MHz is outside what this radio is specified for (%.6g-%.6g MHz); Eye of SaurCom still asks for it, but the driver may not reach it or the signal may be weak or absent", freqMhz, d.minFreqHz / 1e6, d.maxFreqHz / 1e6);
 }
 
 std::vector<RadioMsg> radioMessages(const App& a) {
@@ -519,7 +519,7 @@ std::string slurp(const std::filesystem::path& p, size_t maxBytes = 4u << 20) {
 bool writeZipFile(const std::string& path, const std::vector<std::pair<std::string, std::string>>& files) { return writeZip(path, files); }
 
 std::string buildDiagnostics(const DiagInput& in) {
-    std::string s = "Eye of ZorCom diagnostics\n";
+    std::string s = "Eye of SaurCom diagnostics\n";
     s += "Version: " + in.version + "\n";
     s += "OS: " + in.os + "\n";
     s += "CPU: " + in.cpu + "\n";
@@ -545,7 +545,7 @@ std::string buildDiagnostics(const DiagInput& in) {
 
 std::string diagnosticsText(App& a) {
     DiagInput in;
-    in.version = ZORCOM_VERSION;
+    in.version = SAURCOM_VERSION;
     in.os = osName();
     in.cpu = cpuName();
     in.gpu = gpuName();
@@ -662,12 +662,12 @@ void radioMessagesUi(App& a, bool vertical) {
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Copies the version, system, radios, messages and radio log lines, for a bug report"));
     ImGui::SameLine();
     if (ImGui::SmallButton(tr("Save bug report"))) {
-        const std::string path = plat::saveFileDialog("zorcom-bug-report.zip");
+        const std::string path = plat::saveFileDialog("saurcom-bug-report.zip");
         if (!path.empty()) {
             const std::filesystem::path d = std::filesystem::path(std::u8string(reinterpret_cast<const char8_t*>(dect2::crash::logDir().data()), dect2::crash::logDir().size()));
             std::vector<std::pair<std::string, std::string>> f;
             f.push_back({"diagnostics.txt", diagnosticsText(a)});
-            for (const char* n : {"zorcom.log", "zorcom-prev.log", "crash.txt"}) {
+            for (const char* n : {"saurcom.log", "saurcom-prev.log", "crash.txt"}) {
                 std::error_code ec;
                 if (std::filesystem::exists(d / n, ec)) f.push_back({n, slurp(d / n)});
             }

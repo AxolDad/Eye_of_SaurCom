@@ -34,7 +34,7 @@ const char* kindName(FieldKind k) {
 
 std::string protocolJson(const Candidate& c, const FieldReport& f, const std::string& name, double fs) {
     std::string j = "{\n";
-    j += "  \"format\": \"zorcom-protocol-lab\",\n  \"version\": 1,\n";
+    j += "  \"format\": \"saurcom-protocol-lab\",\n  \"version\": 1,\n";
     j += "  \"name\": \"" + esc(name) + "\",\n";
     j += "  \"modulation\": \"" + esc(demodName(c.demod)) + "\",\n";
     j += "  \"symbol_rate_baud\": " + num(c.baud) + ",\n";
@@ -82,7 +82,7 @@ std::string protocolJson(const Candidate& c, const FieldReport& f, const std::st
         i = k + 1;
     }
     j += "\n  ],\n";
-    j += "  \"notes\": \"Made by the Eye of ZorCom Protocol lab from captured packets. Field kinds are guesses from the packets seen; nothing is decrypted.\"\n}\n";
+    j += "  \"notes\": \"Made by the Eye of SaurCom Protocol lab from captured packets. Field kinds are guesses from the packets seen; nothing is decrypted.\"\n}\n";
     return j;
 }
 

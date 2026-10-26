@@ -1,4 +1,4 @@
-# OnAir-SDR-Suite: Bug Hunt Report
+# Eye_of_ZorCom: Bug Hunt Report
 
 **Branch:** `claude/busy-curie-ef8t0e` (at `592665e`, same as fork `main`)
 **Scope:** first-party code (`core/`, `app/`, `rust/`, `tests/`, `tools/`, `web/`, `packaging/`, `sdk/`, `server/`, `cmake/`, `.github/`, `CMakeLists.txt`, `data/`). `third_party/` excluded. Translation files, golden `*.log` data, lock files, and binary assets excluded.
@@ -11,8 +11,8 @@ This is a **partial** hunt, not a complete one.
 - The reviewer subagents hit an API weekly usage limit partway through. Of 17 planned shards, **16 produced partial findings** and **1 produced none**:
   - **Shard 15 (`tests/` a–m, 721 files, ~91k lines):** not read line by line. A pattern scan covered every file, looking for duplicated `||`/`&&` operands, self-comparisons, constant `CHECK(true)`, and integer `abs()` on floating values. It found nothing reportable. The self-comparison hits are member-against-parameter lookups, and the four `CHECK(true, …)` calls deliberately check that a run survived without crashing. This is a weak pass: logic errors in expected values would not show up in it.
   - **Shard 09 (`core/include/dect2/` a–h):** completed, but most declaration-only headers were skimmed rather than read line by line.
-  - **Rust decoder crates shard 12 never reached** (`zorcom_dmr`, `p25`, `fec`, `drm`, `vdl2`, `dvbsi`, `dab`, `wisun`, `ts`, `tetra`, `nxdn`, `hfdl`, `dstar`, `uat`; ~20k lines): a targeted pass by the lead reviewer, not a line-by-line read. It covered every raw-slice construction at the FFI boundary (`from_raw_parts`): each is guarded for null and zero length, or takes a documented fixed size. It also covered every slice bounded by a packet-derived length in the parsers: DMR text, DRM SDC, VDL2 XID, DAB JL and MOT, Wi-SUN MAC, and HFDL LPDU, each guarded before slicing. Neither turned up a defect. The VDL2 RS `n_parity` from C is clamped. This rules out the most likely panic and memory sites but does not cover decode logic.
-  - **Shard 11 (`rust/zorcom_usb`):** completed in full; `cargo test -p zorcom_usb` passes (11/11).
+  - **Rust decoder crates shard 12 never reached** (`saurcom_dmr`, `p25`, `fec`, `drm`, `vdl2`, `dvbsi`, `dab`, `wisun`, `ts`, `tetra`, `nxdn`, `hfdl`, `dstar`, `uat`; ~20k lines): a targeted pass by the lead reviewer, not a line-by-line read. It covered every raw-slice construction at the FFI boundary (`from_raw_parts`): each is guarded for null and zero length, or takes a documented fixed size. It also covered every slice bounded by a packet-derived length in the parsers: DMR text, DRM SDC, VDL2 XID, DAB JL and MOT, Wi-SUN MAC, and HFDL LPDU, each guarded before slicing. Neither turned up a defect. The VDL2 RS `n_parity` from C is clamped. This rules out the most likely panic and memory sites but does not cover decode logic.
+  - **Shard 11 (`rust/saurcom_usb`):** completed in full; `cargo test -p saurcom_usb` passes (11/11).
   - **Shards 01–08, 10, 12–14, 16, 17:** partial. The reviewers got through some files and stopped before others, so some directories have no findings because they were never reached, not because they are clean.
 - The brief asked for every file to be reviewed multiple times. That was not achieved. Each file in the reviewed portions got one full read, with a second pass only on risky files.
 - **Treat "no finding" as "not checked," not "clean."** Directories with zero findings in the list below should be considered unreviewed.
@@ -131,7 +131,7 @@ Verification status:
 - **M21. CPR-decode check for the PLP mode switch uses non-atomic counters.** `core/include/dect2/t2/t2plp.h:69,90-94`. `setMode` writes `switched_`, `pathFrames_` and `slowRun_` while the decode thread modifies them. Only `mode_` and `autoGpu_` are atomic. *Fix:* make them atomic, or post a request that the decode thread applies.
 - **M22. Unsynchronised log/frame callback invocations on the feed thread.** `core/src/wifi/wifi_rx.cpp:366,441`, `core/src/wisun/wisun_rx.cpp:736`, `core/src/halow/halow_rx.cpp:177`, and similar in `p25`, `nxdn`, `dstar`, `m17`, `dpmr`, `tetra`. The setters take the lock, but the feed thread invokes the stored `std::function` without it. Replacing a callback mid-decode is a data race. *Fix:* copy the callback under the mutex before invoking it.
 - **M23. CSV/JSON memory import: out-of-range double → int conversions.** `core/src/channels/memory_io.cpp:186,188` (MHz/Hz columns skip the `< 1e13` check the JSON path enforces) and `:70,75,80`. Undefined behaviour on a hostile file. *Fix:* apply the same range checks to every branch.
-- **M24. GPIO numbers ≥ 8 alias onto GPIO 0–7 in the RTL-SDR driver.** `rust/zorcom_usb/src/rtl.rs:201-215, 867-872` and `rust/zorcom_usb/src/ffi.rs:286-288`. `1u8.wrapping_shl(gpio)` masks to 0..7, so GPIO 8 clears bit 0, the bias-tee. This can switch off a forced bias-tee. *Fix:* return -1 for `gpio` outside 0..=7.
+- **M24. GPIO numbers ≥ 8 alias onto GPIO 0–7 in the RTL-SDR driver.** `rust/saurcom_usb/src/rtl.rs:201-215, 867-872` and `rust/saurcom_usb/src/ffi.rs:286-288`. `1u8.wrapping_shl(gpio)` masks to 0..7, so GPIO 8 clears bit 0, the bias-tee. This can switch off a forced bias-tee. *Fix:* return -1 for `gpio` outside 0..=7.
 - **M25. Rotator sign handling double-negates negative values.** Shard 02 rated this Low, but it changes output on every negative reply, so it is listed here. Re-read and confirmed. `core/src/source/rotator.cpp:117-119, 138-139`. `stod` already keeps the sign, then the code negates again: `-010` elevation reads as +10, and `-030` azimuth as 30 rather than 330. *Fix:* parse the digits only, or drop the second negation.
 
 ---
@@ -195,12 +195,12 @@ Grouped by area. Each item lists location and a one-line description. See the sh
 - `app/platform/platform_posix.cpp:395,433`: see M7.
 
 ### Rust (`rust/`)
-- `rust/zorcom_mesh/src/aprs.rs:41-61`: MeshCom `clean_text` accepts overlong, surrogate, and above-U+10FFFF UTF-8, contrary to its own doc comment.
-- `rust/zorcom_usb/src/rtl.rs:349-353, 493-507`, `rust/zorcom_usb/src/r82xx.rs:308`: ppm correction of −1,000,000 or lower makes the crystal 0 and divides by zero in `r82_set_pll`. Aborts across FFI. *(Medium, shard 11.)*
-- `rust/zorcom_usb/src/ffi.rs:317,326`: EEPROM `offset` truncated from `u32` to `u8`, so `0x1FA` writes to `0xFA`. *(Low, shard 11.)*
-- `rust/zorcom_usb/src/r82xx.rs:308-313`: `nint` truncated to `u8` before the range check, so out-of-range PLL dividers are accepted. *(Low.)*
-- `rust/zorcom_usb/src/rtl.rs:335-340`: unvalidated tuner crystal frequency; doubling `2^31` wraps to 0 and divides by zero. *(Low.)*
-- `rust/zorcom_usb/src/e4k.rs:523-525`: E4000 IF stage and gain narrowed with `as` casts, so out-of-range values alias valid ones. *(Low.)*
+- `rust/saurcom_mesh/src/aprs.rs:41-61`: MeshCom `clean_text` accepts overlong, surrogate, and above-U+10FFFF UTF-8, contrary to its own doc comment.
+- `rust/saurcom_usb/src/rtl.rs:349-353, 493-507`, `rust/saurcom_usb/src/r82xx.rs:308`: ppm correction of −1,000,000 or lower makes the crystal 0 and divides by zero in `r82_set_pll`. Aborts across FFI. *(Medium, shard 11.)*
+- `rust/saurcom_usb/src/ffi.rs:317,326`: EEPROM `offset` truncated from `u32` to `u8`, so `0x1FA` writes to `0xFA`. *(Low, shard 11.)*
+- `rust/saurcom_usb/src/r82xx.rs:308-313`: `nint` truncated to `u8` before the range check, so out-of-range PLL dividers are accepted. *(Low.)*
+- `rust/saurcom_usb/src/rtl.rs:335-340`: unvalidated tuner crystal frequency; doubling `2^31` wraps to 0 and divides by zero. *(Low.)*
+- `rust/saurcom_usb/src/e4k.rs:523-525`: E4000 IF stage and gain narrowed with `as` casts, so out-of-range values alias valid ones. *(Low.)*
 
 ### Tests (`tests/`)
 - `tests/packet/test_packet_width.cpp:21,44,58-62`: the neighbour callsign is 16 characters, but AX.25 callsigns hold 6. The `foreign` check can never be true, and nothing asserts it. *(Medium.)*

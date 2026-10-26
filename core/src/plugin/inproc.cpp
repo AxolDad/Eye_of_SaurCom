@@ -43,7 +43,7 @@ struct Core : ApiSink {
     StartOptions o;
     Manifest man;
     Lib lib;
-    ZorComHostApi api{};
+    SaurComHostApi api{};
     void* inst = nullptr;
 
     std::mutex mu;
@@ -95,42 +95,42 @@ struct Guard {   // marks "inside plugin code" for the watchdog
 };
 
 void callJob(Core& c, const Job& j) {
-    const ZorComPluginVTable* v = c.lib.vt;
+    const SaurComPluginVTable* v = c.lib.vt;
     auto has = [&](size_t off) { return v->struct_size >= off + sizeof(void*); };
     switch (j.k) {
     case Job::Config:
-        if (has(offsetof(ZorComPluginVTable, configure)) && v->configure) v->configure(c.inst, j.a, j.b);
+        if (has(offsetof(SaurComPluginVTable, configure)) && v->configure) v->configure(c.inst, j.a, j.b);
         break;
     case Job::Iq:
-        if (has(offsetof(ZorComPluginVTable, process_iq)) && v->process_iq) {
-            ZorComIqMeta m{sizeof m, j.meta.centreHz, j.meta.sampleRate, j.meta.timestamp, j.meta.firstSample};
+        if (has(offsetof(SaurComPluginVTable, process_iq)) && v->process_iq) {
+            SaurComIqMeta m{sizeof m, j.meta.centreHz, j.meta.sampleRate, j.meta.timestamp, j.meta.firstSample};
             v->process_iq(c.inst, j.iq.data(), (uint32_t)(j.iq.size() / 2), &m);
         }
         break;
     case Job::Event:
-        if (has(offsetof(ZorComPluginVTable, on_event)) && v->on_event) {
-            std::vector<ZorComField> f;
+        if (has(offsetof(SaurComPluginVTable, on_event)) && v->on_event) {
+            std::vector<SaurComField> f;
             std::vector<std::string> keep;
             keep.reserve(j.ev.f.size());
             for (const auto& kv : j.ev.f) {
                 if (f.size() >= 64) break;
                 keep.push_back(kv.first);
-                ZorComField x{};
+                SaurComField x{};
                 x.key = keep.back().c_str();
                 if (kv.second.t == automation::Value::Str) { x.is_text = 1; x.s = kv.second.s.c_str(); }
                 else if (kv.second.t == automation::Value::Bool) x.d = kv.second.b ? 1 : 0;
                 else x.d = kv.second.n;
                 f.push_back(x);
             }
-            ZorComEvent e{sizeof e, j.ev.type.c_str(), j.ev.mode.c_str(), j.ev.time, j.ev.freqHz, (uint32_t)f.size(), f.data()};
+            SaurComEvent e{sizeof e, j.ev.type.c_str(), j.ev.mode.c_str(), j.ev.time, j.ev.freqHz, (uint32_t)f.size(), f.data()};
             v->on_event(c.inst, &e);
         }
         break;
     case Job::Tick:
-        if ((v->caps & ZORCOM_CAP_TICK) && has(offsetof(ZorComPluginVTable, tick)) && v->tick) v->tick(c.inst, j.a);
+        if ((v->caps & SAURCOM_CAP_TICK) && has(offsetof(SaurComPluginVTable, tick)) && v->tick) v->tick(c.inst, j.a);
         break;
     case Job::Setting:
-        if ((v->caps & ZORCOM_CAP_SETTINGS) && has(offsetof(ZorComPluginVTable, setting_changed)) && v->setting_changed) v->setting_changed(c.inst, j.key.c_str());
+        if ((v->caps & SAURCOM_CAP_SETTINGS) && has(offsetof(SaurComPluginVTable, setting_changed)) && v->setting_changed) v->setting_changed(c.inst, j.key.c_str());
         break;
     }
 }
@@ -266,8 +266,8 @@ std::unique_ptr<Runner> startInProcess(const StartOptions& o, std::string& err) 
     fillHostApi(c->api, c.get());
     auto r = std::make_unique<InProc>();
     r->c = c;
-    r->worker = dect2::namedThread("zorcom-plg-wk", workerMain, c);
-    r->dog = dect2::namedThread("zorcom-plg-dog", watchdogMain, c);
+    r->worker = dect2::namedThread("saurcom-plg-wk", workerMain, c);
+    r->dog = dect2::namedThread("saurcom-plg-dog", watchdogMain, c);
     // wait for create() to return (it is under the watchdog too)
     {
         std::unique_lock<std::mutex> lk(c->mu);

@@ -235,7 +235,7 @@ static std::string slug(const std::string& s) {
 std::string fileStem(const Meta& m) {
     std::string f = freqText(m.freqHz);
     f.erase(std::remove(f.begin(), f.end(), ' '), f.end());
-    return "zorcom_" + slug(m.mode) + (f.empty() ? "" : "_" + f) + "_" + stampOf(m.t0);
+    return "saurcom_" + slug(m.mode) + (f.empty() ? "" : "_" + f) + "_" + stampOf(m.t0);
 }
 // radio text is untrusted: one short plain line, nothing Discord would turn into a ping, link, mention or format
 static std::string plainLine(const std::string& s, size_t maxLen) {
@@ -292,7 +292,7 @@ std::string discordText(const Content& c) {
     if (c.wantImage && c.spectro.w > 0) a += "discord.png";
     if (c.wantAudio && !c.audio.empty()) a += std::string(a.empty() ? "" : ", ") + "audio.wav";
     a += std::string(a.empty() ? "" : ", ") + "clip.html";
-    s += a + "\n*Made with Eye of ZorCom* <" + kRepoUrl + ">\n";
+    s += a + "\n*Made with Eye of SaurCom* <" + kRepoUrl + ">\n";
     return s;
 }
 
@@ -351,7 +351,7 @@ Image composite(const Content& c) {
     for (int y = y0; y < im.h; y++) for (int x = 0; x < W; x++) { uint8_t* p = &im.rgba[((size_t)y * W + x) * 4]; p[0] = 18; p[1] = 24; p[2] = 32; p[3] = 255; }
     drawText(im, 12, y0 + 8, asciiOnly(headline(c.meta)), 3, 0xFFFFFF);
     drawText(im, 12, y0 + 38, asciiOnly(detailLine(c.meta, false)), 2, 0xD8C8A8);
-    const std::string wm = "Made with Eye of ZorCom";
+    const std::string wm = "Made with Eye of SaurCom";
     const int ww = drawText(im, 0, 0, wm, 2, 0, true);
     drawText(im, W - ww - 12, y0 + 40, wm, 2, 0xE0B050);
     return im;
@@ -366,7 +366,7 @@ std::string buildHtml(const Content& c) {
     h += "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">\n"
          "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; media-src data:; style-src 'unsafe-inline'\">\n"
          "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"color-scheme\" content=\"light dark\">\n";
-    h += "<title>" + htmlEscape("Eye of ZorCom clip: " + head) + "</title>\n<style>\n"
+    h += "<title>" + htmlEscape("Eye of SaurCom clip: " + head) + "</title>\n<style>\n"
          ":root{--bg:#fff;--fg:#1c2330;--mut:#5b6678;--card:#f2f4f8;--line:#d5dae3;--acc:#b36b00}\n"
          "@media (prefers-color-scheme:dark){:root{--bg:#0f141b;--fg:#e6e9ef;--mut:#9aa5b8;--card:#18202b;--line:#2a3442;--acc:#e0b050}}\n"
          "*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}\n"
@@ -408,7 +408,7 @@ std::string buildHtml(const Content& c) {
         if (c.table.rows.size() > maxRows) h += "<p class=\"meta\">" + std::to_string(c.table.rows.size() - maxRows) + " more rows are in messages.csv</p>";
         h += "</div>\n";
     }
-    h += "<footer>Made with <a href=\"" + std::string(kRepoUrl) + "\" rel=\"noopener noreferrer\">Eye of ZorCom</a>" + (m.version.empty() ? "" : " " + htmlEscape(m.version)) + "</footer>\n</main></body></html>\n";
+    h += "<footer>Made with <a href=\"" + std::string(kRepoUrl) + "\" rel=\"noopener noreferrer\">Eye of SaurCom</a>" + (m.version.empty() ? "" : " " + htmlEscape(m.version)) + "</footer>\n</main></body></html>\n";
     return h;
 }
 

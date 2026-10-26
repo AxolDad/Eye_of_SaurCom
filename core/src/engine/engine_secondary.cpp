@@ -239,7 +239,7 @@ void Engine::pushSecondary(const cf32* x, size_t n) {
 }
 
 void Engine::secondaryLoop(int a) {
-    setThreadName(a >= 0 && a < 10 ? ("zorcom-rx" + std::to_string(a + 1)).c_str() : "zorcom-rx");   // one analysis thread per secondary receiver
+    setThreadName(a >= 0 && a < 10 ? ("saurcom-rx" + std::to_string(a + 1)).c_str() : "saurcom-rx");   // one analysis thread per secondary receiver
     setThreadPriority(ThreadPriority::Background);   // below the first mode's sample path
     CaptureShifter mix;
     ExactResampler rs;   // the capture's rate down to the second mode's own

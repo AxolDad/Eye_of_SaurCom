@@ -62,15 +62,15 @@ bool spawnProgram(const std::string& program, const std::vector<std::string>& ar
 }
 
 bool notify(const std::string& title, const std::string& body) {
-    SetEnvironmentVariableW(L"ZORCOM_NOTE_T", wide(oneLine(title, 120)).c_str());
-    SetEnvironmentVariableW(L"ZORCOM_NOTE_B", wide(oneLine(body, 240)).c_str());
+    SetEnvironmentVariableW(L"SAURCOM_NOTE_T", wide(oneLine(title, 120)).c_str());
+    SetEnvironmentVariableW(L"SAURCOM_NOTE_B", wide(oneLine(body, 240)).c_str());
     const char* script =
         "[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] > $null;"
         "$t = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02);"
         "$x = $t.GetElementsByTagName('text');"
-        "$x[0].AppendChild($t.CreateTextNode($env:ZORCOM_NOTE_T)) > $null;"
-        "$x[1].AppendChild($t.CreateTextNode($env:ZORCOM_NOTE_B)) > $null;"
-        "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Eye of ZorCom').Show([Windows.UI.Notifications.ToastNotification]::new($t))";
+        "$x[0].AppendChild($t.CreateTextNode($env:SAURCOM_NOTE_T)) > $null;"
+        "$x[1].AppendChild($t.CreateTextNode($env:SAURCOM_NOTE_B)) > $null;"
+        "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Eye of SaurCom').Show([Windows.UI.Notifications.ToastNotification]::new($t))";
     std::string err;
     return spawnProgram("powershell.exe", {"-NoProfile", "-NonInteractive", "-Command", script}, err);
 }
@@ -83,7 +83,7 @@ bool spawnProgram(const std::string& program, const std::vector<std::string>& ar
     pid_t pid;
     const int rc = posix_spawnp(&pid, program.c_str(), nullptr, nullptr, argv.data(), environ);
     if (rc != 0) { err = "cannot start " + program; return false; }
-    dect2::namedThread("zorcom-reap", [pid] { int st = 0; waitpid(pid, &st, 0); }).detach();   // reaped when it ends, nobody waits for it
+    dect2::namedThread("saurcom-reap", [pid] { int st = 0; waitpid(pid, &st, 0); }).detach();   // reaped when it ends, nobody waits for it
     return true;
 }
 
@@ -98,7 +98,7 @@ bool notify(const std::string& title, const std::string& body) {
     const std::string script = "display notification \"" + q(oneLine(body, 240)) + "\" with title \"" + q(oneLine(title, 120)) + "\"";
     return spawnProgram("/usr/bin/osascript", {"-e", script}, err);
 #else
-    return spawnProgram("notify-send", {"--app-name=Eye of ZorCom", "--", oneLine(title, 120), oneLine(body, 240)}, err);
+    return spawnProgram("notify-send", {"--app-name=Eye of SaurCom", "--", oneLine(title, 120), oneLine(body, 240)}, err);
 #endif
 }
 #endif

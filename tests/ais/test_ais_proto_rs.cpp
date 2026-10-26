@@ -1,4 +1,4 @@
-// Golden-vector test of the AIS frame layer (dect2::ais, the Rust crate zorcom_proto): the known gpsd / AIS-catcher sentences, frames built here, and ZORCOM_DIFF_ITERS
+// Golden-vector test of the AIS frame layer (dect2::ais, the Rust crate saurcom_proto): the known gpsd / AIS-catcher sentences, frames built here, and SAURCOM_DIFF_ITERS
 // (default 200000) seeded random and mutated frames, bit streams with values other than 0 and 1, and damaged sentences. Every result goes into a digest
 // (tests/common/golden.h; doubles rounded to 1e-6) compared with the one recorded from the C++ AIS frame layer the Rust code replaced.
 #include "dect2/ais/ais_proto.h"
@@ -121,7 +121,7 @@ static void mutateText(std::string& s) {
 }
 
 int main() {
-    const char* e = getenv("ZORCOM_DIFF_ITERS");
+    const char* e = getenv("SAURCOM_DIFF_ITERS");
     const long iters = e ? atol(e) : 200000;
 
     // known sentences: decode, re-frame, and the damaged versions

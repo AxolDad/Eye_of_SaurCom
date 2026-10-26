@@ -111,7 +111,7 @@ int main() {
         printf("%-28s FAC %d occ %d  SDC %llu/%llu '%s'  frames %d exact %d bad %d gaps %d  text '%s'\n", c.name, r.facOk, r.occ, (unsigned long long)r.sdcOk, (unsigned long long)r.sdcBad,
                r.label.c_str(), r.frames, r.exact, r.parseBad, r.gaps, r.text.c_str());
         CHECK(r.facOk && r.occ == c.occ, "%s: FAC not read", c.name);
-        CHECK(r.label == "ZorCom DRM", "%s: label '%s'", c.name, r.label.c_str());
+        CHECK(r.label == "SaurCom DRM", "%s: label '%s'", c.name, r.label.c_str());
         CHECK(r.frames >= (c.lng ? 3 : 8) && r.exact == r.frames && r.parseBad == 0 && r.gaps == 0, "%s: %d frames, %d exact, %d bad, %d gaps", c.name, r.frames, r.exact, r.parseBad, r.gaps);
         CHECK(r.text == t.text || r.frames < 12, "%s: text message '%s'", c.name, r.text.c_str());
     }

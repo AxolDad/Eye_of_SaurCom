@@ -1,6 +1,6 @@
 // SatNOGS transmitters (View > SatNOGS transmitters): the public SatNOGS DB list of satellite transmitters (read only, no login, nothing is
 // sent), cached on disk for a day, with filters (alive, band, mode, name), a Tune button per row that sets the radio to the downlink (and starts the
-// Eye of ZorCom mode that fits the SatNOGS mode, where there is one) and, when the pass planner has TLEs for the satellite, its next pass for the
+// Eye of SaurCom mode that fits the SatNOGS mode, where there is one) and, when the pass planner has TLEs for the satellite, its next pass for the
 // receiver's position.
 #include "../app.h"
 #include "../ui/typography.h"
@@ -82,7 +82,7 @@ void startDownload() {
         const std::string d = dir();
         std::error_code ec;
         fs::create_directories(fsPath(d), ec);
-        const std::string ua = "ZorCom/" ZORCOM_VERSION " (SatNOGS DB read-only list)";
+        const std::string ua = "SaurCom/" SAURCOM_VERSION " (SatNOGS DB read-only list)";
         bool ok = false;
         std::string msg;
         // each list goes to a .part file and replaces the cached one only when it parses
@@ -222,7 +222,7 @@ void drawWindow(App& a) {
                 if (ImGui::SmallButton(tr("Tune"))) tuneTo(a, t);
                 if (ImGui::IsItemHovered()) {
                     const int fam = dect2::satnogsFamily(t.mode, t.baud);
-                    ImGui::SetTooltip("%s", fam ? tr("Sets the frequency and opens the Eye of ZorCom mode that fits this mode") : tr("Sets the frequency (Eye of ZorCom has no decoder for this mode)"));
+                    ImGui::SetTooltip("%s", fam ? tr("Sets the frequency and opens the Eye of SaurCom mode that fits this mode") : tr("Sets the frequency (Eye of SaurCom has no decoder for this mode)"));
                 }
                 ImGui::PopID();
             }

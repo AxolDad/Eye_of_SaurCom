@@ -1,4 +1,4 @@
-// C ABI of the Rust crate rust/zorcom_uat (UAT 978 MHz message layer, RTCA DO-282B). Written by hand; the Rust test rust/zorcom/tests/headers.rs checks it against ffi.rs.
+// C ABI of the Rust crate rust/saurcom_uat (UAT 978 MHz message layer, RTCA DO-282B). Written by hand; the Rust test rust/saurcom/tests/headers.rs checks it against ffi.rs.
 // Flags are 0 / 1 bytes; the structs are plain C (no bit fields).
 #pragma once
 #include <stdbool.h>
@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 // One decoded ADS-B / TIS-B downlink message (the fields of dump978's struct uat_adsb_mdb). Enums are the numbers of the C enums.
-typedef struct ZorcomUatAdsb {
+typedef struct SaurcomUatAdsb {
     uint8_t has_sv, has_ms, has_auxsv, position_valid, ns_vel_valid, ew_vel_valid, speed_valid, dimensions_valid, position_offset, utc_coupled;
     uint8_t has_cdti, has_acas, acas_ra_active, ident_active, atc_services;
     uint8_t mdb_type, address_qualifier, nic, altitude_type, airground_state, track_type, vert_rate_source, tisb_site_id;
@@ -21,30 +21,30 @@ typedef struct ZorcomUatAdsb {
     double lat, lon, length, width;
     int16_t ns_vel, ew_vel, vert_rate;
     uint16_t track, speed;
-} ZorcomUatAdsb;
+} SaurcomUatAdsb;
 // FIS-B APDU header; data_off is the offset of the product data in the uplink application data.
-typedef struct ZorcomUatFisb {
+typedef struct SaurcomUatFisb {
     uint8_t a_flag, g_flag, p_flag, s_flag, monthday_valid, seconds_valid, month, day, hours, minutes, seconds;
     uint16_t product_id, length, data_off;
-} ZorcomUatFisb;
+} SaurcomUatFisb;
 // One information frame; data_off is the offset of its payload in the application data (frame bytes 8..431).
-typedef struct ZorcomUatInfo { uint8_t is_fisb, kind; uint16_t length, data_off; ZorcomUatFisb fisb; } ZorcomUatInfo;
+typedef struct SaurcomUatInfo { uint8_t is_fisb, kind; uint16_t length, data_off; SaurcomUatFisb fisb; } SaurcomUatInfo;
 // A decoded uplink frame. tail_*: the slot after the last counted frame, in which the reference stored length and type when its scan stopped there.
-typedef struct ZorcomUatUplink {
+typedef struct SaurcomUatUplink {
     uint8_t position_valid, utc_coupled, app_data_valid, slot_id, tisb_site_id, num_info_frames, tail_valid, tail_kind;
     uint16_t tail_length;
     double lat, lon;
-    ZorcomUatInfo info[70];
-} ZorcomUatUplink;
+    SaurcomUatInfo info[70];
+} SaurcomUatUplink;
 
 // ABI version of this module (2).
-uint32_t zorcom_uat_version(void);
-// sizeof of ZorcomUatAdsb and ZorcomUatUplink: the C++ side checks them at start-up.
-void zorcom_uat_struct_sizes(size_t out[2]);
+uint32_t saurcom_uat_version(void);
+// sizeof of SaurcomUatAdsb and SaurcomUatUplink: the C++ side checks them at start-up.
+void saurcom_uat_struct_sizes(size_t out[2]);
 
 // Decode a downlink payload (n bytes, bytes past n read as 0; 31 are used) / an uplink frame (n bytes, 432 are used). A NULL frame reads as all zero.
-void zorcom_uat_decode_adsb(const uint8_t* frame, size_t n, ZorcomUatAdsb* out);
-void zorcom_uat_decode_uplink(const uint8_t* frame, size_t n, ZorcomUatUplink* out);
+void saurcom_uat_decode_adsb(const uint8_t* frame, size_t n, SaurcomUatAdsb* out);
+void saurcom_uat_decode_uplink(const uint8_t* frame, size_t n, SaurcomUatUplink* out);
 
 #ifdef __cplusplus
 }

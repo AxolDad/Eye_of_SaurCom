@@ -28,7 +28,7 @@ const Question kQuestions[kNumQ] = {
     {N_("Does the spectrum show signal when you tune to a station you know is on the air?"),
      N_("Check the frequency and the band for the mode, then raise the gain a little. Make sure the sample rate is Auto.")},
     {N_("Does the radio accept the sample rate the mode needs?"),
-     N_("Set the sample rate to Auto. A radio cannot run at every rate, so Eye of ZorCom then picks the nearest rate the radio offers.")},
+     N_("Set the sample rate to Auto. A radio cannot run at every rate, so Eye of SaurCom then picks the nearest rate the radio offers.")},
     {N_("Do you hear sound when Listen is on?"),
      N_("Turn Listen on, raise the volume, and choose the output device in the audio output popup.")},
 };
@@ -83,7 +83,7 @@ std::string shortenPaths(const std::string& line) {
 
 // Free text from a radio or a file (its name, its board): folder paths shortened.
 std::string clean(const std::string& text) {
-    std::string s = replaceAll(text, dect2::crash::logDir(), "<Eye of ZorCom folder>");
+    std::string s = replaceAll(text, dect2::crash::logDir(), "<Eye of SaurCom folder>");
     const std::string home = homeDir();
     if (home.size() > 1) s = replaceAll(s, home, "~");
     return shortenPaths(s);
@@ -118,12 +118,12 @@ std::string rangeLine(double lo, double hi, double scale, const char* unit) {
 }
 
 std::string readmeText() {
-    return "Eye of ZorCom problem report\n"
+    return "Eye of SaurCom problem report\n"
            "\n"
            "This zip was made on your computer by Help > Report a problem. Nothing was uploaded.\n"
            "\n"
            "Files:\n"
-           "  diagnostics.txt  the Eye of ZorCom version, this computer, the selected source, the active mode,\n"
+           "  diagnostics.txt  the Eye of SaurCom version, this computer, the selected source, the active mode,\n"
            "                   the sample rate, the enabled features, your troubleshooter answers and the\n"
            "                   last 200 log lines (folder paths shortened, lines that may hold a secret left out)\n"
            "  README.txt       this file\n"
@@ -135,8 +135,8 @@ std::string readmeText() {
 std::string buildDiagnostics(App& a, const int* answers) {
     std::string os, cpu, gpu;
     systemInfoText(os, cpu, gpu);
-    std::string s = "Eye of ZorCom problem report\n";
-    s += std::string("Version: ") + ZORCOM_VERSION + "\n";
+    std::string s = "Eye of SaurCom problem report\n";
+    s += std::string("Version: ") + SAURCOM_VERSION + "\n";
     s += "OS: " + clean(os) + "\n";
     s += "CPU: " + clean(cpu) + "\n";
     s += "Graphics: " + clean(gpu) + "\n\n";
@@ -272,7 +272,7 @@ void reportProblemWindow(App& a) {
     if (ImGui::Button(tr("Refresh preview"))) st.built = false;
     ImGui::SameLine();
     if (ImGui::Button(tr("Save report zip..."))) {
-        const std::string path = plat::saveFileDialog("zorcom-report.zip");
+        const std::string path = plat::saveFileDialog("saurcom-report.zip");
         if (!path.empty()) {
             std::vector<std::pair<std::string, std::string>> files = {{"diagnostics.txt", st.diag}, {"README.txt", readmeText()}};
             st.status = writeZipFile(path, files)

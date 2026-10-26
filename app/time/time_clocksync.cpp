@@ -165,7 +165,7 @@ void clockSyncPanel(App& a) {
         auto job = S.job;
         { std::lock_guard<std::mutex> lk(job->mu); job->message.clear(); }
         job->running = true;
-        dect2::namedThread("zorcom-clksync", [job, off] {
+        dect2::namedThread("saurcom-clksync", [job, off] {
             std::string msg;
             const bool ok = clockSyncRun(off, msg);
             { std::lock_guard<std::mutex> lk(job->mu); job->message = msg; job->ok = ok; }

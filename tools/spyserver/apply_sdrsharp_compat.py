@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Apply SDR#-style SpyServer session setup to a SoapySpyServer source checkout.
 
-Run from the Eye of ZorCom repository:
+Run from the Eye of SaurCom repository:
   python tools/spyserver/apply_sdrsharp_compat.py ~/SoapySpyServer
 
 The upstream plugin establishes a much shorter session than SDR#. This patch
@@ -83,11 +83,11 @@ for path, before, after in (
     (protocol_path, protocol_path.read_text(), protocol),
 ):
     if before != after:
-        backup = path.with_suffix(path.suffix + ".zorcom-backup")
+        backup = path.with_suffix(path.suffix + ".saurcom-backup")
         if not backup.exists():
             backup.write_text(before)
         path.write_text(after)
         print("Updated:", path)
     else:
         print("Already updated:", path)
-print("Build and install SoapySpyServer, then copy DLL into Eye of ZorCom's module directory.")
+print("Build and install SoapySpyServer, then copy DLL into Eye of SaurCom's module directory.")

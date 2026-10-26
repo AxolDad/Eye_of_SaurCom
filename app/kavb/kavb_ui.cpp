@@ -141,7 +141,7 @@ void tab(App& a) {
     }
     ImGui::SameLine();
     if (!t.savePath.empty()) ImGui::TextDisabled("%llu bytes written to %s", (unsigned long long)t.savedBytes, t.savePath.c_str());
-    else ImGui::TextDisabled("%s", "Raw payload bytes of every packet but the station ID, in arrival order (a file sent by Eye of ZorCom comes back byte for byte when nothing was lost; video units are not a playable file).");
+    else ImGui::TextDisabled("%s", "Raw payload bytes of every packet but the station ID, in arrival order (a file sent by Eye of SaurCom comes back byte for byte when nothing was lost; video units are not a playable file).");
     if (!t.saveError.empty()) ImGui::TextColored(ImVec4(0.95f, 0.6f, 0.4f, 1), "%s", t.saveError.c_str());
 
     ImGui::Spacing();
@@ -207,8 +207,8 @@ void kavbPanel(TxUi& s, bool running) {
     }
     ImGui::TextWrapped("%s", "KAVB: amateur digital video, 1 to 2 MHz wide. No AV1 or Opus encoder is built in, so a camera is not a source: the payload is either the bytes of a file, "
                               "sent as data packets (a KAVB receiver that saves the payload gets the file back), or a synthetic test stream with video- and audio-sized units. "
-                              "The station ID goes out as a text packet. The transmission ends when the file or the test stream is sent. Empty callsign sends ZORCOM. "
-                              "Eye of ZorCom sets no limit on the frequency or the power.");
+                              "The station ID goes out as a text packet. The transmission ends when the file or the test stream is sent. Empty callsign sends SAURCOM. "
+                              "Eye of SaurCom sets no limit on the frequency or the power.");
     ImGui::BeginDisabled(running);
     ImGui::SetNextItemWidth(160 * gUi);
     if (ImGui::InputText("Callsign (7 characters at most)", s.callsign, sizeof s.callsign, ImGuiInputTextFlags_CharsUppercase)) clampText(s.callsign, 7);

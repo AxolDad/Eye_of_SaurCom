@@ -296,7 +296,7 @@ void tuner(App& a, bool& retune) {
         ImGui::BeginDisabled();
         ImGui::Selectable("978 MHz  UAT (US only)", false);
         ImGui::EndDisabled();
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("UAT is a separate system used by small aircraft in the US below 18,000 ft (FSK, not Mode S). Eye of ZorCom does not decode it yet.");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("UAT is a separate system used by small aircraft in the US below 18,000 ft (FSK, not Mode S). Eye of SaurCom does not decode it yet.");
         ImGui::EndCombo();
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Europe, the US and the rest of the world all send ADS-B on 1090 MHz (1090ES). The US has a second system, UAT on 978 MHz, which is not decoded yet.");

@@ -408,7 +408,7 @@ struct TetraReceiver::Impl {
     // results (under mu)
     TetraTelemetry tel, pub;
 
-    Impl() { th = dect2::namedThread("zorcom-tetra", [this] { run(); }); }
+    Impl() { th = dect2::namedThread("saurcom-tetra", [this] { run(); }); }
     ~Impl() {
         { std::lock_guard<std::mutex> lk(mu); stop = true; }
         cv.notify_all();

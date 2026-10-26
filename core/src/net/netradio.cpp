@@ -33,7 +33,7 @@ std::string hostPort(const std::string& host, int port) {
 }
 } // namespace
 
-// the type tables and the settings text of the list are in net_proto.h (C++ or the Rust crate zorcom_net)
+// the type tables and the settings text of the list are in net_proto.h (C++ or the Rust crate saurcom_net)
 const char* netRadioTypeName(NetRadio::Type t) {
     static const std::string names[13] = {netp::radioTypeName(0), netp::radioTypeName(1), netp::radioTypeName(2), netp::radioTypeName(3), netp::radioTypeName(4), netp::radioTypeName(5), netp::radioTypeName(6), netp::radioTypeName(7), netp::radioTypeName(8), netp::radioTypeName(9), netp::radioTypeName(10), netp::radioTypeName(11), netp::radioTypeName(12)};
     return names[(unsigned)t < 13 ? (unsigned)t : 1].c_str();
@@ -115,7 +115,7 @@ bool soapyRemoteModuleAvailable() {
 #endif
 }
 
-// What is missing and what to do about it, for the platform Eye of ZorCom runs on (0 Windows, 1 macOS, 2 Linux and others; -1 = this one).
+// What is missing and what to do about it, for the platform Eye of SaurCom runs on (0 Windows, 1 macOS, 2 Linux and others; -1 = this one).
 // Windows and macOS packages carry the module themselves, so there it means a damaged installation, not something to install.
 const char* soapyRemoteModuleHelpFor(int platform) {
     if (platform < 0) {
@@ -128,13 +128,13 @@ const char* soapyRemoteModuleHelpFor(int platform) {
 #endif
     }
     if (platform == 0)
-        return "The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. "
+        return "The SoapyRemote module is missing from this installation of Eye of SaurCom, so it cannot reach a remote radio. Reinstall Eye of SaurCom, and please report it if it happens again. "
                "The radio's computer must run SoapySDRServer --bind.";
     if (platform == 1)
-        return "The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. "
+        return "The SoapyRemote module is missing from this installation of Eye of SaurCom, so it cannot reach a remote radio. Reinstall Eye of SaurCom (or run brew install soapyremote), and please report it if it happens again. "
                "The radio's computer must run SoapySDRServer --bind.";
     return "SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; "
-           "other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind.";
+           "other systems: github.com/pothosware/SoapyRemote), then restart Eye of SaurCom. The radio's computer must run SoapySDRServer --bind.";
 }
 
 const char* soapyRemoteModuleHelp() { return soapyRemoteModuleHelpFor(-1); }
@@ -210,7 +210,7 @@ std::string soapyRemoteFailureHelp(const std::string& args) {
         if (it != gOffered.end()) all = it->second.all;
     }
     if (!soapyRemoteModuleAvailable()) return soapyRemoteModuleHelp();
-    std::string s = "The SoapyRemote server " + key + " did not give Eye of ZorCom a radio. ";
+    std::string s = "The SoapyRemote server " + key + " did not give Eye of SaurCom a radio. ";
     if (all.empty()) return s + "It lists no radios: check that SoapySDRServer runs there and that the radio's SoapySDR module (for example mirisdr or sdrplay) is installed on that computer, then pick the radio, or type its driver in the Remote driver box.";
     std::string pick;
     for (const auto& d : all) if (lower(d.driver) != "audio") { pick = d.driver; break; }
@@ -318,7 +318,7 @@ bool probeNetRadio(const NetRadio& r, int timeoutMs, std::string& err) {
     if (r.type == NetRadio::SoapyArgs) {   // nothing to reach by TCP: the driver opens it when started
         if (r.remote.empty()) { err = "type the device string, e.g. type=uhd,addr=10.0.0.55"; return false; }
 #ifndef DECT2_HAVE_SOAPY
-        err = "this build of Eye of ZorCom has no SoapySDR"; return false;
+        err = "this build of Eye of SaurCom has no SoapySDR"; return false;
 #else
         return true;
 #endif
@@ -326,8 +326,8 @@ bool probeNetRadio(const NetRadio& r, int timeoutMs, std::string& err) {
     const std::string host = cleanHost(r.host);
     if (host.empty()) { err = "type the radio's address"; return false; }
 #ifndef DECT2_HAVE_SOAPY
-    if (r.type == NetRadio::SoapyRemote) { err = "this build of Eye of ZorCom has no SoapySDR, which SoapyRemote needs"; return false; }
-    if (r.type == NetRadio::EspSdr) { err = "this build of Eye of ZorCom has no SoapySDR, which the ESP-SDR module (SoapyESPSDR) plugs into"; return false; }
+    if (r.type == NetRadio::SoapyRemote) { err = "this build of Eye of SaurCom has no SoapySDR, which SoapyRemote needs"; return false; }
+    if (r.type == NetRadio::EspSdr) { err = "this build of Eye of SaurCom has no SoapySDR, which the ESP-SDR module (SoapyESPSDR) plugs into"; return false; }
 #endif
     // an ESP-SDR board on Ethernet: its HTTP control port answers a TCP connection; the stream itself is the module's business
     if (r.type == NetRadio::SoapyRemote && !soapyRemoteModuleAvailable()) { err = soapyRemoteModuleHelp(); return false; }

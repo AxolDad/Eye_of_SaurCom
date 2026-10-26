@@ -104,7 +104,7 @@ void startGps() {
     stopGps();
     if (S.gpsMode != GpsNmea || !S.nmeaPath[0]) return;
     S.gcancel = false; S.grun = true; S.gpsMsg = "Waiting for a position fix.";
-    S.gth = dect2::namedThread("zorcom-rtgps", gpsWorker, std::string(S.nmeaPath));
+    S.gth = dect2::namedThread("saurcom-rtgps", gpsWorker, std::string(S.nmeaPath));
 }
 
 bool position(double& lat, double& lon, double& alt) {
@@ -351,12 +351,12 @@ void driveLog(App& a) {
     if (!S.status.empty() && S.logging) { ImGui::SameLine(); ImGui::TextColored(pal::warnAmber(), "%s", S.status.c_str()); }
     ImGui::BeginDisabled(S.log.size() == 0);
     if (ImGui::Button(tr("Save WiGLE CSV ..."))) {
-        const std::string p = plat::saveFileDialog("zorcom-drive.csv");
+        const std::string p = plat::saveFileDialog("saurcom-drive.csv");
         if (!p.empty()) S.status = writeFile(p, S.log.wigleCsv(S.rssiOffset)) ? "saved " + p : "could not write the file";
     }
     ImGui::SameLine();
     if (ImGui::Button(tr("Save KML ..."))) {
-        const std::string p = plat::saveFileDialog("zorcom-drive.kml");
+        const std::string p = plat::saveFileDialog("saurcom-drive.kml");
         if (!p.empty()) S.status = writeFile(p, S.log.kml()) ? "saved " + p : "could not write the file";
     }
     ImGui::SameLine();

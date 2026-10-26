@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pull dradec.c and dradec.h out of maliwen2015's ffmpeg-7.1.2_cavs_dra.patch (https://github.com/maliwen2015/ffmpeg_cavs_dra).
 
-Eye of ZorCom does not contain that source. Run this yourself if you want to build the optional DRA+ add-on (docs/CODECS.md, "DRA+ (CDR sound)").
+Eye of SaurCom does not contain that source. Run this yourself if you want to build the optional DRA+ add-on (docs/CODECS.md, "DRA+ (CDR sound)").
   python3 extract_dra.py [path/to/ffmpeg-7.1.2_cavs_dra.patch] [output folder]
 Without a patch path it downloads the patch from GitHub (about 1.4 MB). Output folder defaults to ./dra_src.
 """

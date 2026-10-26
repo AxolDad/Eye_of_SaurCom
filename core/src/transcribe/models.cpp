@@ -72,7 +72,7 @@ bool ModelDownloader::start(const SpeechModel& m, const std::string& dir) {
     total_ = m.bytes;
     { std::lock_guard<std::mutex> lk(mu_); err_.clear(); id_ = m.id; }
     state_ = State::Downloading;
-    th_ = dect2::namedThread("zorcom-models", [this, m, dir] { run(m, dir); });
+    th_ = dect2::namedThread("saurcom-models", [this, m, dir] { run(m, dir); });
     return true;
 }
 

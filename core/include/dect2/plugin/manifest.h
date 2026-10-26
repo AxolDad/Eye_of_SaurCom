@@ -7,7 +7,7 @@
 
 namespace dect2::plugin {
 
-constexpr uint32_t kAbiVersion = 1;            // zorcom_plugin.h ZORCOM_PLUGIN_ABI_VERSION
+constexpr uint32_t kAbiVersion = 1;            // saurcom_plugin.h SAURCOM_PLUGIN_ABI_VERSION
 constexpr size_t kMaxManifestBytes = 64 * 1024;
 constexpr size_t kMaxModes = 16, kMaxSettings = 64, kMaxOptions = 64;
 
@@ -31,7 +31,7 @@ struct SettingDef {
 
 struct Manifest {
     std::string id, name, version, author, license, homepage, description, kind;   // kind: mode, action, source, panel-lite
-    std::string minZorCom;                       // "0.2.7" or empty
+    std::string minSaurCom;                       // "0.2.7" or empty
     uint32_t abi = 0;
     uint32_t permissions = 0;
     std::string libMac, libLinux, libWindows;   // file names inside the plugin folder
@@ -43,7 +43,7 @@ struct Manifest {
 bool validId(const std::string& id);
 // -1 / 0 / 1; compares dotted numbers ("0.2.10" > "0.2.9"), ignores a suffix after '-' or '+'
 int compareVersions(const std::string& a, const std::string& b);
-// false and err on any problem. hostVersion: the running Eye of ZorCom version ("0.2.7") for minimum-version checks (empty skips it).
+// false and err on any problem. hostVersion: the running Eye of SaurCom version ("0.2.7") for minimum-version checks (empty skips it).
 bool parseManifest(const std::string& text, Manifest& out, std::string& err, const std::string& hostVersion = {});
 
 } // namespace dect2::plugin

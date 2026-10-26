@@ -58,7 +58,7 @@ std::unique_ptr<TxGenerator> makeKaitTxGenerator(const TxRequest& r, double rate
     std::string cs;
     for (char c : r.callsign) cs += (char)std::toupper((unsigned char)c);
     while (!cs.empty() && cs.back() == ' ') cs.pop_back();
-    if (cs.empty()) cs = "ZORCOM";   // an empty field is the demo identity, like every other mode
+    if (cs.empty()) cs = "SAURCOM";   // an empty field is the demo identity, like every other mode
     if (cs.size() > (size_t)kait::kMaxCallsign) { err = "KAIT: the callsign is at most 9 characters"; return nullptr; }
     for (char c : cs)
         if (!(c == '/' || c == '-' || c == '.' || (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z'))) { err = "KAIT: the callsign may hold only letters, digits, / - and ."; return nullptr; }

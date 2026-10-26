@@ -122,7 +122,7 @@ struct ShareServer::Impl {
                     char ip[64] = "?";
                     inet_ntop(AF_INET, &pa.sin_addr, ip, sizeof ip);
                     cl.name = std::string(ip) + ":" + std::to_string(ntohs(pa.sin_port));
-                    // the greeting: "RTL0", tuner type 0 (not an RTL-SDR tuner: an Eye of ZorCom client then takes any rate), 0 gains
+                    // the greeting: "RTL0", tuner type 0 (not an RTL-SDR tuner: an Eye of SaurCom client then takes any rate), 0 gains
                     const unsigned char hdr[12] = {'R', 'T', 'L', '0', 0, 0, 0, 0, 0, 0, 0, 0};
                     cl.pending.assign((const char*)hdr, sizeof hdr);
                     clients.push_back(std::move(cl));
@@ -187,7 +187,7 @@ void ShareServer::configure(const ShareConfig& cIn) {
     if (!c.on) return;
     { std::lock_guard<std::mutex> lk(p.mu); p.live = c; p.st.lastError.clear(); p.st.sentBytes = 0; p.st.droppedBytes = 0; }
     active_ = true;
-    p.th = dect2::namedThread("zorcom-share", [this, c] { p_->run(c); });
+    p.th = dect2::namedThread("saurcom-share", [this, c] { p_->run(c); });
     // wait until it listens (or failed), so that port 0 can be read back
     for (int i = 0; i < 400; i++) {
         { std::lock_guard<std::mutex> lk(p.mu); if (p.st.listening || !p.st.lastError.empty()) break; }

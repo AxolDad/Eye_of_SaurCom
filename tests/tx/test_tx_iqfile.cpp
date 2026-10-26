@@ -32,7 +32,7 @@ static std::vector<unsigned char> readAll(const std::string& p) {
 }
 
 int main() {
-    const fs::path dir = fs::temp_directory_path() / "zorcom_test_tx_iqfile";
+    const fs::path dir = fs::temp_directory_path() / "saurcom_test_tx_iqfile";
     fs::remove_all(dir);
     fs::create_directories(dir);
     const double rate = 96000, centre = 433.5e6;

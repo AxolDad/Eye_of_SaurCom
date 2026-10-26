@@ -8,7 +8,7 @@
 
 namespace {
 Updater& U(App& a) {
-    if (!a.upd) { a.upd.reset(new Updater(ZORCOM_VERSION)); a.upd->loadResult(); }   // loadResult: what the installation of an earlier start left behind
+    if (!a.upd) { a.upd.reset(new Updater(SAURCOM_VERSION)); a.upd->loadResult(); }   // loadResult: what the installation of an earlier start left behind
     return *a.upd;
 }
 bool resultDismissed = false;
@@ -37,20 +37,20 @@ void updateTick(App& a) {
     static double failT = -1;
     if (startAttempts > 0 && startAttempts < 2 && st.phase == Updater::Phase::Failed && failT < 0) failT = ImGui::GetTime();
     if (st.phase == Updater::Phase::Idle || st.phase == Updater::Phase::Failed) {
-        const int act = startupCheckAction(a.updCheck && !getenv("ZORCOM_NO_UPDATE_CHECK"), ImGui::GetTime() - startT, startAttempts,
+        const int act = startupCheckAction(a.updCheck && !getenv("SAURCOM_NO_UPDATE_CHECK"), ImGui::GetTime() - startT, startAttempts,
                                            failT >= 0 && st.phase == Updater::Phase::Failed, failT >= 0 ? ImGui::GetTime() - failT : 0);
         if (act) { startAttempts++; a.updStarted = true; u.check(a.updPre); }
     }
     if (st.phase != lastPhase) {
         lastPhase = st.phase;
         switch (st.phase) {
-        case Updater::Phase::UpToDate: a.updLast = nowS(); savePrefs(a); a.engine.log(std::string("Eye of ZorCom ") + ZORCOM_VERSION + " is the newest version"); break;
+        case Updater::Phase::UpToDate: a.updLast = nowS(); savePrefs(a); a.engine.log(std::string("Eye of SaurCom ") + SAURCOM_VERSION + " is the newest version"); break;
         case Updater::Phase::Available:
             a.updLast = nowS(); savePrefs(a);
-            a.engine.log("update available: Eye of ZorCom " + st.release.version + (st.release.prerelease ? tr(" (beta)") : ""));
-            if (a.updAuto && st.autoInstallable && !skipped(a, st.release) && !failedBefore(st, st.release)) { U(a).download(); a.engine.log("downloading Eye of ZorCom " + st.release.version + " in the background"); }
+            a.engine.log("update available: Eye of SaurCom " + st.release.version + (st.release.prerelease ? tr(" (beta)") : ""));
+            if (a.updAuto && st.autoInstallable && !skipped(a, st.release) && !failedBefore(st, st.release)) { U(a).download(); a.engine.log("downloading Eye of SaurCom " + st.release.version + " in the background"); }
             break;
-        case Updater::Phase::Ready: a.engine.log("Eye of ZorCom " + st.release.version + " is ready: it is installed when you close the program"); break;
+        case Updater::Phase::Ready: a.engine.log("Eye of SaurCom " + st.release.version + " is ready: it is installed when you close the program"); break;
         case Updater::Phase::Failed: a.engine.log("update: " + st.error); break;
         default: break;
         }
@@ -73,23 +73,23 @@ void updateButton(App& a) {
     ImVec4 col(0.62f, 0.68f, 0.75f, 1);
     switch (st.phase) {
     case Updater::Phase::Checking: snprintf(label, sizeof label, "%s", tr("checking…")); break;
-    case Updater::Phase::Available: snprintf(label, sizeof label, tr("update %s"), st.release.version.c_str()); col = ImVec4(0.95f, 0.75f, 0.2f, 1); if (skipped(a, st.release)) { snprintf(label, sizeof label, "v%s", ZORCOM_VERSION); col = ImVec4(0.62f, 0.68f, 0.75f, 1); } break;
+    case Updater::Phase::Available: snprintf(label, sizeof label, tr("update %s"), st.release.version.c_str()); col = ImVec4(0.95f, 0.75f, 0.2f, 1); if (skipped(a, st.release)) { snprintf(label, sizeof label, "v%s", SAURCOM_VERSION); col = ImVec4(0.62f, 0.68f, 0.75f, 1); } break;
     case Updater::Phase::Downloading: snprintf(label, sizeof label, tr("downloading %.0f%%"), st.total ? 100.0 * (double)st.done / (double)st.total : 0.0); col = ImVec4(0.4f, 0.75f, 0.95f, 1); break;
     case Updater::Phase::Preparing: snprintf(label, sizeof label, "%s", tr("preparing…")); col = ImVec4(0.4f, 0.75f, 0.95f, 1); break;
     case Updater::Phase::Ready: snprintf(label, sizeof label, "%s", tr("restart to update")); col = ImVec4(0.35f, 0.9f, 0.45f, 1); break;
-    case Updater::Phase::Failed: snprintf(label, sizeof label, "v%s", ZORCOM_VERSION); col = ImVec4(0.95f, 0.5f, 0.35f, 1); break;
-    default: snprintf(label, sizeof label, "v%s", ZORCOM_VERSION); break;
+    case Updater::Phase::Failed: snprintf(label, sizeof label, "v%s", SAURCOM_VERSION); col = ImVec4(0.95f, 0.5f, 0.35f, 1); break;
+    default: snprintf(label, sizeof label, "v%s", SAURCOM_VERSION); break;
     }
     ImGui::PushStyleColor(ImGuiCol_Text, col);
     if (ImGui::SmallButton(label)) { ImGui::OpenPopup("##updates"); }
     ImGui::PopStyleColor();
     const ImVec2 bmax = ImGui::GetItemRectMax();
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Updates"));
-    { static const bool dbg = getenv("ZORCOM_OPEN_UPDATES") != nullptr; if (dbg && st.phase != Updater::Phase::Idle && st.phase != Updater::Phase::Checking && !ImGui::IsPopupOpen("##updates")) ImGui::OpenPopup("##updates"); }   // for screenshots
+    { static const bool dbg = getenv("SAURCOM_OPEN_UPDATES") != nullptr; if (dbg && st.phase != Updater::Phase::Idle && st.phase != Updater::Phase::Checking && !ImGui::IsPopupOpen("##updates")) ImGui::OpenPopup("##updates"); }   // for screenshots
     ImGui::SetNextWindowPos(ImVec2(bmax.x + 70 * gUi, bmax.y + 4), ImGuiCond_Always, ImVec2(1, 0));   // under the button, its right edge near the window's
     ImGui::SetNextWindowSizeConstraints(ImVec2(400 * gUi, 0), ImVec2(520 * gUi, 520 * gUi));
     if (ImGui::BeginPopup("##updates")) {
-        ImGui::Text(tr("Eye of ZorCom %s"), ZORCOM_VERSION);
+        ImGui::Text(tr("Eye of SaurCom %s"), SAURCOM_VERSION);
         ImGui::SameLine(0, 10 * gUi);
         ImGui::TextDisabled("(%s)", installKindName(st.kind));
         ImGui::Separator();
@@ -121,7 +121,7 @@ void updateButton(App& a) {
             if (st.phase == Updater::Phase::Downloading) ImGui::ProgressBar(st.total ? (float)((double)st.done / (double)st.total) : 0.f, ImVec2(-1, 0));
             else if (st.phase == Updater::Phase::Preparing) ImGui::TextUnformatted(tr("Checking and preparing the new version…"));
             else if (st.phase == Updater::Phase::Ready) {
-                ImGui::TextColored(ImVec4(0.35f, 0.9f, 0.45f, 1), "%s", tr("Downloaded and checked. It is installed when you close Eye of ZorCom."));
+                ImGui::TextColored(ImVec4(0.35f, 0.9f, 0.45f, 1), "%s", tr("Downloaded and checked. It is installed when you close Eye of SaurCom."));
                 if (ImGui::Button(tr("Restart now and update"))) {
                     std::string err;
                     if (u.apply(true, &err)) glfwSetWindowShouldClose(gWindow, 1); else a.engine.log(err.compare(0, 6, "Update") == 0 ? err : "update: " + err);
@@ -133,7 +133,7 @@ void updateButton(App& a) {
                 if (st.autoInstallable) {
                     if (ImGui::Button(tr("Download and install"))) u.download();
                 }
-                else { ImGui::TextDisabled("%s", tr("This copy of Eye of ZorCom cannot replace itself.")); }
+                else { ImGui::TextDisabled("%s", tr("This copy of Eye of SaurCom cannot replace itself.")); }
                 ImGui::SameLine();
                 if (ImGui::Button(tr("Release page"))) u.openReleasePage();
                 ImGui::SameLine();

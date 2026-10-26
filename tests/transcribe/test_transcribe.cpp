@@ -327,7 +327,7 @@ static void store() {
     CHECK(js.front() == '[' && js.find("\\\"alpha\\\"") != std::string::npos, "json escapes");
     CHECK(csv.rfind("time_utc,frequency_mhz", 0) == 0 && csv.find("\"Speedbird four five six, taxi to holding point, \"\"alpha\"\", line 2\"") != std::string::npos, "csv quoting");
     // file: persistence, reload, retention
-    const fs::path dir = fs::temp_directory_path() / "zorcom_transcribe_test";
+    const fs::path dir = fs::temp_directory_path() / "saurcom_transcribe_test";
     fs::remove_all(dir);
     const std::string path = (dir / "t.jsonl").string();
     {
@@ -373,7 +373,7 @@ static void models() {
     }
     CHECK(findSpeechModel("tiny.en") && !findSpeechModel("huge"), "find");
     namespace fs = std::filesystem;
-    const fs::path dir = fs::temp_directory_path() / "zorcom_models_test";
+    const fs::path dir = fs::temp_directory_path() / "saurcom_models_test";
     fs::remove_all(dir);
     fs::create_directories(dir);
     CHECK(!speechModelInstalled(dir.string(), *findSpeechModel("tiny.en")), "not installed");

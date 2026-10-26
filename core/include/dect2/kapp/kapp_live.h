@@ -1,7 +1,7 @@
 // KAPP for the engine: IQ in, bursts out. kapp::BurstReceiver finds and decodes the bursts; every data burst goes to a selective-repeat message
 // assembler per sender callsign (kapp::ArqReceiver), a message that is complete goes to the packet list of the telemetry. This receiver only listens:
-// it never sends the ACK that the protocol asks for (Eye of ZorCom has no half-duplex turnaround), so a sender that waits for ACKs cannot finish through it;
-// a one-way sender repeats the message instead (the transmit option of Eye of ZorCom does). Family 124, engine standard 126, telemetry 125.
+// it never sends the ACK that the protocol asks for (Eye of SaurCom has no half-duplex turnaround), so a sender that waits for ACKs cannot finish through it;
+// a one-way sender repeats the message instead (the transmit option of Eye of SaurCom does). Family 124, engine standard 126, telemetry 125.
 //
 // Written to the engine's contract: configure() once the sample rate is known, feed() from the analysis thread,
 // telemetry() and the setters from the interface thread.

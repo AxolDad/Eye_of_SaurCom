@@ -110,7 +110,7 @@ bool passes(const dect2::WsNode& d) {
 
 void receiveNote() {
     ImGui::PushTextWrapPos(0);
-    ImGui::TextDisabled("Receive only: Eye of ZorCom never transmits, joins or answers a network. PAN configurations and data are encrypted (the keys come from an "
+    ImGui::TextDisabled("Receive only: Eye of SaurCom never transmits, joins or answers a network. PAN configurations and data are encrypted (the keys come from an "
                         "EAP-TLS exchange) and are shown as encrypted; what is sent in the clear is decoded: headers and addresses, PAN adverts and "
                         "solicits (network name, size, routing cost, schedules), EAPOL and the levels acks report. Nodes hop over every channel: "
                         "16 Msps or more takes in all of 915 - 928 MHz at once.");

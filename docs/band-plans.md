@@ -1,6 +1,6 @@
 # Band plans
 
-A band plan is the channel raster and the allocations of a country: the TV channels, FM, DAB, AM, airband, PMR, marine VHF, amateur and ISM bands. Eye of ZorCom ships plans for 27 countries and a generic European one, and lets you import your own.
+A band plan is the channel raster and the allocations of a country: the TV channels, FM, DAB, AM, airband, PMR, marine VHF, amateur and ISM bands. Eye of SaurCom ships plans for 27 countries and a generic European one, and lets you import your own.
 
 Where it shows:
 
@@ -52,7 +52,7 @@ In the Scan tab: **Import...** reads a CSV or JSON file, checks it, and keeps it
 
 ```json
 {
-  "format": "zorcom-bandplan-1",
+  "format": "saurcom-bandplan-1",
   "name": "My town",
   "region": "Europe",
   "itu_region": 1,
@@ -99,7 +99,7 @@ The header may use `_khz` or `_mhz` instead of `_hz` for `start`, `end`, `step`,
 | `first_channel` | The number of the first channel. Missing: the channels are not numbered. |
 | `first_centre_hz` | The centre of the first channel. Default: `start_hz` (`start_hz` plus half the width when there is a width). Channel *k* is at `first_centre_hz + k * step_hz`, and it exists while it fits inside the band. |
 | `channels` | Instead of a raster: an explicit list of `{label, centre_hz}` (DAB blocks, Australia's 9A). Cannot be combined with `step_hz`. |
-| `modes` | Suggested modes, by the names in Eye of ZorCom's mode list. For `tv` bands the standard decides which bands a TV mode uses: `DVB-T2` / `DVB-T`, `ATSC`, `ATSC 3.0`, `ISDB-T`, `DTMB`. |
+| `modes` | Suggested modes, by the names in Eye of SaurCom's mode list. For `tv` bands the standard decides which bands a TV mode uses: `DVB-T2` / `DVB-T`, `ATSC`, `ATSC 3.0`, `ISDB-T`, `DTMB`. |
 | `note`, `source` | Free text. |
 
 Plan fields: `name` (required), `region`, `itu_region` (1, 2 or 3), `countries` (ISO codes), `source`, `note`, `verified` (JSON: `false` shows the "not fully verified" note; CSV: `# verified: no`).

@@ -1,4 +1,4 @@
-// Wi-SUN FAN / IEEE 802.15.4g frame layers on top of the Rust crate rust/zorcom_wisun: the functions of wisun_proto.h;
+// Wi-SUN FAN / IEEE 802.15.4g frame layers on top of the Rust crate rust/saurcom_wisun: the functions of wisun_proto.h;
 // wisun_proto.cpp keeps the channel plan tables, the MPDU builder and the text helpers that call the 2.4 GHz mode.
 #include "dect2/wisun/wisun_proto.h"
 #include <memory>
@@ -15,22 +15,22 @@ namespace {
 struct AbiCheck {
     AbiCheck() {
         size_t s[3];
-        zorcom_wisun_struct_sizes(s);
-        dect2::rsAbiCheck("zorcom_wisun", s, {sizeof(ZorcomWisunFrame), sizeof(ZorcomWisunSchedule), sizeof(ZorcomWisunPhr)});
+        saurcom_wisun_struct_sizes(s);
+        dect2::rsAbiCheck("saurcom_wisun", s, {sizeof(SaurcomWisunFrame), sizeof(SaurcomWisunSchedule), sizeof(SaurcomWisunPhr)});
     }
 } abiCheck;
 
 template <class S> std::string str(const S& s) { return std::string((const char*)s.b, s.len); }
 
-ZorcomWisunSchedule toC(const Schedule& s) {
-    ZorcomWisunSchedule c;
+SaurcomWisunSchedule toC(const Schedule& s) {
+    SaurcomWisunSchedule c;
     c.present = s.present; c.bcast_interval_ms = s.bcastIntervalMs; c.bsi = s.bsi; c.dwell_ms = s.dwellMs; c.clock_drift = s.clockDrift;
     c.timing_accuracy = s.timingAccuracy; c.ch_plan = s.chPlan; c.ch_function = s.chFunction; c.excluded = s.excluded; c.reg_domain = s.regDomain;
     c.op_class = s.opClass; c.ch_plan_id = s.chPlanId; c.ch0_mhz = s.ch0Mhz; c.spacing_code = s.spacingCode; c.num_channels = s.numChannels;
     c.fixed_channel = s.fixedChannel; c.excluded_count = s.excludedCount;
     return c;
 }
-void fromC(const ZorcomWisunSchedule& c, Schedule& s) {
+void fromC(const SaurcomWisunSchedule& c, Schedule& s) {
     s.present = c.present != 0; s.bcastIntervalMs = c.bcast_interval_ms; s.bsi = c.bsi; s.dwellMs = c.dwell_ms; s.clockDrift = c.clock_drift;
     s.timingAccuracy = c.timing_accuracy; s.chPlan = c.ch_plan; s.chFunction = c.ch_function; s.excluded = c.excluded; s.regDomain = c.reg_domain;
     s.opClass = c.op_class; s.chPlanId = c.ch_plan_id; s.ch0Mhz = c.ch0_mhz; s.spacingCode = c.spacing_code; s.numChannels = c.num_channels;
@@ -39,39 +39,39 @@ void fromC(const ZorcomWisunSchedule& c, Schedule& s) {
 } // namespace
 
 Phr parsePhr(uint16_t v) {
-    ZorcomWisunPhr c;
-    zorcom_wisun_parse_phr(v, &c);
+    SaurcomWisunPhr c;
+    saurcom_wisun_parse_phr(v, &c);
     Phr p;
     p.modeSwitch = c.mode_switch != 0; p.fcs2 = c.fcs2 != 0; p.whitened = c.whitened != 0; p.length = c.length;
     return p;
 }
 
 uint16_t buildPhr(const Phr& p) {
-    ZorcomWisunPhr c;
+    SaurcomWisunPhr c;
     c.mode_switch = p.modeSwitch; c.fcs2 = p.fcs2; c.whitened = p.whitened; c.length = p.length;
-    return zorcom_wisun_build_phr(&c);
+    return saurcom_wisun_build_phr(&c);
 }
 
-void whiten(uint8_t* d, size_t n) { zorcom_wisun_whiten(d, n); }
-uint32_t crc32(const uint8_t* d, size_t n) { return zorcom_wisun_crc32(d, n); }
-uint16_t crc16(const uint8_t* d, size_t n) { return zorcom_wisun_crc16(d, n); }
-bool fcsOk(const uint8_t* p, size_t n, bool fcs2) { return zorcom_wisun_fcs_ok(p, n, fcs2); }
+void whiten(uint8_t* d, size_t n) { saurcom_wisun_whiten(d, n); }
+uint32_t crc32(const uint8_t* d, size_t n) { return saurcom_wisun_crc32(d, n); }
+uint16_t crc16(const uint8_t* d, size_t n) { return saurcom_wisun_crc16(d, n); }
+bool fcsOk(const uint8_t* p, size_t n, bool fcs2) { return saurcom_wisun_fcs_ok(p, n, fcs2); }
 
-const char* regDomainName(int c) { return zorcom_wisun_reg_domain_name(c); }
-const char* uttName(int t) { return zorcom_wisun_utt_name(t); }
-const char* uttShort(int t) { return zorcom_wisun_utt_short(t); }
-const char* chFunctionName(int f) { return zorcom_wisun_ch_function_name(f); }
+const char* regDomainName(int c) { return saurcom_wisun_reg_domain_name(c); }
+const char* uttName(int t) { return saurcom_wisun_utt_name(t); }
+const char* uttShort(int t) { return saurcom_wisun_utt_short(t); }
+const char* chFunctionName(int f) { return saurcom_wisun_ch_function_name(f); }
 
 std::string scheduleText(const Schedule& s) {
-    const ZorcomWisunSchedule c = toC(s);
+    const SaurcomWisunSchedule c = toC(s);
     uint8_t b[512];
-    const size_t n = zorcom_wisun_schedule_text(&c, b, sizeof b);
+    const size_t n = saurcom_wisun_schedule_text(&c, b, sizeof b);
     return n == (size_t)-1 ? std::string() : std::string((const char*)b, n);
 }
 
 Frame parse(const uint8_t* mpdu, size_t n) {
-    auto c = std::make_unique<ZorcomWisunFrame>();
-    zorcom_wisun_parse(mpdu, n, c.get());
+    auto c = std::make_unique<SaurcomWisunFrame>();
+    saurcom_wisun_parse(mpdu, n, c.get());
     Frame f;
     f.ok = c->ok != 0; f.type = c->kind; f.version = c->version;
     f.secured = c->secured != 0; f.pending = c->pending != 0; f.ackReq = c->ack_req != 0; f.panCompress = c->pan_compress != 0;

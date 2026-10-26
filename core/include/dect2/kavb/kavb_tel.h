@@ -46,7 +46,7 @@ struct KavbTelemetry {
     uint64_t payloadBytes = 0;    // payload bytes of the packets (fill and the station ID text excluded)
     uint64_t savedBytes = 0;      // bytes written to the output file
     double throughputBps = 0;     // payload bits per second of the packets, averaged over the last 10 s
-    std::string callsign;         // from the station ID text packets ("KAVB de <call>") of the Eye of ZorCom transmitter, empty if none heard
+    std::string callsign;         // from the station ID text packets ("KAVB de <call>") of the Eye of SaurCom transmitter, empty if none heard
     std::string savePath;         // the output file, empty if none
     std::string saveError;        // why it could not be written
     int constellationBits = 0;

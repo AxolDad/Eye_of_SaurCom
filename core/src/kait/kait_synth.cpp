@@ -13,7 +13,7 @@ std::unique_ptr<ModeSynth> makeKaitSynth(const SynthConfig& s, double sampleRate
     auto synth = std::make_unique<TxLoopSynth>(rate, 500.0 + s.cfoHz, s.snrDb, 0.0, [rate, profile](int pass) -> std::unique_ptr<TxGenerator> {
     TxRequest r;
     r.modeId = "kait";
-    r.callsign = "ZORCOM";
+    r.callsign = "SAURCOM";
     r.variant = profile;
     r.opt["kait.gap"] = 16;   // a receiver that decodes a burst on a busy machine is ready again for the next sweep
     (void)pass;

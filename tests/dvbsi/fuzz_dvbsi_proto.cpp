@@ -1,6 +1,6 @@
 // Seeded mutation run of the DVB service information layers, meant for DECT2_SANITIZE=ON: the character set converters, the
 // DVB text field, the teletext decoder and renderer, the subtitle segment parsers, the pixel decoder and both decoder classes must never crash or hang on any
-// bytes, at any length (the input is copied to an exactly sized heap block). Also a libFuzzer target with -DZORCOM_LIBFUZZER.
+// bytes, at any length (the input is copied to an exactly sized heap block). Also a libFuzzer target with -DSAURCOM_LIBFUZZER.
 #include "dect2/common/text_charset.h"
 #include "dect2/tv/dvb_text.h"
 #include "dect2/tv/dvbsub.h"
@@ -40,11 +40,11 @@ static void one(const uint8_t* d, size_t n) {
     free(p);
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const long iters = getenv("ZORCOM_FUZZ_ITERS") ? atol(getenv("ZORCOM_FUZZ_ITERS")) : 60000;
+    const long iters = getenv("SAURCOM_FUZZ_ITERS") ? atol(getenv("SAURCOM_FUZZ_ITERS")) : 60000;
     std::mt19937 g(2468);
     std::vector<uint8_t> seed = {0, 0, 1, 0xBD, 0, 60, 0x80, 0x80, 5, 0x21, 0, 1, 0, 1, 0x20, 0, 0x0F, 0x10, 0, 1, 0, 8, 10, 0x04, 0, 0, 0, 0, 0, 0x10, 0x0F, 0x80, 0, 1, 0, 0};
     for (long it = 0; it < iters; it++) {

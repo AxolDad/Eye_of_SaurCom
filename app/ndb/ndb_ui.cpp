@@ -32,7 +32,7 @@ std::string rangeNote(const App& a) {
     if (!d.isRadio() || d.minFreqHz <= 0) return "";
     if (a.freqMhz * 1e6 >= d.minFreqHz) return "";
     char b[480];
-    snprintf(b, sizeof b, "This radio is specified from %.6g MHz. Eye of ZorCom still tries %.0f kHz. Long-wave NDBs need a radio that tunes below 1 MHz "
+    snprintf(b, sizeof b, "This radio is specified from %.6g MHz. Eye of SaurCom still tries %.0f kHz. Long-wave NDBs need a radio that tunes below 1 MHz "
              "(an SDRplay, an Airspy HF+, or an RTL-SDR in direct sampling) and a long-wave antenna.", d.minFreqHz / 1e6, a.freqMhz * 1e3);
     return b;
 }

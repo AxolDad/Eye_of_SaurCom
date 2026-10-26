@@ -94,7 +94,7 @@ std::string lower(std::string s) { for (char& c : s) c = (char)std::tolower((uns
 
 void receiveNote() {
     ImGui::PushTextWrapPos(0);
-    ImGui::TextDisabled("Receive only: Eye of ZorCom never transmits. Plain LoRa between two radios (not LoRaWAN, not a mesh): the payload is shown as the bytes it is, "
+    ImGui::TextDisabled("Receive only: Eye of SaurCom never transmits. Plain LoRa between two radios (not LoRaWAN, not a mesh): the payload is shown as the bytes it is, "
                         "nothing is decrypted or interpreted. Listening to LoRa traffic that is not meant for you may be restricted where you live: check the rules "
                         "before you use what you receive. Set the spreading factor and bandwidth of the link, or leave them on Auto to search them all (more CPU). "
                         "Needs a radio with 1 Msps or more (an RTL-SDR is enough at 125 / 250 kHz).");

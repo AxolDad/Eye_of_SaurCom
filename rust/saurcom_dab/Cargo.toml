@@ -1,0 +1,11 @@
+[package]
+name = "saurcom_dab"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of SaurCom DAB data layers: FIB / FIG parsing, MOT headers and data groups, PAD, packet mode, Journaline framing"
+
+[dependencies]
+saurcom_common = { path = "../saurcom_common" }
+saurcom_dvbsi = { path = "../saurcom_dvbsi" }

@@ -7,13 +7,13 @@
 #import <CoreLocation/CoreLocation.h>
 #import <ImageIO/ImageIO.h>
 
-@interface ZorComLocator : NSObject <CLLocationManagerDelegate>
+@interface SaurComLocator : NSObject <CLLocationManagerDelegate>
 @property(nonatomic, strong) CLLocationManager* mgr;
 @property(nonatomic) int state;
 @property(nonatomic) double lat, lon, acc;
 @property(nonatomic, copy) NSString* msg;
 @end
-@implementation ZorComLocator
+@implementation SaurComLocator
 - (void)locationManager:(CLLocationManager*)m didUpdateLocations:(NSArray<CLLocation*>*)locs {
     CLLocation* l = locs.lastObject;
     if (!l) return;
@@ -35,11 +35,11 @@
 
 namespace plat {
 
-static ZorComLocator* gLoc = nil;
+static SaurComLocator* gLoc = nil;
 static double gLocStart = 0;
 
 void locateStart() {
-    if (!gLoc) { gLoc = [ZorComLocator new]; gLoc.mgr = [CLLocationManager new]; gLoc.mgr.delegate = gLoc; gLoc.mgr.desiredAccuracy = kCLLocationAccuracyHundredMeters; }
+    if (!gLoc) { gLoc = [SaurComLocator new]; gLoc.mgr = [CLLocationManager new]; gLoc.mgr.delegate = gLoc; gLoc.mgr.desiredAccuracy = kCLLocationAccuracyHundredMeters; }
     gLoc.state = 1; gLoc.msg = @"";
     gLocStart = CFAbsoluteTimeGetCurrent();
     if (![CLLocationManager locationServicesEnabled]) { gLoc.msg = @"location services are switched off"; gLoc.state = 3; return; }
@@ -65,11 +65,11 @@ static void adoptLegacy() {
     for (NSSearchPathDirectory dir : {NSCachesDirectory, NSApplicationSupportDirectory}) {
         NSArray* a = NSSearchPathForDirectoriesInDomains(dir, NSUserDomainMask, YES);
         if (!a.count) continue;
-        NSString* from = [a[0] stringByAppendingPathComponent:legacy], *to = [a[0] stringByAppendingPathComponent:@"ZorCom"];
+        NSString* from = [a[0] stringByAppendingPathComponent:legacy], *to = [a[0] stringByAppendingPathComponent:@"SaurCom"];
         if ([fm fileExistsAtPath:from] && ![fm fileExistsAtPath:to]) [fm moveItemAtPath:from toPath:to error:nil];
     }
     NSString* logs = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Logs"];
-    NSString* lf = [logs stringByAppendingPathComponent:legacy], *lt = [logs stringByAppendingPathComponent:@"ZorCom"];
+    NSString* lf = [logs stringByAppendingPathComponent:legacy], *lt = [logs stringByAppendingPathComponent:@"SaurCom"];
     if ([fm fileExistsAtPath:lf] && ![fm fileExistsAtPath:lt]) [fm moveItemAtPath:lf toPath:lt error:nil];
     // the settings live under the bundle identifier, which changed with the name
     NSString* me = NSBundle.mainBundle.bundleIdentifier;
@@ -84,14 +84,14 @@ static void adoptLegacy() {
 std::string cacheDir() {
     adoptLegacy();
     NSArray* a = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-    NSString* d = [(a.count ? a[0] : NSTemporaryDirectory()) stringByAppendingPathComponent:@"ZorCom"];
+    NSString* d = [(a.count ? a[0] : NSTemporaryDirectory()) stringByAppendingPathComponent:@"SaurCom"];
     [[NSFileManager defaultManager] createDirectoryAtPath:d withIntermediateDirectories:YES attributes:nil error:nil];
     return d.UTF8String;
 }
 
 std::string dataDir() {
     adoptLegacy();
-    // DECT2_DATA_DIR: another folder for everything Eye of ZorCom writes (test runs keep away from the user's own data)
+    // DECT2_DATA_DIR: another folder for everything Eye of SaurCom writes (test runs keep away from the user's own data)
     if (const char* o = getenv("DECT2_DATA_DIR"); o && *o) {
         std::error_code ec;
         std::filesystem::create_directories(std::filesystem::path(reinterpret_cast<const char8_t*>(o)), ec);
@@ -99,7 +99,7 @@ std::string dataDir() {
     }
     NSArray* a = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
     if (!a.count) return cacheDir();
-    NSString* d = [a[0] stringByAppendingPathComponent:@"ZorCom"];
+    NSString* d = [a[0] stringByAppendingPathComponent:@"SaurCom"];
     [[NSFileManager defaultManager] createDirectoryAtPath:d withIntermediateDirectories:YES attributes:nil error:nil];
     return d.UTF8String;
 }
@@ -284,7 +284,7 @@ struct DefaultsPrefs : Prefs {
     std::string setAside() override {
         NSString* domain = NSBundle.mainBundle.bundleIdentifier ?: NSProcessInfo.processInfo.processName;
         NSDictionary* old = [d persistentDomainForName:domain];
-        NSString* dir = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Logs/ZorCom"];
+        NSString* dir = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Logs/SaurCom"];
         [NSFileManager.defaultManager createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:nil];
         NSString* file = [dir stringByAppendingPathComponent:@"settings-crashed.plist"];
         const bool kept = old && [old writeToURL:[NSURL fileURLWithPath:file] error:nil];

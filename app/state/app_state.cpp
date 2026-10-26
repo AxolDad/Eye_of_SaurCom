@@ -166,7 +166,7 @@ void refreshDevices(App& a) {
     const std::string line = "device scan: " + std::to_string(nHack) + " HackRF, " + std::to_string(nAudio) + " sound card(s), " +
         std::to_string(a.devices.size() - 2 - nHack - nAudio) + " other radio(s)" + (soapySupported() ? "" : " (built without SoapySDR)");
     a.engine.log(line);
-    // also in the log file (zorcom.log on Windows), with every radio and any error: what a user can send when a radio does not show up
+    // also in the log file (saurcom.log on Windows), with every radio and any error: what a user can send when a radio does not show up
     fprintf(stderr, "%s\n", line.c_str());
     for (size_t i = 2; i < a.devices.size(); i++) fprintf(stderr, "  %s\n", a.devices[i].name.c_str());
     if (!err.empty()) fprintf(stderr, "  error: %s\n", err.c_str());

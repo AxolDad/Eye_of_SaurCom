@@ -1,0 +1,10 @@
+[package]
+name = "saurcom_uat"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of SaurCom UAT 978 MHz message layer: ADS-B downlink and FIS-B uplink parsing"
+
+[dependencies]
+saurcom_common = { path = "../saurcom_common" }

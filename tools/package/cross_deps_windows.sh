@@ -1,18 +1,18 @@
 #!/bin/bash
-# Cross-compile Eye of ZorCom's dependencies for Windows x64 with mingw-w64 (macOS or Linux host). Result: ~/zorcom-win-prefix (override with ZORCOM_WIN_PREFIX)
+# Cross-compile Eye of SaurCom's dependencies for Windows x64 with mingw-w64 (macOS or Linux host). Result: ~/saurcom-win-prefix (override with SAURCOM_WIN_PREFIX)
 # Needs: x86_64-w64-mingw32-gcc, x86_64-w64-mingw32-objdump, cmake, nasm, make, pkg-config, patch, tar (with zstd) and the source archives in
 # build-windows-deps/src (nothing is downloaded). The prebuilt MSYS2 UCRT64 packages in build-windows-deps/src/msys2 are only unpacked, never installed.
 set -e
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 W=$ROOT/build-windows-deps
 SRC=$W/src
-P=${ZORCOM_WIN_PREFIX:-$HOME/zorcom-win-prefix}   # no spaces in this path: the dependencies' configure scripts cannot cope with them
-WORK=${ZORCOM_WIN_WORK:-$HOME/zorcom-win-work}
+P=${SAURCOM_WIN_PREFIX:-$HOME/saurcom-win-prefix}   # no spaces in this path: the dependencies' configure scripts cannot cope with them
+WORK=${SAURCOM_WIN_WORK:-$HOME/saurcom-win-work}
 HOST=x86_64-w64-mingw32
 JOBS=$(sysctl -n hw.ncpu 2>/dev/null || nproc)
 mkdir -p "$P" "$WORK"
 export PKG_CONFIG_LIBDIR=$P/lib/pkgconfig PKG_CONFIG_PATH=
-export ZORCOM_WIN_PREFIX=$P
+export SAURCOM_WIN_PREFIX=$P
 TC=$ROOT/packaging/windows/mingw-toolchain.cmake
 cd "$WORK"
 unpack() { [ -d "$2" ] || { case "$1" in *.zip) unzip -q "$SRC/$1";; *) tar xf "$SRC/$1";; esac; }; }
@@ -104,13 +104,13 @@ PC
   cmake --build soapyremote-build -j$JOBS >/dev/null && cmake --install soapyremote-build >/dev/null
   mkdir -p "$P/licenses"; cp SoapyRemote-soapy-remote-0.5.3/LICENSE_1_0.txt "$P/licenses/SoapyRemote-LICENSE_1_0.txt"; }
 
-# --- librtlsdr and libairspy as DLLs of their own (libusb inside): the native drivers of Eye of ZorCom load rtlsdr.dll / airspy.dll by name from the program's folder
+# --- librtlsdr and libairspy as DLLs of their own (libusb inside): the native drivers of Eye of SaurCom load rtlsdr.dll / airspy.dll by name from the program's folder
 [ -f "$P/bin/librtlsdr.dll" ] || { step "librtlsdr.dll"
   cmake rtl-build "-DCMAKE_SHARED_LINKER_FLAGS=-L$P/lib" >/dev/null && cmake --build rtl-build -j$JOBS --target rtlsdr >/dev/null && cp rtl-build/src/librtlsdr.dll "$P/bin/"; }
 [ -f "$P/bin/libairspy.dll" ] || { step "libairspy.dll"
   cmake --build airspy-build -j$JOBS --target airspy >/dev/null; cp "$(find "$WORK" -name libairspy.dll -path '*src*' | head -1)" "$P/bin/libairspy.dll" && touch "$P/airspy-close-order.stamp"; }
 
-# --- BladeRF and PlutoSDR (libbladeRF, libiio with libxml2): DLLs of their own, shipped next to ZorCom.exe (the native drivers load them by name).
+# --- BladeRF and PlutoSDR (libbladeRF, libiio with libxml2): DLLs of their own, shipped next to SaurCom.exe (the native drivers load them by name).
 # Needs bladeRF-2023.02.tar.gz, no-OS-0bba46e.tar.gz (a part of the bladeRF source that git keeps as a submodule), libiio-0.25.tar.gz and
 # libxml2-2.12.9.tar.xz in build-windows-deps/src.
 [ -f "$P/lib/libxml2.a" ] || { step libxml2; unpack libxml2-2.12.9.tar.xz libxml2-2.12.9
@@ -118,9 +118,9 @@ PC
   cmake --build xml-build -j$JOBS >/dev/null && cmake --install xml-build >/dev/null; }
 # libiio: USB and network backends (ip:192.168.2.1 or ip:pluto.local work when USB has no driver); the network backend needs libxml2 (above) and
 # ws2_32/iphlpapi, which Windows has. The stamp file makes a prefix built with the old USB-only options rebuild it.
-[ -f "$P/bin/libiio.dll" ] && [ -f "$P/lib/.zorcom-libiio-net" ] || { step libiio; unpack libiio-0.25.tar.gz libiio-0.25
+[ -f "$P/bin/libiio.dll" ] && [ -f "$P/lib/.saurcom-libiio-net" ] || { step libiio; unpack libiio-0.25.tar.gz libiio-0.25
   cmake -S libiio-0.25 -B iio-build "-DCMAKE_TOOLCHAIN_FILE=$TC" -DCMAKE_INSTALL_PREFIX=$P -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DWITH_USB_BACKEND=ON -DWITH_NETWORK_BACKEND=ON -DWITH_XML_BACKEND=ON -DHAVE_DNS_SD=ON -DWITH_LOCAL_BACKEND=OFF -DWITH_SERIAL_BACKEND=OFF -DWITH_ZSTD=OFF -DWITH_TESTS=OFF -DWITH_EXAMPLES=OFF -DENABLE_PACKAGING=OFF -DINSTALL_UDEV_RULE=OFF -DCPP_BINDINGS=OFF -DPYTHON_BINDINGS=OFF -DWITH_IIOD=OFF -DBUILD_SHARED_LIBS=ON -DLIBUSB_INCLUDE_DIR=$P/include/libusb-1.0 -DLIBUSB_LIBRARIES=$P/lib/libusb-1.0.a -DLIBXML2_LIBRARIES=$P/lib/libxml2.a -DLIBXML2_INCLUDE_DIR=$P/include/libxml2 "-DCMAKE_C_FLAGS=-DLIBXML_STATIC" "-DCMAKE_SHARED_LINKER_FLAGS=-L$P/lib" >/dev/null
-  cmake --build iio-build -j$JOBS >/dev/null && cp iio-build/libiio.dll "$P/bin/" && touch "$P/lib/.zorcom-libiio-net"; }
+  cmake --build iio-build -j$JOBS >/dev/null && cp iio-build/libiio.dll "$P/bin/" && touch "$P/lib/.saurcom-libiio-net"; }
 [ -f "$P/bin/libbladeRF.dll" ] || { step libbladeRF; unpack bladeRF-2023.02.tar.gz bladeRF-2023.02
   mkdir -p bladeRF-2023.02/thirdparty/analogdevicesinc/no-OS && tar xzf "$SRC/no-OS-0bba46e.tar.gz" -C bladeRF-2023.02/thirdparty/analogdevicesinc/no-OS --strip-components=1
   find bladeRF-2023.02/host \( -name CMakeLists.txt -o -name "*.cmake" \) -exec sed -i.bak 's/-Werror//g' {} \;   # a newer compiler than the one the project was written for warns about more
@@ -151,13 +151,13 @@ OBJDUMP=${OBJDUMP:-$HOST-objdump}
 
 # --- LimeSuite 23.11.0 (LimeSDR): the library only, as libLimeSuite.dll. The LimeSDR Mini/Mini 2 talk through FTDI's FTD3XX.dll (from the tarball),
 # shipped next to it. The LimeSDR-USB (Cypress FX3 / CyAPI: MSVC-only Cypress SDK, not redistributable here) is built without, so this copy
-# cannot see a LimeSDR-USB on the Cypress (CyUSB3) driver; at run time Eye of ZorCom then asks a vendor LimeSuite.dll (PothosSDR, LimeSuite
+# cannot see a LimeSDR-USB on the Cypress (CyUSB3) driver; at run time Eye of SaurCom then asks a vendor LimeSuite.dll (PothosSDR, LimeSuite
 # installer) as well (source_limesdr.cpp, listLime). A release that wants FX3 itself must build LimeSuite with MSVC, -DENABLE_FX3=ON and
 # the FX3 SDK (CyAPI.lib), and ship that LimeSuite.dll instead.
 # The patch only makes the sources compile with MinGW.
 [ -f "$P/bin/libLimeSuite.dll" ] && [ -f "$P/bin/FTD3XX.dll" ] || { step LimeSuite; unpack LimeSuite-23.11.0.tar.gz LimeSuite-23.11.0
-  [ -f LimeSuite-23.11.0/.zorcom-patched ] || { for pf in "$ROOT"/tools/package/patches/limesuite-*.patch; do patch -s -d LimeSuite-23.11.0 -p1 < "$pf"; done; touch LimeSuite-23.11.0/.zorcom-patched; }
-  cmake -S LimeSuite-23.11.0 -B lime-build "-DCMAKE_TOOLCHAIN_FILE=$TC" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_SHARED_LIBS=ON -DENABLE_SIMD_FLAGS=SSE3 -DLIME_SUITE_EXTVER=zorcom \
+  [ -f LimeSuite-23.11.0/.saurcom-patched ] || { for pf in "$ROOT"/tools/package/patches/limesuite-*.patch; do patch -s -d LimeSuite-23.11.0 -p1 < "$pf"; done; touch LimeSuite-23.11.0/.saurcom-patched; }
+  cmake -S LimeSuite-23.11.0 -B lime-build "-DCMAKE_TOOLCHAIN_FILE=$TC" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_SHARED_LIBS=ON -DENABLE_SIMD_FLAGS=SSE3 -DLIME_SUITE_EXTVER=saurcom \
     -DENABLE_FX3=OFF -DFTD3XX_STATIC=OFF -DENABLE_PCIE_XILLYBUS=OFF -DENABLE_LIMERFE=OFF -DENABLE_GUI=OFF -DENABLE_SOAPY_LMS7=OFF -DENABLE_UTILITIES=OFF -DENABLE_EXAMPLES=OFF \
     -DENABLE_LIME_UTIL=OFF -DENABLE_QUICKTEST=OFF -DENABLE_OCTAVE=OFF -DENABLE_DESKTOP=OFF -DENABLE_HEADERS=OFF "-DCMAKE_C_FLAGS=-std=gnu11" >/dev/null   # (gnu11: the C code has old-style declarations)
   cmake --build lime-build -j$JOBS --target LimeSuite >/dev/null

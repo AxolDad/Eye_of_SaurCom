@@ -1,5 +1,5 @@
 // Optional: the reporter's recordings from issue #153 (not in the repository). Looks in $LBJ_SAMPLE_DIR, then ~/Downloads, for
-// zorcom_lbj_821.288MHz_0.96Msps_20261016-163822.cs8 (HackRF, int8 IQ, centre 821.288 MHz); skips (exit 0) when the file is absent.
+// saurcom_lbj_821.288MHz_0.96Msps_20261016-163822.cs8 (HackRF, int8 IQ, centre 821.288 MHz); skips (exit 0) when the file is absent.
 // The file holds one train (19533, 67 km/h, near km 38) that moves 0.2 km between messages 11 s apart.
 #include "dect2/lbj/lbj_modem.h"
 #include "dect2/lbj/lbj_proto.h"
@@ -22,7 +22,7 @@ static FILE* openSample(const char* name) {
 }
 
 int main() {
-    FILE* f = openSample("zorcom_lbj_821.288MHz_0.96Msps_20261016-163822.cs8");
+    FILE* f = openSample("saurcom_lbj_821.288MHz_0.96Msps_20261016-163822.cs8");
     if (!f) { printf("test_lbj_real: SKIPPED (sample recording not found)\n"); return 0; }
     lbj::Modem m;
     m.configure(960000);

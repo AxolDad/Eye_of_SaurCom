@@ -120,7 +120,7 @@ void setupWizard(App& a, ImVec2 disp) {
     ImGui::PushTextWrapPos(560 * u);
     switch (a.setupStep) {
     case 0: {
-        ImGui::TextUnformatted(tr("Which language do you want Eye of ZorCom in?"));
+        ImGui::TextUnformatted(tr("Which language do you want Eye of SaurCom in?"));
         ImGui::Spacing();
         if (ImGui::RadioButton(tr("Same as the system"), a.uiLang.empty())) setUiLanguage(a, "");
         int n = 0;
@@ -196,7 +196,7 @@ void setupWizard(App& a, ImVec2 disp) {
     }
     default: {
         const int g = pickGoal(a.setupGoals);
-        ImGui::TextUnformatted(tr("All set. Eye of ZorCom will start here:"));
+        ImGui::TextUnformatted(tr("All set. Eye of SaurCom will start here:"));
         ImGui::Spacing();
         ImGui::TextColored(pal::accent(), "%s", goalModeName(g, kRegions[a.setupRegion]).c_str());
         ImGui::Spacing();

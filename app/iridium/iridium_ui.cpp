@@ -547,19 +547,19 @@ void tick(App& a) {
 }
 
 // Save for iridium-toolkit: every burst as a gr-iridium "RAW:" line (.bits). The toolkit's iridium-parser.py turns it into
-// output.parsed; anything further (voice included) is done with the toolkit, outside Eye of ZorCom.
+// output.parsed; anything further (voice included) is done with the toolkit, outside Eye of SaurCom.
 void toolkitSave(App& a) {
     dect2::IridiumReceiver& r = a.engine.iridium();
     const bool on = r.bitsFileOpen();
     ImGui::Spacing();
     ImGui::TextDisabled("SAVE FOR IRIDIUM-TOOLKIT");
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Writes every demodulated burst as gr-iridium iridium-extractor RAW lines.\nRun: iridium-parser.py output.bits > output.parsed\nEye of ZorCom never decodes voice; that is up to you, with the toolkit.");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Writes every demodulated burst as gr-iridium iridium-extractor RAW lines.\nRun: iridium-parser.py output.bits > output.parsed\nEye of SaurCom never decodes voice; that is up to you, with the toolkit.");
     ImGui::TextDisabled("format"); ImGui::SameLine(0, 5 * gUi);
     ImGui::SetNextItemWidth(std::min(120 * gUi, ImGui::GetContentRegionAvail().x));
     int fmt = 0;
     static const char* fmts[] = {".bits (RAW)"};
     ImGui::Combo("##irbfmt", &fmt, fmts, 1);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("RAW lines as iridium-extractor writes them. For output.parsed run the toolkit's iridium-parser.py on this file:\nEye of ZorCom does not write .parsed itself.");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("RAW lines as iridium-extractor writes them. For output.parsed run the toolkit's iridium-parser.py on this file:\nEye of SaurCom does not write .parsed itself.");
     ImGui::BeginDisabled(on);
     ImGui::SetNextItemWidth(std::min(160 * gUi, ImGui::GetContentRegionAvail().x));
     if (ImGui::InputText("##irbname", S.bitsName, sizeof S.bitsName)) plat::prefs().setS("iridiumBitsName", S.bitsName);

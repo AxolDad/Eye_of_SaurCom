@@ -1,4 +1,4 @@
-// AMBE+2 (NXDN voice) through the user's own mbelib, loaded at run time: AMBE is patented and Eye of ZorCom does not ship it (docs/CODECS.md).
+// AMBE+2 (NXDN voice) through the user's own mbelib, loaded at run time: AMBE is patented and Eye of SaurCom does not ship it (docs/CODECS.md).
 // Without the library the NXDN receiver still shows the calls, ids, talkgroups, messages and site information, only without sound.
 #pragma once
 #include <cstdint>

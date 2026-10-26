@@ -293,7 +293,7 @@ HlsPipeline::~HlsPipeline() { stop(); }
 
 void HlsPipeline::start() {
     if (p_->th.joinable()) return;
-    p_->th = dect2::namedThread("zorcom-hls", [this] { p_->run(); });
+    p_->th = dect2::namedThread("saurcom-hls", [this] { p_->run(); });
 }
 
 void HlsPipeline::stop() {

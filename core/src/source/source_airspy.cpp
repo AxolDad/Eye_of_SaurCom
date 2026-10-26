@@ -61,10 +61,10 @@ using SteadyClock = std::chrono::steady_clock;
 // libairspy 1.0.10 closes in the wrong order: airspy_close() ends its libusb context (airspy_open_exit) and only then frees its USB transfers
 // (free_transfers). Every transfer that was submitted holds a reference to the USB device, so the last libusb_free_transfer() releases the device
 // after its context is gone. libusb 1.0.27 on Windows has no hotplug support, and there the final release calls usbi_disconnect_device() with a
-// null context: Eye of ZorCom crashed in airspy_close() the first time a radio that had streamed was stopped (the receiver stopped for a scan, or the Stop
+// null context: Eye of SaurCom crashed in airspy_close() the first time a radio that had streamed was stopped (the receiver stopped for a scan, or the Stop
 // button). Linux and macOS have hotplug in libusb and are not affected.
 // So a handle that has streamed is not closed on Windows: it is kept open, stopped, and the next open of the same radio takes it back. The radio
-// stays claimed by Eye of ZorCom until the program ends. DECT2_AIRSPY_KEEP=0 closes it anyway (an airspy.dll built with the two calls in the right
+// stays claimed by Eye of SaurCom until the program ends. DECT2_AIRSPY_KEEP=0 closes it anyway (an airspy.dll built with the two calls in the right
 // order, see tools/package/patches), =1 keeps handles on other systems (tests).
 bool keepHandles() {
     if (const char* e = getenv("DECT2_AIRSPY_KEEP")) return *e && *e != '0';
@@ -129,7 +129,7 @@ protected:
         if (airspy().set_sample_type(dev_, AirspyApi::SAMPLE_FLOAT32_IQ) != 0 && reused_) {
             // a handle that was kept open and the radio is gone (unplugged): it cannot be closed safely either, and it stays claimed until the program ends
             dev_ = nullptr;
-            err = "Airspy: the radio does not answer (unplugged?). Plug it in again; if it stays away, restart Eye of ZorCom";
+            err = "Airspy: the radio does not answer (unplugged?). Plug it in again; if it stays away, restart Eye of SaurCom";
             return false;
         }
         if (!configure(s, err, false)) return false;

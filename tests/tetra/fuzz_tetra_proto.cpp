@@ -1,6 +1,6 @@
 // Seeded mutation run of the TETRA network information layer, meant for DECT2_SANITIZE=ON: SYNC, SYSINFO, the
 // signalling block walk, texts and carrier maths must never crash or hang on any bytes (also bytes above 1 and every length). Also a libFuzzer target with
-// -DZORCOM_LIBFUZZER.
+// -DSAURCOM_LIBFUZZER.
 #include "dect2/tetra/tetra_pdu.h"
 #include <cstdio>
 #include <cstdlib>
@@ -26,11 +26,11 @@ static void one(const uint8_t* d, size_t n) {
     T::dlUsageText(T::aachDlUsage((uint16_t)(d[0] << 8 | d[1]), d[2] & 1));
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* e = getenv("ZORCOM_FUZZ_ITERS");
+    const char* e = getenv("SAURCOM_FUZZ_ITERS");
     const long iters = e ? atol(e) : 30000;
     std::mt19937 g(1357);
     for (long i = 0; i < iters; i++) {

@@ -2,7 +2,7 @@
 
 Receive only. Mode "COSPAS-SARSAT 406 MHz", 406.028 MHz (the channels run 406.025 - 406.076 MHz). Code: `core/src/sarsat/`, panel: `app/sarsat/`, tests: `tests/sarsat/`.
 
-A 406 MHz beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second roughly every 50 seconds. Eye of ZorCom decodes the first-generation message format of the public specification C/S T.001. A real beacon means somebody may be in danger: report it to the rescue coordination centre of your country. The program shows test beacons and self-test bursts as such, and is not an alerting system.
+A 406 MHz beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second roughly every 50 seconds. Eye of SaurCom decodes the first-generation message format of the public specification C/S T.001. A real beacon means somebody may be in danger: report it to the rescue coordination centre of your country. The program shows test beacons and self-test bursts as such, and is not an alerting system.
 
 ## What is decoded
 

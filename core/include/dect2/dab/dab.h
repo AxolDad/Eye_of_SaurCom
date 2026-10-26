@@ -157,7 +157,7 @@ struct DabGenService {
     int bitrate = 48;        // kbit/s, a multiple of 8 (EEP-A, protection level 3-A)
 };
 struct DabGenConfig {
-    std::string ensembleLabel = "ZorCom Test";
+    std::string ensembleLabel = "SaurCom Test";
     uint16_t eid = 0xC001;
     std::vector<DabGenService> services;
     double snrDb = 30, cfoHz = 0, sroPpm = 0;

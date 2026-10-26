@@ -51,7 +51,7 @@ Impl* self(lua_State* L) { return static_cast<Impl*>(lua_touserdata(L, lua_upval
 
 void hook(lua_State* L, lua_Debug*) {
     // the Impl is reachable through the registry
-    lua_getfield(L, LUA_REGISTRYINDEX, "zorcom_impl");
+    lua_getfield(L, LUA_REGISTRYINDEX, "saurcom_impl");
     Impl* m = static_cast<Impl*>(lua_touserdata(L, -1));
     lua_pop(L, 1);
     if (!m) return;
@@ -294,7 +294,7 @@ void openSandbox(Impl* m) {
     lua_pop(L, 1);
     // the strings' metatable stays, with __index = the reduced string table
     lua_pushlightuserdata(L, m);
-    lua_setfield(L, LUA_REGISTRYINDEX, "zorcom_impl");
+    lua_setfield(L, LUA_REGISTRYINDEX, "saurcom_impl");
     setFn(L, m, "notify", l_notify); setFn(L, m, "sound", l_sound); setFn(L, m, "record_iq", l_record_iq); setFn(L, m, "record_audio", l_record_audio); setFn(L, m, "save_rewind", l_save_rewind);
     setFn(L, m, "tune", l_tune); setFn(L, m, "memory", l_memory); setFn(L, m, "screenshot", l_screenshot); setFn(L, m, "webhook", l_webhook);
     setFn(L, m, "log", l_log); setFn(L, m, "print", l_print); setFn(L, m, "log_row", l_log_row); setFn(L, m, "distance_km", l_distance); setFn(L, m, "bearing_deg", l_bearing);

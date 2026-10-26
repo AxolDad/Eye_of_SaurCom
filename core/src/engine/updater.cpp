@@ -448,9 +448,9 @@ void spawnDetached(const std::string& script, const std::vector<std::string>& ar
 #endif
 }
 
-// Runs curl with these arguments, its output in *out when asked for. No shell and, on Windows, no console window (Eye of ZorCom has none, so cmd.exe or
+// Runs curl with these arguments, its output in *out when asked for. No shell and, on Windows, no console window (Eye of SaurCom has none, so cmd.exe or
 // a console program started through it would open one). tick() is called about every 100 ms; curl is stopped as soon as cancel is set, so that
-// closing Eye of ZorCom never waits for a download. The exit code of curl; kCurlMissing when it could not be started, kCurlCancelled when stopped.
+// closing Eye of SaurCom never waits for a download. The exit code of curl; kCurlMissing when it could not be started, kCurlCancelled when stopped.
 constexpr int kCurlMissing = -2, kCurlCancelled = -1;
 int runCurl(const std::vector<std::string>& args, std::string* out, const std::atomic<bool>& cancel, const std::function<void()>& tick = {},
             const std::function<void(const char*, size_t)>& onData = {}) {
@@ -625,7 +625,7 @@ std::string windowsApplyScript(int pid, const std::string& setupExe, const std::
       << "set \"RESULT=" << batchValue(resultFile, true) << "\"\r\n"
       << "set \"VER=" << batchValue(version, false) << "\"\r\n"
       << "set \"RESTART=" << (restart ? 1 : 0) << "\"\r\n"
-      // up to two minutes for Eye of ZorCom to end: the setup program cannot replace files that are in use
+      // up to two minutes for Eye of SaurCom to end: the setup program cannot replace files that are in use
       << "set /a N=0\r\n"
       << ":wait\r\n"
       << "tasklist /FI \"PID eq %PID%\" 2>nul | find \"%PID%\" >nul\r\n"
@@ -676,13 +676,13 @@ UpdateResult parseUpdateResult(const std::string& text) {
     return r;
 }
 
-std::string updateResultPath() { const std::string t = tempRoot(); return t + (t.back() == '/' || t.back() == '\\' ? "" : "/") + "zorcom-update-result.txt"; }
+std::string updateResultPath() { const std::string t = tempRoot(); return t + (t.back() == '/' || t.back() == '\\' ? "" : "/") + "saurcom-update-result.txt"; }
 
 // ---------------------------------------------------------------- the updater
 
 Updater::Updater(const std::string& v) : current_(v) {
     api_ = "https://api.github.com/repos/" + std::string(kUpdateRepo) + "/releases?per_page=12";
-    if (const char* e = getenv("ZORCOM_UPDATE_URL")) if (*e) setApiUrl(e);
+    if (const char* e = getenv("SAURCOM_UPDATE_URL")) if (*e) setApiUrl(e);
     setExecutable(executablePath());
 }
 
@@ -728,7 +728,7 @@ void Updater::check(bool pre) {
     if (th_.joinable()) th_.join();
     cancel_ = false;
     setPhase(Phase::Checking);
-    th_ = dect2::namedThread("zorcom-upd", [this, pre] { runCheck(pre); });
+    th_ = dect2::namedThread("saurcom-upd", [this, pre] { runCheck(pre); });
 }
 
 
@@ -740,7 +740,7 @@ int Updater::fetch(const std::string& url, std::string* body, const std::string&
     else if (!insecure_) return 1;   // not an https address: refused (curl code 1: protocol not supported)
     if (!outFile.empty()) { a.push_back("--retry"); a.push_back("2"); a.push_back("-o"); a.push_back(outFile); }
     else { a.push_back("-H"); a.push_back("Accept: application/vnd.github+json"); }
-    a.push_back("-H"); a.push_back("User-Agent: ZorCom/" + current_);
+    a.push_back("-H"); a.push_back("User-Agent: SaurCom/" + current_);
     a.push_back(url);
     return runCurl(a, outFile.empty() ? body : nullptr, cancel_, tick);
 }
@@ -764,7 +764,7 @@ void Updater::runCheck(bool pre) {
     st_.error.clear();
 }
 
-std::string Updater::workDir() const { return tempRoot() + (tempRoot().back() == '/' || tempRoot().back() == '\\' ? "" : "/") + "zorcom-update-" + std::to_string(pidNow()); }
+std::string Updater::workDir() const { return tempRoot() + (tempRoot().back() == '/' || tempRoot().back() == '\\' ? "" : "/") + "saurcom-update-" + std::to_string(pidNow()); }
 
 void Updater::download() {
     {
@@ -774,7 +774,7 @@ void Updater::download() {
     if (th_.joinable()) th_.join();
     cancel_ = false;
     setPhase(Phase::Downloading);
-    th_ = dect2::namedThread("zorcom-updl", [this] { runDownload(); });
+    th_ = dect2::namedThread("saurcom-updl", [this] { runDownload(); });
 }
 
 void Updater::runDownload() {
@@ -821,7 +821,7 @@ bool Updater::prepare(const std::string& file, std::string& err) {
         // the new app is copied from the disk image next to the installed one, on the same volume, so that swapping them is a rename
         const std::string appPath = exe_.substr(0, exe_.find(".app/Contents/MacOS/") + 4);
         const std::string parent = dirOf(appPath);
-        const std::string stage = parent + "/.ZorCom-update";
+        const std::string stage = parent + "/.SaurCom-update";
         const std::string mnt = dir + "/mnt";
         runCommand("rm -rf " + shq(stage) + " && mkdir -p " + shq(stage) + " " + shq(mnt));
         int rc = 0;
@@ -829,7 +829,7 @@ bool Updater::prepare(const std::string& file, std::string& err) {
         if (rc != 0) { err = "the disk image could not be opened: " + out.substr(0, 120); return false; }
         const std::string name = appPath.substr(appPath.find_last_of('/') + 1);
         std::string src = mnt + "/" + name;
-        if (!fileExists(src + "/Contents/Info.plist")) src = mnt + "/ZorCom.app";
+        if (!fileExists(src + "/Contents/Info.plist")) src = mnt + "/SaurCom.app";
         const int cp = runCommand("ditto " + shq(src) + " " + shq(stage + "/" + name) + " >/dev/null 2>&1");
         runCommand("hdiutil detach " + shq(mnt) + " -quiet >/dev/null 2>&1");
         if (cp != 0 || !fileExists(stage + "/" + name + "/Contents/Info.plist")) { err = "the new version could not be copied next to the installed one (no permission? it has to be written to " + parent + ")"; runCommand("rm -rf " + shq(stage)); return false; }
@@ -840,13 +840,13 @@ bool Updater::prepare(const std::string& file, std::string& err) {
     case InstallKind::LinuxPortable: {
         const std::string root = dirOf(dirOf(exe_));
         const std::string parent = dirOf(root);
-        const std::string stage = parent + "/.zorcom-update";
+        const std::string stage = parent + "/.saurcom-update";
         runCommand("rm -rf " + shq(stage) + " && mkdir -p " + shq(stage));
         if (runCommand("tar -xzf " + shq(file) + " -C " + shq(stage)) != 0) { err = "the package could not be unpacked (no permission to write in " + parent + "?)"; return false; }
         // the archive holds one folder
         std::string top = runCapture("ls " + shq(stage));
         top.erase(std::remove(top.begin(), top.end(), '\n'), top.end());
-        if (top.empty() || !fileExists(stage + "/" + top + "/bin/zorcom")) { err = "the package has an unexpected layout"; return false; }
+        if (top.empty() || !fileExists(stage + "/" + top + "/bin/saurcom")) { err = "the package has an unexpected layout"; return false; }
         staged_ = stage + "/" + top;
         return true;
     }
@@ -855,7 +855,7 @@ bool Updater::prepare(const std::string& file, std::string& err) {
         staged_ = file;
         return true;
     default:
-        err = "this copy of Eye of ZorCom cannot replace itself";
+        err = "this copy of Eye of SaurCom cannot replace itself";
         return false;
     }
 }
@@ -895,7 +895,7 @@ bool Updater::apply(bool restart, std::string* err) {
             o << windowsApplyScript((int)std::stoi(pid), utf8(staged_), utf8(exe_), utf8(result), version, restart);
             if (!o) return fail("Update not installed: the installer script could not be written to " + dir);
         }
-        // Elevated from here, while the window of Eye of ZorCom is still in front: the UAC question appears at once and in the foreground.
+        // Elevated from here, while the window of Eye of SaurCom is still in front: the UAC question appears at once and in the foreground.
         // The elevated script waits for this program to end, so it can be asked now.
         auto wide = [](const std::string& a) {
             const int w = MultiByteToWideChar(CP_ACP, 0, a.c_str(), -1, nullptr, 0);
@@ -941,7 +941,7 @@ bool Updater::apply(bool restart, std::string* err) {
         o << "rm -rf \"" << dir << "\"\n";
         o.close();
         chmod(script.c_str(), 0755);
-        const std::string launch = mac ? std::string() : target + "/bin/zorcom";
+        const std::string launch = mac ? std::string() : target + "/bin/saurcom";
         spawnDetached(script, {pid, target, staged_, restart ? "1" : "0", launch});
         return true;
     }
@@ -949,14 +949,14 @@ bool Updater::apply(bool restart, std::string* err) {
         // the package manager needs the administrator: polkit asks for the password in a window
         const std::string script = dir + "/apply.sh";
         std::ofstream o(script);
-        o << "#!/bin/sh\npkexec dpkg -i " << shq(staged_) << " && { if [ \"$1\" = 1 ]; then zorcom >/dev/null 2>&1 & fi; }\n";
+        o << "#!/bin/sh\npkexec dpkg -i " << shq(staged_) << " && { if [ \"$1\" = 1 ]; then saurcom >/dev/null 2>&1 & fi; }\n";
         o.close();
         chmod(script.c_str(), 0755);
         spawnDetached(script, {restart ? "1" : "0"});
         return true;
     }
 #endif
-    if (err) *err = "this copy of Eye of ZorCom cannot replace itself";
+    if (err) *err = "this copy of Eye of SaurCom cannot replace itself";
     return false;
 }
 
@@ -987,7 +987,7 @@ int curlDownloadFile(const std::string& url, const std::string& outFile, uint64_
     if (url.compare(0, 8, "https://") != 0) return 1;
     const std::vector<std::string> a = {"-fsSL", "--connect-timeout", "15", "--max-time", std::to_string(maxTime), "--max-redirs", "5", "--max-filesize", std::to_string(maxBytes),
                                         "--speed-limit", "1000", "--speed-time", "40", "--proto", "=https", "--proto-redir", "=https", "--retry", "2",
-                                        "-H", "User-Agent: EyeOfZorCom", "-o", outFile, url};
+                                        "-H", "User-Agent: EyeOfSaurCom", "-o", outFile, url};
     return runCurl(a, nullptr, cancel, tick);
 }
 std::string curlDownloadError(int rc) {

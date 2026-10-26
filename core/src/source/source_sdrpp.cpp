@@ -9,11 +9,11 @@
 // scale (the packet's peak), then interleaved I/Q; int16 and int8 samples are value * scale / 32768 (/ 128).
 //
 // There is no command for the sample rate or the gain: they live in the source module's own menu, which the server sends as a serialised
-// draw list (SmGui) and which a client drives with UI_ACTION (a widget's id and its new value). Eye of ZorCom reads that list generically: the
+// draw list (SmGui) and which a client drives with UI_ACTION (a widget's id and its new value). Eye of SaurCom reads that list generically: the
 // combo whose id says "sr" and whose entries read as rates is the sample rate, the gain slider (or the LNA/mixer/VGA stage sliders) is the
 // gain, and every other control of the server's radio (gain mode, bias tee, AGC, antenna, the server's source, ...) is offered as a radio
-// setting under its own name. So any source module SDR++ has works, not only the ones Eye of ZorCom knows. A change made this way is a change to
-// the server's own settings: SDR++ keeps it after Eye of ZorCom disconnects.
+// setting under its own name. So any source module SDR++ has works, not only the ones Eye of SaurCom knows. A change made this way is a change to
+// the server's own settings: SDR++ keeps it after Eye of SaurCom disconnects.
 #include "../net/tcp_client.h"
 #include "native_common.h"
 #include "dect2/net/netradio.h"
@@ -65,7 +65,7 @@ std::string labelFromId(const std::string& id) { return netp::sdrppLabelFromId(i
 
 // ---- the server's menu --------------------------------------------------------------------------------------------------------------------
 
-// the menu from the draw list: net_proto.h reads it (C++ or the Rust crate zorcom_net)
+// the menu from the draw list: net_proto.h reads it (C++ or the Rust crate saurcom_net)
 bool sdrppParseUi(const unsigned char* p, size_t n, std::vector<SdrppWidget>& out) {
     out.clear();
     std::vector<netp::UiWidget> u;
@@ -167,8 +167,8 @@ std::vector<double> ratesOf(const std::vector<SdrppWidget>& ui) {
 std::string settingKey(const SdrppWidget& w) { return "srv:" + (w.kind == SdrppWidget::Radio ? "##" + hiddenPart(w.id) : w.id); }
 std::string numText(double v) { char b[48]; snprintf(b, sizeof b, "%.6g", v); return b; }
 
-// The radio settings of a server as last seen: Eye of ZorCom's own (wire format, gain left to the server, frequency correction), then every
-// control of the server's menu that Eye of ZorCom does not drive itself, with the server's current value as the default (so an untouched setting
+// The radio settings of a server as last seen: Eye of SaurCom's own (wire format, gain left to the server, frequency correction), then every
+// control of the server's menu that Eye of SaurCom does not drive itself, with the server's current value as the default (so an untouched setting
 // is never sent).
 std::vector<RadioSetting> settingsOf(const ServerState& st) {
     std::vector<RadioSetting> v;
@@ -177,13 +177,13 @@ std::vector<RadioSetting> settingsOf(const ServerState& st) {
                               "half the network (2 bytes a sample) and lets a slow link carry a higher rate; float is exact but takes 8 bytes a sample.",
                               {"8", "16", "32"}, {"8-bit", "16-bit", "32-bit float"}, "16"));
     v.push_back(boolSetting("keepgain", "Leave the gain to the server",
-                            "Eye of ZorCom does not move the server's gain slider: the gain stays as it is set in SDR++ (or by the server's AGC)."));
+                            "Eye of SaurCom does not move the server's gain slider: the gain stays as it is set in SDR++ (or by the server's AGC)."));
     v.push_back(ppmSetting());
     const int rateCombo = sdrppRateCombo(st.ui);
     const SdrppGainPlan gp = sdrppGainPlan(st.ui);
     const std::string src = sourceOf(st.ui);
     const std::string help = "A control of the SDR++ server" + (src.empty() ? std::string() : " (" + src + ")") +
-                             ", changed on the server itself: SDR++ keeps it after Eye of ZorCom disconnects. Untouched, Eye of ZorCom leaves it as the server has it.";
+                             ", changed on the server itself: SDR++ keeps it after Eye of SaurCom disconnects. Untouched, Eye of SaurCom leaves it as the server has it.";
     std::set<std::string> done;
     for (size_t k = 0; k < st.ui.size(); k++) {
         const auto& w = st.ui[k];
@@ -434,7 +434,7 @@ private:
         }
         if (type == kPktBasebandZstd) {   // never asked for (SET_COMPRESSION 0 is sent): say so once and drop it
             std::lock_guard<std::mutex> lk(stMu_);
-            if (!zstd_) { fprintf(stderr, "SDR++ server: %s sends compressed samples, which Eye of ZorCom does not read\n", addr_.c_str()); fflush(stderr); }
+            if (!zstd_) { fprintf(stderr, "SDR++ server: %s sends compressed samples, which Eye of SaurCom does not read\n", addr_.c_str()); fflush(stderr); }
             zstd_ = true;
             return;
         }
@@ -465,7 +465,7 @@ private:
             if (cmd == kCmdGetUi || cmd == kCmdUiAction) {
                 std::vector<SdrppWidget> w;
                 if (sdrppParseUi(b + 4, n - 4, w)) ui_ = std::move(w);
-                else { fprintf(stderr, "SDR++ server: %s sent a menu Eye of ZorCom cannot read\n", addr_.c_str()); fflush(stderr); }
+                else { fprintf(stderr, "SDR++ server: %s sent a menu Eye of SaurCom cannot read\n", addr_.c_str()); fflush(stderr); }
             }
             if (cmd < 8) acks_[cmd]++;
             // what the server had in its own pipeline when it answered (the stream's two buffers) was taken before the change too
@@ -496,7 +496,7 @@ private:
 };
 
 std::string busyText(const std::string& addr) {
-    return "the SDR++ server at " + addr + " is busy: it serves one client at a time and another one (SDR++, or another Eye of ZorCom) is connected";
+    return "the SDR++ server at " + addr + " is busy: it serves one client at a time and another one (SDR++, or another Eye of SaurCom) is connected";
 }
 std::string silentText(const std::string& addr) { return addr + " accepted the connection but did not answer as an SDR++ server (is this its port, 5259 by default?)"; }
 
@@ -606,7 +606,7 @@ protected:
         std::string warn;
         bool ok = true;
 
-        // 1. the server's own controls the user set in Eye of ZorCom (a gain mode can bring other sliders, so the menu is read again after each)
+        // 1. the server's own controls the user set in Eye of SaurCom (a gain mode can bring other sliders, so the menu is read again after each)
         for (int pass = 0; ok && pass < 24; pass++) {
             const auto ui = link_.ui();
             bool changed = false;
@@ -666,7 +666,7 @@ protected:
         if (ok && !radioFlag(s, "keepgain")) {
             const auto ui = link_.ui();
             const SdrppGainPlan g = sdrppGainPlan(ui);
-            if (g.sliders.empty()) addNote(warn, "the server's radio has no gain control Eye of ZorCom can find: set the gain in SDR++");
+            if (g.sliders.empty()) addNote(warn, "the server's radio has no gain control Eye of SaurCom can find: set the gain in SDR++");
             else if (!g.drivable) addNote(warn, "the gain is set by the server's AGC (switch it off under Radio settings to set it here)");
             for (int k : g.sliders) {
                 const auto& w = ui[(size_t)k];

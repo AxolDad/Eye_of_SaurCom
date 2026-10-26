@@ -67,12 +67,12 @@ static void run(const Case& c) {
     CHECK(t.services.size() == 1, "%s: %zu services", c.name, t.services.size());
     if (t.services.size() == 1) {
         const DrmService& s = t.services[0];
-        CHECK(s.label == (E ? "ZorCom DRM+" : "ZorCom DRM") && s.id == 0xE12345 && s.languageName == "eng" && s.country == "ae", "%s: service '%s' %06X '%s' '%s'", c.name, s.label.c_str(),
+        CHECK(s.label == (E ? "SaurCom DRM+" : "SaurCom DRM") && s.id == 0xE12345 && s.languageName == "eng" && s.country == "ae", "%s: service '%s' %06X '%s' '%s'", c.name, s.label.c_str(),
               s.id, s.languageName.c_str(), s.country.c_str());
         CHECK(s.audio && s.audioCoding == 0 && s.audioRateHz == 24000, "%s: audio %d %d Hz", c.name, s.audioCoding, s.audioRateHz);
         if (E) CHECK(s.bitrateBps > 30000, "%s: %d bit/s", c.name, s.bitrateBps);
     }
-    CHECK(t.textMessage == "ZorCom DRM test signal", "%s: text '%s'", c.name, t.textMessage.c_str());
+    CHECK(t.textMessage == "SaurCom DRM test signal", "%s: text '%s'", c.name, t.textMessage.c_str());
     CHECK(t.timeValid && t.year == 2026 && t.month == 10 && t.day == 6, "%s: time", c.name);
     CHECK(t.facBad == 0 && t.sdcBad == 0, "%s: FAC %llu bad, SDC %llu bad", c.name, (unsigned long long)t.facBad, (unsigned long long)t.sdcBad);
     CHECK(t.blocksOk >= (E ? 40u : 10u) && t.blocksBad == 0 && t.audioSamples > 48000, "%s: audio frames %llu ok %llu bad, %llu samples", c.name, (unsigned long long)t.blocksOk,

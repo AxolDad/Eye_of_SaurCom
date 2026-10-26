@@ -2,7 +2,7 @@
 
 The exchange between a contactless reader and a card, heard from an antenna beside them. It is there to check what your own cards
 and readers give away: which UID a card hands out, what type it is, what the reader asks it, whether anything passes in the clear that
-should not. Receive only: Eye of ZorCom makes no field, sends nothing and emulates no card. What a reader and a card encrypt between
+should not. Receive only: Eye of SaurCom makes no field, sends nothing and emulates no card. What a reader and a card encrypt between
 them (a MIFARE Classic authentication and everything after it, an ISO 14443-4 secure channel) is marked as such and not decoded.
 
 ## What it shows
@@ -43,9 +43,9 @@ not matter.
 
 Demodulation and frame decoding are **[nfc-laboratory](https://github.com/josevcm/nfc-laboratory)**'s (Jose Vicente Campos
 Martinez, GPL-3.0-or-later), vendored in `third_party/nfc-laboratory` as its decoder libraries at commit e9b054a (2026-10-23);
-`third_party/nfc-laboratory/README-ZorCom.md` lists what was taken and the two files Eye of ZorCom replaced (the logger and the debug recorder
-stub). Eye of ZorCom feeds it the magnitude of each sample and reads its frames back. The frame names, the anticollision tracking
-to the UID, the ATQA / SAK and manufacturer tables and the screens are Eye of ZorCom's (`core/include/dect2/nfc/nfc_proto.h`).
+`third_party/nfc-laboratory/README-SaurCom.md` lists what was taken and the two files Eye of SaurCom replaced (the logger and the debug recorder
+stub). Eye of SaurCom feeds it the magnitude of each sample and reads its frames back. The frame names, the anticollision tracking
+to the UID, the ATQA / SAK and manufacturer tables and the screens are Eye of SaurCom's (`core/include/dect2/nfc/nfc_proto.h`).
 
 Tests: `nfc_proto` (CRC_A and CRC_B vectors of ISO/IEC 14443-3 Annex B, the frame names, the anticollision tracker on a 4-byte and a
 7-byte UID, the card table), `nfc_rx` (the generator's reader-and-card exchange through nfc-laboratory's decoder at 10 and 2.5 Msps, the

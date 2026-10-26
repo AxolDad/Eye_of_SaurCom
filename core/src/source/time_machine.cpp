@@ -139,7 +139,7 @@ bool TimeMachine::trigger(const std::string& path, double preSeconds, double pos
     {
         std::lock_guard<std::mutex> lk(mu_);
         error_.clear();
-        worker_ = dect2::namedThread("zorcom-tmsave", [this, r, path, start, end, centerHz, sigmf] { saveLoop(r, path, start, end, centerHz, sigmf); });
+        worker_ = dect2::namedThread("saurcom-tmsave", [this, r, path, start, end, centerHz, sigmf] { saveLoop(r, path, start, end, centerHz, sigmf); });
     }
     return true;
 }
@@ -194,7 +194,7 @@ void TimeMachine::saveLoop(std::shared_ptr<Ring> r, std::string path, uint64_t s
             const std::string::size_type s = path.find_last_of("/\\");
             i.dataFile = path.substr(s == std::string::npos ? 0 : s + 1);
             i.sampleCount = written;
-            i.description = "Eye of ZorCom time machine: the samples around a trigger";
+            i.description = "Eye of SaurCom time machine: the samples around a trigger";
             FILE* m = fopen(dect2::u8file(b.string() + ".sigmf-meta").string().c_str(), "wb");
             if (m) { const std::string j = sigmfMetaJson(i); fwrite(j.data(), 1, j.size(), m); fclose(m); }
             std::error_code ec;

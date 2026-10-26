@@ -1,5 +1,5 @@
 //! Level meter: average channel power in dBFS, with a peak hold. The smallest useful Rust plugin.
-use zorcom_plugin::{export_plugin, Host, IqMeta, Lamp, Plugin, CAP_IQ_SINK};
+use saurcom_plugin::{export_plugin, Host, IqMeta, Lamp, Plugin, CAP_IQ_SINK};
 
 struct Meter { host: Host, peak: f32, blocks: u64 }
 

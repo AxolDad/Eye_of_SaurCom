@@ -142,7 +142,7 @@ void updatePicture(double now) {
         if (S.th.joinable()) S.th.join();
         S.fetch = 1;
         const std::string u = S.url;
-        S.th = dect2::namedThread("zorcom-rfcam", [u, file] { S.fetch = plat::fetchUrl(u, file, "Eye of ZorCom RF camera") ? 2 : 3; });
+        S.th = dect2::namedThread("saurcom-rfcam", [u, file] { S.fetch = plat::fetchUrl(u, file, "Eye of SaurCom RF camera") ? 2 : 3; });
     }
 }
 

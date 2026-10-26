@@ -45,7 +45,7 @@ static bool run(int opt, double maxSec) {
     CHECK(reports > 5 && wrong == 0, "%d reports, %d wrong", reports, wrong);
     CHECK(doneAt > 0, "no decode within %.0f s", maxSec);
     CHECK(!k.chats.empty() || !k.beaconList.empty(), "no message");
-    if (!k.chats.empty()) CHECK(k.chats[0].from == "ZORCOM" && k.chats[0].text.find("ZORCOM KAWS TEST SIGNAL") == 0, "chat from '%s': '%s'", k.chats[0].from.c_str(), k.chats[0].text.c_str());
+    if (!k.chats.empty()) CHECK(k.chats[0].from == "SAURCOM" && k.chats[0].text.find("SAURCOM KAWS TEST SIGNAL") == 0, "chat from '%s': '%s'", k.chats[0].from.c_str(), k.chats[0].text.c_str());
     CHECK(k.profile == (opt > 0 ? opt - 1 : 3), "profile %d", k.profile);
     CHECK(std::fabs(k.cfoHz - 30.0) < 20.0, "carrier offset read %.0f Hz, sent 30", k.cfoHz);
     // the synthetic source runs on the computer clock through a paced queue, so a loaded machine delays the burst by up to a second or two;

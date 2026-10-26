@@ -1,6 +1,6 @@
 # ARDOP (monitor)
 
-ARDOP, the Amateur Radio Digital Open Protocol of Rick Muething (KN6KB), is the HF ARQ data modem used by Winlink gateways, in four channel widths: 200, 500, 1000 and 2000 Hz. Eye of ZorCom listens to it; it never connects, answers or transmits.
+ARDOP, the Amateur Radio Digital Open Protocol of Rick Muething (KN6KB), is the HF ARQ data modem used by Winlink gateways, in four channel widths: 200, 500, 1000 and 2000 Hz. Eye of SaurCom listens to it; it never connects, answers or transmits.
 
 ## What the mode shows
 
@@ -30,4 +30,4 @@ Verified against the generator written for this mode (`tests/ardop`): all frame 
 
 ## Credits
 
-ARDOP by Rick Muething KN6KB; ARDOPC by John Wiseman G8BPQ; ardopcf by Peter LaRue KG4JJA (MIT licence). No source file of theirs is part of Eye of ZorCom. See THIRD_PARTY.md.
+ARDOP by Rick Muething KN6KB; ARDOPC by John Wiseman G8BPQ; ardopcf by Peter LaRue KG4JJA (MIT licence). No source file of theirs is part of Eye of SaurCom. See THIRD_PARTY.md.

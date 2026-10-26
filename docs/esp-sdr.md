@@ -1,7 +1,7 @@
 # ESP32 boards as radios (ESP-SDR)
 
 The Wi-Fi radio of an ESP32 can be read as raw I/Q samples, and three open-source projects turn that into a SoftwareDefined Radio
-that SoapySDR applications see as a receiver. Eye of ZorCom uses them through SoapySDR like any other radio; what it adds is that it
+that SoapySDR applications see as a receiver. Eye of SaurCom uses them through SoapySDR like any other radio; what it adds is that it
 recognises the boards, names them, shows their specified range and sample rates before they have been started (the drivers say
 nothing until then), and lets the Ethernet board be added by address. Everything here is written from the projects' own
 documentation and has not been tried on a board.
@@ -19,16 +19,16 @@ available. Samples are 8 bits. A board takes one connection at a time.
 
 1. Flash the firmware the project names for your board (the ESPARGOS one is the *streaming* firmware "for SoapyESPSDR", not the
    ESP-WebSDR one) and build its SoapySDR module. Check with `SoapySDRUtil --find="driver=espsdr"` (or `driver=esdr`).
-2. Put the module where this computer's SoapySDR finds it (`SoapySDRUtil --info` lists the module path; on Windows Eye of ZorCom
+2. Put the module where this computer's SoapySDR finds it (`SoapySDRUtil --info` lists the module path; on Windows Eye of SaurCom
    loads the modules in its own `lib\SoapySDR\modules0.8` folder).
-3. A board on USB or a serial port is then in Eye of ZorCom's radio list by itself, as **ESP-SDR ESP32-S31 USB**, **ESP-SDR ESP32-S3
+3. A board on USB or a serial port is then in Eye of SaurCom's radio list by itself, as **ESP-SDR ESP32-S31 USB**, **ESP-SDR ESP32-S3
    on /dev/ttyACM0** or **ESP-SDR Zephyr ESP32**.
 4. The ESPARGOS board on Ethernet is added from the source list: **Add network radio…**, type **ESP-SDR (ESP32 on Ethernet)**, the
    address its DHCP server gave it, and the port of its HTTP control server (80 unless the firmware was told otherwise). Connect
    checks that the port answers; the radio is then listed as **ESP-SDR ESP32-S31 \<address\> (network)**.
 
 The frequency range and the rates shown for an unstarted board are the documented ones; once the board has been started the driver's
-own figures replace them. Eye of ZorCom never limits the frequency you type: outside the range it still asks the driver.
+own figures replace them. Eye of SaurCom never limits the frequency you type: outside the range it still asks the driver.
 
 ## What to expect
 

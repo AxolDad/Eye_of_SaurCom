@@ -165,7 +165,7 @@ bool WebRadio::play(const std::string& url, std::string& err) {
             std::lock_guard<std::mutex> lk(s.mu); s.st.seconds = (double)frames / rate;
         };
         const std::vector<std::string> args = {"-sSL", "--no-buffer", "--proto", "=http,https", "--proto-redir", "=http,https", "--max-redirs", "5",
-                                               "--connect-timeout", "10", "-A", "EyeOfZorCom", "--url", url};
+                                               "--connect-timeout", "10", "-A", "EyeOfSaurCom", "--url", url};
         const int rc = curlStream(args, [&](const char* d, size_t n) {
             if (bad || s.cancel) return;
             { std::lock_guard<std::mutex> lk(s.mu); s.st.bytes += n; }

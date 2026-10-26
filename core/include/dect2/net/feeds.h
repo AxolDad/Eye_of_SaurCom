@@ -38,7 +38,7 @@ struct FeedConfig {
     std::string aprsCall, aprsPass;                            // APRS-IS login; the feed stays idle without a callsign
     std::string aprsServer = "rotate.aprs2.net"; int aprsServerPort = 14580;
     std::vector<FeedTarget> targets;                           // outbound aggregator targets (feed_targets.h), each off until enabled
-    std::string stationId = "Eye of ZorCom";                           // station_id in the ACARS / VDL2 JSON
+    std::string stationId = "Eye of SaurCom";                           // station_id in the ACARS / VDL2 JSON
 };
 
 struct FeedStatus {

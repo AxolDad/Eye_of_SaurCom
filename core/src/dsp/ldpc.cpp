@@ -45,7 +45,7 @@ DECT2_SIMD_BODY void minSumApplyBody(float* __restrict Lj, float* __restrict mj,
 #endif
 
 LdpcCode::LdpcCode(int k, int n, const std::vector<std::vector<int>>& rows) : k_(k), n_(n), m_(n - k) {
-    // the parity-check tables: core/src/fec/fec_proto.cpp (C++) or the Rust crate zorcom_fec
+    // the parity-check tables: core/src/fec/fec_proto.cpp (C++) or the Rust crate saurcom_fec
     fecp::LdpcTables t;
     if (!fecp::ldpcBuild(k, n, rows, t)) {   // an unusable code (n <= k, fewer than 360 parity bits, a negative address) stays empty
         k_ = n_ = m_ = 0;

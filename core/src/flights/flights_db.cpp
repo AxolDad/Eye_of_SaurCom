@@ -1134,7 +1134,7 @@ std::string Db::exportTrack(int64_t flightId, const std::string& format) const {
     flight(flightId, f);
     std::string o;
     if (format == "gpx") {
-        o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Eye of ZorCom\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n";
+        o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Eye of SaurCom\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n";
         o += " <trk><name>" + jsonEsc(f.callsign.empty() ? hex6(f.icao) : f.callsign) + "</name><trkseg>\n";
         for (const Point& p : pts) {
             o += "  <trkpt lat=\"" + num(p.lat, 6) + "\" lon=\"" + num(p.lon, 6) + "\">";

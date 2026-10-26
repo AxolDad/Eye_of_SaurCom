@@ -23,8 +23,8 @@
 #endif
 #endif
 
-#ifndef ZORCOM_VERSION
-#define ZORCOM_VERSION "?"
+#ifndef SAURCOM_VERSION
+#define SAURCOM_VERSION "?"
 #endif
 
 namespace fs = std::filesystem;
@@ -55,7 +55,7 @@ struct Out {
     }
 };
 
-char gVersion[32] = ZORCOM_VERSION;
+char gVersion[32] = SAURCOM_VERSION;
 bool gPrevCrashed = false;
 std::string gPrevReport;
 int gFailedStarts = 0;
@@ -91,14 +91,14 @@ void report(EXCEPTION_POINTERS* ep, const char* what) {
     HANDLE h = CreateFileW(gReportW, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (h != INVALID_HANDLE_VALUE) {
         Out o{gBuf, 0, sizeof gBuf};
-        o.put("Eye of ZorCom "); o.put(gVersion); o.put(" crashed: exception "); o.hex(r->ExceptionCode);
+        o.put("Eye of SaurCom "); o.put(gVersion); o.put(" crashed: exception "); o.hex(r->ExceptionCode);
         o.put(", address "); putAddr(o, (uintptr_t)r->ExceptionAddress);
         if (what) { o.put(" ["); o.put(what); o.put("]"); }
         if (r->ExceptionCode == EXCEPTION_ACCESS_VIOLATION && r->NumberParameters >= 2) {
             o.put(r->ExceptionInformation[0] == 0 ? ", reading " : r->ExceptionInformation[0] == 1 ? ", writing " : ", executing ");
             o.hex(r->ExceptionInformation[1]);
         }
-        o.put("\nimage base of ZorCom.exe: "); o.hex((uintptr_t)GetModuleHandleW(nullptr));
+        o.put("\nimage base of SaurCom.exe: "); o.hex((uintptr_t)GetModuleHandleW(nullptr));
         o.put("\n");
         writeAll(h, o);   // the header first: it is kept even if walking the stack fails
 
@@ -177,7 +177,7 @@ const char* sigName(int s) {
 void onSignal(int sig, siginfo_t* si, void*) {
     char buf[256];
     Out o{buf, 0, sizeof buf};
-    o.put("Eye of ZorCom "); o.put(gVersion); o.put(" crashed: signal "); o.dec(sig);
+    o.put("Eye of SaurCom "); o.put(gVersion); o.put(" crashed: signal "); o.dec(sig);
     o.put(" ("); o.put(sigName(sig)); o.put("), address "); o.hex((uintptr_t)(si ? si->si_addr : nullptr));
     o.put("\nstack:\n");
     void* frames[64];
@@ -220,14 +220,14 @@ std::string logDir() {
     wchar_t w[1024];
     const DWORD n = GetEnvironmentVariableW(L"APPDATA", w, 1024);
     if (n == 0 || n >= 1024) return ".";
-    return fromPath(fs::path(w) / L"Eye of ZorCom");
+    return fromPath(fs::path(w) / L"Eye of SaurCom");
 #else
     const char* h = getenv("HOME");
     const std::string home = h && *h ? h : ".";
 #ifdef __APPLE__
-    return home + "/Library/Logs/ZorCom";
+    return home + "/Library/Logs/SaurCom";
 #else
-    return home + "/.config/zorcom";
+    return home + "/.config/saurcom";
 #endif
 #endif
 }
@@ -265,7 +265,7 @@ void install(const char* name, const char* dir) {
     }
     {   // mark this start
         std::ofstream f(stamp, std::ios::trunc);
-        f << ZORCOM_VERSION << "\n";
+        f << SAURCOM_VERSION << "\n";
     }
     {   // and make sure the mark is newer than an old report, so that the next start does not report it again
         std::error_code e1, e2;
@@ -295,7 +295,7 @@ void startupDone() {
 }
 
 void rotateLog(const std::string& dir) {
-    const fs::path cur = toPath(dir) / "zorcom.log", prev = toPath(dir) / "zorcom-prev.log";
+    const fs::path cur = toPath(dir) / "saurcom.log", prev = toPath(dir) / "saurcom-prev.log";
     std::error_code ec;
     if (!fs::exists(cur, ec)) return;
     fs::remove(prev, ec);
@@ -309,7 +309,7 @@ void startLog() {
     std::error_code ec;
     fs::create_directories(toPath(d), ec);
     rotateLog(d);
-    FILE* unused = _wfreopen((toPath(d) / "zorcom.log").c_str(), L"w", stderr);
+    FILE* unused = _wfreopen((toPath(d) / "saurcom.log").c_str(), L"w", stderr);
     (void)unused;
 }
 #endif

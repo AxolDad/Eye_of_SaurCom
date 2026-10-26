@@ -82,7 +82,7 @@ private:
     bool writeComments(const std::vector<std::string>& c) {
         std::vector<uint8_t> d;
         auto le32 = [&](uint32_t x) { for (int i = 0; i < 4; i++) d.push_back((uint8_t)(x >> (8 * i))); };
-        const std::string vendor = "Eye of ZorCom";
+        const std::string vendor = "Eye of SaurCom";
         le32((uint32_t)vendor.size()); d.insert(d.end(), vendor.begin(), vendor.end());
         le32((uint32_t)c.size());
         for (const auto& s : c) { le32((uint32_t)s.size()); d.insert(d.end(), s.begin(), s.end()); }

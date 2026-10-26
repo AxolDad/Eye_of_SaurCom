@@ -123,7 +123,7 @@ void testLimits() {
 }
 
 void testSizeCap() {
-    const std::string path = (fs::temp_directory_path() / "zorcom_msgdb_cap.db").string();
+    const std::string path = (fs::temp_directory_path() / "saurcom_msgdb_cap.db").string();
     for (const char* sfx : {"", "-wal", "-shm"}) fs::remove(path + sfx);
     Db db;
     CHECK(db.open(path), "open file");

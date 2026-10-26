@@ -7,7 +7,7 @@ something happened can be saved as well as what comes after it.
   the window shortens to fit (the window is shown). 10 Msps at 512 MB reaches back about 25 s.
 * **Samples kept.** 1/2 ... 1/16 averages every 2 ... 16 samples before storing: the window is that many times longer, but only the middle
   part of the band (1/N of it) survives, so use it for a channel at the centre.
-* **A save** writes `zorcom_rewind-<mode>_<MHz>_<rate>_<time>.cs8` (plus a `.sigmf-meta` and `.sigmf-data` link when SigMF is on) into the
+* **A save** writes `saurcom_rewind-<mode>_<MHz>_<rate>_<time>.cs8` (plus a `.sigmf-meta` and `.sigmf-data` link when SigMF is on) into the
   recordings folder: "Save the last (s)" before the trigger and "Then keep recording (s)" after it. The slider's bar shows how much history there is
   and how much of it a save keeps. A file is never bigger than 4 GB, and a save is refused if the disk has less room than the file needs.
 * **Triggers.** The "Save now" button; the General receiver's squelch opening (tick the box); an automation rule with the action

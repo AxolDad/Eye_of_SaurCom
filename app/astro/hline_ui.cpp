@@ -215,7 +215,7 @@ void velocityTab(App& a, const HlineIn& in) {
             char tb[32]; snprintf(tb, sizeof tb, "%.2f", H.tsys);
             const std::string ext = hl::fitsTable({"FREQ", "VEL_TOPO", "VEL_LSR", "TA"}, {"Hz", "km/s", "km/s", "K"}, {f, H.lastV, H.lastVlsr, H.lastTa},
                                                   {{"EXTNAME", "SPECTRUM"}, {"RESTFRQ", std::to_string(in.restHz)}, {"TSYS", tb}, {"INTTIME", std::to_string(in.integSec)}});
-            const std::string file = hl::fitsFile({{"ORIGIN", "Eye of ZorCom"}, {"OBSGEO-B", std::to_string(lat)}, {"OBSGEO-L", std::to_string(lon)}, {"LSRCORR", std::to_string(H.lastCorr)}}, {ext});
+            const std::string file = hl::fitsFile({{"ORIGIN", "Eye of SaurCom"}, {"OBSGEO-B", std::to_string(lat)}, {"OBSGEO-L", std::to_string(lon)}, {"LSRCORR", std::to_string(H.lastCorr)}}, {ext});
             H.note = writeFile(p, file) ? "saved " + p : "could not write " + p;
         }
     }

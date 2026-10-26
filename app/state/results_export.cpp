@@ -143,9 +143,9 @@ static std::string adifMode(const std::string& m) {
 }
 
 std::string toAdif(const Table& t) {
-    std::string o = "Eye of ZorCom logbook export\n";
+    std::string o = "Eye of SaurCom logbook export\n";
     adifField(o, "ADIF_VER", "3.1.4");
-    adifField(o, "PROGRAMID", "Eye of ZorCom");
+    adifField(o, "PROGRAMID", "Eye of SaurCom");
     o += "<EOH>\n";
     const int cCall = colOf(t, {"call", "callsign", "call_sign"}), cGrid = colOf(t, {"grid", "locator", "gridsquare"}), cBand = colOf(t, {"band"}),
               cMode = colOf(t, {"mode"}), cRst = colOf(t, {"rst", "rst_rcvd", "rst_sent", "snr", "snr_db"}),
@@ -216,7 +216,7 @@ static std::vector<Pt> points(const Table& t) {
 }
 
 std::string toKml(const Table& t) {
-    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n<Document>\n<name>Eye of ZorCom</name>\n";
+    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n<Document>\n<name>Eye of SaurCom</name>\n";
     for (const Pt& p : points(t)) {
         o += "<Placemark><name>" + xmlEsc(p.name) + "</name>";
         if (!p.desc.empty()) o += "<description>" + xmlEsc(p.desc) + "</description>";
@@ -227,7 +227,7 @@ std::string toKml(const Table& t) {
 }
 
 std::string toGpx(const Table& t) {
-    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Eye of ZorCom\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n";
+    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Eye of SaurCom\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n";
     for (const Pt& p : points(t)) {
         o += "<wpt lat=\"" + p.lat + "\" lon=\"" + p.lon + "\">";
         if (!p.ele.empty()) o += "<ele>" + p.ele + "</ele>";

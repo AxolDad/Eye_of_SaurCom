@@ -1,4 +1,4 @@
-// AIS: the receiver against a transmitter written separately from ZorCom's own generator (issue #87).
+// AIS: the receiver against a transmitter written separately from SaurCom's own generator (issue #87).
 // Nothing here uses ais_gen / ais_testutil / the proto layer's stuff(), nrziEncode(), appendFcs() or burstLineBits(): the frame is built from the
 // gpsd AIVDM document's sentences exactly as ITU-R M.1371-5 annex 2 describes it:
 //   6 bit armour -> message bits (field MSB first) -> octets (bit 0 of the tables = MSB of the octet) -> sent LSB first -> FCS = CRC-16/X-25

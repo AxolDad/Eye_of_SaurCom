@@ -270,7 +270,7 @@ static void synthesizeCpu(const VideoFrame& A, const VideoFrame& B, int count, c
     };
     const int nThreads = std::max(1, std::min(count, (int)std::min(4u, std::max(1u, std::thread::hardware_concurrency() / 4))));
     std::vector<std::thread> pool;
-    for (int i = 1; i < nThreads; i++) pool.emplace_back(dect2::namedThread("zorcom-conceal", worker, true));
+    for (int i = 1; i < nThreads; i++) pool.emplace_back(dect2::namedThread("saurcom-conceal", worker, true));
     worker(false);
     for (auto& t : pool) t.join();
     for (auto& f : res) out.push_back(std::move(f));
@@ -295,7 +295,7 @@ bool interpolateGapApple(const VideoFrame&, const VideoFrame&, int, std::vector<
 
 void prepareInterpolation(int w, int h) {
     if (!appleInterpolationAvailable() || getenv("DECT2_SWINTERP") || w < 64 || h < 64) return;
-    dect2::namedThread("zorcom-conceal", [w, h] {
+    dect2::namedThread("saurcom-conceal", [w, h] {
         VideoFrame a, b;
         a.w = b.w = w; a.h = b.h = h;
         a.y.assign((size_t)w * h, 100); b.y.assign((size_t)w * h, 110);

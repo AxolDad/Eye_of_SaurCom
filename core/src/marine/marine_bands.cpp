@@ -59,7 +59,7 @@ const std::vector<MarineBand>& marineBands() {
         {"MF", 490e3, "NAVTEX national", "NAVTEX: SITOR-B FEC 100 bd, national language", "Used by a few countries for local language.", 15, "navtex"},
         {"MF", 424e3, "NAVTEX 424 kHz", "NAVTEX: SITOR-B FEC", "Some Baltic and Turkish stations.", 15, "navtex"},
         {"MF", 2182e3, "Radiotelephony distress", "Voice J3E (USB), alarm signal", "International distress, safety and calling frequency. No decoder, tune and listen.", -1, nullptr},
-        {"MF", 2174.5e3, "NBDP distress", "NBDP (SITOR-ARQ/FEC) 100 bd", "Distress telex. Eye of ZorCom has no plain NBDP decoder; the NAVTEX mode reads only NAVTEX-format messages.", -1, nullptr},
+        {"MF", 2174.5e3, "NBDP distress", "NBDP (SITOR-ARQ/FEC) 100 bd", "Distress telex. Eye of SaurCom has no plain NBDP decoder; the NAVTEX mode reads only NAVTEX-format messages.", -1, nullptr},
         {"HF 4 MHz", 4207.5e3, "DSC distress and safety", "DSC 100 bd FSK", "", 15, "dsc"},
         {"HF 4 MHz", 4208e3, "DSC calling, ship (worldwide)", "DSC 100 bd FSK", "Coast side 4219.5 kHz.", 15, "dsc"},
         {"HF 4 MHz", 4209.5e3, "NAVTEX HF", "NAVTEX: SITOR-B FEC", "Tropical-zone NAVTEX in English.", 15, "navtex"},

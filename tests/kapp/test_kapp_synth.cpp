@@ -47,8 +47,8 @@ static bool run(int opt, double maxSec) {
     CHECK(k.messages >= 3, "messages %llu", (unsigned long long)k.messages);
     CHECK(k.blocksOk > 3 && k.blocksBad * 10 <= k.blocksOk, "blocks ok %llu bad %llu", (unsigned long long)k.blocksOk, (unsigned long long)k.blocksBad);
     CHECK(std::fabs(k.cfoHz - 1000.0) < 200.0, "carrier offset read %.0f Hz, sent 1000", k.cfoHz);
-    CHECK(k.callsign == "ZORCOM", "callsign '%s'", k.callsign.c_str());
-    CHECK(!k.packets.empty() && k.packets[0].preview.find("ZorCom KAPP test signal") == 0, "message text");
+    CHECK(k.callsign == "SAURCOM", "callsign '%s'", k.callsign.c_str());
+    CHECK(!k.packets.empty() && k.packets[0].preview.find("SaurCom KAPP test signal") == 0, "message text");
     CHECK(k.profile == (opt > 0 ? opt - 1 : 2), "profile %d", k.profile);
     CHECK(e.droppedSamples() == 0, "dropped %llu", (unsigned long long)e.droppedSamples());
     e.stop();

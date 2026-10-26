@@ -44,7 +44,7 @@ static float identifyButton(App& a, ImVec2 plotMin, ImVec2 plotSize, float right
     ImGui::PushStyleColor(ImGuiCol_Button, bg);
     if (ImGui::SmallButton(lb)) a.identifyTool = !a.identifyTool;
     ImGui::PopStyleColor();
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("What is this? Click a signal, or drag across it, and Eye of ZorCom says what it is and how sure it is. Key I. Shift+drag does it without the tool."));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("What is this? Click a signal, or drag across it, and Eye of SaurCom says what it is and how sure it is. Key I. Shift+drag does it without the tool."));
     if (a.identifyTool && plotSize.y > 3 * sz.y + 6 * m) {
         const char* hint = tr("Identify: click a signal or drag across it. Esc or I leaves the tool.");
         const ImVec2 hs = ImGui::CalcTextSize(hint);
@@ -1198,7 +1198,7 @@ void constDensityPlot(App& a, ImVec2 sz) {
             static int cm = -1;
             if (cm < 0) {   // black -> accent -> white, instead of the rainbow-like "hot" map
                 const ImVec4 cols[4] = {ImVec4(0.02f, 0.03f, 0.05f, 1), ImVec4(0.10f, 0.28f, 0.45f, 1), pal::accent(), ImVec4(0.95f, 0.98f, 1.f, 1)};
-                cm = plt::AddColormap("zorcom", cols, 4);
+                cm = plt::AddColormap("saurcom", cols, 4);
             }
             plt::PushColormap(cm);
             plt::PlotHeatmap("density", v.data(), G, G, 0, std::max(1.f, mx * 0.85f), nullptr, plt::Point(-1.4, -1.4), plt::Point(1.4, 1.4));

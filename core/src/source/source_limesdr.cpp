@@ -64,7 +64,7 @@ struct LimeApi {
         return t && *t ? std::string(": ") + t : std::string();
     }
 };
-// The library in use. On Windows it can change once: the copy shipped with Eye of ZorCom has no Cypress FX3 (CyAPI) support, so a LimeSDR-USB on
+// The library in use. On Windows it can change once: the copy shipped with Eye of SaurCom has no Cypress FX3 (CyAPI) support, so a LimeSDR-USB on
 // the Cypress driver that LimeGUI installs is invisible to it; when it finds nothing, the other LimeSuite copies installed on the machine
 // (PothosSDR, LimeSuite) are asked as well, and the first one that sees a radio is kept. The libraries are never unloaded.
 std::mutex gLimeMu;

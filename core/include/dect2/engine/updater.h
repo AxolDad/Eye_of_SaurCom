@@ -21,14 +21,14 @@ struct ReleaseInfo {
     uint64_t size = 0;
 };
 
-inline constexpr const char* kUpdateRepo = "AxolDad/OnAir-SDR-Suite";   // owner/name of the GitHub repository whose releases are the updates
+inline constexpr const char* kUpdateRepo = "AxolDad/Eye_of_ZorCom";   // owner/name of the GitHub repository whose releases are the updates
 
 // How this copy of the program was installed: decides what an update can do.
 enum class InstallKind {
     Unknown,         // a development build or a place we cannot replace
-    MacApp,          // ZorCom.app
+    MacApp,          // SaurCom.app
     WindowsInstall,  // installed by the setup program (or unpacked from the zip)
-    LinuxPortable,   // the .tar.gz: a directory with bin/zorcom in it
+    LinuxPortable,   // the .tar.gz: a directory with bin/saurcom in it
     LinuxDeb         // installed by the .deb: needs the administrator to change
 };
 
@@ -90,7 +90,7 @@ public:
     explicit Updater(const std::string& currentVersion);
     ~Updater();
     const std::string& currentVersion() const { return current_; }
-    // Where to ask: the GitHub releases of the project, or what ZORCOM_UPDATE_URL says (also a file:// address, for tests)
+    // Where to ask: the GitHub releases of the project, or what SAURCOM_UPDATE_URL says (also a file:// address, for tests)
     void setApiUrl(const std::string& url) { api_ = url; if (url.compare(0, 8, "https://") != 0) insecure_ = true; }   // an address that is not https (tests, file://) lifts the https-only rule
     void setExecutable(const std::string& path, int kindOverride = -1);   // for tests; defaults to this program
     void setWaitPid(int pid) { waitPid_ = pid; }     // for tests: the process the helper waits for (default: this one)

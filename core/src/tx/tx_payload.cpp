@@ -465,7 +465,7 @@ std::unique_ptr<ModeSynth> makeTxPayloadSynth(const TxModeSpec& m, const TxReque
                      (int)alat, (alat - (int)alat) * 60.0, r.lat < 0 ? 'S' : 'N',
                      (int)alon, (alon - (int)alon) * 60.0, r.lon < 0 ? 'W' : 'E',
                      r.text.c_str());
-        } else snprintf(info, sizeof info, ">%s", r.text.empty() ? "Eye of ZorCom" : r.text.c_str());
+        } else snprintf(info, sizeof info, ">%s", r.text.empty() ? "Eye of SaurCom" : r.text.c_str());
         f.info = info;
         return makePacketSynthFrame(s, rate, f, r.baudIdx == 1 ? 9600 : 1200);
     }

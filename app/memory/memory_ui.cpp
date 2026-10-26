@@ -113,12 +113,12 @@ void row(App& a, MemoryBank& b, size_t idx, bool allowDrag, int& dragFrom, int& 
     }
     if (allowDrag && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
         const int from = (int)idx;
-        ImGui::SetDragDropPayload("zorcom_memory", &from, sizeof from);
+        ImGui::SetDragDropPayload("saurcom_memory", &from, sizeof from);
         ImGui::TextUnformatted(m.name.c_str());
         ImGui::EndDragDropSource();
     }
     if (allowDrag && ImGui::BeginDragDropTarget()) {
-        if (const ImGuiPayload* p = ImGui::AcceptDragDropPayload("zorcom_memory")) { dragFrom = *(const int*)p->Data; dragTo = (int)idx; }
+        if (const ImGuiPayload* p = ImGui::AcceptDragDropPayload("saurcom_memory")) { dragFrom = *(const int*)p->Data; dragTo = (int)idx; }
         ImGui::EndDragDropTarget();
     }
     if (ImGui::BeginPopupContextItem("##ctx")) {
@@ -211,12 +211,12 @@ void importExport(MemoryBank& b) {
     if (ImGui::IsItemHovered()) wrapTooltip(380 * gUi, tr("Reads a memories CSV or JSON file, a plain list of 'frequency,name' lines (MHz), or an SDR++ Frequency Manager export. Memories already stored on the same frequency and mode are skipped."));
     ImGui::SameLine();
     if (ImGui::Button(tr("Export CSV..."))) {
-        const std::string p = saveFileDialog("zorcom-memories.csv");
+        const std::string p = saveFileDialog("saurcom-memories.csv");
         if (!p.empty()) { std::string err; say(b.exportFile(p, true, &err) ? std::string(tr("Exported to ")) + p : err, !err.empty()); }
     }
     ImGui::SameLine();
     if (ImGui::Button(tr("Export JSON..."))) {
-        const std::string p = saveFileDialog("zorcom-memories.json");
+        const std::string p = saveFileDialog("saurcom-memories.json");
         if (!p.empty()) { std::string err; say(b.exportFile(p, false, &err) ? std::string(tr("Exported to ")) + p : err, !err.empty()); }
     }
 }

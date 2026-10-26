@@ -108,7 +108,7 @@ void load(HamUi& h) {
     h.rigSel = (int)p.getI("ham.rig", -1);
     h.io.device = p.getS("ham.audioOut", "");
     h.txHz = (float)p.getD("ham.txHz", 1500);
-    h.logPath = plat::dataDir() + "/zorcom_ham.adi";
+    h.logPath = plat::dataDir() + "/saurcom_ham.adi";
     h.worked.load(h.logPath);
     h.eng.onLog = [&h](const ham::QsoRecord& q) {
         ham::QsoRecord r = q;
@@ -121,11 +121,11 @@ void load(HamUi& h) {
     h.upCfg.qrzKey = p.getS("ham.up.qrzKey", ""); h.upCfg.clubEmail = p.getS("ham.up.clubEmail", ""); h.upCfg.clubPassword = p.getS("ham.up.clubPw", "");
     h.upCfg.clubApiKey = p.getS("ham.up.clubApi", ""); h.upCfg.eqslUser = p.getS("ham.up.eqslUser", ""); h.upCfg.eqslPassword = p.getS("ham.up.eqslPw", "");
     {   // the queue file had the old program name before the rename: kept, so nothing already uploaded goes up again
-        const std::string q = plat::dataDir() + "/zorcom_ham_upload.tsv", legacy = plat::dataDir() + "/onair_ham_upload.tsv";
+        const std::string q = plat::dataDir() + "/saurcom_ham_upload.tsv", legacy = plat::dataDir() + "/onair_ham_upload.tsv";
         std::error_code ec;
         if (!std::filesystem::exists(q, ec) && std::filesystem::exists(legacy, ec)) std::filesystem::rename(legacy, q, ec);
     }
-    h.up.load(plat::dataDir() + "/zorcom_ham_upload.tsv");
+    h.up.load(plat::dataDir() + "/saurcom_ham_upload.tsv");
     h.up.setConfig(h.upCfg);
     h.up.startWorker();
     h.eng.onEvent = [&h](const std::string& e) { h.status = e == "watchdog" ? "Watchdog: no operator action for too long, TX halted" : "No answer: gave up the call"; h.armed = false; };

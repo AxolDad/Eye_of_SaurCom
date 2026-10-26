@@ -192,7 +192,7 @@ int main() {
         CHECK(im.size() % 2880 == 0, "image not block aligned");
         const std::vector<std::vector<double>> cols{{1420.0, 1420.1, 1420.2}, {-3.5, 7.25, 1e-3}};
         const std::string tb = fitsTable({"FREQ", "TA"}, {"MHz", "K"}, cols, {{"EXTNAME", "SPECTRUM"}});
-        const std::string file = fitsFile({{"TELESCOP", "test"}, {"ORIGIN", "ZorCom"}}, {im, tb});
+        const std::string file = fitsFile({{"TELESCOP", "test"}, {"ORIGIN", "SaurCom"}}, {im, tb});
         CHECK(file.compare(0, 30, "SIMPLE  =                    T") == 0, "primary header start");
         std::vector<Hdu> h;
         CHECK(fitsRead(file, h) && h.size() == 3, "read failed or %zu HDUs", h.size());
@@ -211,7 +211,7 @@ int main() {
         CHECK(c.find("vel_lsr_kms") != std::string::npos && c.find("-15.5000") != std::string::npos && c.find(",1\n") != std::string::npos, "csv text");
         GaussComp g; g.amp = 5; g.centre = -20; g.sigma = 8;
         const std::string sm = sigmfMeta(1420405751, 2.4e6, "H I", {g}, "2026-10-17T00:00:00Z", 54.7, 25.3, 1000);
-        CHECK(sm.find("\"core:frequency\": 1420405751.000") != std::string::npos && sm.find("zorcom:fwhm_kms\": 18.8") != std::string::npos, "sigmf text");
+        CHECK(sm.find("\"core:frequency\": 1420405751.000") != std::string::npos && sm.find("saurcom:fwhm_kms\": 18.8") != std::string::npos, "sigmf text");
         Session s; s.info["lat"] = "54.7"; s.spectra = {{1, 2, 3.5}, {4, 5, 6}}; s.times = {10.5, 20.5};
         Session b;
         CHECK(parseSession(sessionText(s), b) && b.spectra == s.spectra && b.times == s.times && b.info["lat"] == "54.7", "session round trip");

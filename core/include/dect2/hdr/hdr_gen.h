@@ -1,9 +1,9 @@
 // HD Radio test signal. Nothing is transmitted: the samples only exist in memory or in a file.
 //
-// makeHdrSynth(): a hybrid station with its digital sidebands, carrying station information (SIS: call sign WONR, name "ZorCom HD", long
+// makeHdrSynth(): a hybrid station with its digital sidebands, carrying station information (SIS: call sign WONR, name "SaurCom HD", long
 // name, slogan, location, station message), two audio programs HD1 and HD2, program service data (title, artist, album, genre) for both,
 // the station information guide, and one large object: a small PNG logo that HD1's program data names as its album art. The audio packets
-// are filler bytes (Eye of ZorCom has no HDC encoder; HDC sound is patented and not decoded either).
+// are filler bytes (Eye of SaurCom has no HDC encoder; HDC sound is patented and not decoded either).
 //
 // SynthConfig:
 //   modeOpt[0]  waveform: 0 FM hybrid MP1 (analog FM with a 1 kHz tone, primary main sidebands; P1 and PIDS),
@@ -28,25 +28,25 @@ std::unique_ptr<ModeSynth> makeHdrSynth(const SynthConfig& cfg, double sampleRat
 // What the test signal carries, for the tests
 struct HdrTestContent {
     std::string callSign = "WONR";
-    std::string name = "ZorCom HD";
-    std::string longName = "ZORCOM HD RADIO TEST STATION";
+    std::string name = "SaurCom HD";
+    std::string longName = "SAURCOM HD RADIO TEST STATION";
     std::string slogan = "Station data you can see, sound you cannot hear";
-    std::string message = "This is a test signal made by ZorCom. HD Radio sound uses the HDC codec, which ZorCom does not decode.";
+    std::string message = "This is a test signal made by SaurCom. HD Radio sound uses the HDC codec, which SaurCom does not decode.";
     std::string country = "US";
     int facilityId = 54321;
     double lat = 40.75, lon = -73.99;
     int altM = 96;
     struct Prog { int number; int type; std::string sigName, title, artist, album, genre; };
     std::vector<Prog> programs = {
-        {0, 5, "ZorCom HD", "Test Pattern", "The ZorCom Band", "Signals Vol. 1", "Rock"},
-        {1, 14, "ZorCom HD2", "Second Program", "ZorCom Quartet", "Data Only", "Jazz"},
+        {0, 5, "SaurCom HD", "Test Pattern", "The SaurCom Band", "Signals Vol. 1", "Rock"},
+        {1, 14, "SaurCom HD2", "Second Program", "SaurCom Quartet", "Data Only", "Jazz"},
     };
-    Prog extended = {2, 9, "ZorCom HD3", "Third Program", "ZorCom Trio", "Extended Partitions", "Pop"};   // MP3 only, on P3
+    Prog extended = {2, 9, "SaurCom HD3", "Third Program", "SaurCom Trio", "Extended Partitions", "Pop"};   // MP3 only, on P3
     int artPort = 0x1000;          // HD1 album art (LOT, primary image)
     int artLot = 1;
-    std::string artName = "zorcom_logo.png";
+    std::string artName = "saurcom_logo.png";
     int trafficPort = 0x1100;      // a station data service listed in the SIG (traffic, nothing sent on it)
-    std::string trafficName = "ZorCom Traffic";
+    std::string trafficName = "SaurCom Traffic";
 };
 const HdrTestContent& hdrTestContent();
 const std::vector<uint8_t>& hdrTestLogoPng();    // the LOT image (a 64 x 64 palette PNG)

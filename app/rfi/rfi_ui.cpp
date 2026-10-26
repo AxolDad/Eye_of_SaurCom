@@ -104,7 +104,7 @@ void startGps() {
     stopGps();
     if (S.gpsMode != GpsNmea || !S.nmeaPath[0]) return;
     S.gcancel = false; S.grun = true; S.gpsMsg = tr("Waiting for a position fix.");
-    S.gth = dect2::namedThread("zorcom-rfigps", gpsWorker, std::string(S.nmeaPath));
+    S.gth = dect2::namedThread("saurcom-rfigps", gpsWorker, std::string(S.nmeaPath));
 }
 bool position(double& lat, double& lon) {
     if (S.gpsMode == GpsReceiver) {
@@ -171,7 +171,7 @@ void startSweep(App& a) {
     c.startHz = S.fromMHz * 1e6; c.stopHz = std::max(S.toMHz, S.fromMHz + 0.01f) * 1e6; c.binHz = S.binKHz * 1e3; c.dwellSec = S.dwellMs / 1e3;
     c.thresholdDb = S.thrDb; c.minIntervalSec = S.everySec;
     S.cancel = false; S.running = true;
-    S.th = dect2::namedThread("zorcom-rfi", worker, dev, t, c);
+    S.th = dect2::namedThread("saurcom-rfi", worker, dev, t, c);
 }
 
 // the demo: three broadcast carriers, then a switching supply, an LED lamp and an oscillator leak come and go (simulated time runs 10 s per sweep)

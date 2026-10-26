@@ -1,6 +1,6 @@
-# Eye of ZorCom on a Raspberry Pi
+# Eye of SaurCom on a Raspberry Pi
 
-**Status: untested on real hardware.** Eye of ZorCom ships Linux arm64 builds that pass the automated tests on a GitHub arm64 runner, but nobody on the team owns a Raspberry Pi. Everything below is expected to work, not known to work. If you try it, please report what happened (issue tracker).
+**Status: untested on real hardware.** Eye of SaurCom ships Linux arm64 builds that pass the automated tests on a GitHub arm64 runner, but nobody on the team owns a Raspberry Pi. Everything below is expected to work, not known to work. If you try it, please report what happened (issue tracker).
 
 ## Which Pi
 
@@ -9,15 +9,15 @@
 
 ## Install
 
-1. Download `zorcom_<version>_arm64.deb` from the releases page and run `sudo apt install ./zorcom_<version>_arm64.deb`. The package installs the udev rules and keeps the kernel's TV driver off RTL-SDR dongles.
-2. No apt: unpack `zorcom-<version>-linux-aarch64-portable.tar.gz`, run `sudo ./install-udev-rules.sh` once, then start `zorcom`.
+1. Download `saurcom_<version>_arm64.deb` from the releases page and run `sudo apt install ./saurcom_<version>_arm64.deb`. The package installs the udev rules and keeps the kernel's TV driver off RTL-SDR dongles.
+2. No apt: unpack `saurcom-<version>-linux-aarch64-portable.tar.gz`, run `sudo ./install-udev-rules.sh` once, then start `saurcom`.
 3. Replug the radio. If it is still not found over an SSH login, add yourself to the radio group: `sudo usermod -aG plugdev $USER`, then log in again.
 
-The rules cover RTL-SDR (RTL2832U, including RTL-SDR Blog and Nooelec), Airspy (R2, Mini, HF+), HackRF (One, Pro) and several others (see `packaging/linux/60-zorcom-sdr.rules`).
+The rules cover RTL-SDR (RTL2832U, including RTL-SDR Blog and Nooelec), Airspy (R2, Mini, HF+), HackRF (One, Pro) and several others (see `packaging/linux/60-saurcom-sdr.rules`).
 
 ## Headless use (roof or attic receiver)
 
-Run `zorcom-server --lan` on the Pi and open the printed address in a browser on another device. See [headless-server.md](headless-server.md). To start it at boot, use `packaging/linux/zorcom-server.service` as a systemd unit. This is the recommended way to use a Pi: no desktop, less CPU, the spectrum and audio come to your phone or laptop.
+Run `saurcom-server --lan` on the Pi and open the printed address in a browser on another device. See [headless-server.md](headless-server.md). To start it at boot, use `packaging/linux/saurcom-server.service` as a systemd unit. This is the recommended way to use a Pi: no desktop, less CPU, the spectrum and audio come to your phone or laptop.
 
 ## What should fit
 

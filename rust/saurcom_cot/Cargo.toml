@@ -1,0 +1,9 @@
+[package]
+name = "saurcom_cot"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of SaurCom Cursor on Target (ATAK / WinTAK / TAK server): event XML encode and decode"
+
+[dependencies]

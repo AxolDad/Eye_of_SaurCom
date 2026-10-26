@@ -6,7 +6,7 @@ cd "$(dirname "$0")/../.."
 VERSION="${1:-0.2.3-andriux.1}"
 PREFIX="${MSYSTEM_PREFIX:-/ucrt64}"
 SRC="build"
-OUT="dist/ZorCom-${VERSION}-windows-x64"
+OUT="dist/SaurCom-${VERSION}-windows-x64"
 ZIP="${OUT}.zip"
 if [ ! -f "$SRC/dect2.exe" ]; then
   echo "ERROR: $SRC/dect2.exe missing; build the program first." >&2
@@ -23,8 +23,8 @@ fi
 mkdir -p dist
 rm -rf "$OUT"
 mkdir -p "$OUT/lib/SoapySDR/modules0.8"
-cp "$SRC/dect2.exe" "$OUT/ZorCom.exe"
-for pair in "dect2cli.exe:zorcom-cli.exe" "dect2scan.exe:zorcom-scan.exe"; do
+cp "$SRC/dect2.exe" "$OUT/SaurCom.exe"
+for pair in "dect2cli.exe:saurcom-cli.exe" "dect2scan.exe:saurcom-scan.exe"; do
   from="${pair%%:*}" to="${pair##*:}"
   [ ! -f "$SRC/$from" ] || cp "$SRC/$from" "$OUT/$to"
 done
@@ -61,7 +61,7 @@ for folder in "$PREFIX"/lib/SoapySDR/modules*/; do
     collect "$OUT/lib/SoapySDR/modules0.8/$(basename "$dll")"
   done
 done
-# Eye of ZorCom loads native radio libraries dynamically, so ldd of ZorCom.exe alone
+# Eye of SaurCom loads native radio libraries dynamically, so ldd of SaurCom.exe alone
 # cannot discover them.
 for name in librtlsdr libairspy libairspyhf libbladeRF libLimeSuite libiio libuhd; do
   if [ -f "$PREFIX/bin/$name.dll" ]; then
@@ -72,10 +72,10 @@ done
 cp LICENSE "$OUT/LICENSE.txt"
 tools/package/add_license_files.sh "$OUT"   # THIRD_PARTY.md, LICENSES/, LICENSE-NOTICES-BINARIES.md (licence of every bundled DLL, source offer)
 cat > "$OUT/README-LT.txt" <<'TXT'
-Eye of ZorCom v0.2.3 Andriux Edition - Windows x64 (bandomoji versija)
+Eye of SaurCom v0.2.3 Andriux Edition - Windows x64 (bandomoji versija)
 
 1. Isskleiskite visa ZIP archyva i atskira aplanka.
-2. Paleiskite ZorCom.exe (nereikia MSYS2).
+2. Paleiskite SaurCom.exe (nereikia MSYS2).
 3. Network radios -> SpyServer: iveskite Raspberry Pi IP ir porta.
 4. View -> Passes: Celestrak, Keplerpass ir savi TLE serveriai.
 
@@ -97,4 +97,4 @@ else
 fi
 echo
 echo "PACKAGE READY: $ZIP"
-echo "Next: gh release upload v$VERSION \"$ZIP\" --repo andriux26/ZorCom --clobber"
+echo "Next: gh release upload v$VERSION \"$ZIP\" --repo andriux26/SaurCom --clobber"

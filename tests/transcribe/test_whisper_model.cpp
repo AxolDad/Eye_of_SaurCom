@@ -90,7 +90,7 @@ int main() {
 
     // real-time factor on 20 s of generated speech-like audio, 16 kHz, as the segmenter would hand it over (the file is written for the record)
     const std::vector<float> sp = synth(20.0, 16000);
-    const std::string wavPath = (std::filesystem::temp_directory_path() / "zorcom_whisper_synth.wav").string();
+    const std::string wavPath = (std::filesystem::temp_directory_path() / "saurcom_whisper_synth.wav").string();
     wav16(wavPath, sp, 16000);
     SpeechOptions so; so.threads = 4; so.language = "en";
     double best = 1e9;

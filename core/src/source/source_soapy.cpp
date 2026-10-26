@@ -43,7 +43,7 @@ namespace {
 
 // Windows: the driver modules are shipped next to the program (<program folder>\lib\SoapySDR\modules0.8), so SoapySDR is told where its root is.
 // Always, even when the computer already has SOAPY_SDR_ROOT or SOAPY_SDR_PLUGIN_PATH set by other SDR software (PothosSDR does): their modules
-// are built for another SoapySDR and fail to load in Eye of ZorCom's, and then no radio is found at all.
+// are built for another SoapySDR and fail to load in Eye of SaurCom's, and then no radio is found at all.
 void soapyLocateModules() {
 #ifdef _WIN32
     static const bool once = [] {
@@ -72,7 +72,7 @@ void soapyLocateModules() {
             std::string dir = path;
             const size_t cut = dir.find_last_of('/');
             if (cut != std::string::npos) {
-                dir.resize(cut);   // .../ZorCom.app/Contents/MacOS
+                dir.resize(cut);   // .../SaurCom.app/Contents/MacOS
                 const std::string mods = dir + "/../Frameworks/SoapySDR/modules";
                 if (access(mods.c_str(), R_OK) == 0) {
                     const char* old = getenv("SOAPY_SDR_PLUGIN_PATH");
@@ -123,7 +123,7 @@ std::map<std::string, SoapyRanges> gRanges;
 
 // The driver's own settings (getSettingInfo) become radio settings under "soapy.<key>": direct sampling and offset tuning of SoapyRTLSDR,
 // the notch filters of SoapySDRPlay3, ... Their default is the value the radio had when it was opened (readSetting), not the ArgInfo's
-// value, which some drivers fill with something else (SoapySDRPlay3 says "true" for notches that are off): Eye of ZorCom writes a setting only
+// value, which some drivers fill with something else (SoapySDRPlay3 says "true" for notches that are off): Eye of SaurCom writes a setting only
 // when the user picked another value.
 const char kSoapyPrefix[] = "soapy.";
 std::string soapyBool(const std::string& v) {
@@ -182,7 +182,7 @@ std::vector<RadioSetting> soapySettings(SoapySDR::Device* dev, const std::string
 }
 
 // Drivers whose gain elements are all gain reductions (SoapySDRPlay: IFGR 20-59 dB and RFGR, the LNA state, both "more is less"). SoapySDR's
-// own overall setGain() fills the elements in order from their minimum up, so on such a radio a higher overall gain is LESS gain and Eye of ZorCom's
+// own overall setGain() fills the elements in order from their minimum up, so on such a radio a higher overall gain is LESS gain and Eye of SaurCom's
 // gain slider and AGC would work backwards: there the overall value is turned around.
 bool gainIsReduction(SoapySDR::Device* dev, int ch) {
     try {
@@ -376,7 +376,7 @@ public:
             return false;
         }
         run_ = true;
-        th_ = dect2::namedThread("zorcom-soapy", [this] { loop(); });
+        th_ = dect2::namedThread("saurcom-soapy", [this] { loop(); });
         return true;
     }
 
@@ -414,7 +414,7 @@ private:
         } catch (...) {}
         bias_ = false;
         // each step on its own: a radio that was unplugged throws from deactivateStream(), and the device must still be let go of (unmake),
-        // or it stays open and busy until Eye of ZorCom quits
+        // or it stays open and busy until Eye of SaurCom quits
         if (dev_ && stream_) {
             try { dev_->deactivateStream(stream_); } catch (...) {}
             try { dev_->closeStream(stream_); } catch (...) {}
@@ -564,7 +564,7 @@ private:
 
 // ---- transmit -----------------------------------------------------------------------------------------------------------------------
 // A SoapySDR radio that has a transmit channel (LimeSDR, BladeRF, USRP, PlutoSDR, ... through their modules): setupStream(TX, CF32) and
-// writeStream(). Eye of ZorCom applies no limit of its own to the frequency or the gain: the frequency goes to the driver as given and a driver that
+// writeStream(). Eye of SaurCom applies no limit of its own to the frequency or the gain: the frequency goes to the driver as given and a driver that
 // refuses it (it throws) is quoted; the gain is clamped to the range the radio itself reports. NOT tested on a radio: the tests use a fake SoapySDR
 // driver that records what writeStream receives.
 class SoapyTx : public TxSink {
@@ -731,7 +731,7 @@ std::vector<DeviceInfo> listSoapyDevices(std::string& err) {
                 } else applyTxInfo(d, driver, nullptr);
             }
             if (esp) espSdrDescribe(d.soapyArgs, d);
-            d.settings.insert(d.settings.begin(), ppmSetting(0.01));   // the driver's own correction, or Eye of ZorCom's
+            d.settings.insert(d.settings.begin(), ppmSetting(0.01));   // the driver's own correction, or Eye of SaurCom's
             if (driver == "plutosdr") {   // SoapyPlutoSDR on the USB cable (or its USB-gadget address): the same ~4 Msps of 16-bit samples
                 const std::string uri = get("uri");
                 if (uri.empty() || uri.rfind("usb:", 0) == 0) d.steadyRateHz = 4e6;
@@ -744,7 +744,7 @@ std::vector<DeviceInfo> listSoapyDevices(std::string& err) {
             }
             out.push_back(d);
             fprintf(stderr, "SoapySDR: found %s (driver %s)\n", d.name.c_str(), driver.c_str());
-            // A radio with several antenna inputs: one more entry per input, after the one that leaves the driver's default (what Eye of ZorCom used
+            // A radio with several antenna inputs: one more entry per input, after the one that leaves the driver's default (what Eye of SaurCom used
             // before; its name stays the same). The inputs are those listAntennas() gave when the radio was last started, like the ranges
             if (antennas.size() > 1) {
                 for (const auto& a : antennas) {

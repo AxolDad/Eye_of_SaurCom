@@ -79,7 +79,7 @@ static void fakeServerTest() {
         CHECK(got[1].body.find("\"details\":\"Listening to dPMR / PMR446\"") != std::string::npos);
         CHECK(got[1].body.find("\"state\":\"446.003 MHz\"") != std::string::npos);
         CHECK(got[1].body.find("\"timestamps\":{\"start\":1700000000}") != std::string::npos);
-        CHECK(got[1].body.find("\"large_image\":\"zorcom\"") != std::string::npos);
+        CHECK(got[1].body.find("\"large_image\":\"saurcom\"") != std::string::npos);
         CHECK(got[2].op == 1 && got[2].body.find("\"activity\":null") != std::string::npos);
         CHECK(got[3].op == 2);
     }

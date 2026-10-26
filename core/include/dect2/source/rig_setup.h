@@ -16,7 +16,7 @@ struct RigModelInfo {
     int dataBits = 8, stopBits = 1;
 };
 
-// Every model the linked Hamlib knows (empty when Eye of ZorCom was built without Hamlib), sorted by manufacturer then model.
+// Every model the linked Hamlib knows (empty when Eye of SaurCom was built without Hamlib), sorted by manufacturer then model.
 std::vector<RigModelInfo> hamlibModelList();
 
 // "Icom IC-R8600 (id 3085)"

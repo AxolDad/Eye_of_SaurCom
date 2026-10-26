@@ -25,7 +25,7 @@
 
 namespace dect2 {
 
-// ------------------------------------------------------------------ SHA-1, base64, WebSocket frames: net_proto.h (C++ or the Rust crate zorcom_net)
+// ------------------------------------------------------------------ SHA-1, base64, WebSocket frames: net_proto.h (C++ or the Rust crate saurcom_net)
 std::string sha1(const std::string& data) { return netp::sha1(data); }
 std::string base64(const std::string& d) { return netp::base64(d); }
 std::string wsAcceptKey(const std::string& key) { return netp::wsAcceptKey(key); }
@@ -225,7 +225,7 @@ struct RemoteApiServer::Impl {
             return;
         }
         if (p == "/api/v1" || p == "/api/v1/") {
-            getOnly([] { return std::string("{\"name\":\"Eye of ZorCom remote API\",\"version\":1,\"endpoints\":[\"GET /api/v1/status\",\"GET /api/v1/devices\",\"GET /api/v1/modes\",\"GET /api/v1/telemetry\","
+            getOnly([] { return std::string("{\"name\":\"Eye of SaurCom remote API\",\"version\":1,\"endpoints\":[\"GET /api/v1/status\",\"GET /api/v1/devices\",\"GET /api/v1/modes\",\"GET /api/v1/telemetry\","
                                             "\"GET /api/v1/spectrum?bins=N\",\"GET /api/v1/rotator\",\"GET /api/v1/ws\",\"POST /api/v1/start\",\"POST /api/v1/stop\",\"POST /api/v1/mode\",\"POST /api/v1/frequency\","
                                             "\"POST /api/v1/samplerate\",\"POST /api/v1/gain\",\"POST /api/v1/rotator/goto\",\"POST /api/v1/rotator/stop\",\"POST /api/v1/rotator/park\"]}"); });
             return;
@@ -496,7 +496,7 @@ struct RemoteApiServer::Impl {
                         cn->s = k;
                         cn->loopback = (ntohl(pa.sin_addr.s_addr) >> 24) == 127;
                         Conn* raw = cn.get();
-                        cn->th = dect2::namedThread("zorcom-api-c", [this, raw] { serve(raw); });
+                        cn->th = dect2::namedThread("saurcom-api-c", [this, raw] { serve(raw); });
                         conns.push_back(std::move(cn));
                     }
                 }
@@ -534,7 +534,7 @@ bool RemoteApiServer::configure(const RemoteApiConfig& cIn) {
         return false;
     }
     { std::lock_guard<std::mutex> lk(p.mu); p.live = c; p.st.lastError.clear(); p.st.listening = false; }
-    p.th = dect2::namedThread("zorcom-api", [&p, c] { p.run(c); });
+    p.th = dect2::namedThread("saurcom-api", [&p, c] { p.run(c); });
     for (int i = 0; i < 400; i++) {   // until it listens (or failed), so that port 0 can be read back
         { std::lock_guard<std::mutex> lk(p.mu); if (p.st.listening || !p.st.lastError.empty()) break; }
         std::this_thread::sleep_for(std::chrono::milliseconds(5));

@@ -1,6 +1,6 @@
 # NOAA Weather Radio SAME (EAS alerts, US and Canada)
 
-Receive only. The text of an alert is a public broadcast. Eye of ZorCom is not an alerting system: do not rely on it for your safety.
+Receive only. The text of an alert is a public broadcast. Eye of SaurCom is not an alerting system: do not rely on it for your safety.
 
 ## What is decoded
 

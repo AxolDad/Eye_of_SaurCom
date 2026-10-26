@@ -18,7 +18,7 @@ namespace {
 
 bool live(const App& a) { return a.rx.standard == 134; }   // the engine reports its standard code minus one
 
-// Simulated thresholds (rust/zorcom_kaws, KAWS-MEASURED-v0.1): block error 10 % on the AWGN channel, SNR in 2.4 kHz. Not a measurement on a radio.
+// Simulated thresholds (rust/saurcom_kaws, KAWS-MEASURED-v0.1): block error 10 % on the AWGN channel, SNR in 2.4 kHz. Not a measurement on a radio.
 const double kSimAwgnDb[6] = {-22.4, -19.2, -16.1, -13.6, -9.6, -3.0};
 
 const char* stateName(int s) { return s == 2 ? "receiving" : s == 1 ? "listening" : "no samples"; }
@@ -238,7 +238,7 @@ void kawsPanel(TxUi& s, bool running) {
     ImGui::TextWrapped("%s", "KAWS: HF weak-signal chat and beacons, 2.4 kHz wide, sent as upper-sideband audio (the dial frequency is the carrier of an SSB transmitter; "
                               "the signal sits 300 to 2700 Hz above it). A burst starts 1.5 s into a UTC slot of the profile, so the computer clock must be UTC-accurate (NTP). "
                               "The message goes out one-way, in the caller's (even) slots, and the whole message is sent several times: there is no acknowledgement. "
-                              "KAWS is simulation-only: it has never been on the air. Empty callsign sends the demo identity ZORCOM. Eye of ZorCom sets no limit on the frequency or the power.");
+                              "KAWS is simulation-only: it has never been on the air. Empty callsign sends the demo identity SAURCOM. Eye of SaurCom sets no limit on the frequency or the power.");
     ImGui::BeginDisabled(running);
     ImGui::SetNextItemWidth(220 * gUi);
     if (ImGui::BeginCombo("Kind", kKindNames[std::max(0, std::min(2, s.kawsKind))])) {

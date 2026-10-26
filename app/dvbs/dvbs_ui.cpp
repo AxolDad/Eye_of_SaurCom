@@ -669,7 +669,7 @@ void tuner(App& a, bool& retune) {
             for (int i = 0; i < 3; i++) if (ImGui::Selectable(pn[i], S.lnbPol == i)) { S.lnbPol = i; ch = true; }
             ImGui::EndCombo();
         }
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("What your LNB is switched to: about 13 V is vertical, about 18 V is horizontal.\nEye of ZorCom cannot change this itself: the radio's bias-tee is only about 5 V. Use a power inserter or a switch.");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("What your LNB is switched to: about 13 V is vertical, about 18 V is horizontal.\nEye of SaurCom cannot change this itself: the radio's bias-tee is only about 5 V. Use a power inserter or a switch.");
         if (S.txPol && S.lnbPol && S.txPol != S.lnbPol) {
             ImGui::PushTextWrapPos(0);
             ImGui::TextColored(pal::warnAmber(), "This transponder is %s but the LNB is set to %s. Switch the LNB supply (%s) or this channel will not be received.",

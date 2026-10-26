@@ -233,7 +233,7 @@ static void synthSourceOptions(App& a, bool running) {
         return;
     }
     if (a.family >= 2 && a.family <= 5) {   // DAB, ATSC 3.0, ISDB-T and FM: fixed signals, with noise and carrier offset to play with
-        ImGui::TextDisabled(a.family == 2 ? "DAB+ ensemble Eye of ZorCom DAB, 4 services (tones and a melody)" : a.family == 3 ? "ATSC 3.0 test card, QPSK 8/15" : a.family == 4 ? "ISDB-T mode 3, test programme" : "FM stereo with RDS, 1 kHz left and 3 kHz right");
+        ImGui::TextDisabled(a.family == 2 ? "DAB+ ensemble Eye of SaurCom DAB, 4 services (tones and a melody)" : a.family == 3 ? "ATSC 3.0 test card, QPSK 8/15" : a.family == 4 ? "ISDB-T mode 3, test programme" : "FM stereo with RDS, 1 kHz left and 3 kHz right");
         flowNext(14 * gUi); ImGui::TextDisabled("%s", tr("SNR")); ImGui::SameLine(); ImGui::SetNextItemWidth(90 * gUi);
         float snr = (float)sc.snrDb; if (ImGui::SliderFloat("##ssnr", &snr, 5, 45, "%.0f dB")) { sc.snrDb = snr; ch = true; }
         flowNext(); ImGui::TextDisabled("%s", tr("CFO")); ImGui::SameLine(); ImGui::SetNextItemWidth(110 * gUi);

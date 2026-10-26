@@ -14,7 +14,7 @@ struct NetTunerConfig {
     int port = 8089;
     bool localOnly = true;      // listen on 127.0.0.1 only
     std::string key;            // if not empty, every request needs ?key=<key>
-    std::string name = "Eye of ZorCom";
+    std::string name = "Eye of SaurCom";
 };
 
 struct NetTunerStats {

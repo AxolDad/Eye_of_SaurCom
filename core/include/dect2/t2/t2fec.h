@@ -38,7 +38,7 @@ public:
     int decode(std::vector<uint8_t>& bits) const;
 
 private:
-    fecp::Bch bch_;   // the code itself is core/src/fec/fec_proto.cpp (C++) or the Rust crate zorcom_fec
+    fecp::Bch bch_;   // the code itself is core/src/fec/fec_proto.cpp (C++) or the Rust crate saurcom_fec
 };
 const BchCode& bchFor(const PlpFec& f);
 

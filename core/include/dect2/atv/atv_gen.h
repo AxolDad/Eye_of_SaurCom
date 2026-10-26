@@ -1,4 +1,4 @@
-// Analog TV test signal: a live test card (colour bars, grey ramp, multiburst, a moving box, a running clock, the text ZORCOM TEST) as composite
+// Analog TV test signal: a live test card (colour bars, grey ramp, multiburst, a moving box, a running clock, the text SAURCOM TEST) as composite
 // video with the timing and levels of the chosen system (BT.470-6), amplitude modulated with a negative vision carrier through a
 // vestigial-sideband filter, plus an FM sound carrier that plays a 1 kHz tone with short interruptions or a melody.
 // Nothing is transmitted: the samples exist in memory or in a file.
@@ -43,7 +43,7 @@ struct AtvGenConfig {
     double humPct = 0, humHz = 50;
     int sound = 0;                // see above
     int pattern = 0;              // 0 card, 1 bars, 2 ramp
-    std::string ident;            // text on the test card; empty: ZORCOM TEST
+    std::string ident;            // text on the test card; empty: SAURCOM TEST
     // 48 kHz interleaved stereo for the sound carrier (mic / file). Empty: the built-in tone / melody of `sound`.
     std::function<int(float* stereo, int frames)> pullAudio;
     // Live camera / file: full-frame analog YUV at picW x picH (Y 0..1). Empty: the test card / bars of `pattern`.

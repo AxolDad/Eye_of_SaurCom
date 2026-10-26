@@ -15,7 +15,7 @@ namespace dect2 {
 enum class IqFileFormat { SigmfCf32 = 0, SigmfCi16 = 1, SigmfCs8 = 2, RawCf32 = 3, WavIq16 = 4 };
 constexpr int kIqFileFormats = 5;
 const char* iqFileFormatName(IqFileFormat f);   // "SigMF cf32", ...
-// "zorcom_tx_<mode>_<MHz>MHz_<rate>sps_<yyyymmdd-hhmmss>" without an extension
+// "saurcom_tx_<mode>_<MHz>MHz_<rate>sps_<yyyymmdd-hhmmss>" without an extension
 std::string iqFileBaseName(const std::string& modeId, double centerHz, double rateHz);
 // folderOrBase + the file name: a path that ends in a separator, or names an existing folder, gets baseName appended; the extension of the format is
 // added when the path has none of its own (.sigmf-data / .sigmf-meta are written side by side)

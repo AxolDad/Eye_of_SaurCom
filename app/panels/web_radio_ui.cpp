@@ -48,10 +48,10 @@ std::vector<Station> parseStations(const std::string& text) {
 }
 
 std::vector<Station> search(std::string q) {
-    const std::string path = plat::cacheDir() + "/zorcom_radio_browser.json";
+    const std::string path = plat::cacheDir() + "/saurcom_radio_browser.json";
     const std::string url = "https://all.api.radio-browser.info/json/stations/search?hidebroken=true&order=clickcount&reverse=true&limit=60&name=" + urlEncode(q);
     std::vector<Station> v;
-    if (plat::fetchUrl(url, path, "EyeOfZorCom")) {
+    if (plat::fetchUrl(url, path, "EyeOfSaurCom")) {
         std::ifstream f(path, std::ios::binary);
         std::stringstream ss; ss << f.rdbuf();
         v = parseStations(ss.str());

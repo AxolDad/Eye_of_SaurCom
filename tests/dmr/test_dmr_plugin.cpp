@@ -1,5 +1,5 @@
 // DMR voice through a user-installed codec plug-in (a stub plug-in library, tests/codec/stub_codec_plugin.c, no codec). Proves the chain:
-//  1. the plug-in loader opens the stub from a codecs folder as zorcom-codec-ambe2.<ext> and decodes a 12 byte frame to 160 samples;
+//  1. the plug-in loader opens the stub from a codecs folder as saurcom-codec-ambe2.<ext> and decodes a 12 byte frame to 160 samples;
 //  2. the code words are packed MSB first (packCodeWords);
 //  3. generator -> DmrReceiver -> plug-in -> 8 kHz PCM -> 48 kHz tap: every voice burst of the followed slot gives 480 samples (3 frames), the
 //     samples are the stub's pattern, and the telemetry names the plug-in;
@@ -37,7 +37,7 @@ private:
 static std::string gFolder;
 
 static void installStub() {
-    const fs::path dir = fs::temp_directory_path() / "zorcom-test-dmr-plugin";
+    const fs::path dir = fs::temp_directory_path() / "saurcom-test-dmr-plugin";
     std::error_code ec;
     fs::remove_all(dir, ec);
     fs::create_directories(dir, ec);

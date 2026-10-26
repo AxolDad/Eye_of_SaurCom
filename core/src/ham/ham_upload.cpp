@@ -48,7 +48,7 @@ UpRequest buildUpRequest(UpService s, const UpConfig& c, const QsoRecord& q) {
         r.body = pair("email", c.clubEmail) + "&" + pair("password", c.clubPassword) + "&" + pair("callsign", q.myCall) + "&" + pair("api", c.clubApiKey) + "&" + pair("adif", adif);
     } else {   // eQSL ImportADIF: the account goes into the ADIF header as EQSL_USER / EQSL_PSWD
         r.url = "https://www.eqsl.cc/qslcard/ImportADIF.cfm";
-        r.body = pair("ADIFData", "Eye of ZorCom upload\n" + adifField("EQSL_USER", c.eqslUser) + adifField("EQSL_PSWD", c.eqslPassword) + "<EOH>\n" + adif);
+        r.body = pair("ADIFData", "Eye of SaurCom upload\n" + adifField("EQSL_USER", c.eqslUser) + adifField("EQSL_PSWD", c.eqslPassword) + "<EOH>\n" + adif);
     }
     return r;
 }
@@ -83,10 +83,10 @@ UpTransport curlTransport() {
         UpResponse r;
         if (!isHttps(url)) { r.err = "refused: not https"; return r; }
         const char* t = getenv("TMPDIR"); if (!t) t = getenv("TEMP"); if (!t) t = "/tmp";
-        const std::string stem = std::string(t) + "/zorcom_up_" + std::to_string((long long)time(nullptr)) + "_" + std::to_string(rand());
+        const std::string stem = std::string(t) + "/saurcom_up_" + std::to_string((long long)time(nullptr)) + "_" + std::to_string(rand());
         const std::string outF = stem + ".out", codeF = stem + ".code";
         std::string cfg = "silent\nshow-error\nproto = \"=https\"\nmax-time = 30\nconnect-timeout = 15\nmax-filesize = 65536\n";
-        cfg += "url = \"" + url + "\"\nheader = \"Content-Type: application/x-www-form-urlencoded\"\nheader = \"User-Agent: ZorCom-ham-upload\"\n";
+        cfg += "url = \"" + url + "\"\nheader = \"Content-Type: application/x-www-form-urlencoded\"\nheader = \"User-Agent: SaurCom-ham-upload\"\n";
         cfg += "data = \"" + body + "\"\noutput = \"" + outF + "\"\nwrite-out = \"%output{" + codeF + "}%{http_code}\"\n";
 #ifdef _WIN32
         FILE* p = popen("curl --config - >NUL 2>&1", "w");
@@ -220,7 +220,7 @@ int HamUploader::poll(long long now) {
 void HamUploader::startWorker() {
     if (th_.joinable()) return;
     quit_ = false;
-    th_ = dect2::namedThread("zorcom-hamup", [this] {
+    th_ = dect2::namedThread("saurcom-hamup", [this] {
         while (!quit_) {
             poll((long long)time(nullptr));
             for (int i = 0; i < 10 && !quit_; i++) std::this_thread::sleep_for(std::chrono::milliseconds(300));

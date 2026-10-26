@@ -1,4 +1,4 @@
-// Automations, the application side: what the actions do inside Eye of ZorCom (automation_sink.cpp) and the window (automation_ui.cpp).
+// Automations, the application side: what the actions do inside Eye of SaurCom (automation_sink.cpp) and the window (automation_ui.cpp).
 #pragma once
 #include "dect2/automation/engine.h"
 #include <string>

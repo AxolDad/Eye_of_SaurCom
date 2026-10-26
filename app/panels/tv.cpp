@@ -582,7 +582,7 @@ void rightPanel(App& a) {
         x += tagAt(dl, ImVec2(x, ty), radio ? "radio" : hasVideo ? "TV" : sv.typeName(), IM_COL32(34, 74, 108, 255)) + 4;
         if (!vc.empty()) x += tagAt(dl, ImVec2(x, ty), vc.c_str(), IM_COL32(38, 46, 58, 255), IM_COL32(190, 200, 214, 255)) + 4;
         if (!ac.empty()) x += tagAt(dl, ImVec2(x, ty), ac.c_str(), IM_COL32(38, 46, 58, 255), IM_COL32(190, 200, 214, 255)) + 4;
-        // AVS family video (DTMB in China): say it plainly when Eye of ZorCom cannot show the picture; the profile is known for the playing service only
+        // AVS family video (DTMB in China): say it plainly when Eye of SaurCom cannot show the picture; the profile is known for the playing service only
         const int avsProf = sel && cardPs.videoStreamType == vType ? cardPs.avsProfile : -1;
         const bool avsUndecodable = vType == 0x42 ? avsNeverDecodable(vType, avsProf) : (vType == 0xD2 || vType == 0xD4) && !(sel && cardPs.hasVideo);
         if (avsUndecodable) x += tagAt(dl, ImVec2(x, ty), tr("no picture"), IM_COL32(112, 52, 50, 255)) + 4;
@@ -613,7 +613,7 @@ void rightPanel(App& a) {
             }
             if (avsUndecodable) {
                 char b[260]; const std::string fam = avsFamilyName(vType, avsProf);
-                snprintf(b, sizeof b, tr("Video: %s (Eye of ZorCom cannot decode this video) — audio, subtitles and data still work"), fam.c_str());
+                snprintf(b, sizeof b, tr("Video: %s (Eye of SaurCom cannot decode this video) — audio, subtitles and data still work"), fam.c_str());
                 t += b;
             }
             if (!t.empty()) ImGui::SetTooltip("%s", t.c_str());
@@ -655,13 +655,13 @@ void rightPanel(App& a) {
             if (ImGui::SliderFloat("##vol", &vol, 0, 100, "%.0f %%")) { a.volume = vol / 100.f; a.engine.player().setVolume(a.volume); }
             ImGui::EndTable();
         }
-        // a picture or sound Eye of ZorCom's FFmpeg cannot decode (AVS+, AVS2, AVS3, DRA): why, and the codec note (docs/CODECS.md)
+        // a picture or sound Eye of SaurCom's FFmpeg cannot decode (AVS+, AVS2, AVS3, DRA): why, and the codec note (docs/CODECS.md)
         if (pl.selected() >= 0) {
             if (!ps.videoNote.empty()) { codecHelpButton(CodecHelp::Avs); ImGui::SameLine(); ImGui::PushTextWrapPos(0); ImGui::TextColored(pal::warnAmber(), "%s", ps.videoNote.c_str()); ImGui::PopTextWrapPos(); }
             if (!ps.audioNote.empty()) { codecHelpButton(CodecHelp::DraTv); ImGui::SameLine(); ImGui::PushTextWrapPos(0); ImGui::TextColored(pal::warnAmber(), "%s", ps.audioNote.c_str()); ImGui::PopTextWrapPos(); }
             {   // ATSC 3.0 sound in AC-4 and no decoder library: say why there is no sound
                 const dect2::Ac4Status a4 = dect2::ac4Status();
-                if (a4.seen && a4.dropped && !a4.hasDecoder) { codecHelpButton(CodecHelp::Ac4); ImGui::SameLine(); ImGui::PushTextWrapPos(0); ImGui::TextColored(pal::warnAmber(), "This service's sound is AC-4 (Dolby). Eye of ZorCom needs an optional FFmpeg with an AC-4 decoder to play it."); ImGui::PopTextWrapPos(); }
+                if (a4.seen && a4.dropped && !a4.hasDecoder) { codecHelpButton(CodecHelp::Ac4); ImGui::SameLine(); ImGui::PushTextWrapPos(0); ImGui::TextColored(pal::warnAmber(), "This service's sound is AC-4 (Dolby). Eye of SaurCom needs an optional FFmpeg with an AC-4 decoder to play it."); ImGui::PopTextWrapPos(); }
             }
             if (pl.hasSavableAudio()) {   // the raw DRA (else MPEG audio) stream to a file FFmpeg can play
                 static std::string savedTo, saveErr;

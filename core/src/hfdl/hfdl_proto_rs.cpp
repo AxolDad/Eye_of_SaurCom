@@ -1,4 +1,4 @@
-// HFDL bit layers, FCS, station table and PDU parser on top of the Rust crate rust/zorcom_hfdl: the functions of hfdl_proto.h;
+// HFDL bit layers, FCS, station table and PDU parser on top of the Rust crate rust/saurcom_hfdl: the functions of hfdl_proto.h;
 // hfdl_proto.cpp keeps the PSK maps, the builders for the test signal and the ACARS reader.
 #include "dect2/hfdl/hfdl_proto.h"
 #include "dect2/common/rs_abi.h"
@@ -16,8 +16,8 @@ namespace {
 struct AbiCheck {
     AbiCheck() {
         size_t s[3];
-        zorcom_hfdl_struct_sizes(s);
-        dect2::rsAbiCheck("zorcom_hfdl", s, {sizeof(ZorcomHfdlRate), sizeof(ZorcomHfdlMsg), sizeof(ZorcomHfdlStation)});
+        saurcom_hfdl_struct_sizes(s);
+        dect2::rsAbiCheck("saurcom_hfdl", s, {sizeof(SaurcomHfdlRate), sizeof(SaurcomHfdlMsg), sizeof(SaurcomHfdlStation)});
     }
 } abiCheck;
 template <class S> std::string str(const S& s) { return std::string((const char*)s.b, s.len); }
@@ -29,19 +29,19 @@ const HfdlRate& hfdlRate(int m1) {
     static std::once_flag once;
     std::call_once(once, [] {
         for (int m = 0; m < 8; m++) {
-            ZorcomHfdlRate r;
-            zorcom_hfdl_rate(m, &r);
+            SaurcomHfdlRate r;
+            saurcom_hfdl_rate(m, &r);
             rates[m] = {r.m1, r.bps, r.bits_per_sym, r.quarter != 0, r.two_slots != 0, r.blocks, r.col_shift};
         }
     });
     return rates[clampM1(m1)];
 }
-int hfdlBurstSyms(int m1) { return zorcom_hfdl_burst_syms(m1); }
-int hfdlCodedBits(int m1) { return zorcom_hfdl_coded_bits(m1); }
-int hfdlPayloadOctets(int m1) { return zorcom_hfdl_payload_octets(m1); }
+int hfdlBurstSyms(int m1) { return saurcom_hfdl_burst_syms(m1); }
+int hfdlCodedBits(int m1) { return saurcom_hfdl_coded_bits(m1); }
+int hfdlPayloadOctets(int m1) { return saurcom_hfdl_payload_octets(m1); }
 
-int hfdlABit(int k) { return zorcom_hfdl_a_bit(k); }
-int hfdlMBit(int shift, int k) { return zorcom_hfdl_m_bit(shift, k); }
+int hfdlABit(int k) { return saurcom_hfdl_a_bit(k); }
+int hfdlMBit(int shift, int k) { return saurcom_hfdl_m_bit(shift, k); }
 
 const std::vector<float>& hfdlPreambleRef(int m1) {
     static std::vector<float> ref[8];
@@ -49,7 +49,7 @@ const std::vector<float>& hfdlPreambleRef(int m1) {
     std::call_once(once, [] {
         for (int m = 0; m < 8; m++) {
             int8_t t[kHfdlPreLen];
-            zorcom_hfdl_preamble_ref(m, t, sizeof t);
+            saurcom_hfdl_preamble_ref(m, t, sizeof t);
             for (int i = 0; i < kHfdlPreLen; i++) ref[m].push_back((float)t[i]);
         }
     });
@@ -58,7 +58,7 @@ const std::vector<float>& hfdlPreambleRef(int m1) {
 
 void hfdlScramblerSigns(int n, std::vector<int8_t>& out) {
     out.resize((size_t)std::max(0, n));
-    zorcom_hfdl_scrambler_signs(out.data(), out.size());
+    saurcom_hfdl_scrambler_signs(out.data(), out.size());
 }
 
 const std::vector<int>& hfdlInterleave(int m1) {
@@ -66,9 +66,9 @@ const std::vector<int>& hfdlInterleave(int m1) {
     static std::once_flag once[8];
     m1 = clampM1(m1);
     std::call_once(once[m1], [m1] {
-        const size_t N = (size_t)zorcom_hfdl_coded_bits(m1);
+        const size_t N = (size_t)saurcom_hfdl_coded_bits(m1);
         std::vector<int32_t> t(2 * N);
-        zorcom_hfdl_interleave(m1, t.data(), t.size());
+        saurcom_hfdl_interleave(m1, t.data(), t.size());
         tab[m1].assign(t.begin(), t.begin() + (long)N);
     });
     return tab[m1];
@@ -76,7 +76,7 @@ const std::vector<int>& hfdlInterleave(int m1) {
 
 std::vector<uint8_t> hfdlConvEncode(const std::vector<uint8_t>& bits) {
     std::vector<uint8_t> o(bits.size() * 2);
-    zorcom_hfdl_conv_encode(bits.data(), bits.size(), o.data(), o.size());
+    saurcom_hfdl_conv_encode(bits.data(), bits.size(), o.data(), o.size());
     return o;
 }
 
@@ -85,21 +85,21 @@ std::vector<uint8_t> hfdlViterbi(const std::vector<float>& soft, int n) {
     std::vector<uint8_t> o((size_t)std::max(0, n), 0);
     std::vector<uint64_t> surv(cnt);
     std::vector<uint8_t> dec(cnt);
-    if (zorcom_hfdl_viterbi(soft.data(), soft.size(), cnt, dec.data(), dec.size(), surv.data(), surv.size())) std::copy(dec.begin(), dec.end(), o.begin());
+    if (saurcom_hfdl_viterbi(soft.data(), soft.size(), cnt, dec.data(), dec.size(), surv.data(), surv.size())) std::copy(dec.begin(), dec.end(), o.begin());
     return o;
 }
 
-uint16_t hfdlFcs(const uint8_t* p, size_t n) { return zorcom_hfdl_fcs(p, n); }
-bool hfdlFcsOk(const uint8_t* p, size_t n) { return zorcom_hfdl_fcs_ok(p, n); }
+uint16_t hfdlFcs(const uint8_t* p, size_t n) { return saurcom_hfdl_fcs(p, n); }
+bool hfdlFcsOk(const uint8_t* p, size_t n) { return saurcom_hfdl_fcs_ok(p, n); }
 
 const std::vector<HfdlStationInfo>& hfdlStations() {
     static std::vector<HfdlStationInfo> t;
     static std::once_flag once;
     std::call_once(once, [] {
-        const size_t n = zorcom_hfdl_station_count();
+        const size_t n = saurcom_hfdl_station_count();
         for (size_t i = 0; i < n; i++) {
-            ZorcomHfdlStation s;
-            if (!zorcom_hfdl_station_get(i, &s)) continue;
+            SaurcomHfdlStation s;
+            if (!saurcom_hfdl_station_get(i, &s)) continue;
             t.push_back({s.id, s.name, s.lat, s.lon, std::vector<int>(s.khz, s.khz + s.nkhz)});   // name: static text in the Rust library
         }
     });
@@ -108,18 +108,18 @@ const std::vector<HfdlStationInfo>& hfdlStations() {
 const HfdlStationInfo* hfdlStation(int id) { for (const auto& s : hfdlStations()) if (s.id == id) return &s; return nullptr; }
 std::vector<int> hfdlMaskKhz(int gsId, uint32_t mask) {
     int32_t t[20];
-    const size_t n = zorcom_hfdl_mask_khz(gsId, mask, t);
+    const size_t n = saurcom_hfdl_mask_khz(gsId, mask, t);
     return std::vector<int>(t, t + n);
 }
-int hfdlStationOnKhz(int khz) { return zorcom_hfdl_station_on_khz(khz); }
+int hfdlStationOnKhz(int khz) { return saurcom_hfdl_station_on_khz(khz); }
 
 bool hfdlParsePdu(const uint8_t* p, size_t n, std::vector<HfdlMessage>& out) {
     constexpr size_t kCap = 128;
-    std::unique_ptr<ZorcomHfdlMsg[]> r(new ZorcomHfdlMsg[kCap]);   // default-initialised: no 400 kB memset per burst
+    std::unique_ptr<SaurcomHfdlMsg[]> r(new SaurcomHfdlMsg[kCap]);   // default-initialised: no 400 kB memset per burst
     size_t cnt = 0;
-    if (!zorcom_hfdl_parse_pdu(p, n, r.get(), kCap, &cnt)) return false;
+    if (!saurcom_hfdl_parse_pdu(p, n, r.get(), kCap, &cnt)) return false;
     for (size_t i = 0; i < cnt; i++) {
-        const ZorcomHfdlMsg& c = r[i];
+        const SaurcomHfdlMsg& c = r[i];
         HfdlMessage m;
         m.squitter = c.squitter != 0; m.uplink = c.uplink != 0; m.gsId = c.gs_id; m.acId = c.ac_id; m.icao = c.icao;
         m.kind = str(c.kind); m.hfnpdu = str(c.hfnpdu); m.summary = str(c.summary); m.detail = str(c.detail);

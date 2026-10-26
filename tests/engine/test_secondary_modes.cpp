@@ -20,7 +20,7 @@ static std::string writeCapture(int sm, double rate, double secs) {
     SynthConfig cfg;
     auto g = makeModeSynth(sm, cfg, rate);
     if (!g) return "";
-    const std::string path = (std::filesystem::temp_directory_path() / ("zorcom_sec_" + std::to_string(sm) + ".cs8")).string();
+    const std::string path = (std::filesystem::temp_directory_path() / ("saurcom_sec_" + std::to_string(sm) + ".cs8")).string();
     FILE* f = fopen(path.c_str(), "wb");
     if (!f) return "";
     const size_t blk = 1 << 16;

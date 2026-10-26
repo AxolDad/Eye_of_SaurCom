@@ -1,6 +1,6 @@
 // Workspaces: a named set of the current source, mode, frequency, sample rate, gains and open windows, saved in the settings
 // (prefs key "workspaces") and restored from the File menu. Also the last-session file (dataDir()/last-session.txt): written every
-// few seconds while Eye of ZorCom runs and marked clean at a normal exit, so the next start can offer to restore a session that did not end.
+// few seconds while Eye of SaurCom runs and marked clean at a normal exit, so the next start can offer to restore a session that did not end.
 // No DSP here: a restore goes through the same selectMode / tuneFreq / applyBandwidth that the controls use.
 #pragma once
 #include "../app.h"

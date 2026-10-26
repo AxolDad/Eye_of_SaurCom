@@ -1,5 +1,5 @@
 // Connects the TETRA unencrypted voice path (tetra_voice.h) to a user-installed speech codec (codec/speech_codec.h).
-// Eye of ZorCom bundles no speech codec: the codec is a plug-in the user installs, loaded only after the legal notice is accepted
+// Eye of SaurCom bundles no speech codec: the codec is a plug-in the user installs, loaded only after the legal notice is accepted
 // (that gate runs in the app before setCodec() is ever called). Encrypted or unknown-state calls never reach this class,
 // because processTrafficBurst() refuses them before it touches a burst.
 #pragma once

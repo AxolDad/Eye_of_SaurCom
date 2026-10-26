@@ -177,7 +177,7 @@ void details(App& a, float w, float h) {
                 S.savedPath = streamSavePathImpl(serviceName(*s)) + ".dra";
                 if (!a.engine.cdr().saveAudioStream(s->id, S.savedPath)) { S.saveErr = "cannot write " + S.savedPath; S.savedPath.clear(); } else S.saveErr.clear();
             }
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("Write the raw DRA+ sound of this service to a .dra file you can play with FFmpeg (see the README).\nEye of ZorCom plays it only with the DRA+ decoder add-on installed.");
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("Write the raw DRA+ sound of this service to a .dra file you can play with FFmpeg (see the README).\nEye of SaurCom plays it only with the DRA+ decoder add-on installed.");
         }
         if (!S.saveErr.empty()) { ImGui::PushTextWrapPos(0); ImGui::TextColored(kWarn, "%s", S.saveErr.c_str()); ImGui::PopTextWrapPos(); }
         else if (!S.savedPath.empty()) { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("%s", S.savedPath.c_str()); ImGui::PopTextWrapPos(); }

@@ -1,14 +1,14 @@
 // FreeDV decoder of the HF digital receiver (hfdig_rx.h): gets the 8 kHz upper sideband audio and gives back speech. It uses the
-// open-source codec2 library (LGPL-2.1, github.com/drowe67/codec2), loaded at run time like the radio vendors' libraries: Eye of ZorCom builds
+// open-source codec2 library (LGPL-2.1, github.com/drowe67/codec2), loaded at run time like the radio vendors' libraries: Eye of SaurCom builds
 // without codec2 headers and the decoder simply reports "not found" when the library is missing. The functions used are declared in
 // hfdig_freedv.cpp from codec2's public freedv_api.h, release 1.2.0 (the mode constants are stable across 1.x).
 // FreeDV 700D, 700E and 1600 listen to the same audio at the same time (cheap); the one that has sync (the first, in that order, and
 // it stays until it has been lost for 2 s) makes the speech, the text channel (callsign) and the SNR shown.
-// Library search: DECT2_CODEC2_PATH (a full path; dev and tests), then the Eye of ZorCom codecs folders (codecFolderList), then macOS
+// Library search: DECT2_CODEC2_PATH (a full path; dev and tests), then the Eye of SaurCom codecs folders (codecFolderList), then macOS
 // Contents/Frameworks, /opt/homebrew/lib, /usr/local/lib; Linux the system folders; Windows codec2.dll / libcodec2.dll next to the program.
 // Test audio (hfdig_gen.h, makeFreedvTestAudio): only with the library. SynthConfig::modeOpt[0] = 2 picks FreeDV (the shell), and
 // modeOpt[1] picks the FreeDV mode: 0 = 700D (default), 1 = 700E, 2 = 1600. The transmission is a synthetic speech-like signal with
-// the text "ZORCOM TEST" in the text channel. Without the library makeFreedvTestAudio() returns nullptr and the shell sends noise.
+// the text "SAURCOM TEST" in the text channel. Without the library makeFreedvTestAudio() returns nullptr and the shell sends noise.
 // This header, hfdig_freedv.cpp and app/hfdig/hfdig_freedv_ui.cpp belong to FreeDV alone.
 #pragma once
 #include "hfdig_rx.h"
@@ -50,11 +50,11 @@ int hfdigFreedvMode();
 bool hfdigFreedvLibrary(std::string* path = nullptr, std::string* version = nullptr);
 // Looks again when it was not found (the "Look again" button: no restart needed; a running decoder picks it up). True when found.
 bool hfdigFreedvRescan();
-// The Eye of ZorCom "codecs" folders, searched before the system's places, for any codec library the user installs (docs/CODECS.md)
+// The Eye of SaurCom "codecs" folders, searched before the system's places, for any codec library the user installs (docs/CODECS.md)
 std::vector<std::string> codecFolderList();
 // The file names accepted for the mbelib (codec2 = false) or codec2 library on this platform, in the order tried, without a folder
 std::vector<std::string> codecFileNameList(bool codec2);
-// Where Eye of ZorCom looks, in order: the codecs folders (full paths), the program's folder, then the system's places (text on Linux/macOS/PATH)
+// Where Eye of SaurCom looks, in order: the codecs folders (full paths), the program's folder, then the system's places (text on Linux/macOS/PATH)
 std::vector<std::string> codecSearchPlaces();
 // Every full path / bare name tried, in order
 std::vector<std::string> codecCandidatePaths(bool codec2);

@@ -1,5 +1,5 @@
 // Seeded mutation run of the NXDN frame layer, meant for DECT2_SANITIZE=ON: LICH, CRC, the coded channels, message
-// parse / build and the voice bit order must never crash or hang on any bytes. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
+// parse / build and the voice bit order must never crash or hang on any bytes. Also a libFuzzer target with -DSAURCOM_LIBFUZZER.
 #include "dect2/nxdn/nxdn_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -38,11 +38,11 @@ static void one(const uint8_t* d, size_t n) {
     N::pn9(pn, (int)(n % 200));
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* it = getenv("ZORCOM_FUZZ_ITERS");
+    const char* it = getenv("SAURCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 100000;
     std::mt19937 g(777);
     for (long i = 0; i < iters; i++) {

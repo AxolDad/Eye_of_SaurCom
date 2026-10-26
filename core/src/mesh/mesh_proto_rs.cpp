@@ -1,4 +1,4 @@
-// Meshtastic and MeshCore packet layers and the Meshtastic name / key helpers on top of the Rust crate rust/zorcom_mesh: the functions of
+// Meshtastic and MeshCore packet layers and the Meshtastic name / key helpers on top of the Rust crate rust/saurcom_mesh: the functions of
 // mesh_proto.h; mesh_proto.cpp, mesh_proto_meshtastic.cpp and mesh_proto_meshcore.cpp keep the key-dependent parts and the packet builders. Rust parses and formats; the
 // channel tables, AES-CTR, AES-ECB / HMAC and Ed25519 stay here because they need keys.
 #include "mesh_proto_internal.h"
@@ -18,26 +18,26 @@ namespace {
 struct AbiCheck {
     AbiCheck() {
         size_t s[10];
-        zorcom_mesh_struct_sizes(s);
-        dect2::rsAbiCheck("zorcom_mesh", s, {sizeof(ZorcomMeshNode), sizeof(ZorcomMeshMessage), sizeof(ZorcomMeshMtDecoded), sizeof(ZorcomMeshMcParsed), sizeof(ZorcomMeshMcOut), sizeof(ZorcomMeshMcGroup), sizeof(ZorcomMeshLorawan), sizeof(ZorcomMeshLoraAprs), sizeof(ZorcomMeshMeshCom), sizeof(ZorcomMeshPbField)});
+        saurcom_mesh_struct_sizes(s);
+        dect2::rsAbiCheck("saurcom_mesh", s, {sizeof(SaurcomMeshNode), sizeof(SaurcomMeshMessage), sizeof(SaurcomMeshMtDecoded), sizeof(SaurcomMeshMcParsed), sizeof(SaurcomMeshMcOut), sizeof(SaurcomMeshMcGroup), sizeof(SaurcomMeshLorawan), sizeof(SaurcomMeshLoraAprs), sizeof(SaurcomMeshMeshCom), sizeof(SaurcomMeshPbField)});
     }
 } abiCheck;
 } // namespace
 
 // ---- names and keys ----
-std::string meshtasticNodeIdString(uint32_t num) { return text<16>([&](uint8_t* b, size_t n) { return zorcom_mesh_node_id(num, b, n); }); }
+std::string meshtasticNodeIdString(uint32_t num) { return text<16>([&](uint8_t* b, size_t n) { return saurcom_mesh_node_id(num, b, n); }); }
 
-std::string meshtasticHwModelName(int hw) { return text<64>([&](uint8_t* b, size_t n) { return zorcom_mesh_hw_model_name(hw, b, n); }); }
+std::string meshtasticHwModelName(int hw) { return text<64>([&](uint8_t* b, size_t n) { return saurcom_mesh_hw_model_name(hw, b, n); }); }
 
-int meshtasticHwModelValue(const std::string& name) { return zorcom_mesh_hw_model_value((const uint8_t*)name.data(), name.size()); }
+int meshtasticHwModelValue(const std::string& name) { return saurcom_mesh_hw_model_value((const uint8_t*)name.data(), name.size()); }
 
 uint8_t meshtasticChannelHash(const std::string& name, const std::vector<uint8_t>& key) {
-    return zorcom_mesh_channel_hash((const uint8_t*)name.data(), name.size(), key.data(), key.size());
+    return saurcom_mesh_channel_hash((const uint8_t*)name.data(), name.size(), key.data(), key.size());
 }
 
 bool meshtasticExpandPsk(const std::vector<uint8_t>& psk, std::vector<uint8_t>& key) {
     uint8_t k[32];
-    const int n = zorcom_mesh_expand_psk(psk.data(), psk.size(), k);
+    const int n = saurcom_mesh_expand_psk(psk.data(), psk.size(), k);
     key.clear();
     if (n < 0) return false;
     key.assign(k, k + n);
@@ -50,8 +50,8 @@ MeshDecodeResult MeshProto::decodeMeshtastic(const uint8_t* p, size_t n, const M
     MeshPacketInfo& pi = r.packet;
     pi.protocol = MeshProtocol::Meshtastic;
     pi.size = n;
-    ZorcomMeshMtHeader h;
-    if (!zorcom_mesh_mt_header(p, n, &h)) { pi.note = "too short for a Meshtastic header"; return r; }
+    SaurcomMeshMtHeader h;
+    if (!saurcom_mesh_mt_header(p, n, &h)) { pi.note = "too short for a Meshtastic header"; return r; }
     auto nodeStr = [](uint32_t v) { return v == 0xFFFFFFFFu ? std::string("^all") : meshtasticNodeIdString(v); };
     const uint32_t to = h.to, from = h.from, id = h.id;
     const uint8_t chan = h.channel;
@@ -91,8 +91,8 @@ MeshDecodeResult MeshProto::decodeMeshtastic(const uint8_t* p, size_t n, const M
                 for (int i = 0; i < 4; i++) { nonce[i] = (uint8_t)(id >> (8 * i)); nonce[8 + i] = (uint8_t)(from >> (8 * i)); }
                 if (!aesCtr(c.key.data(), c.key.size(), nonce, plain.data(), m)) continue;
             }
-            auto d = std::make_unique<ZorcomMeshMtDecoded>();
-            if (!zorcom_mesh_mt_decode(plain.data(), m, from, to, h.flags >> 5, h.flags & 7, id, d.get())) continue;
+            auto d = std::make_unique<SaurcomMeshMtDecoded>();
+            if (!saurcom_mesh_mt_decode(plain.data(), m, from, to, h.flags >> 5, h.flags & 7, id, d.get())) continue;
             pi.decrypted = true;
             pi.portnum = d->portnum;
             pi.type = str(d->type_name);
@@ -139,8 +139,8 @@ bool decodeGroupPayload(int type, int hcnt, const std::string& via, const uint8_
         any = true;
         std::vector<uint8_t> d;
         if (!meshcoreMacThenDecrypt(c, pay + 1, m - 1, d)) continue;
-        auto g = std::make_unique<ZorcomMeshMcGroup>();
-        zorcom_mesh_mc_group_plain((uint8_t)type, (uint8_t)hcnt, (const uint8_t*)via.data(), via.size(), d.data(), d.size(), g.get());
+        auto g = std::make_unique<SaurcomMeshMcGroup>();
+        saurcom_mesh_mc_group_plain((uint8_t)type, (uint8_t)hcnt, (const uint8_t*)via.data(), via.size(), d.data(), d.size(), g.get());
         pi.decrypted = true;
         pi.channel = c.name;
         pi.type = str(g->type_name);
@@ -158,8 +158,8 @@ bool decodeGroupPayload(int type, int hcnt, const std::string& via, const uint8_
         return true;
     }
     if (!pi.decrypted) {
-        ZorcomMeshS128 note;
-        zorcom_mesh_mc_group_fail(h, any, &note);
+        SaurcomMeshS128 note;
+        saurcom_mesh_mc_group_fail(h, any, &note);
         pi.note = str(note);
     }
     return false;
@@ -172,9 +172,9 @@ MeshDecodeResult MeshProto::decodeMeshCore(const uint8_t* p, size_t n, const Mes
     MeshPacketInfo& pi = r.packet;
     pi.protocol = MeshProtocol::MeshCore;
     pi.size = n;
-    ZorcomMeshMcParsed h;
-    ZorcomMeshS128 note;
-    if (!zorcom_mesh_mc_header(p, n, &h, &note)) { pi.note = str(note); return r; }
+    SaurcomMeshMcParsed h;
+    SaurcomMeshS128 note;
+    if (!saurcom_mesh_mc_header(p, n, &h, &note)) { pi.note = str(note); return r; }
     pi.routeType = h.route;
     pi.payloadType = h.kind;
     pi.payloadVersion = h.ver;
@@ -194,8 +194,8 @@ MeshDecodeResult MeshProto::decodeMeshCore(const uint8_t* p, size_t n, const Mes
         msg.insert(msg.end(), pay + 100, pay + 100 + al);
         sigOk = ed25519Verify(pay + 36, msg.data(), msg.size(), pay);
     }
-    auto o = std::make_unique<ZorcomMeshMcOut>();
-    zorcom_mesh_mc_decode(p, n, &h, sigOk, o.get());
+    auto o = std::make_unique<SaurcomMeshMcOut>();
+    saurcom_mesh_mc_decode(p, n, &h, sigOk, o.get());
     if (o->from.len) pi.from = str(o->from);
     if (o->to.len) pi.to = str(o->to);
     pi.decrypted = o->decrypted != 0;

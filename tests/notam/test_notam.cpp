@@ -12,7 +12,7 @@ using namespace dect2::notam;
 #include "../common/test_util.h"
 
 static std::string readFile(const std::string& name) {
-    std::ifstream f(std::string(ZORCOM_NOTAM_TESTDATA) + "/" + name, std::ios::binary);
+    std::ifstream f(std::string(SAURCOM_NOTAM_TESTDATA) + "/" + name, std::ios::binary);
     std::stringstream ss;
     ss << f.rdbuf();
     return ss.str();

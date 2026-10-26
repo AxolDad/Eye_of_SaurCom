@@ -4,7 +4,7 @@
 // The receivers follow nrsc5 (GPL-3.0, github.com/theori-io/nrsc5: src/acquire.c, src/sync.c, src/decode.c): the cyclic prefix
 // correlation for timing and the fractional carrier offset, Costas loops on the reference subcarriers for the integer offset, block sync,
 // channel estimate and sample clock tracking (FM), the analog carrier and the training symbols (AM). The soft decision demapping and the
-// Viterbi decoder are Eye of ZorCom's own. Both take the band at 744187.5 Hz with the station in the middle (the AM receiver decimates by 16).
+// Viterbi decoder are Eye of SaurCom's own. Both take the band at 744187.5 Hz with the station in the middle (the AM receiver decimates by 16).
 // FM: the RF spectrum is the mirror image of the baseband one (NRSC-5 1011s section 14.2.2), so the FM receiver works on the conjugate
 // and the FM modulator outputs the conjugate.
 #pragma once

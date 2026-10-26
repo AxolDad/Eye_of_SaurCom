@@ -1,6 +1,6 @@
 // The plugin host: loads plugin libraries, runs each plugin instance on its own worker thread with a watchdog (or in a helper process),
 // keeps the list of installed plugins, their enabled state, permissions and settings, hands out stable mode numbers, and provides safe mode.
-// The C ABI the plugins see is sdk/include/zorcom_plugin.h; this file is the C++ side the program uses. docs/plugins.md explains it.
+// The C ABI the plugins see is sdk/include/saurcom_plugin.h; this file is the C++ side the program uses. docs/plugins.md explains it.
 #pragma once
 #include "dect2/automation/event.h"
 #include "dect2/plugin/manifest.h"
@@ -73,7 +73,7 @@ struct StartOptions {
     std::shared_ptr<SettingValues> settings;
     Services services;
     double watchdogSeconds = kWatchdogSeconds;
-    std::string hostExe;                           // for startProcess: the zorcom-plugin-host executable
+    std::string hostExe;                           // for startProcess: the saurcom-plugin-host executable
 };
 
 // In-process: the library is loaded into this process; its code runs on a worker thread of its own. nullptr and err when it cannot start.
@@ -84,7 +84,7 @@ std::unique_ptr<Runner> startProcess(const StartOptions& o, std::string& err);
 // Loads the library and checks its vtable against the manifest, without creating an instance. For the manager's checks and the tests.
 bool probeLibrary(const std::string& path, const Manifest& m, std::string& err);
 
-// The loop of the helper process (tools/zorcom_plugin_host.cpp): reads the protocol from fdIn, writes results to fdOut. Returns the exit code.
+// The loop of the helper process (tools/saurcom_plugin_host.cpp): reads the protocol from fdIn, writes results to fdOut. Returns the exit code.
 int helperMain(const std::string& libPath, int fdIn, int fdOut);
 
 // ---- installed plugins ----
@@ -100,7 +100,7 @@ struct ManagerConfig {
     std::string pluginsDir;                        // dataDir()/plugins
     std::string bundledDir;                        // examples shipped beside the program (may be empty)
     std::string hostVersion;                       // "0.2.7"
-    std::string hostExe;                           // zorcom-plugin-host path ("" = no out-of-process mode)
+    std::string hostExe;                           // saurcom-plugin-host path ("" = no out-of-process mode)
 };
 
 class Manager {
@@ -116,7 +116,7 @@ public:
     void beginSession();
     void endSession();                              // clean exit: removes the "plugin code was running" marker
     bool safeMode() const;
-    std::string safeModeReason() const;             // e.g. "Eye of ZorCom did not shut down cleanly while plugin tone-detector was running"
+    std::string safeModeReason() const;             // e.g. "Eye of SaurCom did not shut down cleanly while plugin tone-detector was running"
     void leaveSafeMode();                           // the user's choice; the plugin that was running stays disabled
     void forceSafeMode(bool on);                    // the command line / settings switch
 

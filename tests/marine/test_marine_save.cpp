@@ -21,7 +21,7 @@ int main() {
     Scenario s; s.secs = 20; s.idle = 2;
     Outcome o = run(s);
     CHECK(!o.tel.navtex.empty(), "the receiver decoded no message");
-    const fs::path dir = fs::temp_directory_path() / "zorcom_navtex_save_test";
+    const fs::path dir = fs::temp_directory_path() / "saurcom_navtex_save_test";
     std::error_code ec; fs::remove_all(dir, ec);
 
     NavtexSaver sv;

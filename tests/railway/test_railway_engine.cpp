@@ -50,7 +50,7 @@ int main() {
     snapshot(*engine, lbjTuning().stdMode, 82, "LBJ", 1);
     CHECK(engine->klw().loadResults(savedFrame(railway::Protocol::Klw)), "restore KLW before disk round trip");
 
-    const auto dir = std::filesystem::temp_directory_path() / ("zorcom-railway-test-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    const auto dir = std::filesystem::temp_directory_path() / ("saurcom-railway-test-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code ec;
     const bool owned = std::filesystem::create_directory(dir, ec);
     CHECK(owned, "create owned temporary results directory: %s", ec.message().c_str());

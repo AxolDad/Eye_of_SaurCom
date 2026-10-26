@@ -307,7 +307,7 @@ void outputsTab(App& a) {
         if (st == airplay::State::Casting) { ImGui::TextColored(ImVec4(0.4f, 0.9f, 0.5f, 1), "casting"); ImGui::SameLine(); if (ImGui::SmallButton("stop casting")) airplay::stop(); }
         else if (st == airplay::State::Choosing) { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("choose a device in the list..."); ImGui::PopTextWrapPos(); }
         else if (st == airplay::State::Failed) ImGui::TextColored(ImVec4(0.95f, 0.4f, 0.3f, 1), "%s", airplay::message().c_str());
-        { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("Starting takes several seconds. The picture is H.264 or HEVC as broadcast; the sound is converted to AAC. Eye of ZorCom plays on as usual: mute it here if you do not want it twice."); ImGui::PopTextWrapPos(); }
+        { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("Starting takes several seconds. The picture is H.264 or HEVC as broadcast; the sound is converted to AAC. Eye of SaurCom plays on as usual: mute it here if you do not want it twice."); ImGui::PopTextWrapPos(); }
     }
 }
 

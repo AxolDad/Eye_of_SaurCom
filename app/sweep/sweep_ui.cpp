@@ -99,7 +99,7 @@ void startSweep(App& a) {
     c.settleSec = S.settleMs / 1e3; c.floorPercentile = S.floorPct; c.thresholdDb = S.thrDb; c.minIntervalSec = S.everySec;
     S.cancel = false; S.running = true; S.msg.clear(); S.history.clear(); S.log.clear();
     if (!S.survey.rows() || std::fabs(S.survey.startHz() - c.startHz) > 1e3) S.survey.clear();   // a new range starts a new survey; the same range goes on
-    S.th = dect2::namedThread("zorcom-sweep", worker, dev, t, c, S.autoSettle);
+    S.th = dect2::namedThread("saurcom-sweep", worker, dev, t, c, S.autoSettle);
 }
 
 void tuneTo(App& a, double hz) {

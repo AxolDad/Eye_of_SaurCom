@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Copy every non-system dynamic library an executable needs into ZorCom.app/Contents/Frameworks and rewrite the load paths,
-so the app runs on a Mac without Homebrew. Usage: bundle_macos.py ZorCom.app"""
+"""Copy every non-system dynamic library an executable needs into SaurCom.app/Contents/Frameworks and rewrite the load paths,
+so the app runs on a Mac without Homebrew. Usage: bundle_macos.py SaurCom.app"""
 import os, re, shutil, subprocess, sys, glob
 
 app = sys.argv[1]
-exe = os.path.join(app, "Contents/MacOS/ZorCom")
+exe = os.path.join(app, "Contents/MacOS/SaurCom")
 fw = os.path.join(app, "Contents/Frameworks")
 os.makedirs(fw, exist_ok=True)
 
@@ -26,8 +26,8 @@ def rpaths(path):
     return r
 
 SEARCH = []
-if os.environ.get("ZORCOM_RTLSDR_FRAMEWORK"):
-    SEARCH.append(os.environ["ZORCOM_RTLSDR_FRAMEWORK"])
+if os.environ.get("SAURCOM_RTLSDR_FRAMEWORK"):
+    SEARCH.append(os.environ["SAURCOM_RTLSDR_FRAMEWORK"])
 SEARCH += ["/opt/homebrew/lib", "/usr/local/lib", "/opt/homebrew/opt"]
 def resolve(dep, owner):
     d = os.path.dirname(owner)
@@ -52,15 +52,15 @@ done = {}   # real path -> bundled name
 queue = [exe]
 bundled = []
 
-# The radio libraries that Eye of ZorCom loads at run time when they are present (the native drivers): they go into the app too, so that nothing has
+# The radio libraries that Eye of SaurCom loads at run time when they are present (the native drivers): they go into the app too, so that nothing has
 # to be installed next to it. Every version name a driver may ask for is kept (the symlinks of the Homebrew copy become symlinks here).
-# A missing one stops the build (a release without it would silently lose that radio), unless ZORCOM_ALLOW_MISSING_RADIO_LIBS=1 (local test builds).
+# A missing one stops the build (a release without it would silently lose that radio), unless SAURCOM_ALLOW_MISSING_RADIO_LIBS=1 (local test builds).
 # The value is how to get it. libiio has no Homebrew formula: Pluto users install ADI's libiio package, so it is optional here.
 REQUIRED = {"rtlsdr": "brew install librtlsdr", "airspy": "brew install airspy", "airspyhf": "brew install airspyhf",
             "bladeRF": "brew install libbladerf", "LimeSuite": "brew install limesuite", "uhd": "brew install uhd",
             "hamlib": "brew install hamlib"}
 OPTIONAL = {"iio": "ADI's libiio package (github.com/analogdevicesinc/libiio/releases)"}
-allow_missing = os.environ.get("ZORCOM_ALLOW_MISSING_RADIO_LIBS") == "1"
+allow_missing = os.environ.get("SAURCOM_ALLOW_MISSING_RADIO_LIBS") == "1"
 links = []
 missing = []
 HOMEBREW_LIB = [p for p in ("/opt/homebrew/lib", "/usr/local/lib") if os.path.isdir(p)]
@@ -94,7 +94,7 @@ for name, target in links:
     if name != target and not os.path.exists(os.path.join(fw, name)): os.symlink(target, os.path.join(fw, name))
 # The SoapyRemote client module (issue #84, SoapySDR over LAN): SoapySDR finds it only in its module folders, and a Mac without Homebrew has none, so it is
 # bundled in Frameworks/SoapySDR/modules (the program points SoapySDR there: soapyLocateModules in core/src/source/source_soapy.cpp). Its libSoapySDR
-# is rewritten to the bundled copy by the loop below like any other dependency. Required (brew install soapyremote) unless ZORCOM_ALLOW_MISSING_RADIO_LIBS=1.
+# is rewritten to the bundled copy by the loop below like any other dependency. Required (brew install soapyremote) unless SAURCOM_ALLOW_MISSING_RADIO_LIBS=1.
 modules = []
 sm_dir = os.path.join(fw, "SoapySDR", "modules")   # not "modules0.8": codesign reads a folder name with an extension as a bundle
 sm_src = [m for d in HOMEBREW_LIB for m in glob.glob(os.path.join(d, "SoapySDR", "modules*", "libremoteSupport.*")) if not m.endswith(".a")]

@@ -72,27 +72,27 @@ jobs:
         id: winpfx
         uses: actions/cache@v4
         with:
-          path: zorcom-win-prefix
-          key: zorcom-win-prefix-${{ hashFiles('tools/package/cross_deps_windows.sh', 'packaging/windows/mingw-toolchain.cmake') }}
+          path: saurcom-win-prefix
+          key: saurcom-win-prefix-${{ hashFiles('tools/package/cross_deps_windows.sh', 'packaging/windows/mingw-toolchain.cmake') }}
       - name: Build Windows dependencies
         if: steps.winpfx.outputs.cache-hit != 'true'
         env:
-          ZORCOM_WIN_PREFIX: ${{ github.workspace }}/zorcom-win-prefix
-          ZORCOM_WIN_WORK: ${{ runner.temp }}/zorcom-win-work
+          SAURCOM_WIN_PREFIX: ${{ github.workspace }}/saurcom-win-prefix
+          SAURCOM_WIN_WORK: ${{ runner.temp }}/saurcom-win-work
         run: |
           test -d build-windows-deps/src || { echo "error: build-windows-deps/src is missing (vendor tarballs for cross_deps_windows.sh)"; exit 1; }
           tools/package/cross_deps_windows.sh
       - name: Build Windows zip and installer
         env:
-          ZORCOM_WIN_PREFIX: ${{ github.workspace }}/zorcom-win-prefix
-          ZORCOM_WIN_BUILD: build-windows
+          SAURCOM_WIN_PREFIX: ${{ github.workspace }}/saurcom-win-prefix
+          SAURCOM_WIN_BUILD: build-windows
         run: tools/package/make_windows_cross.sh "${{ needs.version.outputs.ver }}"
       - uses: actions/upload-artifact@v4
         with:
           name: windows-x64
           path: |
-            build-windows/ZorCom-*-windows-x64.zip
-            build-windows/ZorCom-*-windows-x64-setup.exe
+            build-windows/SaurCom-*-windows-x64.zip
+            build-windows/SaurCom-*-windows-x64-setup.exe
 
   macos:
     name: macOS disk image (${{ matrix.arch }})
@@ -114,7 +114,7 @@ jobs:
         id: ffmpeg
         uses: actions/cache@v4
         with: { path: ~/ffmpeg, key: "ffmpeg-8.0-static-macos-${{ matrix.arch }}-${{ hashFiles('tools/package/build_ffmpeg_static.sh') }}" }
-      - name: Build FFmpeg (LGPL, static, only what Eye of ZorCom uses)
+      - name: Build FFmpeg (LGPL, static, only what Eye of SaurCom uses)
         if: steps.ffmpeg.outputs.cache-hit != 'true'
         run: tools/package/build_ffmpeg_static.sh "$HOME/ffmpeg"
       - name: Build the app and the .dmg
@@ -142,7 +142,7 @@ jobs:
         id: ffmpeg
         uses: actions/cache@v4
         with: { path: ~/ffmpeg, key: "ffmpeg-8.0-static-${{ matrix.arch }}-${{ hashFiles('tools/package/build_ffmpeg_static.sh') }}" }
-      - name: "Build FFmpeg (static, only what Eye of ZorCom uses, so that the packages do not depend on the FFmpeg of the system they are installed on)"
+      - name: "Build FFmpeg (static, only what Eye of SaurCom uses, so that the packages do not depend on the FFmpeg of the system they are installed on)"
         if: steps.ffmpeg.outputs.cache-hit != 'true'
         run: tools/package/build_ffmpeg_static.sh "$HOME/ffmpeg"
       - name: "Gather the radio libraries (RTL-SDR is built here from the RTL-SDR Blog source: the distribution's librtlsdr0 cannot drive the V4)"
@@ -161,7 +161,7 @@ jobs:
           CCACHE_MAXSIZE: 1G
           CCACHE_COMPRESS: "true"
         run: |
-          cmake -S . -B build -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Release -DDECT2_BUILD_APP=ON -DDECT2_BUILD_TESTS=ON -DDECT2_HAVE_HAMLIB=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=ON -DDECT2_FFMPEG_PREFIX="$HOME/ffmpeg" -DDECT2_RADIO_LIB_DIR="$GITHUB_WORKSPACE/build/radiolibs" -DZORCOM_VERSION="${{ needs.version.outputs.ver }}"
+          cmake -S . -B build -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Release -DDECT2_BUILD_APP=ON -DDECT2_BUILD_TESTS=ON -DDECT2_HAVE_HAMLIB=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=ON -DDECT2_FFMPEG_PREFIX="$HOME/ffmpeg" -DDECT2_RADIO_LIB_DIR="$GITHUB_WORKSPACE/build/radiolibs" -DSAURCOM_VERSION="${{ needs.version.outputs.ver }}"
           cmake --build build -j 4 --target dect2 dect2cli dect2scan
           ccache -s
       - name: Package
@@ -169,11 +169,11 @@ jobs:
           cd build && cpack -G DEB
           SRC="$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/tools/package/make_portable_linux.sh" "$PWD" "$PWD"
       - uses: actions/upload-artifact@v4
-        with: { name: "linux-${{ matrix.arch }}", path: "build/zorcom_*.deb\nbuild/zorcom-*-portable.tar.gz" }
+        with: { name: "linux-${{ matrix.arch }}", path: "build/saurcom_*.deb\nbuild/saurcom-*-portable.tar.gz" }
 
   # Windows: built on a Mac with tools/package/make_windows_cross.sh, which ships the RTL-SDR, Airspy, BladeRF and PlutoSDR
   # libraries and the SoapySDR drivers (MSYS2 has no packages for most of them, so a build here only had HackRF), then
-  # attached with: gh release upload <tag> build-windows/ZorCom-<version>-windows-x64.zip build-windows/ZorCom-<version>-windows-x64-setup.exe
+  # attached with: gh release upload <tag> build-windows/SaurCom-<version>-windows-x64.zip build-windows/SaurCom-<version>-windows-x64-setup.exe
   publish:
     name: Attach to the release
     # macOS/Linux first; Windows attaches in attach-windows (long cross build, must not block the beta).
@@ -210,11 +210,11 @@ jobs:
               gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
             else
               gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-                --title "Eye of ZorCom ${BASE} beta" --notes "$notes" --prerelease --draft   # a draft until Windows and the APK are attached
+                --title "Eye of SaurCom ${BASE} beta" --notes "$notes" --prerelease --draft   # a draft until Windows and the APK are attached
             fi
           else
             gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber \
-              || gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "Eye of ZorCom ${TAG}" --generate-notes --draft   # a draft: it goes public only once every asset is attached
+              || gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "Eye of SaurCom ${TAG}" --generate-notes --draft   # a draft: it goes public only once every asset is attached
           fi
 
   attach-windows:
@@ -238,7 +238,7 @@ jobs:
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" -p SHA256SUMS -D sums || : > sums/SHA256SUMS
           (cd dist && sha256sum *) >> sums/SHA256SUMS
           gh release upload "$TAG" dist/* sums/SHA256SUMS --repo "$GITHUB_REPOSITORY" --clobber
-  # The Docker image (packaging/docker) of a finished release, for amd64 and arm64: ghcr.io/<owner>/zorcom:<version> and :latest.
+  # The Docker image (packaging/docker) of a finished release, for amd64 and arm64: ghcr.io/<owner>/saurcom:<version> and :latest.
   # Not for betas: they would rebuild it at every push to a release branch. It installs this run's own .deb (packaging/docker/debs).
   docker:
     name: Docker image
@@ -253,7 +253,7 @@ jobs:
       - uses: actions/download-artifact@v4   # this run's own .debs: the release is still a draft here, so its assets cannot be downloaded anonymously
         with: { pattern: "linux-*", path: packaging/docker/debs, merge-multiple: true }
       - id: img
-        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/zorcom" >> "$GITHUB_OUTPUT"   # registry names are lower case
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/saurcom" >> "$GITHUB_OUTPUT"   # registry names are lower case
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130   # v3.7.0
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f   # v3.12.0
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9   # v3.7.0
@@ -262,7 +262,7 @@ jobs:
         with:
           context: packaging/docker
           platforms: linux/amd64,linux/arm64
-          build-args: ZORCOM_VERSION=${{ needs.version.outputs.ver }}
+          build-args: SAURCOM_VERSION=${{ needs.version.outputs.ver }}
           push: true
           tags: |
             ${{ steps.img.outputs.name }}:${{ needs.version.outputs.ver }}

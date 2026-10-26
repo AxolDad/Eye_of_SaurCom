@@ -1,5 +1,5 @@
 // ESP32 boards as radios: three SoapySDR drivers turn the Wi-Fi radio of an ESP32 into a receiver (the chips' raw I/Q capture), and
-// each one tells Eye of ZorCom nothing about itself until it has been opened once. These are the facts their own READMEs give, so the
+// each one tells Eye of SaurCom nothing about itself until it has been opened once. These are the facts their own READMEs give, so the
 // radio list can name the board and show its range and rates before that. Written from the documents, not tested against a board.
 //
 //   driver=espsdr, usb=1 / host=<ip>   ESPARGOS SoapyESPSDR (github.com/ESPARGOS/SoapyESPSDR) for the ESP32-S31 "Function-CoreBoard"

@@ -1,6 +1,6 @@
 // Iridium bursts as gr-iridium's iridium-extractor writes them (".bits" files, one "RAW:" line a burst), so iridium-toolkit's
-// iridium-parser.py reads our files unchanged: `iridium-parser.py output.bits > output.parsed`. Eye of ZorCom writes bits only; whatever the
-// toolkit does with them afterwards (voice included) happens outside Eye of ZorCom.
+// iridium-parser.py reads our files unchanged: `iridium-parser.py output.bits > output.parsed`. Eye of SaurCom writes bits only; whatever the
+// toolkit does with them afterwards (voice included) happens outside Eye of SaurCom.
 //
 // Line format (gr-iridium lib/iridium_frame_printer_impl.cc):
 //   RAW: <file_info> <ms %012.4f> <Hz %010d> N:<magnitude dB %05.2f><noise dB %+06.2f> I:<id %011d> <confidence %3d>% <level %.5f>

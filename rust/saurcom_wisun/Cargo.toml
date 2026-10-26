@@ -1,0 +1,10 @@
+[package]
+name = "saurcom_wisun"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of SaurCom Wi-SUN FAN: IEEE 802.15.4g SUN FSK PHY header, whitening, FCS and the 802.15.4 MAC / Wi-SUN IE frame parser"
+
+[dependencies]
+saurcom_common = { path = "../saurcom_common" }

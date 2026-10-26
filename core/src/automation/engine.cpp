@@ -410,7 +410,7 @@ void Engine::submit(Event&& ev) {
 void Engine::start() {
     if (p_->th.joinable()) return;
     p_->stopReq = false;
-    p_->th = dect2::namedThread("zorcom-auto", [this] {
+    p_->th = dect2::namedThread("saurcom-auto", [this] {
         for (;;) {
             std::deque<Event> batch;
             {

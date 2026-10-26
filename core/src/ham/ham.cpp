@@ -126,7 +126,7 @@ bool hamTxAllowed(const HamTxCheck& c, std::string& why) {
 }
 
 // ---- ADIF ----
-std::string adifHeader() { return "Eye of ZorCom ADIF export\n<ADIF_VER:5>3.1.4 <PROGRAMID:11>EyeOfZorCom <EOH>\n"; }
+std::string adifHeader() { return "Eye of SaurCom ADIF export\n<ADIF_VER:5>3.1.4 <PROGRAMID:11>EyeOfSaurCom <EOH>\n"; }
 std::string adifRecord(const QsoRecord& q) {
     std::string o, d1, t1, d2, t2;
     dateTime(q.startUtc, d1, t1);

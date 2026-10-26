@@ -41,7 +41,7 @@ private:
 bool hamlibModeKnown(const std::string& name);
 // True when both names are the same Hamlib mode: a rig reports some modes under another spelling ("PKTFM" comes back as "FM-D").
 bool hamlibSameMode(const std::string& a, const std::string& b);
-// The mode names of Hamlib's own spelling for what Eye of ZorCom's mode list offers (identity for the names it knows, "" for an unknown one).
+// The mode names of Hamlib's own spelling for what Eye of SaurCom's mode list offers (identity for the names it knows, "" for an unknown one).
 std::string hamlibCanonicalMode(const std::string& name);
 
 } // namespace dect2

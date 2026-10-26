@@ -186,7 +186,7 @@ struct Atsc3Remux::Impl {
                 AVStream* in = c->ic->streams[si];
                 const AVCodecParameters* cp = in->codecpar;
                 if (cp->codec_type != AVMEDIA_TYPE_VIDEO && cp->codec_type != AVMEDIA_TYPE_AUDIO) continue;
-                // AC-4 sound (ATSC A/342-2, sample entry 'ac-4'): the FFmpeg inside Eye of ZorCom cannot decode it. With the optional AC-4 library it is
+                // AC-4 sound (ATSC A/342-2, sample entry 'ac-4'): the FFmpeg inside Eye of SaurCom cannot decode it. With the optional AC-4 library it is
                 // decoded here and goes on as AC-3; without it the component is left out (and said so), the picture and other sound still play.
                 if (cp->codec_type == AVMEDIA_TYPE_AUDIO && (cp->codec_id == AV_CODEC_ID_AC4 || cp->codec_tag == MKTAG('a', 'c', '-', '4') || c->ac4)) {
                     ac4NoteSeen("");
@@ -418,12 +418,12 @@ void Atsc3Remux::push(int id, const std::vector<uint8_t>& data) {
             }
         }
         c->chunks.push_back(data);
-        if (!c->th.joinable()) c->th = dect2::namedThread("zorcom-a3dmx", [this, c] { p_->demuxLoop(c); });
+        if (!c->th.joinable()) c->th = dect2::namedThread("saurcom-a3dmx", [this, c] { p_->demuxLoop(c); });
     }
     c->cv.notify_all();
     {
         std::lock_guard<std::mutex> lk(p_->mu);
-        if (!p_->muxStarted) { p_->muxStarted = true; p_->muxThread = dect2::namedThread("zorcom-a3mux", [this] { p_->muxLoop(); }); }
+        if (!p_->muxStarted) { p_->muxStarted = true; p_->muxThread = dect2::namedThread("saurcom-a3mux", [this] { p_->muxLoop(); }); }
     }
 }
 

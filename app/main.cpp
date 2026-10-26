@@ -1,4 +1,4 @@
-// Eye of ZorCom: the program entry. main() sets up the window, the graphics back end and the App, then runs the frame loop;
+// Eye of SaurCom: the program entry. main() sets up the window, the graphics back end and the App, then runs the frame loop;
 // the per-frame steps and the shutdown are small functions above it. The window and fonts are in main_window.cpp,
 // start-up and the developer flags in main_start.cpp, the main layout in ui/draw_ui.cpp and ui/main_tabs.cpp.
 #ifdef __linux__
@@ -30,7 +30,7 @@ struct CpuGate {
     CpuGate() {
         __builtin_cpu_init();
         if (__builtin_cpu_supports("avx2") && __builtin_cpu_supports("fma")) return;
-        plat::showFatalError("Eye of ZorCom", "This version of Eye of ZorCom needs a processor with AVX2 and FMA instructions (Intel from the 2013 \"Haswell\" "
+        plat::showFatalError("Eye of SaurCom", "This version of Eye of SaurCom needs a processor with AVX2 and FMA instructions (Intel from the 2013 \"Haswell\" "
                                       "generation on, AMD from about 2015). This computer's processor does not have them.");
         std::_Exit(1);
     }
@@ -242,24 +242,24 @@ static void shutdownApp(App& app, gfx::Backend* gfxBackend, GLFWwindow* window) 
 int main(int argc, char** argv) {
     dect2::crash::install();   // first: a crash from here on leaves a report
 #ifdef __linux__
-    if (geteuid() == 0) fprintf(stderr, "Eye of ZorCom: running as root is not needed; see docs for udev rules\n");
+    if (geteuid() == 0) fprintf(stderr, "Eye of SaurCom: running as root is not needed; see docs for udev rules\n");
 #endif
 #ifdef _WIN32
-    dect2::crash::startLog();   // the program has no console window: keep its messages in a log file next to the settings (the old one is kept as zorcom-prev.log)
+    dect2::crash::startLog();   // the program has no console window: keep its messages in a log file next to the settings (the old one is kept as saurcom-prev.log)
 #endif
     {
         std::string report;
         if (dect2::crash::lastRunCrashed(report)) {
 #ifdef _WIN32
-            gCrashNote = "The last run of Eye of ZorCom crashed; the report is in " + report + " - please send it with zorcom-prev.log";
+            gCrashNote = "The last run of Eye of SaurCom crashed; the report is in " + report + " - please send it with saurcom-prev.log";
 #else
-            gCrashNote = "The last run of Eye of ZorCom crashed; the report is in " + report + " - please send it";
+            gCrashNote = "The last run of Eye of SaurCom crashed; the report is in " + report + " - please send it";
 #endif
             fprintf(stderr, "%s\n", gCrashNote.c_str());
         }
     }
     if (!dect2::cpuSupportsBuild()) {
-        plat::showFatalError("Eye of ZorCom", "This version of Eye of ZorCom needs a processor with AVX2 and FMA instructions (any Intel or AMD processor from about 2013 on).");
+        plat::showFatalError("Eye of SaurCom", "This version of Eye of SaurCom needs a processor with AVX2 and FMA instructions (any Intel or AMD processor from about 2013 on).");
         return 1;
     }
     GLFWwindow* window = createMainWindow(argc, argv);

@@ -7,7 +7,7 @@
 // The rates are the server's decimation steps: its radio's full rate / 2^n. A server that does not let this client control it ("read only":
 // another client has it, or it is set so) keeps its own frequency and gain: this client may only place its IQ band within the band the
 // radio receives, so the frequency follows the server's when it is outside that.
-// Future work: the narrow "VFO" use (a small decimated band anywhere in the server's band, the FFT stream) is not offered; Eye of ZorCom always
+// Future work: the narrow "VFO" use (a small decimated band anywhere in the server's band, the FFT stream) is not offered; Eye of SaurCom always
 // takes the IQ band at the decimation its mode needs.
 #include "../net/tcp_client.h"
 #include "native_common.h"

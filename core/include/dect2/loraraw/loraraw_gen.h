@@ -47,7 +47,7 @@ private:
     std::unique_ptr<Impl> p_;
 };
 
-// The scene: nine frames at different settings, the payloads are text ("Eye of ZorCom LoRa raw test SF9 250k")
+// The scene: nine frames at different settings, the payloads are text ("Eye of SaurCom LoRa raw test SF9 250k")
 std::vector<LoraRawGenFrame> loraRawTestSchedule(int sync = 0x12);
 // The implicit-header scene: one setting (SF8, 250 kHz, 4/6, CRC), 12 byte payloads, a few different ones
 std::vector<LoraRawGenFrame> loraRawImplicitSchedule(int sync = 0x12);

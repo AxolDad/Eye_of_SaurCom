@@ -16,7 +16,7 @@
 
 namespace dect2 {
 
-constexpr const char* kDjiGenSerial = "ZorComTestDrone01";   // the serial number the test signal sends (16 characters)
+constexpr const char* kDjiGenSerial = "SaurComTestDrone01";   // the serial number the test signal sends (16 characters)
 constexpr double kDjiGenDroneIdMhz = -5.0, kDjiGenTrainMhz = 5.0;   // where the trains sit relative to the centre
 std::unique_ptr<ModeSynth> makeDjiSynth(const SynthConfig& cfg, double sampleRate);
 

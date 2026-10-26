@@ -1,6 +1,6 @@
 # What can go wrong with a real signal
 
-Go through this list whenever a receiver is written or changed. For each item, either the code handles it (say where) or there is a reason it cannot happen for this standard. A test with Eye of ZorCom's own generator only proves that the receiver agrees with the generator. Both can share the same wrong assumption.
+Go through this list whenever a receiver is written or changed. For each item, either the code handles it (say where) or there is a reason it cannot happen for this standard. A test with Eye of SaurCom's own generator only proves that the receiver agrees with the generator. Both can share the same wrong assumption.
 
 ## The radio
 - **Tuning error.** Cheap radios are off by 1 to 50 ppm: at 600 MHz that is up to 30 kHz, and at 1.5 GHz up to 75 kHz. The error drifts as the radio warms up. In OFDM it is usually many whole carriers plus a fraction. Removing the whole-carrier part by re-indexing does not undo its phase rotation from one symbol to the next.

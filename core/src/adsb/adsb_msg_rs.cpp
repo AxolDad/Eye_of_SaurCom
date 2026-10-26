@@ -1,4 +1,4 @@
-// The ADS-B / Mode S message layer on top of the Rust crate rust/zorcom_adsb: the same functions as adsb_msg.cpp, which keeps getBits,
+// The ADS-B / Mode S message layer on top of the Rust crate rust/saurcom_adsb: the same functions as adsb_msg.cpp, which keeps getBits,
 // setBits and toHex (helpers that take no length).
 #include "dect2/adsb/adsb_msg.h"
 #include "dect2/common/rs_abi.h"
@@ -12,14 +12,14 @@ namespace {
 struct AbiCheck {
     AbiCheck() {
         size_t m = 0, c = 0;
-        zorcom_adsb_struct_sizes(&m, &c);
-        dect2::rsAbiCheck("zorcom_adsb", {m, c}, {sizeof(ZorcomAdsbMsg), sizeof(ZorcomAdsbCommB)});
+        saurcom_adsb_struct_sizes(&m, &c);
+        dect2::rsAbiCheck("saurcom_adsb", {m, c}, {sizeof(SaurcomAdsbMsg), sizeof(SaurcomAdsbCommB)});
     }
 } abiCheck;
 
 inline const char* cs(const uint8_t* p) { return reinterpret_cast<const char*>(p); }
 
-CommB toCommB(const ZorcomAdsbCommB& r) {
+CommB toCommB(const SaurcomAdsbCommB& r) {
     CommB c;
     c.callsign.assign((const char*)r.callsign, r.callsign_len);
     c.bds = r.bds;
@@ -80,91 +80,91 @@ CommB toCommB(const ZorcomAdsbCommB& r) {
 }
 } // namespace
 
-uint32_t crc24(const uint8_t* m, int nbits) { return zorcom_adsb_crc24(m, nbits); }
-uint32_t crcParity(const uint8_t* m, int nbits) { return zorcom_adsb_crc_parity(m, nbits); }
-int dfLength(int df) { return zorcom_adsb_df_length(df); }
-int singleBitPosition(int nbits, uint32_t rem) { return zorcom_adsb_single_bit_position(nbits, rem); }
-uint32_t singleBitSyndrome(int nbits, int pos) { return zorcom_adsb_single_bit_syndrome(nbits, pos); }
+uint32_t crc24(const uint8_t* m, int nbits) { return saurcom_adsb_crc24(m, nbits); }
+uint32_t crcParity(const uint8_t* m, int nbits) { return saurcom_adsb_crc_parity(m, nbits); }
+int dfLength(int df) { return saurcom_adsb_df_length(df); }
+int singleBitPosition(int nbits, uint32_t rem) { return saurcom_adsb_single_bit_position(nbits, rem); }
+uint32_t singleBitSyndrome(int nbits, int pos) { return saurcom_adsb_single_bit_syndrome(nbits, pos); }
 
-bool gillhamToAltitude(unsigned code, int& altFt) { int32_t a = 0; if (!zorcom_adsb_gillham_to_altitude(code, &a)) return false; altFt = a; return true; }
-bool altitudeToGillham(int altFt, unsigned& code) { uint32_t c = 0; if (!zorcom_adsb_altitude_to_gillham(altFt, &c)) return false; code = c; return true; }
-bool decodeAc13(unsigned ac, int& altFt) { int32_t a = 0; if (!zorcom_adsb_decode_ac13(ac, &a)) return false; altFt = a; return true; }
-bool decodeAlt12(unsigned alt12, int& altFt) { int32_t a = 0; if (!zorcom_adsb_decode_alt12(alt12, &a)) return false; altFt = a; return true; }
-int decodeId13(unsigned id) { return zorcom_adsb_decode_id13(id); }
-unsigned encodeId13(int sq) { return zorcom_adsb_encode_id13(sq); }
-char charFrom6bit(unsigned c) { return (char)zorcom_adsb_char_from_6bit(c); }
-int charTo6bit(char ch) { return zorcom_adsb_char_to_6bit((uint8_t)ch); }
+bool gillhamToAltitude(unsigned code, int& altFt) { int32_t a = 0; if (!saurcom_adsb_gillham_to_altitude(code, &a)) return false; altFt = a; return true; }
+bool altitudeToGillham(int altFt, unsigned& code) { uint32_t c = 0; if (!saurcom_adsb_altitude_to_gillham(altFt, &c)) return false; code = c; return true; }
+bool decodeAc13(unsigned ac, int& altFt) { int32_t a = 0; if (!saurcom_adsb_decode_ac13(ac, &a)) return false; altFt = a; return true; }
+bool decodeAlt12(unsigned alt12, int& altFt) { int32_t a = 0; if (!saurcom_adsb_decode_alt12(alt12, &a)) return false; altFt = a; return true; }
+int decodeId13(unsigned id) { return saurcom_adsb_decode_id13(id); }
+unsigned encodeId13(int sq) { return saurcom_adsb_encode_id13(sq); }
+char charFrom6bit(unsigned c) { return (char)saurcom_adsb_char_from_6bit(c); }
+int charTo6bit(char ch) { return saurcom_adsb_char_to_6bit((uint8_t)ch); }
 std::string categoryCode(int tc, int ca) {
     uint8_t b[2];
-    const size_t n = zorcom_adsb_category_code(tc, ca, b);
+    const size_t n = saurcom_adsb_category_code(tc, ca, b);
     return std::string((const char*)b, n);
 }
-std::string categoryName(int tc, int ca) { return cs(zorcom_adsb_category_name(tc, ca)); }
-const char* emergencyName(int s) { return cs(zorcom_adsb_emergency_name(s)); }
+std::string categoryName(int tc, int ca) { return cs(saurcom_adsb_category_name(tc, ca)); }
+const char* emergencyName(int s) { return cs(saurcom_adsb_emergency_name(s)); }
 
-int cprNl(double lat) { return zorcom_adsb_cpr_nl(lat); }
+int cprNl(double lat) { return saurcom_adsb_cpr_nl(lat); }
 bool cprGlobalAirborne(int latE, int lonE, int latO, int lonO, bool oddLatest, double& lat, double& lon) {
     double a, b;
-    if (!zorcom_adsb_cpr_global_airborne(latE, lonE, latO, lonO, oddLatest, &a, &b)) return false;
+    if (!saurcom_adsb_cpr_global_airborne(latE, lonE, latO, lonO, oddLatest, &a, &b)) return false;
     lat = a; lon = b;
     return true;
 }
 bool cprLocalAirborne(int latCpr, int lonCpr, bool odd, double refLat, double refLon, double& lat, double& lon) {
     double a, b;
-    if (!zorcom_adsb_cpr_local_airborne(latCpr, lonCpr, odd, refLat, refLon, &a, &b)) return false;
+    if (!saurcom_adsb_cpr_local_airborne(latCpr, lonCpr, odd, refLat, refLon, &a, &b)) return false;
     lat = a; lon = b;
     return true;
 }
 bool cprGlobalSurface(int latE, int lonE, int latO, int lonO, bool oddLatest, double refLat, double refLon, double& lat, double& lon) {
     double a, b;
-    if (!zorcom_adsb_cpr_global_surface(latE, lonE, latO, lonO, oddLatest, refLat, refLon, &a, &b)) return false;
+    if (!saurcom_adsb_cpr_global_surface(latE, lonE, latO, lonO, oddLatest, refLat, refLon, &a, &b)) return false;
     lat = a; lon = b;
     return true;
 }
 bool cprLocalSurface(int latCpr, int lonCpr, bool odd, double refLat, double refLon, double& lat, double& lon) {
     double a, b;
-    if (!zorcom_adsb_cpr_local_surface(latCpr, lonCpr, odd, refLat, refLon, &a, &b)) return false;
+    if (!saurcom_adsb_cpr_local_surface(latCpr, lonCpr, odd, refLat, refLon, &a, &b)) return false;
     lat = a; lon = b;
     return true;
 }
 void cprEncodeAirborne(double lat, double lon, bool odd, int& latCpr, int& lonCpr) {
     int32_t a = 0, b = 0;
-    zorcom_adsb_cpr_encode_airborne(lat, lon, odd, &a, &b);
+    saurcom_adsb_cpr_encode_airborne(lat, lon, odd, &a, &b);
     latCpr = a; lonCpr = b;
 }
 void cprEncodeSurface(double lat, double lon, bool odd, int& latCpr, int& lonCpr) {
     int32_t a = 0, b = 0;
-    zorcom_adsb_cpr_encode_surface(lat, lon, odd, &a, &b);
+    saurcom_adsb_cpr_encode_surface(lat, lon, odd, &a, &b);
     latCpr = a; lonCpr = b;
 }
 
-double distanceNm(double lat1, double lon1, double lat2, double lon2) { return zorcom_adsb_distance_nm(lat1, lon1, lat2, lon2); }
-double bearingDeg(double lat1, double lon1, double lat2, double lon2) { return zorcom_adsb_bearing_deg(lat1, lon1, lat2, lon2); }
-double isaPressureHpa(double altFt) { return zorcom_adsb_isa_pressure_hpa(altFt); }
-double isaTempC(double altFt) { return zorcom_adsb_isa_temp_c(altFt); }
-double magDeclinationDeg(double lat, double lon) { return zorcom_adsb_mag_declination_deg(lat, lon); }
+double distanceNm(double lat1, double lon1, double lat2, double lon2) { return saurcom_adsb_distance_nm(lat1, lon1, lat2, lon2); }
+double bearingDeg(double lat1, double lon1, double lat2, double lon2) { return saurcom_adsb_bearing_deg(lat1, lon1, lat2, lon2); }
+double isaPressureHpa(double altFt) { return saurcom_adsb_isa_pressure_hpa(altFt); }
+double isaTempC(double altFt) { return saurcom_adsb_isa_temp_c(altFt); }
+double magDeclinationDeg(double lat, double lon) { return saurcom_adsb_mag_declination_deg(lat, lon); }
 void windTriangle(double trk, double gs, double hdg, double tas, double& fromDeg, double& kt) {
     double f = 0, k = 0;
-    zorcom_adsb_wind_triangle(trk, gs, hdg, tas, &f, &k);
+    saurcom_adsb_wind_triangle(trk, gs, hdg, tas, &f, &k);
     fromDeg = f; kt = k;
 }
-double satFromTasMach(double tas, double mach) { return zorcom_adsb_sat_from_tas_mach(tas, mach); }
+double satFromTasMach(double tas, double mach) { return saurcom_adsb_sat_from_tas_mach(tas, mach); }
 
 std::string raText(unsigned ara, unsigned rac, bool terminated) {
     uint8_t b[128];
-    const size_t n = zorcom_adsb_ra_text(ara, rac, terminated, b, sizeof b);
+    const size_t n = saurcom_adsb_ra_text(ara, rac, terminated, b, sizeof b);
     return std::string((const char*)b, n == SIZE_MAX ? 0 : n);
 }
 
 CommB inferCommB(const uint8_t* mb, int altFt) {
-    ZorcomAdsbCommB r;
-    zorcom_adsb_infer_commb(mb, altFt, &r);
+    SaurcomAdsbCommB r;
+    saurcom_adsb_infer_commb(mb, altFt, &r);
     return toCommB(r);
 }
 
 bool decodeMsg(const uint8_t* bytes, int nbits, Msg& m) {
-    ZorcomAdsbMsg r;
-    const bool ok = zorcom_adsb_decode_msg(bytes, nbits, &r);
+    SaurcomAdsbMsg r;
+    const bool ok = saurcom_adsb_decode_msg(bytes, nbits, &r);
     m = Msg();
     m.df = r.df;
     m.nbits = r.nbits;
