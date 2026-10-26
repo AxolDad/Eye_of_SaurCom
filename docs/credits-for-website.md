@@ -8,7 +8,7 @@ Eye of SaurCom is a fork of [OnAir](https://github.com/adswill/OnAir) by Kristij
 
 How to read the "How" column: **vendored** means the source is in this repository and compiled into Eye of SaurCom; **ported / re-implemented / read** means Eye of SaurCom's own code was written from that project's source or documentation (file headers name the project); **linked** means a library Eye of SaurCom is built against; **loaded at run time** means the user installs it and Eye of SaurCom finds it, it is not shipped.
 
-The full notices and the open licence points are in [THIRD_PARTY.md](https://github.com/AxolDad/Eye_of_ZorCom/blob/main/THIRD_PARTY.md).
+The full notices and the open licence points are in [THIRD_PARTY.md](https://github.com/AxolDad/Eye_of_SaurCom/blob/main/THIRD_PARTY.md).
 
 | Name | Author | Licence | Where used | How |
 |---|---|---|---|---|

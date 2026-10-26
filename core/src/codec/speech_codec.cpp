@@ -15,7 +15,7 @@ namespace dect2::codec {
 
 namespace {
 
-constexpr const char* kDocUrl = "https://github.com/AxolDad/Eye_of_ZorCom/blob/main/docs/CODECS.md";
+constexpr const char* kDocUrl = "https://github.com/AxolDad/Eye_of_SaurCom/blob/main/docs/CODECS.md";
 constexpr size_t kMaxSamplesPerFrame = 16000;   // a bit over one second at 16 kHz: no coded frame is longer
 
 struct Api {

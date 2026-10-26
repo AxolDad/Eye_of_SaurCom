@@ -8,7 +8,7 @@
 Free and open source (GPL-3.0), for macOS, Windows, Linux and Android.</p>
 
 <p align="center">
-  <a href="https://github.com/AxolDad/Eye_of_ZorCom/actions/workflows/ci.yml"><img src="https://github.com/AxolDad/Eye_of_ZorCom/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/AxolDad/Eye_of_SaurCom/actions/workflows/ci.yml"><img src="https://github.com/AxolDad/Eye_of_SaurCom/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Android-lightgrey" alt="Platforms">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-orange" alt="License: GPL-3.0"></a>
 </p>
@@ -142,16 +142,16 @@ Short how-tos, in [video/renders](video/renders). They were recorded under the e
 ## Install
 
 > [!NOTE]
-> **No release has been published from this fork yet.** Until the first one, [build from source](#build-from-source). When a version is tagged, the release workflow publishes these files on the [Releases page](https://github.com/AxolDad/Eye_of_ZorCom/releases).
+> **0.3.0 has macOS, Linux and Docker.** The Windows installer and the Android APK are not built for this fork yet; on Windows, [build from source](#build-from-source) for now.
 
-Download the file for your system from the **[latest release](https://github.com/AxolDad/Eye_of_ZorCom/releases/latest)**. There is nothing to compile.
+Download the file for your system from the **[latest release](https://github.com/AxolDad/Eye_of_SaurCom/releases/latest)**. There is nothing to compile.
 
 | System | Download | How to install |
 |---|---|---|
 | **macOS** 15 or later | `SaurCom-…-macos-arm64.dmg` (Apple silicon)<br>`SaurCom-…-macos-x86_64.dmg` (Intel) | Open the `.dmg` and drag Eye of SaurCom to Applications. The app is not signed with a developer certificate yet, so on the first launch right-click it and choose *Open*. Intel Macs need a CPU with AVX2 (2013 or newer). |
-| **Windows** 10 / 11, 64-bit | `SaurCom-…-windows-x64-setup.exe`<br>or `SaurCom-…-windows-x64.zip` | Run the installer, or unpack the zip and start `SaurCom.exe`. Windows may warn about an unknown publisher because the installer is not code-signed. Needs a CPU with AVX2 (Intel or AMD from about 2013 on). |
+| **Windows** 10 / 11, 64-bit | *not in 0.3.0 yet:* `SaurCom-…-windows-x64-setup.exe`<br>or `SaurCom-…-windows-x64.zip` | Run the installer, or unpack the zip and start `SaurCom.exe`. Windows may warn about an unknown publisher because the installer is not code-signed. Needs a CPU with AVX2 (Intel or AMD from about 2013 on). |
 | **Linux** x86-64 and arm64 | `saurcom_…_amd64.deb` / `saurcom_…_arm64.deb`<br>or `saurcom-…-portable.tar.gz` | Debian / Ubuntu: `sudo apt install ./saurcom_<version>_<arch>.deb`, then start Eye of SaurCom from the menu or with `saurcom`. The `.deb` carries its own video decoder, so it does not depend on your system's FFmpeg. Other distributions: unpack the portable archive and run `bin/saurcom`. |
-| **Android** 9+, arm64 | `SaurCom-…-android.apk` | Sideload the APK, see [Android app](#android-app). |
+| **Android** 9+, arm64 | *not in 0.3.0 yet:* `SaurCom-…-android.apk` | Sideload the APK, see [Android app](#android-app). |
 | **Docker** (a server without a screen, used from a browser) | `packaging/docker` in this repository | `docker compose up -d --build` in that folder, then open `https://<server>:3001`. See [packaging/docker/README.md](packaging/docker/README.md) for radios, graphics chips and settings. |
 
 > [!NOTE]
@@ -171,7 +171,7 @@ The Android app is the desktop decoder core (the same C++ code, built as `libsau
 - **Sources:** an RTL-SDR on the USB port (0.2.7), `rtl_tcp` (an RTL-SDR served over the network, or on the phone itself), SpyServer, an IQ file (cs8, cu8, cf32, ci16, cu16, with its sample rate) and a built-in test signal for the selected mode that needs no radio.
 - **Results:** per-mode results (cards and tables), an OpenStreetMap map (tiles are only fetched after you agree), and FM with RDS.
 - **Use it:** pick a source on the Receiver tab, a mode on the Mode tab, press play. Tap the spectrum to tune, drag to move, pinch to zoom (double tap resets).
-- **Install:** download `SaurCom-…-android.apk` from the [release](https://github.com/AxolDad/Eye_of_ZorCom/releases/latest), copy it to the phone, open it and allow installs from unknown sources for the app you opened it with. The APK is signed with the project's own key, not a Play Store key; updating later needs the same key.
+- **Install:** download `SaurCom-…-android.apk` from the [release](https://github.com/AxolDad/Eye_of_SaurCom/releases/latest), copy it to the phone, open it and allow installs from unknown sources for the app you opened it with. The APK is signed with the project's own key, not a Play Store key; updating later needs the same key.
 - **Limits:** arm64-v8a only, Android 9 (API 28) or newer. Direct USB works for RTL-SDR radios (new in 0.2.7); HackRF and Airspy USB are not supported yet, so use rtl_tcp or SpyServer for those. No vocoder voice (DMR, P25, NXDN, D-STAR, TETRA), no TV video or sound, and no images yet (the satellite pictures and the SSTV / fax pictures). Wide modes (DVB, ATSC) need a fast phone.
 </details>
 
@@ -180,7 +180,7 @@ The Android app is the desktop decoder core (the same C++ code, built as `libsau
 Fixes and new features land on the `main` branch first, before they go into a release. To try them early, [build Eye of SaurCom from source](#build-from-source) from the latest `main`.
 
 > [!WARNING]
-> The development version is **not tested like a release**. It can contain bugs, unfinished features or changes that stop parts of the app (or the whole app) from working. Use the [latest release](https://github.com/AxolDad/Eye_of_ZorCom/releases/latest) for everyday use, and if something breaks in a development build, please say so in [GitHub Issues](https://github.com/AxolDad/Eye_of_ZorCom/issues), mentioning the commit you built.
+> The development version is **not tested like a release**. It can contain bugs, unfinished features or changes that stop parts of the app (or the whole app) from working. Use the [latest release](https://github.com/AxolDad/Eye_of_SaurCom/releases/latest) for everyday use, and if something breaks in a development build, please say so in [GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues), mentioning the commit you built.
 
 ## Quick start
 
@@ -197,7 +197,7 @@ No radio? Open an IQ recording through the *IQ recording file* source (cs8, cu8,
 
 ## Modes
 
-145 modes, grouped as in the app (the list in the app also has a Plugins entry for managing add-ons). Every receiver is built from the published specifications and tested on generated signals (carrier offsets, noise, echoes, clock errors) and, where recordings exist, on real captures. Reports and recordings from your own antenna help most: attach them to an issue in [GitHub Issues](https://github.com/AxolDad/Eye_of_ZorCom/issues). Where a mode has a specific caveat it is said below. **Receive only** means nothing is transmitted, decrypted or joined.
+145 modes, grouped as in the app (the list in the app also has a Plugins entry for managing add-ons). Every receiver is built from the published specifications and tested on generated signals (carrier offsets, noise, echoes, clock errors) and, where recordings exist, on real captures. Reports and recordings from your own antenna help most: attach them to an issue in [GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues). Where a mode has a specific caveat it is said below. **Receive only** means nothing is transmitted, decrypted or joined.
 
 <details>
 <summary><b>All 145 modes, by family</b></summary>
@@ -544,7 +544,7 @@ Off, and unavailable until you give it a Discord application: none is built in. 
 - **macOS will not open the app.** It is not signed with a developer certificate yet: right-click it and choose *Open* on the first launch.
 - **No voice in DMR, P25, NXDN, dPMR or D-STAR.** Install mbelib yourself, see [Good to know](#good-to-know) and [docs/CODECS.md](docs/CODECS.md).
 - **No radio at all.** Open an IQ recording through the *IQ recording file* source, or press **Tour**.
-- **Still stuck.** Press **Save bug report** (one zip with diagnostics, log and crash report) and attach it to an issue in [GitHub Issues](https://github.com/AxolDad/Eye_of_ZorCom/issues).
+- **Still stuck.** Press **Save bug report** (one zip with diagnostics, log and crash report) and attach it to an issue in [GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues).
 </details>
 
 ## Build from source
@@ -593,7 +593,7 @@ Configure with a clean `build` folder after changing these. Other options in `CM
    Optional: `mingw-w64-ucrt-x86_64-nsis` for the setup .exe. (codec2 is built from `third_party/codec2` with Eye of SaurCom and goes into the zip.)
 4. Get the source and build:
    ```sh
-   git clone https://github.com/AxolDad/Eye_of_ZorCom.git
+   git clone https://github.com/AxolDad/Eye_of_SaurCom.git
    cd Eye of SaurCom
    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DDECT2_BUILD_APP=ON
    cmake --build build
@@ -619,8 +619,8 @@ To use a HackRF, RTL-SDR or Airspy, install the WinUSB driver once with [Zadig](
 ## Community
 
 - **[Docs](docs/)**: the guides and notes in this repository.
-- **[GitHub Issues](https://github.com/AxolDad/Eye_of_ZorCom/issues)**: bug reports. Attach an IQ recording of the problem: press **Record IQ** in the Source panel (or run `saurcom-cli --record auto --secs 10`); files go to the `recordings` folder of the app data folder, and **Show recording** opens it. With **SigMF** ticked (the default) every recording also gets a `.sigmf-meta` file, so it opens directly in [IQEngine](https://iqengine.org). **Save bug report** makes one zip with diagnostics, log and crash report.
-- **[Pull requests](https://github.com/AxolDad/Eye_of_ZorCom/pulls)** are welcome.
+- **[GitHub Issues](https://github.com/AxolDad/Eye_of_SaurCom/issues)**: bug reports. Attach an IQ recording of the problem: press **Record IQ** in the Source panel (or run `saurcom-cli --record auto --secs 10`); files go to the `recordings` folder of the app data folder, and **Show recording** opens it. With **SigMF** ticked (the default) every recording also gets a `.sigmf-meta` file, so it opens directly in [IQEngine](https://iqengine.org). **Save bug report** makes one zip with diagnostics, log and crash report.
+- **[Pull requests](https://github.com/AxolDad/Eye_of_SaurCom/pulls)** are welcome.
 
 ## License
 

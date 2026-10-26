@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
         CHECK(html.find("<b>x</b>") == std::string::npos && html.find("&lt;script&gt;alert(3)&lt;/script&gt;&amp;amp;") != std::string::npos);
         CHECK(html.find("Content-Security-Policy") != std::string::npos && html.find("default-src 'none'") != std::string::npos);
         CHECK(html.find("href=\"http://") == std::string::npos && html.find("src=\"http") == std::string::npos && html.find("url(") == std::string::npos);
-        CHECK(html.find("https://github.com/AxolDad/Eye_of_ZorCom") != std::string::npos && html.find("Made with") != std::string::npos);
+        CHECK(html.find("https://github.com/AxolDad/Eye_of_SaurCom") != std::string::npos && html.find("Made with") != std::string::npos);
         CHECK(html.find("prefers-color-scheme:dark") != std::string::npos && html.find("viewport") != std::string::npos);
         CHECK(html.find("data:image/png;base64,") != std::string::npos && html.find("data:audio/wav;base64,") != std::string::npos);
         CHECK(html.find("/Users/") == std::string::npos);

@@ -70,7 +70,7 @@ bool speechCodecGate(const char* id, std::unique_ptr<dect2::codec::SpeechCodec>&
             dect2::openUrl(folder);
         }
         ImGui::SameLine();
-        if (ImGui::Button("Full instructions")) dect2::openUrl("https://github.com/AxolDad/Eye_of_ZorCom/blob/main/docs/CODECS.md");
+        if (ImGui::Button("Full instructions")) dect2::openUrl("https://github.com/AxolDad/Eye_of_SaurCom/blob/main/docs/CODECS.md");
         return false;
     }
 
@@ -165,7 +165,7 @@ void codecInstallHelper(const char* id) {
         dect2::openUrl(folder);
     }
     ImGui::SameLine();
-    if (ImGui::Button("Build steps")) dect2::openUrl("https://github.com/AxolDad/Eye_of_ZorCom/blob/main/docs/CODECS.md#speech-codec-plug-ins-voice-modes");
+    if (ImGui::Button("Build steps")) dect2::openUrl("https://github.com/AxolDad/Eye_of_SaurCom/blob/main/docs/CODECS.md#speech-codec-plug-ins-voice-modes");
     ImGui::SameLine();
     if (ImGui::Button("Rescan for plug-in")) speechCodecRescan(id);
     ImGui::TextDisabled("Upstream mbelib project page: https://github.com/lwvmobile/mbelib. Eye of SaurCom downloads nothing for you.");
@@ -232,7 +232,7 @@ void voiceCodecsWindow(App& a) {
         dect2::openUrl(folder);
     }
     ImGui::SameLine();
-    if (ImGui::Button("Instructions")) dect2::openUrl("https://github.com/AxolDad/Eye_of_ZorCom/blob/main/docs/CODECS.md");
+    if (ImGui::Button("Instructions")) dect2::openUrl("https://github.com/AxolDad/Eye_of_SaurCom/blob/main/docs/CODECS.md");
     ImGui::End();
 }
 

@@ -6,7 +6,7 @@
     <key>CFBundleName</key><string>Eye of SaurCom</string>
     <key>CFBundleExecutable</key><string>dect2</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleVersion</key><string>0.2.9</string>
+    <key>CFBundleVersion</key><string>0.3.0</string>
     <key>NSHumanReadableCopyright</key><string>Eye of SaurCom: GPL-3.0-or-later. Based on OnAir by Kristijonas Adomaitis and its contributors.</string>
     <key>CFBundleIconFile</key><string>SaurCom</string>
     <key>NSHighResolutionCapable</key><true/>

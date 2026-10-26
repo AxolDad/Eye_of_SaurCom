@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "author": "Eye of SaurCom contributors",
   "license": "CC0-1.0",
-  "homepage": "https://github.com/AxolDad/Eye_of_ZorCom",
+  "homepage": "https://github.com/AxolDad/Eye_of_SaurCom",
   "description": "Finds the strongest tone in the channel and reports its offset in Hz and its level. A minimal example of an IQ plugin.",
   "kind": "mode",
   "abi_version": 1,

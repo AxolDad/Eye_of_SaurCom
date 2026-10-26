@@ -536,10 +536,10 @@ float menuBar(App& a) {
             if (ImGui::MenuItem(tr("Get me listening"))) listenWizardOpen(a);
             if (ImGui::MenuItem(tr("Guided tour"))) tourStart(a);
             ImGui::Separator();
-            if (ImGui::MenuItem(tr("Documentation"))) dect2::openUrl("https://github.com/AxolDad/Eye_of_ZorCom/tree/main/docs");
-            if (ImGui::MenuItem(tr("Troubleshooting"))) dect2::openUrl("https://github.com/AxolDad/Eye_of_ZorCom#troubleshooting");
+            if (ImGui::MenuItem(tr("Documentation"))) dect2::openUrl("https://github.com/AxolDad/Eye_of_SaurCom/tree/main/docs");
+            if (ImGui::MenuItem(tr("Troubleshooting"))) dect2::openUrl("https://github.com/AxolDad/Eye_of_SaurCom#troubleshooting");
             if (ImGui::MenuItem(tr("Voice codecs"))) a.voiceCodecsOpen = true;
-            if (ImGui::MenuItem(tr("Website"))) dect2::openUrl("https://github.com/AxolDad/Eye_of_ZorCom");
+            if (ImGui::MenuItem(tr("Website"))) dect2::openUrl("https://github.com/AxolDad/Eye_of_SaurCom");
             if (ImGui::MenuItem(tr("Credits and licences"))) { a.creditsOpen = true; a.creditsTab = 1; }
             ImGui::Separator();
             if (ImGui::MenuItem(tr("Report a problem"))) a.reportOpen = true;

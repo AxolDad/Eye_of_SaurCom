@@ -181,6 +181,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release-')
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v4   # for the release notes (docs/release-notes/<tag>.md)
+        with: { sparse-checkout: docs/release-notes }
       - uses: actions/download-artifact@v4
         with: { path: dist, merge-multiple: true }
       - name: Create the release
@@ -213,8 +215,11 @@ jobs:
                 --title "Eye of SaurCom ${BASE} beta" --notes "$notes" --prerelease --draft   # a draft until Windows and the APK are attached
             fi
           else
+            # The notes are docs/release-notes/<tag>.md when there is one. The release is published at once with the macOS and Linux
+            # files; attach-windows adds Windows when that build succeeds.
+            if [ -f "docs/release-notes/${TAG}.md" ]; then notes=(--notes-file "docs/release-notes/${TAG}.md"); else notes=(--generate-notes); fi
             gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber \
-              || gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "Eye of SaurCom ${TAG}" --generate-notes --draft   # a draft: it goes public only once every asset is attached
+              || gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "Eye of SaurCom ${TAG}" "${notes[@]}" --latest
           fi
 
   attach-windows:

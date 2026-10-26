@@ -227,7 +227,7 @@ Or set `DECT2_DRA_PATH` to the full path of the file. Press **Look again** in th
 macOS:
 ```
 brew install cmake git python3
-git clone https://github.com/AxolDad/Eye_of_ZorCom && cd SaurCom/tools/addons/dra
+git clone https://github.com/AxolDad/Eye_of_SaurCom && cd SaurCom/tools/addons/dra
 python3 extract_dra.py
 cmake -S . -B build -DDRA_SRC=dra_src && cmake --build build
 mkdir -p ~/Library/Application\ Support/SaurCom/codecs && cp build/libsaurcom_dra.dylib ~/Library/Application\ Support/SaurCom/codecs/
@@ -235,7 +235,7 @@ mkdir -p ~/Library/Application\ Support/SaurCom/codecs && cp build/libsaurcom_dr
 Linux:
 ```
 sudo apt install git python3 cmake build-essential
-git clone https://github.com/AxolDad/Eye_of_ZorCom && cd SaurCom/tools/addons/dra
+git clone https://github.com/AxolDad/Eye_of_SaurCom && cd SaurCom/tools/addons/dra
 python3 extract_dra.py
 cmake -S . -B build -DDRA_SRC=dra_src && cmake --build build
 mkdir -p ~/.local/share/saurcom/codecs && cp build/libsaurcom_dra.so ~/.local/share/saurcom/codecs/
@@ -243,7 +243,7 @@ mkdir -p ~/.local/share/saurcom/codecs && cp build/libsaurcom_dra.so ~/.local/sh
 Windows (MSYS2 MINGW64 shell; use the 64-bit one if Eye of SaurCom is 64-bit):
 ```
 pacman -S --needed git python mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake make
-git clone https://github.com/AxolDad/Eye_of_ZorCom && cd SaurCom/tools/addons/dra
+git clone https://github.com/AxolDad/Eye_of_SaurCom && cd SaurCom/tools/addons/dra
 python extract_dra.py
 cmake -S . -B build -G "MSYS Makefiles" -DDRA_SRC=dra_src && cmake --build build
 mkdir -p "$LOCALAPPDATA/SaurCom/codecs" && cp build/saurcom_dra.dll "$LOCALAPPDATA/SaurCom/codecs/"
