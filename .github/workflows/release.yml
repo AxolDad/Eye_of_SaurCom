@@ -3,7 +3,7 @@ name: Release
 # A version tag (git tag v0.2.6 && git push --tags) builds the installers and attaches them to that release.
 # A push to a release branch (release-0.2.6) builds the same installers, deletes the previous beta of that
 # version and publishes one replacement, tagged v0.2.6-beta.<commit count>. The beta tag does not start
-# this workflow again.
+# this workflow again. Started by hand with a tag (v0.3.0), it makes that release and creates the tag on the commit it ran on.
 on:
   push:
     tags:
@@ -12,6 +12,11 @@ on:
     branches:
       - 'release-*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to create on this commit (v0.3.0); empty builds the packages without a release"
+        required: false
+        default: ""
 
 # A newer push on the same branch cancels the beta build still running, so an older beta is not published after it.
 concurrency:
@@ -34,13 +39,17 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - id: v
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
           set -eu
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            base="${GITHUB_REF_NAME#v}"
+          tag="${GITHUB_REF_NAME}"
+          [[ "$GITHUB_REF" == refs/tags/v* ]] || tag="${INPUT_TAG}"
+          if [[ "$tag" == v* ]]; then
+            base="${tag#v}"
             echo "beta=false" >> "$GITHUB_OUTPUT"
             echo "ver=${base}" >> "$GITHUB_OUTPUT"
-            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            echo "tag=${tag}" >> "$GITHUB_OUTPUT"
             echo "base=${base}" >> "$GITHUB_OUTPUT"
           elif [[ "$GITHUB_REF_NAME" == release-* ]]; then
             base="${GITHUB_REF_NAME#release-}"
@@ -178,7 +187,7 @@ jobs:
     name: Attach to the release
     # macOS/Linux first; Windows attaches in attach-windows (long cross build, must not block the beta).
     needs: [version, macos, linux]
-    if: startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release-')
+    if: needs.version.outputs.tag != ''
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4   # for the release notes (docs/release-notes/<tag>.md)
@@ -219,14 +228,14 @@ jobs:
             # files; attach-windows adds Windows when that build succeeds.
             if [ -f "docs/release-notes/${TAG}.md" ]; then notes=(--notes-file "docs/release-notes/${TAG}.md"); else notes=(--generate-notes); fi
             gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber \
-              || gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "Eye of SaurCom ${TAG}" "${notes[@]}" --latest
+              || gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Eye of SaurCom ${TAG}" "${notes[@]}" --latest
           fi
 
   attach-windows:
     name: Attach Windows to the release
     needs: [version, publish, windows]
     if: |
-      (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release-')) &&
+      needs.version.outputs.tag != '' &&
       needs.windows.result == 'success'
     runs-on: ubuntu-24.04
     steps:
@@ -248,7 +257,7 @@ jobs:
   docker:
     name: Docker image
     needs: [version, publish]
-    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-beta')   # a run started by hand on a beta tag must not become :latest
+    if: needs.version.outputs.tag != '' && needs.version.outputs.beta != 'true' && !contains(needs.version.outputs.tag, '-beta')   # a run started by hand on a beta tag must not become :latest
     runs-on: ubuntu-24.04
     permissions:
       contents: read
