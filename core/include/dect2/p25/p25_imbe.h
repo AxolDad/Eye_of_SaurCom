@@ -1,4 +1,4 @@
-// IMBE (P25 Phase 1 voice) through the user's own mbelib, loaded at run time: IMBE is patented and Eye of ZorCom does not ship it (docs/CODECS.md).
+// IMBE (P25 Phase 1 voice) through the user's own mbelib, loaded at run time: IMBE is patented and Eye of SaurCom does not ship it (docs/CODECS.md).
 // Without the library the P25 receiver still shows the calls, unit IDs, talkgroups and the trunking system, only without sound.
 #pragma once
 #include <cstdint>

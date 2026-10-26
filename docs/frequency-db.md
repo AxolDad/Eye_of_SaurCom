@@ -1,6 +1,6 @@
 # Frequency database
 
-A built-in, searchable list of well-known frequencies for every mode (View > Frequencies, `Ctrl+Shift+F`, or the **Known frequencies** drop-down of the Tuner panel). Click a row twice (or press **Tune**) and Eye of ZorCom switches to the entry's mode, applies the mode's tuning and tunes to the frequency; **Frequency only** keeps the mode; **Add to Memory** keeps the entry in the Memory panel. Entries can be starred, and you can add, import and export your own.
+A built-in, searchable list of well-known frequencies for every mode (View > Frequencies, `Ctrl+Shift+F`, or the **Known frequencies** drop-down of the Tuner panel). Click a row twice (or press **Tune**) and Eye of SaurCom switches to the entry's mode, applies the mode's tuning and tunes to the frequency; **Frequency only** keeps the mode; **Add to Memory** keeps the entry in the Memory panel. Entries can be starred, and you can add, import and export your own.
 
 ## What is in it
 
@@ -18,7 +18,7 @@ Calling channels, beacons, band plans and published satellite downlinks. **No st
 | `pmr.tsv` | PMR446 analogue, FRS / GMRS, MURS, CB 27 MHz, LPD433 | ETSI EN 300 296, FCC 47 CFR Part 95, CEPT ERC/REC 70-03 |
 | `broadcast.tsv` | DAB blocks 5A-13F, DVB-T/T2 VHF and UHF channel plans, DTMB, ATSC, ISDB-T channel centres, FM band edges (not stations), HD Radio, DRM | ETSI EN 300 401, ITU-R BT.470 and national channel plans |
 
-Frequencies are facts about regulations and standards, so they are in the public domain; the text of the names and notes is written for Eye of ZorCom. Where a published plan has regional variants the entry says which region it is for (`EU`, `NA`, `US`, `UK`, `DE`, `R1` ...; `GLOBAL` shows in every region filter). Entries with an approximate or operator-dependent value say so in the notes; a few (Inmarsat-C and Aero channels, paging allocations, ALE channels) are "commonly used" values and should be checked against a current list before relying on them.
+Frequencies are facts about regulations and standards, so they are in the public domain; the text of the names and notes is written for Eye of SaurCom. Where a published plan has regional variants the entry says which region it is for (`EU`, `NA`, `US`, `UK`, `DE`, `R1` ...; `GLOBAL` shows in every region filter). Entries with an approximate or operator-dependent value say so in the notes; a few (Inmarsat-C and Aero channels, paging allocations, ALE channels) are "commonly used" values and should be checked against a current list before relying on them.
 
 ## File format
 

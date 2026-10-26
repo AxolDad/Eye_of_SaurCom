@@ -1,4 +1,4 @@
-# Eye of ZorCom interface in Spanish. One text per line: the English text as in the source, a tab, the translation.
+# Eye of SaurCom interface in Spanish. One text per line: the English text as in the source, a tab, the translation.
 # \n is a line break. Keep the printf conversions (%s, %d, %.1f ...) in the same order. tests/app/test_i18n.cpp checks this file.
 #  menus, status words, common buttons
 %.1f dB	%.1f dB
@@ -108,7 +108,7 @@ The file bytes go out as a HamDRM object with this callsign. Empty file: the tes
 The microphone starts only when you press START TRANSMITTING.	The microphone starts only when you press START TRANSMITTING.
 The registration and free-text go on the air as an H1 / ACARS downlink. Empty: the demo traffic.	The registration and free-text go on the air as an H1 / ACARS downlink. Empty: the demo traffic.
 this mode has no transmit generator	this mode has no transmit generator
-This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.	This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.
+This vocoder cannot encode: Eye of SaurCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.	This vocoder cannot encode: Eye of SaurCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.
 Timeslot	Timeslot
 To	To
 USB audio	Audio USB
@@ -202,7 +202,7 @@ Instrument palette	Paleta instrumento
 Mono palette	Paleta mono
 Show in Discord	Mostrar en Discord
 Show the frequency	Mostrar la frecuencia
-Shows on your Discord profile that you are using Eye of ZorCom, the mode and the frequency. Needs the Discord desktop app running.	Muestra en su perfil de Discord que usa Eye of ZorCom, el modo y la frecuencia. Necesita la aplicación de escritorio de Discord abierta.
+Shows on your Discord profile that you are using Eye of SaurCom, the mode and the frequency. Needs the Discord desktop app running.	Muestra en su perfil de Discord que usa Eye of SaurCom, el modo y la frecuencia. Necesita la aplicación de escritorio de Discord abierta.
 Discord application ID not set in this build	Esta versión no tiene ID de aplicación de Discord
 Passes	Pasos
 Data feeds...	Flujos de datos...
@@ -259,7 +259,7 @@ no stations yet: run the scan	aún no hay emisoras: ejecute la búsqueda
 no saved channels yet: run the scan	aún no hay canales guardados: ejecute la búsqueda
 Hz	Hz
 Frequency in MHz (%.3f to %.3f)	Frecuencia en MHz (%.3f a %.3f)
-Eye of ZorCom crashed	Eye of ZorCom se cerró inesperadamente
+Eye of SaurCom crashed	Eye of SaurCom se cerró inesperadamente
 no picture - press Esc	sin imagen - pulse Esc
 no picture	sin imagen
 Video	Vídeo
@@ -522,7 +522,7 @@ Auto start at AOS, stop at LOS	Inicio automático en AOS, parada en LOS
 Switches to the satellite's mode and starts the receiver at AOS (when it is stopped), and stops it at LOS	Cambia al modo del satélite e inicia el receptor en AOS (si está detenido), y lo detiene en LOS
 Auto record IQ	Grabar IQ automáticamente
 Records the radio's IQ during the pass, as Record IQ does (format from the Record IQ setting), into %s/recordings	Graba la IQ de la radio durante el paso, como Grabar IQ (formato según ese ajuste), en %s/recordings
-Eye of ZorCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	Eye of ZorCom no tiene decodificador para esto: el inicio automático abre el Spectrum explorer y la grabación automática guarda la IQ
+Eye of SaurCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	Eye of SaurCom no tiene decodificador para esto: el inicio automático abre el Spectrum explorer y la grabación automática guarda la IQ
 tracking%s	siguiendo%s
 , recording	, grabando
 #  data feeds
@@ -560,7 +560,7 @@ Import CSV...	Importar CSV...
 Export CSV...	Exportar CSV...
 Columns: frequency_mhz, mode, name, dwell_s, lockout, priority, trunk.\nmode is a mode id: fm, dab, airband, dmr, pocsag, ft8 ...	Columnas: frequency_mhz, mode, name, dwell_s, lockout, priority, trunk.\nmode es un id de modo: fm, dab, airband, dmr, pocsag, ft8 ...
 imported %d entries%s	%d entradas importadas%s
- (some with a mode Eye of ZorCom does not know)	 (algunas con un modo que Eye of ZorCom no conoce)
+ (some with a mode Eye of SaurCom does not know)	 (algunas con un modo que Eye of SaurCom no conoce)
 exported	exportado
 could not write	no se pudo escribir
 start MHz	inicio MHz
@@ -627,11 +627,11 @@ Skip this version	Omitir esta versión
 Release page	Página de la versión
 Download page	Página de descarga
 Checking and preparing the new version…	Comprobando y preparando la nueva versión…
-Downloaded and checked. It is installed when you close Eye of ZorCom.	Descargada y comprobada. Se instala al cerrar Eye of ZorCom.
+Downloaded and checked. It is installed when you close Eye of SaurCom.	Descargada y comprobada. Se instala al cerrar Eye of SaurCom.
 Restart now and update	Reiniciar ahora y actualizar
 Windows asks for permission to run the installer.	Windows pide permiso para ejecutar el instalador.
 The system asks for your password to install the package.	El sistema pide su contraseña para instalar el paquete.
-This copy of Eye of ZorCom cannot replace itself.	Esta copia de Eye of ZorCom no puede reemplazarse a sí misma.
+This copy of Eye of SaurCom cannot replace itself.	Esta copia de Eye of SaurCom no puede reemplazarse a sí misma.
 The update to v%s did not install (setup exit code %d).	La actualización a v%s no se instaló (código de salida %d).
 Only github.com is contacted. Downloads are checked against the SHA-256 GitHub lists for the file.	Solo se contacta con github.com. Las descargas se comprueban con el SHA-256 que GitHub indica para el archivo.
 checking…	comprobando…
@@ -671,7 +671,7 @@ Add a receiver: another radio with its own mode	Añadir un receptor: otra radio 
 Add receiver	Añadir receptor
 Added to a level in dBFS to give dBm for this radio: feed a known signal into the antenna port and set the difference. Used when the spectrum shows dBm (Spectrum button on the plot).	Se suma a un nivel en dBFS para obtener dBm de esta radio: introduce una señal conocida en el puerto de antena y ajusta la diferencia. Se usa cuando el espectro muestra dBm (botón Espectro del gráfico).
 Aircraft	Aeronaves
-All set. Eye of ZorCom will start here:	Todo listo. Eye of ZorCom empezará aquí:
+All set. Eye of SaurCom will start here:	Todo listo. Eye of SaurCom empezará aquí:
 Allow remote control (frequency and gain)	Permitir control remoto (frecuencia y ganancia)
 Amateur radio	Radioafición
 An SDRplay RSP is plugged in, but the SDRplay Hardware API is not installed. Install it separately even if SDRconnect already works with the radio.	Hay un SDRplay RSP conectado, pero la Hardware API de SDRplay no está instalada. Instálala por separado, aunque SDRconnect ya funcione con la radio.
@@ -679,7 +679,7 @@ Another program is using the HackRF	Otro programa está usando el HackRF
 Australia and New Zealand	Australia y Nueva Zelanda
 Average	Promedio
 CPU load now: %.0f%% (100%% = one core)	Carga de CPU ahora: %.0f%% (100%% = un núcleo)
-Calls and data are shown, but the voice is silent until you install the codec yourself. Eye of ZorCom does not ship it (patents).	Se muestran las llamadas y los datos, pero la voz queda en silencio hasta que instales el códec tú mismo. Eye of ZorCom no lo incluye (patentes).
+Calls and data are shown, but the voice is silent until you install the codec yourself. Eye of SaurCom does not ship it (patents).	Se muestran las llamadas y los datos, pero la voz queda en silencio hasta que instales el códec tú mismo. Eye of SaurCom no lo incluye (patentes).
 Cancel	Cancelar
 Carrier MHz	Portadora MHz
 Carriers in the span (click: listen and show; double click: tune to it)	Portadoras en el rango (clic: escuchar y mostrar; doble clic: sintonizar)
@@ -696,7 +696,7 @@ Choose a frequency inside the range shown in the message.	Elige una frecuencia d
 Choose the file again.	Elige el archivo de nuevo.
 Close other programs that use the radio.	Cierra los demás programas que usen la radio.
 Close programs that hold the sound device exclusively.	Cierra los programas que retengan el dispositivo de sonido en exclusiva.
-Close the other program (a second Eye of ZorCom, SDR software, hackrf_info).	Cierra el otro programa (un segundo Eye of ZorCom, software SDR, hackrf_info).
+Close the other program (a second Eye of SaurCom, SDR software, hackrf_info).	Cierra el otro programa (un segundo Eye of SaurCom, software SDR, hackrf_info).
 Close this receiver: it stops and lets go of its radio	Cerrar este receptor: se detiene y libera su radio
 Colour map	Mapa de color
 Colours	Colores
@@ -720,7 +720,7 @@ Files: audio and IQ	Archivos: audio e IQ
 Fill under the line	Rellenar bajo la línea
 Find "SDRplay API Service" and press Start (or Restart).	Busca «SDRplay API Service» y pulsa Iniciar (o Reiniciar).
 Fix the address of the network radio (host:port).	Corrige la dirección de la radio de red (host:puerto).
-Download Eye of ZorCom again and unpack or install the whole package: the codec2 library belongs next to the program.	Descarga Eye of ZorCom de nuevo y descomprime o instala el paquete completo: la biblioteca codec2 va junto al programa.
+Download Eye of SaurCom again and unpack or install the whole package: the codec2 library belongs next to the program.	Descarga Eye of SaurCom de nuevo y descomprime o instala el paquete completo: la biblioteca codec2 va junto al programa.
 Follow the steps in the full instructions to install the codec.	Sigue los pasos de las instrucciones completas para instalar el códec.
 For an RSP, install the SDRplay API first (sdrplay.com).	Para un RSP, instala primero la API de SDRplay (sdrplay.com).
 Found %s (%s)	Encontrado %s (%s)
@@ -733,13 +733,13 @@ How far the converter's oscillator runs fast (positive) or slow. The LO used is 
 How fast the max-hold line falls; 0: it stays until reset	Qué tan rápido cae la línea de máximo retenido; 0: se queda hasta reiniciar
 How to fix	Cómo solucionarlo
 Images	Imágenes
-Install Eye of ZorCom's blacklist file (the .deb package does it), or run: sudo systemctl restart sdrplay	Instala el archivo de lista negra de Eye of ZorCom (el paquete .deb lo hace) o ejecuta: sudo systemctl restart sdrplay
+Install Eye of SaurCom's blacklist file (the .deb package does it), or run: sudo systemctl restart sdrplay	Instala el archivo de lista negra de Eye of SaurCom (el paquete .deb lo hace) o ejecuta: sudo systemctl restart sdrplay
 Install the SDRplay API	Instalar la API de SDRplay
 Install the SDRplay API from sdrplay.com if you have not.	Instala la API de SDRplay desde sdrplay.com si aún no lo has hecho.
 Install the WinUSB driver once with Zadig (zadig.akeo.ie): choose the radio, then the driver WinUSB, then Install.	Instala el controlador WinUSB una vez con Zadig (zadig.akeo.ie): elige la radio, luego el controlador WinUSB y pulsa Instalar.
 Install the udev rules (install-udev-rules.sh), then unplug and replug the radio.	Instala las reglas udev (install-udev-rules.sh) y desconecta y vuelve a conectar la radio.
-Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb does it).	Instala las reglas udev: ejecuta install-udev-rules.sh desde la carpeta de Eye of ZorCom (el .deb lo hace).
-Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb package does it for you).	Instala las reglas udev: ejecuta install-udev-rules.sh desde la carpeta de Eye of ZorCom (el paquete .deb lo hace por ti).
+Install the udev rules: run install-udev-rules.sh from the Eye of SaurCom folder (the .deb does it).	Instala las reglas udev: ejecuta install-udev-rules.sh desde la carpeta de Eye of SaurCom (el .deb lo hace).
+Install the udev rules: run install-udev-rules.sh from the Eye of SaurCom folder (the .deb package does it for you).	Instala las reglas udev: ejecuta install-udev-rules.sh desde la carpeta de Eye of SaurCom (el paquete .deb lo hace por ti).
 Intensity (dB)	Intensidad (dB)
 IoT, 2.4 GHz	IoT, 2,4 GHz
 IoT, sub-GHz	IoT, sub-GHz
@@ -773,13 +773,13 @@ No sound output	Sin salida de sonido
 North America	Norteamérica
 Not a locator or coordinates	No es un localizador ni coordenadas
 On Windows a HackRF needs its WinUSB driver once: install it with Zadig (zadig.akeo.ie).	En Windows, un HackRF necesita su controlador WinUSB una vez: instálalo con Zadig (zadig.akeo.ie).
-Eye of ZorCom %s	Eye of ZorCom %s
-Eye of ZorCom cannot see a HackRF on the USB ports.	Eye of ZorCom no ve ningún HackRF en los puertos USB.
-Eye of ZorCom could not open the speakers, so there will be no sound.	Eye of ZorCom no pudo abrir los altavoces, así que no habrá sonido.
-Eye of ZorCom could not use the rtl_tcp server, or the connection dropped.	Eye of ZorCom no pudo usar el servidor rtl_tcp, o se cortó la conexión.
-Eye of ZorCom found the SDRplay software, but its background service does not answer, so the RSP cannot be opened.	Eye of ZorCom encontró el software de SDRplay, pero su servicio en segundo plano no responde, así que no se puede abrir el RSP.
-Eye of ZorCom lists a radio when the computer sees it. You can still try everything with the synthetic signal or an IQ file.	Eye of ZorCom muestra una radio cuando el ordenador la ve. Aun así puedes probarlo todo con la señal sintética o un archivo IQ.
-Eye of ZorCom needs SDRplay API 3.07 or a newer 3.x.	Eye of ZorCom necesita la API de SDRplay 3.07 o una 3.x más reciente.
+Eye of SaurCom %s	Eye of SaurCom %s
+Eye of SaurCom cannot see a HackRF on the USB ports.	Eye of SaurCom no ve ningún HackRF en los puertos USB.
+Eye of SaurCom could not open the speakers, so there will be no sound.	Eye of SaurCom no pudo abrir los altavoces, así que no habrá sonido.
+Eye of SaurCom could not use the rtl_tcp server, or the connection dropped.	Eye of SaurCom no pudo usar el servidor rtl_tcp, o se cortó la conexión.
+Eye of SaurCom found the SDRplay software, but its background service does not answer, so the RSP cannot be opened.	Eye of SaurCom encontró el software de SDRplay, pero su servicio en segundo plano no responde, así que no se puede abrir el RSP.
+Eye of SaurCom lists a radio when the computer sees it. You can still try everything with the synthetic signal or an IQ file.	Eye of SaurCom muestra una radio cuando el ordenador la ve. Aun así puedes probarlo todo con la señal sintética o un archivo IQ.
+Eye of SaurCom needs SDRplay API 3.07 or a newer 3.x.	Eye of SaurCom necesita la API de SDRplay 3.07 o una 3.x más reciente.
 Only one program can use an rtl_tcp server at a time: close any other client.	Solo un programa puede usar un servidor rtl_tcp a la vez: cierra cualquier otro cliente.
 Only one program can use the radio at a time.	Solo un programa puede usar la radio a la vez.
 Only one receiver plays its sound at a time: click to hear this one	Solo un receptor reproduce su sonido a la vez: haz clic para oír este
@@ -792,7 +792,7 @@ Open the SDRplay API page	Abrir la página de la API de SDRplay
 Open the device list	Abrir la lista de dispositivos
 Optional: your position, as a Maidenhead locator (KO24pq) or coordinates (54.68, 25.28). It is kept on this computer and used for maps and satellite passes.	Opcional: tu posición, como localizador Maidenhead (KO24pq) o coordenadas (54.68, 25.28). Se guarda en este ordenador y se usa para mapas y pasos de satélites.
 Or choose another radio from the list.	O elige otra radio de la lista.
-Or install Eye of ZorCom's blacklist file (the .deb package does it).	O instala el archivo de lista negra de Eye of ZorCom (el paquete .deb lo hace).
+Or install Eye of SaurCom's blacklist file (the .deb package does it).	O instala el archivo de lista negra de Eye of SaurCom (el paquete .deb lo hace).
 Or set the UHD_IMAGES_DIR variable to the folder with the images.	O define la variable UHD_IMAGES_DIR con la carpeta de las imágenes.
 Own accent colour	Color de acento propio
 PSK Reporter	PSK Reporter
@@ -805,7 +805,7 @@ Plug the radio in, directly or through a powered hub.	Conecta la radio, directam
 Press "Look again" in the ? help next to the sound.	Pulsa «Buscar de nuevo» en la ayuda ? junto al sonido.
 Press the refresh button next to the radio list.	Pulsa el botón de actualizar junto a la lista de radios.
 Press the refresh button next to the source.	Pulsa el botón de actualizar junto a la fuente.
-Put the library in the Eye of ZorCom codecs folder (button below).	Pon la biblioteca en la carpeta de códecs de Eye of ZorCom (botón de abajo).
+Put the library in the Eye of SaurCom codecs folder (button below).	Pon la biblioteca en la carpeta de códecs de Eye of SaurCom (botón de abajo).
 Put the panels back to their automatic sizes (drag the bars between panels to resize them)	Devolver los paneles a sus tamaños automáticos (arrastra las barras entre paneles para redimensionarlos)
 Radar chirps, HF	Chirps de radar, HF
 Radio settings (%d changed)###radioset	Ajustes de la radio (%d cambiados)###radioset
@@ -815,8 +815,8 @@ Reduce CPU when hidden	Reducir CPU cuando está oculto
 Remote driver	Controlador remoto
 Reset	Restablecer
 Reset layout	Restablecer la disposición
-Restart Eye of ZorCom (the installer starts SDRplay's background service).	Reinicia Eye of ZorCom (el instalador inicia el servicio en segundo plano de SDRplay).
-Restart Eye of ZorCom.	Reinicia Eye of ZorCom.
+Restart Eye of SaurCom (the installer starts SDRplay's background service).	Reinicia Eye of SaurCom (el instalador inicia el servicio en segundo plano de SDRplay).
+Restart Eye of SaurCom.	Reinicia Eye of SaurCom.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Reinicia el Mac o ejecuta en Terminal: sudo launchctl kickstart -k system/com.sdrplay.service
 Right-click the speaker icon, open Sound settings and pick an output device.	Haz clic derecho en el icono del altavoz, abre la configuración de sonido y elige un dispositivo de salida.
 Run in a terminal: sudo systemctl restart sdrplay	Ejecuta en un terminal: sudo systemctl restart sdrplay
@@ -864,7 +864,7 @@ The USRP software is installed, but the firmware images it loads are missing.	El
 The address of the network radio must look like host:port, for example 192.168.1.20:1234.	La dirección de la radio de red debe tener la forma host:puerto, por ejemplo 192.168.1.20:1234.
 The file could not be opened	No se pudo abrir el archivo
 The firmware inside the HackRF is older than the software talking to it.	El firmware del HackRF es más antiguo que el software que se comunica con él.
-Eye of ZorCom still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.	Eye of ZorCom se la pide igualmente a la radio, pero la radio o su controlador puede no alcanzarla, o la señal puede ser débil o inexistente.
+Eye of SaurCom still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.	Eye of SaurCom se la pide igualmente a la radio, pero la radio o su controlador puede no alcanzarla, o la señal puede ser débil o inexistente.
 The most receivers are open	Hay el máximo de receptores abiertos
 The network radio (rtl_tcp) does not answer	La radio de red (rtl_tcp) no responde
 The picture holds the last %.0f s.	La imagen contiene los últimos %.0f s.
@@ -878,7 +878,7 @@ The radio's USB connection failed	Falló la conexión USB de la radio
 The recording file is missing, moved or not readable.	El archivo de grabación falta, se movió o no se puede leer.
 The rtl_tcp address is not valid	La dirección rtl_tcp no es válida
 The server has no radio	El servidor no tiene radio
-The text and data are shown, but speech needs the codec2 library. It comes with Eye of ZorCom, so this copy is probably incomplete.	Se muestran el texto y los datos, pero la voz necesita la biblioteca codec2. Viene con Eye of ZorCom, así que esta copia probablemente está incompleta.
+The text and data are shown, but speech needs the codec2 library. It comes with Eye of SaurCom, so this copy is probably incomplete.	Se muestran el texto y los datos, pero la voz necesita la biblioteca codec2. Viene con Eye of SaurCom, así que esta copia probablemente está incompleta.
 The voice codec (mbelib) is not installed	El códec de voz (mbelib) no está instalado
 This frequency is not reachable through the converter.	Esta frecuencia no es alcanzable a través del conversor.
 This is a Linux problem. On this system, unplug the radio, plug it in again and press the refresh button.	Es un problema de Linux. En este sistema, desconecta la radio, vuelve a conectarla y pulsa el botón de actualizar.
@@ -912,7 +912,7 @@ Weather pictures, 1.7 GHz	Imágenes meteorológicas, 1,7 GHz
 What do you want to receive? Tick anything that interests you.	¿Qué quieres recibir? Marca todo lo que te interese.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Qué sumar a un nivel en dBFS para obtener dBm de esta radio (su calibración: una señal conocida en el puerto de antena la muestra). También en los ajustes de la radio.
 Where are you? This picks the right TV standard and FM band.	¿Dónde estás? Esto elige el estándar de TV y la banda FM correctos.
-Which language do you want Eye of ZorCom in?	¿En qué idioma quieres Eye of ZorCom?
+Which language do you want Eye of SaurCom in?	¿En qué idioma quieres Eye of SaurCom?
 Which radio do you have?	¿Qué radio tienes?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Puedes cambiar el modo en cualquier momento y volver a ejecutar esta configuración desde Ayuda > Asistente de configuración.
 You can go on without one: the synthetic signal and IQ files work with no hardware.	Puedes continuar sin una: la señal sintética y los archivos IQ funcionan sin hardware.
@@ -971,17 +971,17 @@ WSJT, 14.100 MHz	WSJT, 14.100 MHz
 %s, %llu spots sent in %llu packets, %llu duplicates skipped	%s, %llu spots enviados en %llu paquetes, %llu duplicados omitidos
 offset %+.3f %+.3f	desplazamiento %+.3f %+.3f
 sigma %.3f per axis (%.0f%% of the half-distance to a neighbour)	sigma %.3f por eje (%.0f%% de la semidistancia a un vecino)
-A second Eye of ZorCom (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. Without 'allow remote control' the clients cannot change the frequency or gain.	Un segundo Eye of ZorCom (Añadir radio de red, rtl_tcp), SDR# o SDR++ se conecta a la dirección de este ordenador y al puerto. Las muestras se envían como IQ de 8 bits a la tasa a la que funciona la radio. Sin «permitir control remoto», los clientes no pueden cambiar la frecuencia ni la ganancia.
-Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'Eye of ZorCom'. Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'.	Envía a pskreporter.info las estaciones FT8, FT4, FT2, WSPR, JS8Call, PSK31 y CW que decodificas, para que aparezcan en su mapa público y en sus estadísticas. Un informe contiene: el indicativo del emisor, la frecuencia, la SNR, el modo, su locator si el mensaje lo incluye y cuándo se escuchó; junto con tu indicativo, tu locator, el texto de la antena y «Eye of ZorCom». Los informes se agrupan y se envían cada 5 minutos; la misma estación en la misma banda se envía una vez cada 10 minutos. No se envía nada hasta que marques la casilla. Los spots son públicos: usa tu propio indicativo de radioaficionado válido. CW y PSK31 solo se reportan cuando el texto dice «DE indicativo».
+A second Eye of SaurCom (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. Without 'allow remote control' the clients cannot change the frequency or gain.	Un segundo Eye of SaurCom (Añadir radio de red, rtl_tcp), SDR# o SDR++ se conecta a la dirección de este ordenador y al puerto. Las muestras se envían como IQ de 8 bits a la tasa a la que funciona la radio. Sin «permitir control remoto», los clientes no pueden cambiar la frecuencia ni la ganancia.
+Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'Eye of SaurCom'. Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'.	Envía a pskreporter.info las estaciones FT8, FT4, FT2, WSPR, JS8Call, PSK31 y CW que decodificas, para que aparezcan en su mapa público y en sus estadísticas. Un informe contiene: el indicativo del emisor, la frecuencia, la SNR, el modo, su locator si el mensaje lo incluye y cuándo se escuchó; junto con tu indicativo, tu locator, el texto de la antena y «Eye of SaurCom». Los informes se agrupan y se envían cada 5 minutos; la misma estación en la misma banda se envía una vez cada 10 minutos. No se envía nada hasta que marques la casilla. Los spots son públicos: usa tu propio indicativo de radioaficionado válido. CW y PSK31 solo se reportan cuando el texto dice «DE indicativo».
 BW	BW
 CH	CH
 Channel scan	Búsqueda de canales
 FM	FM
 # RX888 MkII
 The RX888 needs its firmware file	La RX888 necesita su archivo de firmware
-The RX888 MkII has no program of its own in its USB chip: Eye of ZorCom loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official Eye of ZorCom packages include this file; a copy built by hand may not.	El chip USB de la RX888 MkII no tiene programa propio: Eye of ZorCom carga SDDC_FX3.img en RAM en modo boot-loader (no se flashea nada en la radio). Los paquetes oficiales de Eye of ZorCom incluyen este archivo; una copia compilada a mano puede no hacerlo.
+The RX888 MkII has no program of its own in its USB chip: Eye of SaurCom loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official Eye of SaurCom packages include this file; a copy built by hand may not.	El chip USB de la RX888 MkII no tiene programa propio: Eye of SaurCom carga SDDC_FX3.img en RAM en modo boot-loader (no se flashea nada en la radio). Los paquetes oficiales de Eye of SaurCom incluyen este archivo; una copia compilada a mano puede no hacerlo.
 Download SDDC_FX3.img from the Releases page of the SDDC_Driver project (button below).	Descarga SDDC_FX3.img desde la página de Releases del proyecto SDDC_Driver (botón de abajo).
-Put the file in Eye of ZorCom's codecs folder (button below).	Pon el archivo en la carpeta de códecs de Eye of ZorCom (botón de abajo).
+Put the file in Eye of SaurCom's codecs folder (button below).	Pon el archivo en la carpeta de códecs de Eye of SaurCom (botón de abajo).
 The RX888 is on a USB 2 port	La RX888 está en un puerto USB 2
 The RX888 MkII sends up to 256 MB per second. It needs a USB 3 (SuperSpeed) port and a USB 3 cable; on a USB 2 port it cannot stream.	La RX888 MkII envía hasta 256 MB por segundo. Necesita un puerto USB 3 (SuperSpeed) y un cable USB 3; en un puerto USB 2 no puede transmitir.
 Plug the radio into a USB 3 port directly on the computer, not through a USB 2 hub.	Conecta la radio a un puerto USB 3 directamente en el ordenador, no a través de un concentrador USB 2.
@@ -1041,7 +1041,7 @@ Frequency (MHz)	Frecuencia (MHz)
 Repeat until stopped	Repetir hasta detener
 seconds	segundos
 START TRANSMITTING	INICIAR TRANSMISIÓN
-This radio has no transmit driver in Eye of ZorCom.	Esta radio no tiene controlador de transmisión en Eye of ZorCom.
+This radio has no transmit driver in Eye of SaurCom.	Esta radio no tiene controlador de transmisión en Eye of SaurCom.
 Before you transmit	Antes de transmitir
 I understand	Lo entiendo
 TX VGA 0 to 47 dB; the +14 dB amplifier has its own switch	TX VGA de 0 a 47 dB; el amplificador de +14 dB tiene su propio interruptor
@@ -1093,7 +1093,7 @@ start the receiver to see the channels	inicia el receptor para ver los canales
 (hidden)	(oculta)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	La radio funciona a %.1f Msps: los canales de %d MHz necesitan al menos %.0f Msps (%.0f recomendado). Elige la VELOCIDAD en la barra superior u otro ancho de recepción.
 At %.1f Msps channels up to %d MHz are read; 16 MHz channels need 16 Msps or more (20 recommended).	A %.1f Msps se leen canales de hasta %d MHz; los de 16 MHz necesitan 16 Msps o más (20 recomendado).
-Receive only: Eye of ZorCom never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon announces, shown for information. Sub-GHz Wi-Fi HaLow (802.11ah) is for low power sensors and cameras at long range; 1, 2, 4, 8 and 16 MHz channels. 1 and 2 MHz channels work from 2.4 Msps (an RTL-SDR), 4 MHz from 4 Msps, 8 MHz from 10 Msps, 16 MHz from 20 Msps.	Solo recepción: Eye of ZorCom nunca transmite, sondea, se une ni responde a una red, y no se descifra nada. El tipo de seguridad es el que anuncia el beacon, solo informativo. El Wi-Fi HaLow (802.11ah) de sub-GHz sirve a sensores y cámaras de bajo consumo y largo alcance; canales de 1, 2, 4, 8 y 16 MHz. Los canales de 1 y 2 MHz funcionan desde 2,4 Msps (un RTL-SDR), 4 MHz desde 4 Msps, 8 MHz desde 10 Msps, 16 MHz desde 20 Msps.
+Receive only: Eye of SaurCom never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon announces, shown for information. Sub-GHz Wi-Fi HaLow (802.11ah) is for low power sensors and cameras at long range; 1, 2, 4, 8 and 16 MHz channels. 1 and 2 MHz channels work from 2.4 Msps (an RTL-SDR), 4 MHz from 4 Msps, 8 MHz from 10 Msps, 16 MHz from 20 Msps.	Solo recepción: Eye of SaurCom nunca transmite, sondea, se une ni responde a una red, y no se descifra nada. El tipo de seguridad es el que anuncia el beacon, solo informativo. El Wi-Fi HaLow (802.11ah) de sub-GHz sirve a sensores y cámaras de bajo consumo y largo alcance; canales de 1, 2, 4, 8 y 16 MHz. Los canales de 1 y 2 MHz funcionan desde 2,4 Msps (un RTL-SDR), 4 MHz desde 4 Msps, 8 MHz desde 10 Msps, 16 MHz desde 20 Msps.
 channel	canal
 Filter	Filtro
 SSID, BSSID, vendor, security, country	SSID, BSSID, fabricante, seguridad, país
@@ -1119,7 +1119,7 @@ Security	Seguridad
 Beacon	Beacon
 Country	País
 Last seen	Visto por última vez
-What the beacon announces, for information. Eye of ZorCom does not decrypt or test anything.	Lo que anuncia el beacon, solo informativo. Eye of ZorCom no descifra ni prueba nada.
+What the beacon announces, for information. Eye of SaurCom does not decrypt or test anything.	Lo que anuncia el beacon, solo informativo. Eye of SaurCom no descifra ni prueba nada.
 nothing heard yet	todavía no se oye nada
 no network passes the filter	ninguna red pasa el filtro
 start the receiver to see the frames	inicia el receptor para ver las tramas
@@ -1334,7 +1334,7 @@ Ham It Down: 1500 MHz down-converter for about 1.5 to 3 GHz (2.4 GHz, 2.3/3.4 GH
 Contrast	Contraste
 Below 1 lifts the weak signals, above 1 darkens the noise (double click: 1)	Below 1 lifts the weak signals, above 1 darkens the noise (double click: 1)
 Credits and licences	Credits and licences
-Eye of ZorCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.	Eye of ZorCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.
+Eye of SaurCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.	Eye of SaurCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.
 Click a link to open it in your browser. The full notices and open licence points are in THIRD_PARTY.md.	Click a link to open it in your browser. The full notices and open licence points are in THIRD_PARTY.md.
 Project	Project
 Author	Author
@@ -1419,13 +1419,13 @@ HDC sound codec not installed (no sound; click ? for the steps)	Códec de sonido
 sound: HD%d (HDC)	sonido: HD%d (HDC)
 sound: HD%d, waiting for audio	sonido: HD%d, esperando audio
 The HD Radio sound codec (HDC) is not installed	El códec de sonido de HD Radio (HDC) no está instalado
-The station, program data and pictures are shown, but HD Radio sound stays silent until you install the codec yourself. Eye of ZorCom does not ship it (HDC is patented and owned by Xperi).	Se muestran la emisora, los datos del programa y las imágenes, pero el sonido de HD Radio sigue en silencio hasta que instales el códec tú mismo. Eye of ZorCom no lo incluye (HDC está patentado y es de Xperi).
+The station, program data and pictures are shown, but HD Radio sound stays silent until you install the codec yourself. Eye of SaurCom does not ship it (HDC is patented and owned by Xperi).	Se muestran la emisora, los datos del programa y las imágenes, pero el sonido de HD Radio sigue en silencio hasta que instales el códec tú mismo. Eye of SaurCom no lo incluye (HDC está patentado y es de Xperi).
 Build the HDC-patched FAAD2 as the full instructions explain (it needs the open-source nrsc5 patch).	Compila el FAAD2 con el parche HDC como explican las instrucciones completas (hace falta el parche de código abierto de nrsc5).
-Put the library (libfaad_hdc) in the Eye of ZorCom codecs folder (button below).	Pon la biblioteca (libfaad_hdc) en la carpeta de códecs de Eye of ZorCom (botón de abajo).
+Put the library (libfaad_hdc) in the Eye of SaurCom codecs folder (button below).	Pon la biblioteca (libfaad_hdc) en la carpeta de códecs de Eye of SaurCom (botón de abajo).
 The HD Radio sound library cannot be used	La biblioteca de sonido de HD Radio no se puede usar
-Eye of ZorCom found a library for HDC, but it is not a FAAD2 build with the HDC patch that Eye of ZorCom knows how to call, so it was left alone.	Eye of ZorCom encontró una biblioteca para HDC, pero no es una compilación de FAAD2 con el parche HDC que Eye of ZorCom sepa usar, así que se dejó sin usar.
+Eye of SaurCom found a library for HDC, but it is not a FAAD2 build with the HDC patch that Eye of SaurCom knows how to call, so it was left alone.	Eye of SaurCom encontró una biblioteca para HDC, pero no es una compilación de FAAD2 con el parche HDC que Eye of SaurCom sepa usar, así que se dejó sin usar.
 Build the library again from FAAD2 2.10 or 2.11 with the nrsc5 patch, as the full instructions explain.	Compila de nuevo la biblioteca con FAAD2 2.10 o 2.11 y el parche de nrsc5, como explican las instrucciones completas.
-Replace the file in the Eye of ZorCom codecs folder (button below).	Sustituye el archivo en la carpeta de códecs de Eye of ZorCom (botón de abajo).
+Replace the file in the Eye of SaurCom codecs folder (button below).	Sustituye el archivo en la carpeta de códecs de Eye of SaurCom (botón de abajo).
 # band plans (scan tab, TV channel list)
 Band plan	Plan de bandas
 None (built-in ranges)	Ninguno (rangos integrados)
@@ -1501,9 +1501,9 @@ WAV: 16-bit, large. FLAC: lossless, about half the size. MP3: small (needs libmp
 Saves only while there is sound (like a squelch): silence is cut out, with a short lead-in and tail	Guarda solo mientras hay sonido (como un silenciador): se corta el silencio, con un breve inicio y final
 One file per transmission: a new file starts after 3 s of silence	Un archivo por transmisión: tras 3 s de silencio empieza uno nuevo
 Keeps recording when the mode or the frequency changes. Off: the recording stops then.	Sigue grabando al cambiar el modo o la frecuencia. Desactivado: la grabación se detiene entonces.
-The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Falta el módulo SoapyRemote en esta instalación de Eye of ZorCom, así que no puede llegar a una radio remota. Reinstala Eye of ZorCom, y avísalo si vuelve a pasar. El ordenador de la radio debe ejecutar SoapySDRServer --bind.
-The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Falta el módulo SoapyRemote en esta instalación de Eye of ZorCom, así que no puede llegar a una radio remota. Reinstala Eye of ZorCom (o ejecuta brew install soapyremote), y avísalo si vuelve a pasar. El ordenador de la radio debe ejecutar SoapySDRServer --bind.
-SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind.	Este SoapySDR no tiene el módulo cliente SoapyRemote, así que no puede llegar a una radio remota. Instálalo (Debian/Ubuntu: sudo apt install soapysdr-module-remote; otros sistemas: github.com/pothosware/SoapyRemote) y reinicia Eye of ZorCom. El ordenador de la radio debe ejecutar SoapySDRServer --bind.
+The SoapyRemote module is missing from this installation of Eye of SaurCom, so it cannot reach a remote radio. Reinstall Eye of SaurCom, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Falta el módulo SoapyRemote en esta instalación de Eye of SaurCom, así que no puede llegar a una radio remota. Reinstala Eye of SaurCom, y avísalo si vuelve a pasar. El ordenador de la radio debe ejecutar SoapySDRServer --bind.
+The SoapyRemote module is missing from this installation of Eye of SaurCom, so it cannot reach a remote radio. Reinstall Eye of SaurCom (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Falta el módulo SoapyRemote en esta instalación de Eye of SaurCom, así que no puede llegar a una radio remota. Reinstala Eye of SaurCom (o ejecuta brew install soapyremote), y avísalo si vuelve a pasar. El ordenador de la radio debe ejecutar SoapySDRServer --bind.
+SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart Eye of SaurCom. The radio's computer must run SoapySDRServer --bind.	Este SoapySDR no tiene el módulo cliente SoapyRemote, así que no puede llegar a una radio remota. Instálalo (Debian/Ubuntu: sudo apt install soapysdr-module-remote; otros sistemas: github.com/pothosware/SoapyRemote) y reinicia Eye of SaurCom. El ordenador de la radio debe ejecutar SoapySDRServer --bind.
 # frequency database
 %zu built in, %zu yours	%zu incluidas, %zu tuyas
 Add entry...	Añadir entrada...
@@ -1589,7 +1589,7 @@ Listeners:	Oyentes:
 video	video
 audio	audio
 profile	profile
-Video: %s (Eye of ZorCom cannot decode this video) — audio, subtitles and data still work	Video: %s (Eye of ZorCom cannot decode this video) — audio, subtitles and data still work
+Video: %s (Eye of SaurCom cannot decode this video) — audio, subtitles and data still work	Video: %s (Eye of SaurCom cannot decode this video) — audio, subtitles and data still work
 Open in an external player	Open in an external player
 Save the transport stream to a file	Save the transport stream to a file
 Stream it as UDP to %s	Stream it as UDP to %s
@@ -1737,7 +1737,7 @@ Hides tone-only pages and pages whose text could not be decoded.	Oculta los avis
 hidden	ocultos
 # LBJ (Chinese railway train warning)
 What LBJ carries	Qué transmite LBJ
-LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of ZorCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ es el aviso chino de aproximación de trenes en unos 821,2375 MHz. Cada locomotora envía páginas numéricas POCSAG a 1200 bit/s: cada pocos segundos un mensaje corto con el número de tren, la velocidad (km/h) y el punto kilométrico, y mensajes más largos con el tipo y número de locomotora y la ruta.\n\nEye of ZorCom decodifica las páginas por sí mismo (solo recepción). Un valor en blanco tenía dígitos dañados; una fila en gris tenía errores corregidos, así que compárala con el siguiente mensaje del mismo tren.
+LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of SaurCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	LBJ es el aviso chino de aproximación de trenes en unos 821,2375 MHz. Cada locomotora envía páginas numéricas POCSAG a 1200 bit/s: cada pocos segundos un mensaje corto con el número de tren, la velocidad (km/h) y el punto kilométrico, y mensajes más largos con el tipo y número de locomotora y la ruta.\n\nEye of SaurCom decodifica las páginas por sí mismo (solo recepción). Un valor en blanco tenía dígitos dañados; una fila en gris tenía errores corregidos, así que compárala con el siguiente mensaje del mismo tren.
 tune to about 821.2375 MHz and start the receiver	sintoniza unos 821,2375 MHz e inicia el receptor
 FM, 1200 bit/s FSK, %.2f Msps	FM, FSK de 1200 bit/s, %.2f Msps
 %llu messages, %llu sync words, %llu blank, %llu failed checks	%llu mensajes, %llu palabras de sincronía, %llu en blanco, %llu con comprobación fallida
@@ -1788,7 +1788,7 @@ Password	Contraseña
 blank if the owner set none	vacío si el propietario no puso ninguna
 Find KiwiSDR…	Buscar KiwiSDR…
 pick a public receiver from the list	elegir un receptor público de la lista
-A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; Eye of ZorCom takes its 12 kHz IQ stream. Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. The password is kept in Eye of ZorCom's settings.	Un KiwiSDR es un receptor en internet que cubre de 0 a 30 MHz; Eye of ZorCom toma su flujo IQ de 12 kHz. Los públicos tienen pocas plazas de usuario y muchos terminan la sesión tras unos 30 minutos: usa una sola conexión por receptor y sal cuando termines. La contraseña se guarda en los ajustes de Eye of ZorCom.
+A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; Eye of SaurCom takes its 12 kHz IQ stream. Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. The password is kept in Eye of SaurCom's settings.	Un KiwiSDR es un receptor en internet que cubre de 0 a 30 MHz; Eye of SaurCom toma su flujo IQ de 12 kHz. Los públicos tienen pocas plazas de usuario y muchos terminan la sesión tras unos 30 minutos: usa una sola conexión por receptor y sal cuando termines. La contraseña se guarda en los ajustes de Eye of SaurCom.
 S-meter %.0f dBm%s	S-meter %.0f dBm%s
 , ADC overload	, sobrecarga del ADC
 Find KiwiSDR	Buscar KiwiSDR
@@ -1803,7 +1803,7 @@ Distance	Distancia
 offline	sin conexión
 full	lleno
 Adds this receiver to the Network radios (it does not connect until you pick it as the radio).	Añade este receptor a las radios de red (no se conecta hasta que lo elijas como radio).
-The downloaded list has no receivers Eye of ZorCom can read.	La lista descargada no tiene receptores que Eye of ZorCom pueda leer.
+The downloaded list has no receivers Eye of SaurCom can read.	La lista descargada no tiene receptores que Eye of SaurCom pueda leer.
 Could not download the list. Check the internet connection.	No se pudo descargar la lista. Comprueba la conexión a internet.
 # live transcripts (docs/TRANSCRIBE.md)
 Transcribing speech: %s	Transcribiendo voz: %s
@@ -1849,7 +1849,7 @@ How many processor threads the speech engine may use for one transmission. Fewer
 Keep transcripts (days)	Conservar transcripciones (días)
 Heard %llu, kept %llu, left out %llu (silence, noise, repeats), skipped %llu (too slow), speed %.2f x real time	Oídas %llu, conservadas %llu, descartadas %llu (silencio, ruido, repeticiones), omitidas %llu (demasiado lento), velocidad %.2f x tiempo real
 Download the speech model %s (%d MB)?	¿Descargar el modelo de voz %s (%d MB)?
-Eye of ZorCom asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed.	Eye of ZorCom pide este único archivo al repositorio de modelos (huggingface.co) y no envía nada más. El archivo se comprueba con una suma SHA-256 fija y se descarta si no coincide. El modelo tiene licencia MIT.
+Eye of SaurCom asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed.	Eye of SaurCom pide este único archivo al repositorio de modelos (huggingface.co) y no envía nada más. El archivo se comprueba con una suma SHA-256 fija y se descarta si no coincide. El modelo tiene licencia MIT.
 Download	Descargar
 Delete all saved transcripts? This cannot be undone.	¿Borrar todas las transcripciones guardadas? No se puede deshacer.
 Delete all	Borrar todo
@@ -2125,7 +2125,7 @@ Timeshift	Timeshift
 Play	Reproducir
 behind live	detrás del directo
 Live	Directo
-Recordings run only while Eye of ZorCom is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only.	Las grabaciones solo funcionan mientras Eye of ZorCom está abierto y el equipo activo; un equipo suspendido no graba nada. Los servicios cifrados se graban tal como llegan y no se descifran. Solo para uso personal.
+Recordings run only while Eye of SaurCom is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only.	Las grabaciones solo funcionan mientras Eye of SaurCom está abierto y el equipo activo; un equipo suspendido no graba nada. Los servicios cifrados se graban tal como llegan y no se descifran. Solo para uso personal.
 Scheduled	Programadas
 recording	grabando
 conflict	conflicto
@@ -2168,7 +2168,7 @@ Last 24 hours (UTC), 15 minute cells, darker: fewer stations	Últimas 24 horas (
 # plugins (plugin/plugin_app.cpp, the PLUGINS group, View > Plugins)
 %s asks for these permissions:	%s pide estos permisos:
 A crash or a hang of the plugin then only ends its helper process. Takes effect the next time the plugin starts.	Un fallo o bloqueo del complemento solo termina su proceso auxiliar. Se aplica la próxima vez que se inicie el complemento.
-Add decoders and actions without rebuilding Eye of ZorCom: install, enable and set up plugins	Añade decodificadores y acciones sin recompilar Eye of ZorCom: instala, activa y configura complementos
+Add decoders and actions without rebuilding Eye of SaurCom: install, enable and set up plugins	Añade decodificadores y acciones sin recompilar Eye of SaurCom: instala, activa y configura complementos
 Add-ons	Extensiones
 Allow	Permitir
 Asks for	Pide
@@ -2183,11 +2183,11 @@ Kind	Tipo
 Map points	Puntos del mapa
 Modes (in the mode list, group PLUGINS)	Modos (en la lista de modos, grupo PLUGINS)
 Network: talk to other computers	Red: comunicarse con otros equipos
-No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .zorcomplugin file.	No hay complementos instalados. Usa «Instalar desde un archivo» o copia la carpeta de un complemento en la carpeta de complementos. Un complemento es un archivo .zorcomplugin.
+No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .saurcomplugin file.	No hay complementos instalados. Usa «Instalar desde un archivo» o copia la carpeta de un complemento en la carpeta de complementos. Un complemento es un archivo .saurcomplugin.
 Not installed	No instalado
 Open its folder	Abrir su carpeta
 PLUGINS	COMPLEMENTOS
-Permissions are what Eye of ZorCom hands the plugin. A plugin running inside Eye of ZorCom can still use the system itself: install plugins you trust, or run them in a helper process.	Los permisos son lo que Eye of ZorCom entrega al complemento. Un complemento que se ejecuta dentro de Eye of ZorCom aún puede usar el sistema por su cuenta: instala complementos de confianza o ejecútalos en un proceso auxiliar.
+Permissions are what Eye of SaurCom hands the plugin. A plugin running inside Eye of SaurCom can still use the system itself: install plugins you trust, or run them in a helper process.	Los permisos son lo que Eye of SaurCom entrega al complemento. Un complemento que se ejecuta dentro de Eye of SaurCom aún puede usar el sistema por su cuenta: instala complementos de confianza o ejecútalos en un proceso auxiliar.
 Plugin idle	Complemento inactivo
 Plugin log	Registro del complemento
 Plugin modes run on receiver 1.	Los modos de complemento se ejecutan en el receptor 1.
@@ -2265,7 +2265,7 @@ sky + spill K	cielo + derrame K
 , bursts (%.0f %% on)	, ráfagas (%.0f %% activa)
 , every %.3g ms	, cada %.3g ms
 , useful symbol %.4g us	, símbolo útil %.4g µs
-A score is the share of the evidence that holds; the percentages are calibrated on Eye of ZorCom's own test signals, not on every real signal.	Una puntuación es la parte de las pruebas que se cumplen; los porcentajes están calibrados con las señales de prueba de Eye of ZorCom, no con todas las señales reales.
+A score is the share of the evidence that holds; the percentages are calibrated on Eye of SaurCom's own test signals, not on every real signal.	Una puntuación es la parte de las pruebas que se cumplen; los porcentajes están calibrados con las señales de prueba de Eye of SaurCom, no con todas las señales reales.
 Add to memory	Añadir a Memory
 Best guess	Mejor hipótesis
 Copy as text	Copiar como texto
@@ -2283,7 +2283,7 @@ Opened %s	Abierto %s
 Perhaps %s (%.0f %%).	Quizá %s (%.0f %%).
 Signals in the view	Señales en la vista
 The frequency list has here:	La lista de frecuencias tiene aquí:
-What is this? Click a signal, or drag across it, and Eye of ZorCom says what it is and how sure it is. Key I. Shift+drag does it without the tool.	¿Qué es esto? Haz clic en una señal o arrastra sobre ella y Eye of ZorCom dice qué es y con qué seguridad. Tecla I. Mayús+arrastrar lo hace sin la herramienta.
+What is this? Click a signal, or drag across it, and Eye of SaurCom says what it is and how sure it is. Key I. Shift+drag does it without the tool.	¿Qué es esto? Haz clic en una señal o arrastra sobre ella y Eye of SaurCom dice qué es y con qué seguridad. Tecla I. Mayús+arrastrar lo hace sin la herramienta.
 Why?	¿Por qué?
 Identify selected	Identificar la seleccionada
 Tune the radio to the selected signal and say what it is (needs the receiver in a mode whose sample rate covers it)	Sintoniza la radio en la señal seleccionada y dice qué es (el receptor debe estar en un modo cuya tasa de muestreo la cubra)
@@ -2623,7 +2623,7 @@ One per line: a call sign. Without an SSID (LY1ABC) every SSID matches; with one
 One per line: a frequency in MHz (162.025), with a unit (162025 kHz) or a range (144-146). Anything decoded on it counts.	Una por línea: una frecuencia en MHz (162.025), con unidad (162025 kHz) o un rango (144-146). Cuenta todo lo que se decodifique en ella.
 One per line: a word or a phrase (not case sensitive). A trailing * matches word starts (fire*). Searched in pager, ACARS, APRS and other decoded text.	Una por línea: una palabra o frase (sin distinguir mayúsculas). Un * al final coincide con comienzos de palabra (fire*). Se busca en buscapersonas, ACARS, APRS y otros textos decodificados.
 New list...	Nueva lista...
-Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. Eye of ZorCom tells you when something on it is heard.	Crea una lista a la izquierda: aeronaves, barcos, indicativos APRS, frecuencias o palabras. Eye of ZorCom te avisa cuando se oye algo de ella.
+Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. Eye of SaurCom tells you when something on it is heard.	Crea una lista a la izquierda: aeronaves, barcos, indicativos APRS, frecuencias o palabras. Eye of SaurCom te avisa cuando se oye algo de ella.
 On	Activo
 Tolerance (kHz)	Tolerancia (kHz)
 entries	entradas
@@ -3034,7 +3034,7 @@ Tone decoders	Decodificadores de tonos
 The test signal repeats every 40 s: CTCSS 123.0 Hz under speech-like noise, DCS D023N, DTMF 159#, a ZVEI1 call 12345, SELCAL AM-CP and a two-tone page.	La señal de prueba se repite cada 40 s: CTCSS 123,0 Hz bajo ruido similar a la voz, DCS D023N, DTMF 159#, una llamada ZVEI1 12345, SELCAL AM-CP y una llamada de dos tonos.
 CTCSS, DCS, DTMF, selcall	CTCSS, DCS, DTMF, llamada selectiva
 # COSPAS-SARSAT 406 MHz
-A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of ZorCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	Una baliza de socorro de 406 MHz (EPIRB en un barco, ELT en una aeronave, PLB que lleva una persona) envía una ráfaga de medio segundo aproximadamente cada 50 segundos: una portadora sin modular y después 112 o 144 bits a 400 bit/s. El mensaje contiene un ID hexadecimal de 15 dígitos único de la baliza, el país, el tipo de baliza y a menudo una posición (redondeada a 15 minutos en un mensaje corto y a 4 segundos en uno largo). Dos comprobaciones BCH protegen el mensaje; se reparan hasta tres bits dañados del primer campo.\n\nEye of ZorCom solo recibe. Las balizas de prueba y las ráfagas de autotest están marcadas. Si cree haber oído una real, avise al centro de coordinación de salvamento de su país; no confíe en este programa para su seguridad.
+A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of SaurCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	Una baliza de socorro de 406 MHz (EPIRB en un barco, ELT en una aeronave, PLB que lleva una persona) envía una ráfaga de medio segundo aproximadamente cada 50 segundos: una portadora sin modular y después 112 o 144 bits a 400 bit/s. El mensaje contiene un ID hexadecimal de 15 dígitos único de la baliza, el país, el tipo de baliza y a menudo una posición (redondeada a 15 minutos en un mensaje corto y a 4 segundos en uno largo). Dos comprobaciones BCH protegen el mensaje; se reparan hasta tres bits dañados del primer campo.\n\nEye of SaurCom solo recibe. Las balizas de prueba y las ráfagas de autotest están marcadas. Si cree haber oído una real, avise al centro de coordinación de salvamento de su país; no confíe en este programa para su seguridad.
 EPIRB (boat)	EPIRB (barco)
 ELT (aircraft)	ELT (aeronave)
 PLB (person)	PLB (persona)
@@ -3375,7 +3375,7 @@ start the receiver to see the codes	inicia el receptor para ver los códigos
 Squawk and altitude, 1090 MHz	Squawk y altitud, 1090 MHz
 Mode A is the squawk, Mode C the altitude in 100 ft steps. A reply does not say which of the two it is: a code shows as A/C until it can only be a squawk or is matched to a Mode S aircraft by its squawk or its altitude.	El modo A es el squawk y el modo C la altitud en pasos de 100 ft. Una respuesta no dice cuál de los dos es: un código aparece como A/C hasta que solo pueda ser un squawk o se asocie a una aeronave Mode S por su squawk o su altitud.
 # BLE tracker detector
-Receive only: item trackers are recognised from their public advertisements. Eye of ZorCom never connects to one, sends to one or reads its owner's data. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.	Solo recepción: los rastreadores de objetos se reconocen por sus anuncios públicos. Eye of ZorCom nunca se conecta a uno, no le envía nada ni lee los datos de su propietario. Los identificadores permanecen en memoria 30 minutos tras la última vez que se oyó el rastreador, se muestran solo como los dos últimos bytes de la dirección y nunca se guardan.
+Receive only: item trackers are recognised from their public advertisements. Eye of SaurCom never connects to one, sends to one or reads its owner's data. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.	Solo recepción: los rastreadores de objetos se reconocen por sus anuncios públicos. Eye of SaurCom nunca se conecta a uno, no le envía nada ni lee los datos de su propietario. Los identificadores permanecen en memoria 30 minutos tras la última vez que se oyó el rastreador, se muestran solo como los dos últimos bytes de la dirección y nunca se guardan.
 your own	tuyo
 following you	te sigue
 separated from its owner	separado de su propietario

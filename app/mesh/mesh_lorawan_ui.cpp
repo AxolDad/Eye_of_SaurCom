@@ -18,7 +18,7 @@ void lorawanPrivacyNote() {
     ImGui::PushTextWrapPos(0);
     ImGui::TextDisabled("Receive only: the frame headers every LoRaWAN gateway in range receives in the clear (message type, DevAddr, frame counter, "
                         "MAC commands, port, MIC; DevEUI and JoinEUI of join requests). The payloads are encrypted with the devices' own keys and "
-                        "stay encrypted: Eye of ZorCom never decrypts them, never checks a MIC and never transmits. These are other people's devices.");
+                        "stay encrypted: Eye of SaurCom never decrypts them, never checks a MIC and never transmits. These are other people's devices.");
     ImGui::PopTextWrapPos();
 }
 

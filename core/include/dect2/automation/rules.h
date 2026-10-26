@@ -63,7 +63,7 @@ const std::vector<std::string>& condOps();
 // ---- files ----
 json::Value ruleToJson(const Rule& r);
 json::Value scriptToJson(const Script& s);
-json::Value recipeToJson(const Recipe& r);                        // {"format":"zorcom-automation","version":1,"kind":"rule"|"script", ...}
+json::Value recipeToJson(const Recipe& r);                        // {"format":"saurcom-automation","version":1,"kind":"rule"|"script", ...}
 std::string recipeToText(const Recipe& r);                        // pretty JSON text
 // Reads a recipe from text. Checks everything (types, limits, action names). A recipe from outside is never trusted: unless fromStore (the program's
 // own saved rules) it comes in switched off (enabled = false). A "run" action in a file still does nothing until the user confirmed it (engine.h).

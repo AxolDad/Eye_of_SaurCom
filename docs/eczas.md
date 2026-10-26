@@ -12,7 +12,7 @@ The mode **e-Czas (225 kHz, Poland)** (Weather & Science group) decodes it and c
   (state of the transmitter), 3 Reed-Solomon bytes, and a CRC-8 (polynomial 0x07) over the five data bytes after the scrambling with `0A 47 55 4D 2B` ("\nGUM+").
 - Other slots carry other packets (they are shown in the frame log as "other slots"). Real recordings show time packets in many slots of the minute, not only in slot 0.
 
-Eye of ZorCom checks the sync word, the header, the marker and the CRC-8. A frame with a wrong check byte is dropped; the Reed-Solomon bytes are not used yet.
+Eye of SaurCom checks the sync word, the header, the marker and the CRC-8. A frame with a wrong check byte is dropped; the Reed-Solomon bytes are not used yet.
 Once two packets agree with each other and with the elapsed signal time the time counts as confirmed, and a later packet that disagrees is kept apart until a second one confirms it
 (one damaged frame in 256 passes an 8-bit check by chance).
 
@@ -21,14 +21,14 @@ Once two packets agree with each other and with the elapsed signal time the time
 225 kHz is below the range of most SDRs (a HackRF or an RTL-SDR start at 24 MHz or 1 MHz). You need one of:
 
 - a radio that tunes below 1 MHz: SDRplay RSP (from 1 kHz), Airspy HF+ (from 9 kHz), RX888 / other direct-sampling radios, an RTL-SDR v3 in direct sampling mode (Q branch, set under the radio's settings), or a Perseus-class receiver;
-- an upconverter (for instance 125 MHz or 100 MHz LO) in front of an HF-capable radio: set it under the radio's settings (converter), and Eye of ZorCom tunes the radio to the converted frequency;
+- an upconverter (for instance 125 MHz or 100 MHz LO) in front of an HF-capable radio: set it under the radio's settings (converter), and Eye of SaurCom tunes the radio to the converted frequency;
 - a recording (below).
 
 Antenna: long wave is mostly noise-limited by the local interference, not by the receiver. A long wire (10 m and more) or an active ferrite loop away from computers and switching supplies;
 indoors, a ferrite rod antenna turned for the best level. The transmitter is a ground-wave station, so most of Poland and its neighbours get a stable signal day and night.
 The status bar shows Carrier (the carrier is found), Sync (frames are cut) and Time (a packet has been decoded).
 
-Expected signal: the SNR Eye of ZorCom reports is the carrier to the noise in 100 Hz. Above about 25 dB nearly every time packet decodes; the recordings sent with the feature request had 18 to 19 dB,
+Expected signal: the SNR Eye of SaurCom reports is the carrier to the noise in 100 Hz. Above about 25 dB nearly every time packet decodes; the recordings sent with the feature request had 18 to 19 dB,
 where about one time packet in four passes the check byte. Below 17 dB expect nothing. The carrier frequency can be off by up to 180 Hz (radio and crystal errors): it is found and followed.
 
 Tune to **225 kHz** (the default). The radio is tuned 12 kHz above, away from its DC spike; the receiver mixes it out.
@@ -60,5 +60,5 @@ and the sample recordings (`scratchpad/eczas_recordings/`, not in the repository
 
 ## Credits
 
-The frame layout, the CRC and the first sync search and bit slicer come from [sp5wwp/e-Czas](https://github.com/sp5wwp/e-Czas) (GPL-3.0, like Eye of ZorCom); see THIRD_PARTY.md.
+The frame layout, the CRC and the first sync search and bit slicer come from [sp5wwp/e-Czas](https://github.com/sp5wwp/e-Czas) (GPL-3.0, like Eye of SaurCom); see THIRD_PARTY.md.
 The streaming receiver, the generator and the screens are new.

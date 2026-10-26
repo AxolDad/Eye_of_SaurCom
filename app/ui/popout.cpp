@@ -86,7 +86,7 @@ bool openWindow(const App& a) {
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);   // it becomes fullscreen later; a focus change must never minimise it (#71)
     glfwWindowHint(GLFW_FLOATING, a.popTop ? GLFW_TRUE : GLFW_FALSE);
-    gPop = glfwCreateWindow(w, h, "Eye of ZorCom video", nullptr, gGfx->shareWindow());
+    gPop = glfwCreateWindow(w, h, "Eye of SaurCom video", nullptr, gGfx->shareWindow());
     glfwDefaultWindowHints();
     if (!gPop) return false;
     gTop = a.popTop;

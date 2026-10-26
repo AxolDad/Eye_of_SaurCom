@@ -255,7 +255,7 @@ void AudioMonitor::push(const cf32* x, size_t n, double rate, double shiftHz) {
     if (!p_->on.load(std::memory_order_relaxed) || n == 0) return;
     {
         std::lock_guard<std::mutex> lk(p_->qMu);
-        if (!p_->th.joinable()) { p_->quit = false; p_->th = dect2::namedThread("zorcom-audmon", [this] { p_->loop(); }); }
+        if (!p_->th.joinable()) { p_->quit = false; p_->th = dect2::namedThread("saurcom-audmon", [this] { p_->loop(); }); }
         const size_t cap = std::max<size_t>(1u << 18, (size_t)(rate * 0.5));
         if (p_->qN + n > cap) { p_->dropped += n; return; }   // a live radio cannot wait
         p_->q.push_back({std::vector<cf32>(x, x + n), rate, shiftHz});

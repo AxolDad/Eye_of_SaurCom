@@ -2,13 +2,13 @@
   "videos": [
     {
       "id": "01-overview",
-      "title": "Eye of ZorCom in two minutes",
+      "title": "Eye of SaurCom in two minutes",
       "scenes": [
         {
-          "title": "Eye of ZorCom",
+          "title": "Eye of SaurCom",
           "subtitle": "One program for every radio signal around you",
-          "footer": "Free and open source - built on Eye of ZorCom",
-          "voice": "Eye of ZorCom. One program for every radio signal around you. Here is a two minute tour."
+          "footer": "Free and open source - built on Eye of SaurCom",
+          "voice": "Eye of SaurCom. One program for every radio signal around you. Here is a two minute tour."
         },
         {
           "shot": "main_fm",
@@ -65,10 +65,10 @@
           "voice": "New: WiFi sensing. RuView E S P 32 boards turn the WiFi in a room into a presence, motion, breathing and heart rate sensor."
         },
         {
-          "title": "Get Eye of ZorCom",
-          "subtitle": "github.com/AxolDad/OnAir-SDR-Suite",
+          "title": "Get Eye of SaurCom",
+          "subtitle": "github.com/AxolDad/Eye_of_ZorCom",
           "footer": "Transmit only within your own legal authority",
-          "voice": "Eye of ZorCom is free and open source. Get it on GitHub, at AxolDad, slash, Eye of ZorCom SDR Suite."
+          "voice": "Eye of SaurCom is free and open source. Get it on GitHub, at AxolDad, slash, Eye of SaurCom SDR Suite."
         }
       ]
     },
@@ -79,8 +79,8 @@
         {
           "title": "Getting started",
           "subtitle": "Your first signal in four steps",
-          "footer": "Eye of ZorCom how-to",
-          "voice": "Getting started with Eye of ZorCom. Your first signal, in four steps."
+          "footer": "Eye of SaurCom how-to",
+          "voice": "Getting started with Eye of SaurCom. Your first signal, in four steps."
         },
         {
           "shot": "main_fm",
@@ -192,7 +192,7 @@
         {
           "title": "Trunked radio",
           "subtitle": "Follow calls on P25, DMR Tier III and NXDN, and scan whole systems",
-          "footer": "Eye of ZorCom how-to",
+          "footer": "Eye of SaurCom how-to",
           "voice": "Trunked radio. How to follow calls on P 25, D M R Tier three and N X D N systems, and how to scan several systems at once."
         },
         {
@@ -317,7 +317,7 @@
         {
           "title": "ATAK and Cursor on Target",
           "subtitle": "Share what you receive with your team, and see your team on the map",
-          "footer": "Eye of ZorCom how-to",
+          "footer": "Eye of SaurCom how-to",
           "voice": "A TAK and Cursor on Target. Share what you receive with your team, and see your team on your map."
         },
         {
@@ -398,8 +398,8 @@
         {
           "title": "WiFi sensing",
           "subtitle": "Presence, motion, breathing and heart rate from the WiFi in a room",
-          "footer": "Eye of ZorCom how-to - based on RuView (MIT)",
-          "voice": "WiFi sensing. People in a room change the WiFi channel between a small E S P 32 board and its access point. Eye of ZorCom turns that into presence, motion, breathing and heart rate."
+          "footer": "Eye of SaurCom how-to - based on RuView (MIT)",
+          "voice": "WiFi sensing. People in a room change the WiFi channel between a small E S P 32 board and its access point. Eye of SaurCom turns that into presence, motion, breathing and heart rate."
         },
         {
           "title": "Step 1: the nodes",
@@ -460,7 +460,7 @@
         {
           "title": "Transmit",
           "subtitle": "Off by default. On after you agree to operate within your legal authority.",
-          "footer": "Eye of ZorCom how-to",
+          "footer": "Eye of SaurCom how-to",
           "voice": "Transmitting. It is off by default, and it stays off until you agree, once, to operate only within your own legal authority. After that there are no band, power or mode locks: you are responsible for what you send."
         },
         {
@@ -572,7 +572,7 @@
         {
           "title": "Sound out and internet radio",
           "subtitle": "Any device, virtual audio cables, Icecast streaming, radio stations worldwide",
-          "footer": "Eye of ZorCom how-to",
+          "footer": "Eye of SaurCom how-to",
           "voice": "Sound output, streaming and internet radio."
         },
         {

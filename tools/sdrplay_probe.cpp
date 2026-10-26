@@ -1,4 +1,4 @@
-// Opt-in hardware acceptance tool. Uses Eye of ZorCom's actual source, not a separate SDRplay implementation.
+// Opt-in hardware acceptance tool. Uses Eye of SaurCom's actual source, not a separate SDRplay implementation.
 // sdrplay_probe [--port 0|1|2] [--rate Hz] [--freq Hz] [--gain dB] [--secs N] [--matrix] [--capture file.cf32]
 // Antenna power stays OFF. No RF transmission. Run with SDRconnect/SDRuno and other receivers stopped.
 #include "../core/src/source/native_common.h"

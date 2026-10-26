@@ -20,12 +20,12 @@
 
 // The three texts of soapyRemoteModuleHelpFor() (core/src/net/netradio.cpp): listed here so the catalogs carry them; the error line below passes the text through tr().
 [[maybe_unused]] static const char* const kSoapyRemoteModuleTexts[] = {
-    N_("The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. "
+    N_("The SoapyRemote module is missing from this installation of Eye of SaurCom, so it cannot reach a remote radio. Reinstall Eye of SaurCom, and please report it if it happens again. "
        "The radio's computer must run SoapySDRServer --bind."),
-    N_("The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. "
+    N_("The SoapyRemote module is missing from this installation of Eye of SaurCom, so it cannot reach a remote radio. Reinstall Eye of SaurCom (or run brew install soapyremote), and please report it if it happens again. "
        "The radio's computer must run SoapySDRServer --bind."),
     N_("SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; "
-       "other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind."),
+       "other systems: github.com/pothosware/SoapyRemote), then restart Eye of SaurCom. The radio's computer must run SoapySDRServer --bind."),
 };
 
 static bool netTypeSearches(int t) { return t == NetRadio::HermesLite2 || t == NetRadio::RedPitaya; }   // found by a discovery broadcast
@@ -38,7 +38,7 @@ static void startNetDiscovery(App& a) {
     a.netFound.clear();
     a.netSearched = false;
     const bool rp = a.netAddType == NetRadio::RedPitaya;
-    dect2::namedThread("zorcom-rigdisc", [d, rp] { d->found = rp ? discoverRedPitaya(1500) : discoverHermesLite2(1500); d->done = true; }).detach();
+    dect2::namedThread("saurcom-rigdisc", [d, rp] { d->found = rp ? discoverRedPitaya(1500) : discoverHermesLite2(1500); d->done = true; }).detach();
 }
 
 // a finished connection test or discovery: add the radio and pick it, or say why not
@@ -180,14 +180,14 @@ void netRadioWindow(App& a) {
                                      "and type that computer's address. No password is needed or stored."));
     if (a.netAddType == NetRadio::Tci)
         ImGui::TextDisabled("%s", tr("TCI: the Transceiver Control Interface of ExpertSDR3 (and SunSDR or other programs with a TCI server), port 50001. Turn its TCI server on and type "
-                                     "that computer's address. Eye of ZorCom only receives (the IQ stream, 48 to 384 kHz); it never transmits. No password is needed."));
+                                     "that computer's address. Eye of SaurCom only receives (the IQ stream, 48 to 384 kHz); it never transmits. No password is needed."));
     if (a.netAddType == NetRadio::Aaronia) {
         ImGui::SetNextItemWidth(200 * gUi);
         ImGui::InputTextWithHint(tr("Password"), tr("user:password, blank if the server asks for none"), a.netAddPass, sizeof a.netAddPass, ImGuiInputTextFlags_Password);
         ImGui::PushTextWrapPos(400 * gUi);
         ImGui::TextDisabled("%s", tr("A Spectran V6 (or another Aaronia radio) is reached through the Aaronia RTSA-Suite, not directly. In RTSA-Suite, build a graph that ends in an "
                                      "IQ demodulator block feeding an HTTP Server block, note the port that block is set to (54664 in Aaronia's own examples) and type this computer's "
-                                     "address here. The span and the frequency are the graph's: Eye of ZorCom asks it to change them, and reports whatever its packets carry. "
+                                     "address here. The span and the frequency are the graph's: Eye of SaurCom asks it to change them, and reports whatever its packets carry. "
                                      "A graph serving spectra instead of IQ cannot be listened to."));
         ImGui::PopTextWrapPos();
     }
@@ -207,9 +207,9 @@ void netRadioWindow(App& a) {
         ImGui::SameLine();
         ImGui::TextDisabled("%s", tr("pick a public receiver from the list"));
         ImGui::PushTextWrapPos(400 * gUi);
-        ImGui::TextDisabled("%s", tr("A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; Eye of ZorCom takes its 12 kHz IQ stream. "
+        ImGui::TextDisabled("%s", tr("A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; Eye of SaurCom takes its 12 kHz IQ stream. "
                                      "Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. "
-                                     "The password is kept in Eye of ZorCom's settings."));
+                                     "The password is kept in Eye of SaurCom's settings."));
         ImGui::PopTextWrapPos();
     }
     if (a.netAddType == NetRadio::SoapyRemote && !soapySupported()) ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.25f, 1), "%s", tr("This build has no SoapySDR, which SoapyRemote needs."));
@@ -228,7 +228,7 @@ void netRadioWindow(App& a) {
         pr->radio = r;
         a.netAddProbe = pr;
         a.netAddErr.clear();
-        dect2::namedThread("zorcom-rigprobe", [pr] { std::string e; pr->ok = probeNetRadio(pr->radio, 3000, e); pr->err = e; pr->done = true; }).detach();   // never blocks the UI
+        dect2::namedThread("saurcom-rigprobe", [pr] { std::string e; pr->ok = probeNetRadio(pr->radio, 3000, e); pr->err = e; pr->done = true; }).detach();   // never blocks the UI
     }
     ImGui::EndDisabled();
     if (busy) { ImGui::SameLine(); ImGui::TextDisabled("%s", tr("connecting…")); }
@@ -431,7 +431,7 @@ void hamlibRigWindow(App& a) {
         a.hamlibModelQuery[0] = 0;
     }
     ImGui::PushTextWrapPos(440 * gUi);
-    ImGui::TextDisabled("%s", tr("A radio controlled over CAT (an Icom IC-R8600, an IC-7300, a rigctld on the network): Eye of ZorCom and the rig follow each other's frequency and mode. IQ or audio comes from a sound card. Eye of ZorCom never transmits through this."));
+    ImGui::TextDisabled("%s", tr("A radio controlled over CAT (an Icom IC-R8600, an IC-7300, a rigctld on the network): Eye of SaurCom and the rig follow each other's frequency and mode. IQ or audio comes from a sound card. Eye of SaurCom never transmits through this."));
     ImGui::PopTextWrapPos();
 
     const RigModelInfo* cur = hamlibRigPicker(a);
@@ -483,8 +483,8 @@ static void kiwiStartFetch(App& a) {
     a.kiwiFetch = f;
     const std::string url = a.kiwiListUrl[0] ? a.kiwiListUrl : kKiwiListUrl;
     const std::string tmp = plat::cacheDir() + "/kiwisdr_list.part";
-    dect2::namedThread("zorcom-rigdl", [f, url, tmp] {
-        if (!plat::fetchUrl(url, tmp, std::string("ZorCom/") + ZORCOM_VERSION + " (KiwiSDR list)")) { f->err = "download"; f->done = true; return; }
+    dect2::namedThread("saurcom-rigdl", [f, url, tmp] {
+        if (!plat::fetchUrl(url, tmp, std::string("SaurCom/") + SAURCOM_VERSION + " (KiwiSDR list)")) { f->err = "download"; f->done = true; return; }
         std::ifstream in(tmp, std::ios::binary);
         std::stringstream ss;
         ss << in.rdbuf();
@@ -507,7 +507,7 @@ void kiwiFindWindow(App& a) {
             receiverLocation(lat, lon);
             kiwiSortByDistance(a.kiwiList, lat, lon);
             a.netAddErr.clear();
-        } else a.netAddErr = f->err == "parse" ? N_("The downloaded list has no receivers Eye of ZorCom can read.") : N_("Could not download the list. Check the internet connection.");
+        } else a.netAddErr = f->err == "parse" ? N_("The downloaded list has no receivers Eye of SaurCom can read.") : N_("Could not download the list. Check the internet connection.");
     }
     if (!a.kiwiFindOpen) return;
     if (a.kiwiListUrl[0] == 0) snprintf(a.kiwiListUrl, sizeof a.kiwiListUrl, "%s", kKiwiListUrl);

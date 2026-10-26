@@ -1,4 +1,4 @@
-// The AIS frame layer on top of the Rust crate rust/zorcom_proto: the functions of ais_proto.h; ais_proto.cpp keeps the
+// The AIS frame layer on top of the Rust crate rust/saurcom_proto: the functions of ais_proto.h; ais_proto.cpp keeps the
 // generator side (putU, appendFcs, burstLineBits, toNmea).
 #include "dect2/ais/ais_proto.h"
 #include "dect2/ais/ais_tel.h"
@@ -11,57 +11,57 @@ namespace dect2 {
 namespace ais {
 
 static_assert(AIS_CLASS_A == 0 && AIS_CLASS_B == 1 && AIS_CLASS_BASE == 2 && AIS_CLASS_ATON == 3 && AIS_CLASS_SAR == 4 && AIS_CLASS_OTHER == 5,
-              "AisClass values are mirrored in rust/zorcom_proto/src/mmsi.rs");
+              "AisClass values are mirrored in rust/saurcom_proto/src/mmsi.rs");
 
 namespace {
 struct AbiCheck {
-    AbiCheck() { dect2::rsAbiCheck("zorcom_proto", {zorcom_ais_msg_size()}, {sizeof(ZorcomAisMsg)}); }
+    AbiCheck() { dect2::rsAbiCheck("saurcom_proto", {saurcom_ais_msg_size()}, {sizeof(SaurcomAisMsg)}); }
 } abiCheck;
 }
 
-const char* protoImplementation() { return "Rust (rust/zorcom_proto)"; }
+const char* protoImplementation() { return "Rust (rust/saurcom_proto)"; }
 
-uint32_t getU(const Bits& b, size_t pos, size_t len) { return zorcom_ais_get_u(b.data(), b.size(), pos, len); }
-int32_t getS(const Bits& b, size_t pos, size_t len) { return zorcom_ais_get_s(b.data(), b.size(), pos, len); }
+uint32_t getU(const Bits& b, size_t pos, size_t len) { return saurcom_ais_get_u(b.data(), b.size(), pos, len); }
+int32_t getS(const Bits& b, size_t pos, size_t len) { return saurcom_ais_get_s(b.data(), b.size(), pos, len); }
 std::string getText(const Bits& b, size_t pos, size_t len) {
     std::string s(len / 6, '\0');
-    s.resize(zorcom_ais_get_text(b.data(), b.size(), pos, len, (uint8_t*)&s[0], s.size()));
+    s.resize(saurcom_ais_get_text(b.data(), b.size(), pos, len, (uint8_t*)&s[0], s.size()));
     return s;
 }
 
-uint16_t fcsRegister(const uint8_t* bits, size_t n) { return zorcom_ais_fcs_register(bits, n); }
-bool fcsOk(const Bits& frame) { return zorcom_ais_fcs_ok(frame.data(), frame.size()); }
+uint16_t fcsRegister(const uint8_t* bits, size_t n) { return saurcom_ais_fcs_register(bits, n); }
+bool fcsOk(const Bits& frame) { return saurcom_ais_fcs_ok(frame.data(), frame.size()); }
 
 Bits stuff(const Bits& in) {
     Bits out(in.size() + in.size() / 5 + 1);
-    out.resize(zorcom_ais_stuff(in.data(), in.size(), out.data(), out.size()));
+    out.resize(saurcom_ais_stuff(in.data(), in.size(), out.data(), out.size()));
     return out;
 }
 bool destuff(const Bits& in, Bits& out) {
     out.assign(in.size(), 0);
-    const size_t n = zorcom_ais_destuff(in.data(), in.size(), out.data(), out.size());
+    const size_t n = saurcom_ais_destuff(in.data(), in.size(), out.data(), out.size());
     if (n == SIZE_MAX) { out.clear(); return false; }     // (the C++ version leaves the bits found so far; callers ignore them)
     out.resize(n);
     return true;
 }
 Bits nrziEncode(const Bits& data, int startLevel) {
     Bits out(data.size());
-    zorcom_ais_nrzi_encode(data.data(), data.size(), startLevel, out.data(), out.size());
+    saurcom_ais_nrzi_encode(data.data(), data.size(), startLevel, out.data(), out.size());
     return out;
 }
 Bits nrziDecode(const Bits& line, int prevLevel) {
     Bits out(line.size());
-    zorcom_ais_nrzi_decode(line.data(), line.size(), prevLevel, out.data(), out.size());
+    saurcom_ais_nrzi_decode(line.data(), line.size(), prevLevel, out.data(), out.size());
     return out;
 }
-void reverseOctets(Bits& b) { zorcom_ais_reverse_octets(b.data(), b.size()); }
+void reverseOctets(Bits& b) { saurcom_ais_reverse_octets(b.data(), b.size()); }
 
 HdlcResult hdlcFrames(const Bits& d) {
     HdlcResult r;
     Bits out(d.size());
     std::vector<size_t> lens(d.size() / 64 + 2);
     int32_t bad = 0;
-    const size_t good = zorcom_ais_hdlc_frames(d.data(), d.size(), out.data(), out.size(), lens.data(), lens.size(), &bad);
+    const size_t good = saurcom_ais_hdlc_frames(d.data(), d.size(), out.data(), out.size(), lens.data(), lens.size(), &bad);
     size_t at = 0;
     for (size_t i = 0; i < good; i++) {
         r.good.emplace_back(out.begin() + (std::ptrdiff_t)at, out.begin() + (std::ptrdiff_t)(at + lens[i]));
@@ -71,16 +71,16 @@ HdlcResult hdlcFrames(const Bits& d) {
     return r;
 }
 
-double rateOfTurn(int raw) { return zorcom_ais_rate_of_turn(raw); }
-int classOfMmsi(uint32_t mmsi, int type) { return zorcom_ais_class_of_mmsi(mmsi, type); }
-bool mmsiPlausible(uint32_t mmsi) { return zorcom_ais_mmsi_plausible(mmsi); }
-bool acceptableAis(const AisMsg& m, bool decoded) { return zorcom_ais_acceptable(m.type, m.valid, m.mmsi, decoded); }
+double rateOfTurn(int raw) { return saurcom_ais_rate_of_turn(raw); }
+int classOfMmsi(uint32_t mmsi, int type) { return saurcom_ais_class_of_mmsi(mmsi, type); }
+bool mmsiPlausible(uint32_t mmsi) { return saurcom_ais_mmsi_plausible(mmsi); }
+bool acceptableAis(const AisMsg& m, bool decoded) { return saurcom_ais_acceptable(m.type, m.valid, m.mmsi, decoded); }
 
 static std::string str(const uint8_t* p, size_t n) { return std::string((const char*)p, n); }
 
 bool decodeMessage(const Bits& b, AisMsg& m) {
-    ZorcomAisMsg r;
-    const bool ok = zorcom_ais_decode_message(b.data(), b.size(), &r);
+    SaurcomAisMsg r;
+    const bool ok = saurcom_ais_decode_message(b.data(), b.size(), &r);
     m = AisMsg();
     m.valid = r.valid != 0;
     m.bits = r.bits;
@@ -107,21 +107,21 @@ bool decodeMessage(const Bits& b, AisMsg& m) {
 std::string armour(const Bits& p, int& fill) {
     std::string s((p.size() + 5) / 6, '\0');
     fill = 0;
-    s.resize(zorcom_ais_armour(p.data(), p.size(), (uint8_t*)&s[0], s.size(), &fill));
+    s.resize(saurcom_ais_armour(p.data(), p.size(), (uint8_t*)&s[0], s.size(), &fill));
     return s;
 }
 Bits unarmour(const std::string& chars, int fillBits) {
     Bits b(chars.size() * 6);
-    b.resize(zorcom_ais_unarmour((const uint8_t*)chars.data(), chars.size(), fillBits, b.data(), b.size()));
+    b.resize(saurcom_ais_unarmour((const uint8_t*)chars.data(), chars.size(), fillBits, b.data(), b.size()));
     return b;
 }
-uint8_t nmeaChecksum(const std::string& body) { return zorcom_nmea_checksum((const uint8_t*)body.data(), body.size()); }
+uint8_t nmeaChecksum(const std::string& body) { return saurcom_nmea_checksum((const uint8_t*)body.data(), body.size()); }
 
 bool parseNmea(const std::string& s, std::string& chars, int& fill, int& fragCount, int& fragNo, char* channel) {
     size_t cs = 0, cl = 0;
     int32_t f = 0, fc = 0, fn = 0;
     uint8_t ch = 0;
-    const int st = zorcom_nmea_parse((const uint8_t*)s.data(), s.size(), &cs, &cl, &f, &fc, &fn, &ch);
+    const int st = saurcom_nmea_parse((const uint8_t*)s.data(), s.size(), &cs, &cl, &f, &fc, &fn, &ch);
     if (st == 0) return false;
     fragCount = fc; fragNo = fn;
     if (channel) *channel = (char)ch;

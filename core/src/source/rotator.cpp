@@ -538,7 +538,7 @@ bool Rotator::configure(const RotatorConfig& cfg) {
     connected_.store(cfg.link != RotatorLink::None, std::memory_order_relaxed);
     if (cfg.link == RotatorLink::None) return true;
     p_->quit = false;
-    p_->th = dect2::namedThread("zorcom-rotator", [this] { p_->run(); });
+    p_->th = dect2::namedThread("saurcom-rotator", [this] { p_->run(); });
     return true;
 }
 

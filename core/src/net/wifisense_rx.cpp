@@ -13,14 +13,14 @@ constexpr size_t kMaxNodes = 64;   // RuView meshes are a handful of nodes; ids 
 constexpr int64_t kNodeIdleMs = 60 * 1000;   // a full table gives a slot to a newcomer once a node has been silent this long
 
 struct AbiCheck {
-    AbiCheck() { rsAbiCheck("zorcom_wifisense", {zorcom_wifisense_struct_size()}, {sizeof(ZorcomWifiSense)}); }
+    AbiCheck() { rsAbiCheck("saurcom_wifisense", {saurcom_wifisense_struct_size()}, {sizeof(SaurcomWifiSense)}); }
 } abiCheck;
 
 int64_t wallMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(); }
 
-struct SensorDel { void operator()(ZorcomWifiSenseSensor* s) const { zorcom_wifisense_free(s); } };
+struct SensorDel { void operator()(SaurcomWifiSenseSensor* s) const { saurcom_wifisense_free(s); } };
 struct Entry {
-    std::unique_ptr<ZorcomWifiSenseSensor, SensorDel> sensor;
+    std::unique_ptr<SaurcomWifiSenseSensor, SensorDel> sensor;
     WifiSenseListener::Node node;
 };
 } // namespace
@@ -36,7 +36,7 @@ WifiSenseListener::WifiSenseListener() : impl_(new Impl) {}
 WifiSenseListener::~WifiSenseListener() { stop(); }
 
 bool WifiSenseListener::take(const uint8_t* d, size_t n, int64_t nowMs, const std::string& from) {
-    const int id = zorcom_wifisense_node(d, n);
+    const int id = saurcom_wifisense_node(d, n);
     if (id < 0) return false;
     std::lock_guard<std::mutex> lk(impl_->mu);
     auto it = impl_->nodes.find(id);
@@ -48,11 +48,11 @@ bool WifiSenseListener::take(const uint8_t* d, size_t n, int64_t nowMs, const st
             impl_->nodes.erase(old);
         }
         Entry e;
-        e.sensor.reset(zorcom_wifisense_new(kFramesPerSec));
+        e.sensor.reset(saurcom_wifisense_new(kFramesPerSec));
         it = impl_->nodes.emplace(id, std::move(e)).first;
     }
     Entry& e = it->second;
-    if (!zorcom_wifisense_feed(e.sensor.get(), d, n, &e.node.s)) return false;
+    if (!saurcom_wifisense_feed(e.sensor.get(), d, n, &e.node.s)) return false;
     e.node.heardMs = nowMs;
     if (!from.empty()) e.node.from = from;
     received_.fetch_add(1, std::memory_order_relaxed);

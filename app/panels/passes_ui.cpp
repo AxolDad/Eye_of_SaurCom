@@ -1,4 +1,4 @@
-// The satellite pass planner (View > Passes): the next 24 hours of passes of the satellites Eye of ZorCom's modes receive (weather satellites
+// The satellite pass planner (View > Passes): the next 24 hours of passes of the satellites Eye of SaurCom's modes receive (weather satellites
 // on 137 MHz, the ISS, Orbcomm, a short editable list of amateur satellites) over the receiver's position, a polar sky plot of the
 // current or chosen pass, and optional tracking: Doppler-corrected retuning about once a second, the right mode started at AOS and
 // an IQ recording (the same as Record IQ) until LOS. TLEs are downloaded from Celestrak or Keplerpass on request, or pasted.
@@ -252,7 +252,7 @@ void startDownload(bool keplerpass = false, std::string customFile = {}, std::st
     plat::prefs().setD("passTleTry", nowSec());
     { std::lock_guard<std::mutex> lk(gDlMu); gDlMsg = tr("downloading..."); }
     const std::string dir = tleDir();
-    dect2::namedThread("zorcom-passes", [dir, keplerpass, customFile, customUrl] {
+    dect2::namedThread("saurcom-passes", [dir, keplerpass, customFile, customUrl] {
         std::error_code ec;
         fs::create_directories(fsPath(dir), ec);
         int ok = 0, n = 0;
@@ -263,7 +263,7 @@ void startDownload(bool keplerpass = false, std::string customFile = {}, std::st
             const std::string filename = custom ? customFile : source.file;
             const std::string url = custom ? customUrl : source.url;
             const std::string path = dir + "/" + filename, part = path + ".part";
-            if (plat::fetchUrl(url, part, "ZorCom/" ZORCOM_VERSION " (passes)")) {
+            if (plat::fetchUrl(url, part, "SaurCom/" SAURCOM_VERSION " (passes)")) {
                 const size_t got = dect2::parseTleText(readText(part)).size();
                 if (got > 0) { fs::rename(fsPath(part), fsPath(path), ec); if (!ec) { ok++; n += (int)got; } }
             }
@@ -864,7 +864,7 @@ void schedControls() {
 
 void drawWindow(App& a) {
     static bool full = false;   // the window over the whole display (the shared full-screen button; Esc leaves)
-    { static bool af = std::getenv("ZORCOM_MAP_FULL") != nullptr; if (af) { af = false; full = true; } }   // dev: --shot enters full screen
+    { static bool af = std::getenv("SAURCOM_MAP_FULL") != nullptr; if (af) { af = false; full = true; } }   // dev: --shot enters full screen
     if (full && !ImGui::GetIO().WantTextInput && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId) && ImGui::IsKeyPressed(ImGuiKey_Escape, false)) full = false;
     if (full) { ImGui::SetNextWindowPos(ImVec2(0, 0)); ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize); }
     else ImGui::SetNextWindowSize(ImVec2(820 * gUi, 560 * gUi), ImGuiCond_FirstUseEver);
@@ -930,7 +930,7 @@ void drawWindow(App& a) {
             ImGui::TableNextColumn(); { const int d = (int)std::lround(r.p.los - r.p.aos); ImGui::Text("%d:%02d", d / 60, d % 60); }
             ImGui::TableNextColumn(); ImGui::Text("%.3f", s.mhz);
             ImGui::TableNextColumn(); ImGui::TextUnformatted(s.mode.c_str());
-            if (ImGui::IsItemHovered() && s.family == kSpecx) ImGui::SetTooltip("%s", tr("Eye of ZorCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ"));
+            if (ImGui::IsItemHovered() && s.family == kSpecx) ImGui::SetTooltip("%s", tr("Eye of SaurCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ"));
             if (S.sched) { ImGui::TableNextColumn(); const char* st = planStatus(r.sat, r.p.aos); ImGui::TextUnformatted(st ? tr(st) : ""); }
         }
         ImGui::EndTable();

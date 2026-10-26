@@ -1,0 +1,10 @@
+[package]
+name = "saurcom_adsb"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of SaurCom ADS-B / Mode S: CRC-24, altitude codes, CPR, Comm-B inference, message field extraction"
+
+[dependencies]
+saurcom_common = { path = "../saurcom_common" }

@@ -1,4 +1,4 @@
-// ts_proto.h on top of the Rust crate rust/zorcom_ts: record arrays sized from the section length (every record needs at least 4 bytes of
+// ts_proto.h on top of the Rust crate rust/saurcom_ts: record arrays sized from the section length (every record needs at least 4 bytes of
 // section; the two lists that corrupt overlapping descriptors can lengthen are parsed again with the counted size), turned into the std::string / vector forms of the header.
 #include "dect2/tv/ts_proto.h"
 #include "dect2/common/rs_abi.h"
@@ -12,33 +12,33 @@ namespace {
 struct AbiCheck {
     AbiCheck() {
         size_t s[12];
-        zorcom_ts_struct_sizes(s);
-        dect2::rsAbiCheck("zorcom_ts", s, {sizeof(ZorcomTsPacketHeader), sizeof(ZorcomTsPatEntry), sizeof(ZorcomTsPmtStream), sizeof(ZorcomTsPmtSub), sizeof(ZorcomTsPmtInfo), sizeof(ZorcomTsSdtService), sizeof(ZorcomTsNitLcn), sizeof(ZorcomTsNitInfo), sizeof(ZorcomTsTvct), sizeof(ZorcomTsTdt), sizeof(ZorcomTsEitEvent), sizeof(ZorcomTsEitInfo)});
+        saurcom_ts_struct_sizes(s);
+        dect2::rsAbiCheck("saurcom_ts", s, {sizeof(SaurcomTsPacketHeader), sizeof(SaurcomTsPatEntry), sizeof(SaurcomTsPmtStream), sizeof(SaurcomTsPmtSub), sizeof(SaurcomTsPmtInfo), sizeof(SaurcomTsSdtService), sizeof(SaurcomTsNitLcn), sizeof(SaurcomTsNitInfo), sizeof(SaurcomTsTvct), sizeof(SaurcomTsTdt), sizeof(SaurcomTsEitEvent), sizeof(SaurcomTsEitInfo)});
     }
 } abiCheck;
 inline size_t L(int len) { return len < 0 ? 0 : (size_t)len; }   // negative lengths are 0 bytes
-inline Span sp(const ZorcomTsSpan& s) { return Span{s.off, s.len}; }
+inline Span sp(const SaurcomTsSpan& s) { return Span{s.off, s.len}; }
 const char* kindName(int k) {
     switch (k) { case 1: return "video"; case 2: return "audio"; case 3: return "subtitles"; case 4: return "teletext"; default: return "data"; }
 }
 } // namespace
 
-uint32_t crc32(const uint8_t* p, int n) { return zorcom_ts_crc32(p, L(n)); }
+uint32_t crc32(const uint8_t* p, int n) { return saurcom_ts_crc32(p, L(n)); }
 
 bool packetHeader(const uint8_t* p, int n, PacketHeader& h) {
-    ZorcomTsPacketHeader c;
-    if (!zorcom_ts_packet_header(p, L(n), &c)) return false;
+    SaurcomTsPacketHeader c;
+    if (!saurcom_ts_packet_header(p, L(n), &c)) return false;
     h.pid = c.pid; h.tei = c.tei != 0; h.pusi = c.pusi != 0; h.scr = c.scr; h.afc = c.afc; h.cc = c.cc; h.payloadOff = c.payload_off;
     return true;
 }
 
-void patPacket(int tsid, int sid, int pmtPid, int cc, uint8_t* out) { zorcom_ts_pat_packet(tsid, sid, pmtPid, cc, out); }
+void patPacket(int tsid, int sid, int pmtPid, int cc, uint8_t* out) { saurcom_ts_pat_packet(tsid, sid, pmtPid, cc, out); }
 
 bool parsePat(const uint8_t* s, int len, int& tsid, std::vector<PatEntry>& out) {
     out.clear();
-    std::vector<ZorcomTsPatEntry> v(L(len) / 4 + 1);
+    std::vector<SaurcomTsPatEntry> v(L(len) / 4 + 1);
     int32_t t = 0;
-    const size_t n = zorcom_ts_parse_pat(s, L(len), &t, v.data(), v.size());
+    const size_t n = saurcom_ts_parse_pat(s, L(len), &t, v.data(), v.size());
     if (n == SIZE_MAX) return false;
     tsid = t;
     for (size_t i = 0; i < n; i++) out.push_back(PatEntry{v[i].prog, v[i].pid});
@@ -47,13 +47,13 @@ bool parsePat(const uint8_t* s, int len, int& tsid, std::vector<PatEntry>& out) 
 
 bool parsePmt(const uint8_t* s, int len, Pmt& out) {
     out = Pmt();
-    std::vector<ZorcomTsPmtStream> st(L(len) / 5 + 1);
-    std::vector<ZorcomTsPmtSub> sb(L(len) / 5 + 2);
-    ZorcomTsPmtInfo info;
-    if (!zorcom_ts_parse_pmt(s, L(len), &info, st.data(), st.size(), sb.data(), sb.size())) return false;
+    std::vector<SaurcomTsPmtStream> st(L(len) / 5 + 1);
+    std::vector<SaurcomTsPmtSub> sb(L(len) / 5 + 2);
+    SaurcomTsPmtInfo info;
+    if (!saurcom_ts_parse_pmt(s, L(len), &info, st.data(), st.size(), sb.data(), sb.size())) return false;
     if (info.n_subs > sb.size()) {   // overlapping descriptors of a corrupt section: more entries than the section length suggests
         sb.resize(info.n_subs);
-        if (!zorcom_ts_parse_pmt(s, L(len), &info, st.data(), st.size(), sb.data(), sb.size())) return false;
+        if (!saurcom_ts_parse_pmt(s, L(len), &info, st.data(), st.size(), sb.data(), sb.size())) return false;
     }
     out.prog = info.prog; out.pcrPid = info.pcr_pid; out.ca = info.ca != 0;
     for (uint32_t i = 0; i < info.n_streams; i++) {
@@ -62,7 +62,7 @@ bool parsePmt(const uint8_t* s, int len, Pmt& out) {
         o.codec.assign((const char*)st[i].codec, st[i].codec_len);
         if (st[i].has_lang) o.lang.assign((const char*)st[i].lang, 3);
         for (uint32_t k = 0; k < st[i].sub_count; k++) {
-            const ZorcomTsPmtSub& c = sb[st[i].sub_first + k];
+            const SaurcomTsPmtSub& c = sb[st[i].sub_first + k];
             PmtSub e; e.teletext = c.teletext != 0; e.lang.assign((const char*)c.lang, 3); e.type = c.type; e.page = c.page; e.ancPage = c.anc_page;
             o.subs.push_back(e);
         }
@@ -73,9 +73,9 @@ bool parsePmt(const uint8_t* s, int len, Pmt& out) {
 
 bool parseSdt(const uint8_t* s, int len, int& tsid, int& onid, std::vector<SdtService>& out) {
     out.clear();
-    std::vector<ZorcomTsSdtService> v(L(len) / 5 + 1);
+    std::vector<SaurcomTsSdtService> v(L(len) / 5 + 1);
     int32_t t = 0, o = 0;
-    const size_t n = zorcom_ts_parse_sdt(s, L(len), &t, &o, v.data(), v.size());
+    const size_t n = saurcom_ts_parse_sdt(s, L(len), &t, &o, v.data(), v.size());
     if (n == SIZE_MAX) return false;
     tsid = t; onid = o;
     for (size_t i = 0; i < n; i++) {
@@ -89,12 +89,12 @@ bool parseSdt(const uint8_t* s, int len, int& tsid, int& onid, std::vector<SdtSe
 
 bool parseNit(const uint8_t* s, int len, Nit& out) {
     out = Nit();
-    std::vector<ZorcomTsNitLcn> v(L(len) / 4 + 1);
-    ZorcomTsNitInfo info;
-    if (!zorcom_ts_parse_nit(s, L(len), &info, v.data(), v.size())) return false;
+    std::vector<SaurcomTsNitLcn> v(L(len) / 4 + 1);
+    SaurcomTsNitInfo info;
+    if (!saurcom_ts_parse_nit(s, L(len), &info, v.data(), v.size())) return false;
     if (info.n_lcn > v.size()) {   // overlapping descriptors of a corrupt section: more entries than the section length suggests
         v.resize(info.n_lcn);
-        if (!zorcom_ts_parse_nit(s, L(len), &info, v.data(), v.size())) return false;
+        if (!saurcom_ts_parse_nit(s, L(len), &info, v.data(), v.size())) return false;
     }
     out.hasName = info.has_name != 0; out.name = sp(info.name);
     for (uint32_t i = 0; i < info.n_lcn; i++) out.lcn.push_back(NitLcn{v[i].sid, v[i].lcn});
@@ -103,9 +103,9 @@ bool parseNit(const uint8_t* s, int len, Nit& out) {
 
 bool parseTvct(const uint8_t* s, int len, int& tsid, std::vector<Tvct>& out) {
     out.clear();
-    ZorcomTsTvct v[256];
+    SaurcomTsTvct v[256];
     int32_t t = 0;
-    const size_t n = zorcom_ts_parse_tvct(s, L(len), &t, v, 256);
+    const size_t n = saurcom_ts_parse_tvct(s, L(len), &t, v, 256);
     if (n == SIZE_MAX) return false;
     tsid = t;
     for (size_t i = 0; i < n; i++) {
@@ -118,8 +118,8 @@ bool parseTvct(const uint8_t* s, int len, int& tsid, std::vector<Tvct>& out) {
 }
 
 bool parseTdt(const uint8_t* s, int len, Tdt& out) {
-    ZorcomTsTdt t;
-    if (!zorcom_ts_parse_tdt(s, L(len), &t)) return false;
+    SaurcomTsTdt t;
+    if (!saurcom_ts_parse_tdt(s, L(len), &t)) return false;
     out.unixSec = t.unix_s;
     out.text.assign((const char*)t.text, t.text_len);
     return true;
@@ -127,12 +127,12 @@ bool parseTdt(const uint8_t* s, int len, Tdt& out) {
 
 bool parseEit(const uint8_t* s, int len, Eit& out) {
     out = Eit();
-    std::vector<ZorcomTsEitEvent> v(L(len) / 12 + 1);
-    ZorcomTsEitInfo info;
-    if (!zorcom_ts_parse_eit(s, L(len), &info, v.data(), v.size())) return false;
+    std::vector<SaurcomTsEitEvent> v(L(len) / 12 + 1);
+    SaurcomTsEitInfo info;
+    if (!saurcom_ts_parse_eit(s, L(len), &info, v.data(), v.size())) return false;
     out.sid = info.sid; out.secNum = info.sec_num; out.legacy = info.legacy != 0; out.hasName = info.has_name != 0; out.nowNextName = sp(info.now_next_name);
     for (uint32_t i = 0; i < info.n_events; i++) {
-        const ZorcomTsEitEvent& c = v[i];
+        const SaurcomTsEitEvent& c = v[i];
         EitEvent e;
         e.eventId = c.event_id; e.start = c.start; e.duration = c.duration; e.running = c.running; e.genre = c.genre;
         if (c.has_lang) e.lang.assign((const char*)c.lang, 3);

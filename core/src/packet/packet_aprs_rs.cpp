@@ -1,4 +1,4 @@
-// The APRS information field parser (see packet_aprs.h) on top of the Rust crate rust/zorcom_ax25. Written from APRS101 (chapters 5-12) and the APRS 1.2
+// The APRS information field parser (see packet_aprs.h) on top of the Rust crate rust/saurcom_ax25. Written from APRS101 (chapters 5-12) and the APRS 1.2
 // addenda; the Mic-E longitude and speed rules were cross-checked against the description in Dire Wolf's decode_aprs.c (WB2OSZ, GPL-2.0-or-later) - no code
 // was copied.
 #include "dect2/packet/packet_aprs.h"
@@ -20,22 +20,22 @@ template <class F> std::string text(F f) {
 }
 } // namespace
 
-std::string fmtLat(double v) { return text([&](uint8_t* o, size_t c) { return zorcom_ax25_aprs_fmt_lat(v, o, c); }); }
-std::string fmtLon(double v) { return text([&](uint8_t* o, size_t c) { return zorcom_ax25_aprs_fmt_lon(v, o, c); }); }
+std::string fmtLat(double v) { return text([&](uint8_t* o, size_t c) { return saurcom_ax25_aprs_fmt_lat(v, o, c); }); }
+std::string fmtLon(double v) { return text([&](uint8_t* o, size_t c) { return saurcom_ax25_aprs_fmt_lon(v, o, c); }); }
 
 bool parse(const std::string& dest, const std::string& info, Info& o) {
-    ZorcomAprsInfo r;
+    SaurcomAprsInfo r;
     std::string buf(info.size() * 3 + 512, '\0');
     int rc;
     for (;;) {
-        rc = zorcom_ax25_aprs_parse(reinterpret_cast<const uint8_t*>(dest.data()), dest.size(), reinterpret_cast<const uint8_t*>(info.data()), info.size(), &r,
+        rc = saurcom_ax25_aprs_parse(reinterpret_cast<const uint8_t*>(dest.data()), dest.size(), reinterpret_cast<const uint8_t*>(info.data()), info.size(), &r,
                               reinterpret_cast<uint8_t*>(&buf[0]), buf.size());
         if (rc >= 0) break;
         buf.assign(buf.size() * 2, '\0');
     }
-    auto str = [&](const ZorcomSpan& s) { return buf.substr(s.off, s.len); };
+    auto str = [&](const SaurcomSpan& s) { return buf.substr(s.off, s.len); };
     o = Info();
-    o.type = text([&](uint8_t* p, size_t c) { return zorcom_ax25_aprs_type_name(r.kind, p, c); });
+    o.type = text([&](uint8_t* p, size_t c) { return saurcom_ax25_aprs_type_name(r.kind, p, c); });
     o.hasPos = r.has_pos != 0;
     o.lat = r.lat; o.lon = r.lon;
     o.symTable = (char)r.sym_table; o.symCode = (char)r.sym_code;

@@ -13,9 +13,9 @@ namespace dect2 {
 struct AudioStreamConfig {
     std::string host;
     int port = 8000;
-    std::string mount = "/zorcom";       // the stream's address on the server ("/" added in front when missing)
+    std::string mount = "/saurcom";       // the stream's address on the server ("/" added in front when missing)
     std::string user = "source", password;
-    std::string name = "Eye of ZorCom";  // ice-name: the station name listeners see
+    std::string name = "Eye of SaurCom";  // ice-name: the station name listeners see
     std::string description;             // ice-description (the mode and frequency)
     int kbps = 64;
     bool publicListing = false;          // ice-public: listed in the server's public directory

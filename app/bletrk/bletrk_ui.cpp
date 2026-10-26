@@ -73,7 +73,7 @@ void tick(App& a) { loadState(); pushSettings(a); }
 
 void notice() {
     ImGui::PushTextWrapPos(0);
-    ImGui::TextDisabled("%s", tr("Receive only: item trackers are recognised from their public advertisements. Eye of ZorCom never connects to one, sends to one or reads its owner's data. "
+    ImGui::TextDisabled("%s", tr("Receive only: item trackers are recognised from their public advertisements. Eye of SaurCom never connects to one, sends to one or reads its owner's data. "
                                  "Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved."));
     ImGui::PopTextWrapPos();
 }

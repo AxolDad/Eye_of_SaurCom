@@ -21,7 +21,7 @@ Identification
   bandwidth matches the data mode but the sweep repetition differs; the slot is at the end of a sweep period and staggered between stations.
   As of 2016 the patent says no oceanographic radar had started broadcasting call signs, so many stations send none.
 - Discord hint (unverified): the ID looks like a wide CW: the whole sweep bandwidth keys on and off together, like many carriers keyed in parallel.
-  Eye of ZorCom therefore decodes the keyed energy of the whole sweep width, not one tone. Every decoded ID is labelled unverified (no recording checked).
+  Eye of SaurCom therefore decodes the keyed energy of the whole sweep width, not one tone. Every decoded ID is labelled unverified (no recording checked).
 
-Consequences for Eye of ZorCom: identification by sweep parameters (centre, width, period) is only a "possible" hint; the call sign is the only real ID.
+Consequences for Eye of SaurCom: identification by sweep parameters (centre, width, period) is only a "possible" hint; the call sign is the only real ID.
 Receive only; broadcast radar signals, nothing is decrypted.

@@ -114,7 +114,7 @@ struct GsmrReceiver::Impl {
     // results (under mu)
     GsmrTelemetry tel, pub;
 
-    Impl() { th = dect2::namedThread("zorcom-gsmr", [this] { run(); }); }
+    Impl() { th = dect2::namedThread("saurcom-gsmr", [this] { run(); }); }
     ~Impl() {
         { std::lock_guard<std::mutex> lk(mu); stop = true; }
         cv.notify_all();

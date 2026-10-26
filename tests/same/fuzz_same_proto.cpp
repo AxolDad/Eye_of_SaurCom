@@ -1,5 +1,5 @@
 // Seeded mutation run of the SAME layer, meant for DECT2_SANITIZE=ON: parse, trim, locate, time text and the
-// county reader must never crash or hang on any bytes. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
+// county reader must never crash or hang on any bytes. Also a libFuzzer target with -DSAURCOM_LIBFUZZER.
 #include "dect2/same/same_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -26,11 +26,11 @@ static void one(const std::string& s) {
     S::clearCounties();
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(std::string((const char*)d, n)); return 0; }
 #else
 int main() {
-    const char* it = getenv("ZORCOM_FUZZ_ITERS");
+    const char* it = getenv("SAURCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 200000;
     std::mt19937 g(777);
     const std::string seed = "ZCZC-WXR-TOR-029001-029003+0030-1231415-KEAX/NWS-";

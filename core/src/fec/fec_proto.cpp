@@ -1,5 +1,5 @@
 // The K = 7 Viterbi decoder of DVB-T / ISDB-T (see fec_proto.h): NEON / SSE2 / AVX2 / portable. The Reed-Solomon, BCH and LDPC parts of the shared forward error
-// correction are Rust (fec_proto_rs.cpp over rust/zorcom_fec). The Rust NEON Viterbi kernel (ZORCOM_RUST_VITERBI, aarch64) is ~4% slower than this one, so it stays opt-in
+// correction are Rust (fec_proto_rs.cpp over rust/saurcom_fec). The Rust NEON Viterbi kernel (SAURCOM_RUST_VITERBI, aarch64) is ~4% slower than this one, so it stays opt-in
 // (cmake -DDECT2_RUST_VITERBI=ON) and this C++ decoder is the one in use by default.
 #include "dect2/fec/fec_proto.h"
 #include <algorithm>
@@ -7,7 +7,7 @@
 #include <cstring>
 #include <vector>
 
-#if !defined(ZORCOM_RUST_VITERBI) || !defined(__aarch64__)
+#if !defined(SAURCOM_RUST_VITERBI) || !defined(__aarch64__)
 #if defined(__SSE2__) && !defined(__ARM_NEON) && !defined(DECT2_NO_SIMD)
 #include <emmintrin.h>
 #if defined(__GNUC__) && defined(__x86_64__)

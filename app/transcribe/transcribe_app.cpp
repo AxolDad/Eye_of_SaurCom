@@ -320,7 +320,7 @@ void startLoad(const std::string& file) {
     gLoadingFile = file;
     const std::string path = modelsDir() + "/" + file;
     const int workers = 1;
-    gLoadTh = dect2::namedThread("zorcom-asrload", [path, workers] {
+    gLoadTh = dect2::namedThread("saurcom-asrload", [path, workers] {
         std::string err;
         auto b = dect2::makeWhisperBackend(path, workers, &err);
         std::lock_guard<std::mutex> lk(gMu);
@@ -527,24 +527,6 @@ std::vector<dect2::TranscriptEntry> voiceFor(uint32_t icao, const std::string& c
 
 size_t voiceCount(uint32_t icao, const std::string& callsign, const std::string& reg) { return voiceFor(icao, callsign, reg, 50).size(); }
 
-std::vector<dect2::AcarsLogEntry> voiceForTrack(const std::string& id, const std::string& label, int holders) {
-    uint32_t icao = 0;
-    bool hex = id.size() == 6;
-    for (unsigned char c : id) if (!isxdigit(c)) hex = false;
-    std::string reg;
-    if (hex) { icao = (uint32_t)strtoul(id.c_str(), nullptr, 16); reg = adsbui::registrationOf(icao); }
-    else reg = id;
-    std::vector<dect2::AcarsLogEntry> out;
-    for (const auto& e : voiceFor(icao, holders == 1 ? label : std::string(), reg, 20)) {
-        if (e.mode != "airband" || e.confidence < 0.5f || e.text.size() < 8) continue;
-        dect2::AcarsLogEntry m;
-        m.wall = e.wall; m.mode = "VOICE"; m.freqMHz = e.freqHz / 1e6; m.label = ""; m.cat = dect2::AcarsCat::Free;
-        m.text = e.text; m.flight = e.callsign; m.downlink = true;
-        out.push_back(std::move(m));
-    }
-    return out;
-}
-
 void voiceSection(const App& a, uint32_t icao, const std::string& callsign, const std::string& reg) {
     const std::vector<dect2::TranscriptEntry> v = voiceFor(icao, callsign, reg, 30);
     ImGui::Dummy(ImVec2(0, 4 * gUi));
@@ -662,7 +644,7 @@ void refreshRows() {
 }
 
 void exportRows(const char* ext) {
-    std::string def = std::string("zorcom_transcripts.") + ext;
+    std::string def = std::string("saurcom_transcripts.") + ext;
     const std::string path = plat::saveFileDialog(def.c_str());
     if (path.empty()) return;
     std::string data;
@@ -856,7 +838,7 @@ void modelPopups() {
             ImGui::PushTextWrapPos(480 * gUi);
             ImGui::Text(tr("Download the speech model %s (%d MB)?"), U.askModel->id, U.askModel->mib);
             ImGui::TextDisabled("%s", dect2::speechModelUrl(*U.askModel).c_str());
-            ImGui::TextUnformatted(tr("Eye of ZorCom asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed."));
+            ImGui::TextUnformatted(tr("Eye of SaurCom asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed."));
             ImGui::PopTextWrapPos();
             ImGui::Spacing();
             if (ImGui::Button(tr("Download"), ImVec2(140 * gUi, 0))) {
@@ -1076,7 +1058,7 @@ std::string exportNow(App& a, int rx, bool vtt) {
     localtime_r(&tt, &tmv);
 #endif
     char ts[32]; strftime(ts, sizeof ts, "%Y%m%d-%H%M%S", &tmv);
-    snprintf(nm, sizeof nm, "/captions/zorcom_captions_%.3fMHz_%s.%s", a.freqMhz, ts, vtt ? "vtt" : "srt");
+    snprintf(nm, sizeof nm, "/captions/saurcom_captions_%.3fMHz_%s.%s", a.freqMhz, ts, vtt ? "vtt" : "srt");
     const std::string path = plat::dataDir() + nm;
     return writeText(path, body) ? path : "";
 }

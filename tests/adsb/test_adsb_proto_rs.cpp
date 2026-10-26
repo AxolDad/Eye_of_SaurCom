@@ -1,6 +1,6 @@
-// Golden-vector test of the Rust ADS-B / Mode S message layer (rust/zorcom_adsb, dect2::adsb): every code of the altitude / identity / character tables, CRC and
+// Golden-vector test of the Rust ADS-B / Mode S message layer (rust/saurcom_adsb, dect2::adsb): every code of the altitude / identity / character tables, CRC and
 // single-bit correction on frames and damaged frames, CPR with real and absurd values (NaN references too), geometry, Comm-B registers built to pass each BDS
-// inference plus damaged ones, and decoded messages of every DF and type code. ZORCOM_DIFF_ITERS (default 200000) seeded random inputs per family. Every result
+// inference plus damaged ones, and decoded messages of every DF and type code. SAURCOM_DIFF_ITERS (default 200000) seeded random inputs per family. Every result
 // goes into a digest (tests/common/golden.h; doubles rounded to 1e-6) compared with the one recorded from the C++ message layer the Rust code replaced.
 #include "dect2/adsb/adsb_msg.h"
 #include "../common/golden.h"
@@ -136,7 +136,7 @@ static Bytes makeMessage(int& nbits) {
 }
 
 int main() {
-    const char* it = getenv("ZORCOM_DIFF_ITERS");
+    const char* it = getenv("SAURCOM_DIFF_ITERS");
     const long iters = it ? atol(it) : 200000;
 
     // CRC and single-bit correction

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Gathers the libraries of the radios Eye of ZorCom can drive by itself (RTL-SDR, Airspy, BladeRF, LimeSDR, PlutoSDR, USRP) with everything they need that
+# Gathers the libraries of the radios Eye of SaurCom can drive by itself (RTL-SDR, Airspy, BladeRF, LimeSDR, PlutoSDR, USRP) with everything they need that
 # a Linux system does not have anyway, into one folder. The packages ship that folder with the program, so nothing has to be installed next to it.
 # RTL-SDR is built here from the RTL-SDR Blog fork (1.3.6, the version the Windows build ships) and not taken from the distribution: the
 # librtlsdr0 of Ubuntu 22.04 is the osmocom 0.6.0, which cannot drive the RTL-SDR Blog V4.

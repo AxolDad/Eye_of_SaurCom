@@ -85,7 +85,7 @@ struct Meta {
     double snrDb = -1000;            // < -999: unknown
     std::string summary;             // "16 aircraft"
     std::string title, notes;        // the user's
-    std::string version;             // Eye of ZorCom version
+    std::string version;             // Eye of SaurCom version
     std::string grid;                // optional, empty = not shown
 };
 struct Content {
@@ -95,13 +95,13 @@ struct Content {
     std::vector<int16_t> audio; int audioRate = 0;
     resexp::Table table;
 };
-inline const char* kRepoUrl = "https://github.com/AxolDad/OnAir-SDR-Suite";
+inline const char* kRepoUrl = "https://github.com/AxolDad/Eye_of_ZorCom";
 std::string freqText(double hz);                                    // "1090 MHz", "93.9 MHz", "7.074 MHz", "145.8 kHz"
 std::string utcText(double t, bool seconds = false);                // "2026-10-17 14:32 UTC"
 std::string buildHtml(const Content& c);                           // one file, no scripts, no external requests
 std::string discordText(const Content& c);                         // ready to paste markdown
 Image composite(const Content& c);                                 // spectrogram + caption strip with the watermark, width 1024
-std::string fileStem(const Meta& m);                               // "zorcom_adsb_1090MHz_20261017-143200"
+std::string fileStem(const Meta& m);                               // "saurcom_adsb_1090MHz_20261017-143200"
 
 struct Written { std::string dir, html, zip; std::vector<std::string> files; uint64_t htmlBytes = 0, zipBytes = 0, discordPngBytes = 0; std::string error; };
 // Writes the clip folder `parent/<stem>/` (files per the Want flags) and the zip next to it. Never throws.

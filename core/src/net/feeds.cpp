@@ -359,7 +359,7 @@ void Feeds::configure(const FeedConfig& c) {
         I.cfgDirty = true;
         I.quit = false;
     }
-    if (any && !I.th.joinable()) I.th = dect2::namedThread("zorcom-feeds", [&I] { I.loop(); });
+    if (any && !I.th.joinable()) I.th = dect2::namedThread("saurcom-feeds", [&I] { I.loop(); });
     I.cv.notify_one();
 }
 

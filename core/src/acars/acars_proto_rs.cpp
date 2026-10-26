@@ -1,4 +1,4 @@
-// The ACARS block layer on top of the Rust crate rust/zorcom_acars: the functions of acars_proto.h; acars_proto.cpp keeps
+// The ACARS block layer on top of the Rust crate rust/saurcom_acars: the functions of acars_proto.h; acars_proto.cpp keeps
 // acarsBuildFrame (the transmitter of the test signal).
 #include "dect2/acars/acars_proto.h"
 #include "dect2/common/rs_abi.h"
@@ -11,35 +11,35 @@ namespace dect2 {
 
 namespace {
 struct AbiCheck {
-    AbiCheck() { dect2::rsAbiCheck("zorcom_acars", {zorcom_acars_block_size()}, {sizeof(ZorcomAcarsBlock)}); }
+    AbiCheck() { dect2::rsAbiCheck("saurcom_acars", {saurcom_acars_block_size()}, {sizeof(SaurcomAcarsBlock)}); }
 } abiCheck;
 }
 
-uint16_t acarsCrcUpdate(uint16_t crc, uint8_t b) { return zorcom_acars_crc_update(crc, b); }
-uint16_t acarsCrc(const uint8_t* p, size_t n, uint16_t crc) { return zorcom_acars_crc(p, n, crc); }
-uint16_t acarsSyndrome(int e, int bit) { return zorcom_acars_syndrome(e, bit); }
+uint16_t acarsCrcUpdate(uint16_t crc, uint8_t b) { return saurcom_acars_crc_update(crc, b); }
+uint16_t acarsCrc(const uint8_t* p, size_t n, uint16_t crc) { return saurcom_acars_crc(p, n, crc); }
+uint16_t acarsSyndrome(int e, int bit) { return saurcom_acars_syndrome(e, bit); }
 
 bool acarsRepairBlock(uint8_t* txt, int len, const uint8_t crc[2], int& fixedBits, int& parityErrors, int maxParityErrors) {
     int32_t fixed = 0, perr = 0;
-    const bool ok = zorcom_acars_repair_block(txt, len < 0 ? 0 : (size_t)len, crc[0], crc[1], maxParityErrors, &fixed, &perr);
+    const bool ok = saurcom_acars_repair_block(txt, len < 0 ? 0 : (size_t)len, crc[0], crc[1], maxParityErrors, &fixed, &perr);
     fixedBits = fixed; parityErrors = perr;
     return ok;
 }
 
-const char* acarsLabelText(char a, char b) { return reinterpret_cast<const char*>(zorcom_acars_label_text((uint8_t)a, (uint8_t)b)); }
+const char* acarsLabelText(char a, char b) { return reinterpret_cast<const char*>(saurcom_acars_label_text((uint8_t)a, (uint8_t)b)); }
 
 std::string acarsDecodeText(const std::string& label, const std::string& text) {
     std::string s(256, '\0');
     for (;;) {
-        const size_t n = zorcom_acars_decode_text((const uint8_t*)label.data(), label.size(), (const uint8_t*)text.data(), text.size(), (uint8_t*)&s[0], s.size());
+        const size_t n = saurcom_acars_decode_text((const uint8_t*)label.data(), label.size(), (const uint8_t*)text.data(), text.size(), (uint8_t*)&s[0], s.size());
         if (n != SIZE_MAX) { s.resize(n); return s; }
         s.assign(s.size() * 4, '\0');
     }
 }
 
 bool acarsParseBlock(const uint8_t* t, int len, AcarsMessage& m) {
-    auto b = std::make_unique<ZorcomAcarsBlock>();   // 3.5 kB: not on the stack of a decoder thread
-    const int stage = zorcom_acars_parse_block(t, len < 0 ? 0 : (size_t)len, b.get());
+    auto b = std::make_unique<SaurcomAcarsBlock>();   // 3.5 kB: not on the stack of a decoder thread
+    const int stage = saurcom_acars_parse_block(t, len < 0 ? 0 : (size_t)len, b.get());
     if (stage == 0) return false;
     // the header, as far as the C++ parser gets before it can fail
     m.finalBlock = b->final_block != 0;

@@ -38,7 +38,7 @@ std::string meshReport(const MeshTelemetry& t, const std::string& plan, double n
         if (n.firstHeard >= 0 && (first < 0 || n.firstHeard < first)) first = n.firstHeard;
         last = std::max(last, n.lastHeard);
     }
-    std::string o = "Eye of ZorCom mesh report\n";
+    std::string o = "Eye of SaurCom mesh report\n";
     if (first >= 0) {
         const int mins = (int)((last - first) / 60 + 0.5);
         o += "Period: " + clockText(clock(first), utc, "%Y-%m-%d %H:%M") + " - " + clockText(clock(last), utc, "%H:%M") +

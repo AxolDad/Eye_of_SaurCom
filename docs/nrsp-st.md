@@ -6,7 +6,7 @@ Source: `core/src/source/source_nrspst.cpp`, WebSocket client `core/src/net/ws_c
 ## How the radio is reached
 
 The nRSP-ST talks to a computer through SDRconnect's own transport (Full IQ / IQ Lite / Compact modes). That transport is not public. What SDRplay
-publishes is the **SDRconnect WebSocket API**, served by SDRconnect (GUI, or the headless build with `--websocket_port=5454`). So Eye of ZorCom connects to
+publishes is the **SDRconnect WebSocket API**, served by SDRconnect (GUI, or the headless build with `--websocket_port=5454`). So Eye of SaurCom connects to
 SDRconnect, which has the nRSP-ST selected, not to the nRSP-ST itself. The radio list entry is "SDRplay nRSP-ST via SDRconnect host:port".
 
 ## Verified from public documents (read 2026-10-17)
@@ -25,14 +25,14 @@ SDRconnect, which has the nRSP-ST selected, not to the nRSP-ST itself. The radio
 
 - The WebSocket URL path is `/` (the spec names none).
 - The IQ binary rate is `device_sample_rate`. In IQ Lite mode the stream may be narrower; the source does not know and takes `device_sample_rate`.
-- `lna_state` 0 is the most gain (as the RSP API); Eye of ZorCom's gain slider is counted down from `lna_state_max` (default range 0..9 until read).
+- `lna_state` 0 is the most gain (as the RSP API); Eye of SaurCom's gain slider is counted down from `lna_state_max` (default range 0..9 until read).
 - Sample rate limits 62.5 kHz to 10 MHz, and the default antenna names "Antenna A/B/C" when `valid_antennas` is not answered. Rates SDRconnect will not accept are answered by it with its own `device_sample_rate` push, which the source follows.
 - Setting `device_vfo_frequency` equal to the centre does not hurt.
 
 ## Not in the API, so not offered
 
 AGC, IF gain, bias-T, AM/FM/DAB notches, HDR mode, external-reference selection: no property for them in spec 1.0.3. Authentication and TLS: the spec has none (ws://, no user or password; the
-nRSP-ST's own users and passwords are for SDRconnect/NRSPAdministrator). So Eye of ZorCom stores no credentials. Device discovery: none documented (SDRconnect finds the unit itself); you type SDRconnect's address.
+nRSP-ST's own users and passwords are for SDRconnect/NRSPAdministrator). So Eye of SaurCom stores no credentials. Device discovery: none documented (SDRconnect finds the unit itself); you type SDRconnect's address.
 
 ## What works against the fake server (`test_nrspst`)
 

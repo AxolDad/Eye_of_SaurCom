@@ -365,7 +365,7 @@ static void testClient() {
     CHECK(b && b->type == RadioSetting::Bool && b->def == "0" && b->label == "SDR++: Bias T");
     const RadioSetting* srcSel = setting(d, "srv:##sdrpp_server_src_sel");
     CHECK(srcSel && srcSel->label == "SDR++: Server source");
-    CHECK(!setting(d, "srv:##_airspy_sr_sel_Airspy Source") && !setting(d, "srv:##_airspy_lin_gain_Airspy Source"));   // ZorCom drives these
+    CHECK(!setting(d, "srv:##_airspy_sr_sel_Airspy Source") && !setting(d, "srv:##_airspy_lin_gain_Airspy Source"));   // SaurCom drives these
     CHECK(!setting(d, "srv:Refresh##_airspy_refr_Airspy Source"));
     CHECK(setting(d, "format") && setting(d, "keepgain") && setting(d, "ppm"));
 

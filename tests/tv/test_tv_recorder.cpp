@@ -216,7 +216,7 @@ int main() {
     }
 
     // ---- recorder end to end
-    const fs::path dir = fs::temp_directory_path() / "zorcom_rec_test";
+    const fs::path dir = fs::temp_directory_path() / "saurcom_rec_test";
     fs::remove_all(dir);
     {
         // two programmes: 1 (PMT 0x100, PCR/video 0x101, audio 0x102, teletext 0x103) and 2 (PMT 0x200, 0x201, 0x202)

@@ -37,7 +37,7 @@ struct State {
 State S;
 
 // Unencrypted voice: the sink hands each clear traffic frame to the user-installed speech codec and the PCM goes to the speaker.
-// Encrypted calls and calls of unknown encryption state never reach it (tetra_voice.h). Eye of ZorCom ships no codec.
+// Encrypted calls and calls of unknown encryption state never reach it (tetra_voice.h). Eye of SaurCom ships no codec.
 dect2::tetra::TetraVoiceSink gVoice;
 dect2::AudioOut gVoiceOut;
 bool gVoiceWired = false;

@@ -22,7 +22,7 @@ static bool hasSetting(const DeviceInfo& d, const char* key) { for (const auto& 
 
 int main(int argc, char** argv) {
     if (argc < 2) { printf("usage: test_dxpatrol <fake library>\n"); return 2; }
-    char tmpl[] = "/tmp/zorcom-dxp-XXXXXX";
+    char tmpl[] = "/tmp/saurcom-dxp-XXXXXX";
     const char* dir = mkdtemp(tmpl);
     if (!dir) return 2;
 #ifdef __APPLE__

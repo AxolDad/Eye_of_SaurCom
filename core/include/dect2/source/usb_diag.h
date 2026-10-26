@@ -9,7 +9,7 @@ namespace dect2 {
 // or the platform has no such check. Cheap enough to call when the radio list is refreshed.
 // Linux only; with DECT2_SYSFS_ROOT set, the /sys and /dev paths are read under that folder instead (tests, on every platform).
 std::vector<std::string> usbRadioHints();
-// An SDRplay RSP is plugged in but the SDRplay API (its driver, which Eye of ZorCom cannot ship) is not installed: the one hint, or none (any OS)
+// An SDRplay RSP is plugged in but the SDRplay API (its driver, which Eye of SaurCom cannot ship) is not installed: the one hint, or none (any OS)
 std::vector<std::string> sdrplayApiHints();
 
 } // namespace dect2

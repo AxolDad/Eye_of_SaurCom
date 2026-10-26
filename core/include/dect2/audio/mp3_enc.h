@@ -1,4 +1,4 @@
-// MP3 recording through LAME (libmp3lame), loaded at run time: Eye of ZorCom does not ship the library (LGPL, patents in some regions), so MP3 is
+// MP3 recording through LAME (libmp3lame), loaded at run time: Eye of SaurCom does not ship the library (LGPL, patents in some regions), so MP3 is
 // offered when it is installed and the WAV / FLAC recorders work without it.
 #pragma once
 #include <cstdint>

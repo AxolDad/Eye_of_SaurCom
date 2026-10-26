@@ -67,7 +67,7 @@ void save(const HamdrmFile& f) {
     S.msg = writeFile(path, f.data) ? "saved " + path : "could not write " + path;
 }
 
-// PNG with Eye of ZorCom's own decoder, JPEG (and the rest) through the system's picture decoder
+// PNG with Eye of SaurCom's own decoder, JPEG (and the rest) through the system's picture decoder
 void makeTexture(Item& it) {
     if (!gGfx || !it.f || it.f->data.empty()) return;
     const auto& b = it.f->data;

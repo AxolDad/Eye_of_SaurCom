@@ -3,244 +3,244 @@
 version = 3
 
 [[package]]
-name = "zorcom"
+name = "saurcom"
 version = "0.1.0"
 dependencies = [
- "zorcom_acars",
- "zorcom_adsb",
- "zorcom_ax25",
- "zorcom_common",
- "zorcom_cot",
- "zorcom_dab",
- "zorcom_dmr",
- "zorcom_drm",
- "zorcom_dsn",
- "zorcom_dstar",
- "zorcom_dvbsi",
- "zorcom_engine",
- "zorcom_fec",
- "zorcom_files",
- "zorcom_hfdl",
- "zorcom_kaws",
- "zorcom_kris",
- "zorcom_mesh",
- "zorcom_net",
- "zorcom_nxdn",
- "zorcom_p25",
- "zorcom_pager",
- "zorcom_proto",
- "zorcom_ring",
- "zorcom_same",
- "zorcom_tetra",
- "zorcom_ts",
- "zorcom_uat",
- "zorcom_usb",
- "zorcom_vdl2",
- "zorcom_wifisense",
- "zorcom_wisun",
+ "saurcom_acars",
+ "saurcom_adsb",
+ "saurcom_ax25",
+ "saurcom_common",
+ "saurcom_cot",
+ "saurcom_dab",
+ "saurcom_dmr",
+ "saurcom_drm",
+ "saurcom_dsn",
+ "saurcom_dstar",
+ "saurcom_dvbsi",
+ "saurcom_engine",
+ "saurcom_fec",
+ "saurcom_files",
+ "saurcom_hfdl",
+ "saurcom_kaws",
+ "saurcom_kris",
+ "saurcom_mesh",
+ "saurcom_net",
+ "saurcom_nxdn",
+ "saurcom_p25",
+ "saurcom_pager",
+ "saurcom_proto",
+ "saurcom_ring",
+ "saurcom_same",
+ "saurcom_tetra",
+ "saurcom_ts",
+ "saurcom_uat",
+ "saurcom_usb",
+ "saurcom_vdl2",
+ "saurcom_wifisense",
+ "saurcom_wisun",
 ]
 
 [[package]]
-name = "zorcom_acars"
+name = "saurcom_acars"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_adsb"
+name = "saurcom_adsb"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_ax25"
+name = "saurcom_ax25"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_common"
+name = "saurcom_common"
 version = "0.1.0"
 
 [[package]]
-name = "zorcom_cot"
+name = "saurcom_cot"
 version = "0.1.0"
 
 [[package]]
-name = "zorcom_dab"
+name = "saurcom_dab"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
- "zorcom_dvbsi",
+ "saurcom_common",
+ "saurcom_dvbsi",
 ]
 
 [[package]]
-name = "zorcom_dmr"
+name = "saurcom_dmr"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_drm"
+name = "saurcom_drm"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
- "zorcom_dab",
+ "saurcom_common",
+ "saurcom_dab",
 ]
 
 [[package]]
-name = "zorcom_dsn"
+name = "saurcom_dsn"
 version = "0.1.0"
 
 [[package]]
-name = "zorcom_dstar"
+name = "saurcom_dstar"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_dvbsi"
+name = "saurcom_dvbsi"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_engine"
+name = "saurcom_engine"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_fec"
+name = "saurcom_fec"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_files"
+name = "saurcom_files"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_hfdl"
+name = "saurcom_hfdl"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_kaws"
+name = "saurcom_kaws"
 version = "0.1.0"
 
 [[package]]
-name = "zorcom_kris"
+name = "saurcom_kris"
 version = "0.1.0"
 
 [[package]]
-name = "zorcom_mesh"
+name = "saurcom_mesh"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_net"
+name = "saurcom_net"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_nxdn"
+name = "saurcom_nxdn"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_p25"
+name = "saurcom_p25"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_pager"
+name = "saurcom_pager"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_proto"
+name = "saurcom_proto"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_ring"
+name = "saurcom_ring"
 version = "0.1.0"
 
 [[package]]
-name = "zorcom_same"
+name = "saurcom_same"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_tetra"
+name = "saurcom_tetra"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_ts"
+name = "saurcom_ts"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_uat"
+name = "saurcom_uat"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_usb"
+name = "saurcom_usb"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_vdl2"
+name = "saurcom_vdl2"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]
 
 [[package]]
-name = "zorcom_wifisense"
+name = "saurcom_wifisense"
 version = "0.1.0"
 
 [[package]]
-name = "zorcom_wisun"
+name = "saurcom_wisun"
 version = "0.1.0"
 dependencies = [
- "zorcom_common",
+ "saurcom_common",
 ]

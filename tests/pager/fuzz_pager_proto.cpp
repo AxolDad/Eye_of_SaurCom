@@ -1,5 +1,5 @@
 // Seeded mutation run of the pager layer, meant for DECT2_SANITIZE=ON: code words, text readers, the POCSAG
-// parser and the FLEX phase decoder must never crash or hang on any bits. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
+// parser and the FLEX phase decoder must never crash or hang on any bits. Also a libFuzzer target with -DSAURCOM_LIBFUZZER.
 #include "dect2/pager/pager_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -31,11 +31,11 @@ static void one(const uint8_t* d, size_t n) {
     P::flexDecodePhase(full.data(), out, st);
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* it = getenv("ZORCOM_FUZZ_ITERS");
+    const char* it = getenv("SAURCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 200000;
     std::mt19937 g(555);
     std::vector<dect2::pager::FlexPage> pages(3);

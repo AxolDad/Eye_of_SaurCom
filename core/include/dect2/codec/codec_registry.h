@@ -1,8 +1,8 @@
-// One registry of every voice codec Eye of ZorCom knows, whether it is open or patented, and the plug-ins the app has loaded. A patented codec is never
-// shipped: the app loads zorcom-codec-<id> from the user's codecs folder (speech_codec.h) and hands the receivers a factory made here. Receivers
+// One registry of every voice codec Eye of SaurCom knows, whether it is open or patented, and the plug-ins the app has loaded. A patented codec is never
+// shipped: the app loads saurcom-codec-<id> from the user's codecs folder (speech_codec.h) and hands the receivers a factory made here. Receivers
 // of the AMBE / IMBE family ask pluginVocoder() for a decoder and fall back to the user's own mbelib when there is none. See docs/CODECS.md.
 //
-// Plug-in frame formats (the bytes handed to zorcom_speech_decode, 8 kHz PCM, 160 samples per call, as for TETRA):
+// Plug-in frame formats (the bytes handed to saurcom_speech_decode, 8 kHz PCM, 160 samples per call, as for TETRA):
 //   ambe2, ambe : 12 bytes = the four de-interleaved code words C0..C3 of mbelib, 24 bits each, row by row, most significant bit first
 //   imbe        : 23 bytes = the eight code words c0..c7 of mbelib, 23 bits each, row by row, most significant bit first (184 bits)
 #pragma once

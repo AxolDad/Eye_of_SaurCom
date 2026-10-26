@@ -1,4 +1,4 @@
-// Transmit: the list of modes Eye of ZorCom can send (see tx.h for the reasoning), their generators, and the TxSession that feeds a radio.
+// Transmit: the list of modes Eye of SaurCom can send (see tx.h for the reasoning), their generators, and the TxSession that feeds a radio.
 #include "dect2/common/thread_name.h"
 #include "dect2/tx/tx.h"
 #include "dect2/common/timecompat.h"
@@ -322,7 +322,7 @@ std::string txVocoderNote(const TxModeSpec& m) {
             : "libcodec2 is not loaded: live encode is off. A 1 kHz tone, silence or a WAV/MP3 can still be sent.";
     }
     if (id == "dmr" || id == "p25" || id == "nxdn" || id == "dpmr" || id == "dstar")
-        return "This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.";
+        return "This vocoder cannot encode: Eye of SaurCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.";
     if (id == "tetra")
         return "TETRA ACELP is not encoded here. Colour code and IDs are shown; the downlink test pattern is sent. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.";
     return {};
@@ -571,9 +571,9 @@ bool txOpenMpegTs(const std::string& path, std::function<void(uint8_t*)>& outTs,
     }
     char tmp[512];
 #ifdef _WIN32
-    snprintf(tmp, sizeof tmp, "%s\\zorcom_tx_remux.ts", getenv("TEMP") ? getenv("TEMP") : ".");
+    snprintf(tmp, sizeof tmp, "%s\\saurcom_tx_remux.ts", getenv("TEMP") ? getenv("TEMP") : ".");
 #else
-    snprintf(tmp, sizeof tmp, "/tmp/zorcom_tx_remux_%d.ts", (int)getpid());
+    snprintf(tmp, sizeof tmp, "/tmp/saurcom_tx_remux_%d.ts", (int)getpid());
 #endif
     std::string err;
     if (!remuxToMpegTs(path, tmp, err)) { note = err; return false; }
@@ -814,8 +814,8 @@ std::string txUnavailableReason(const DeviceInfo& d) {
     case DeviceInfo::Synthetic: return "the test signal is not a radio";
     case DeviceInfo::File: return "a recording is not a radio";
     case DeviceInfo::Audio: return "a sound card is not a radio";
-    case DeviceInfo::Hamlib: return d.name + " is controlled through CAT only: Eye of ZorCom has no transmit path for it";
-    default: return d.name + " is receive-only in Eye of ZorCom (its driver has no transmit channel, or this build lacks it)";
+    case DeviceInfo::Hamlib: return d.name + " is controlled through CAT only: Eye of SaurCom has no transmit path for it";
+    default: return d.name + " is receive-only in Eye of SaurCom (its driver has no transmit channel, or this build lacks it)";
     }
 }
 
@@ -904,9 +904,9 @@ void TxSession::closeSink() {
 bool TxSession::start(std::unique_ptr<TxSink> sink, const TxRequest& r, const TxRateLimits& lim, std::string& err) {
     stop();
     std::lock_guard<std::mutex> ctl(ctl_);
-    if (!sink) { err = "this radio has no transmit path in Eye of ZorCom"; return false; }
+    if (!sink) { err = "this radio has no transmit path in Eye of SaurCom"; return false; }
     const TxModeSpec* mode = txModeById(r.modeId);
-    if (!mode) { err = "this mode cannot be transmitted by Eye of ZorCom"; return false; }
+    if (!mode) { err = "this mode cannot be transmitted by Eye of SaurCom"; return false; }
     dry_ = sink->name() == "test (no RF)";
     sink_ = std::move(sink);
     req_ = r;
@@ -997,8 +997,8 @@ bool TxSession::start(std::unique_ptr<TxSink> sink, const TxRequest& r, const Tx
              r.loop ? "until stopped" : (std::to_string(r.onceSeconds).substr(0, std::to_string(r.onceSeconds).find('.') + 2) + " s, one pass").c_str());
     note(b);
     if (req_.carrierTune) note("CARRIER TUNE (unmodulated, for adjusting the transmission — not a message)");
-    gen_t_ = dect2::namedThread("zorcom-txgen", [this] { generatorLoop(); });
-    send_t_ = dect2::namedThread("zorcom-txsend", [this] { senderLoop(); });
+    gen_t_ = dect2::namedThread("saurcom-txgen", [this] { generatorLoop(); });
+    send_t_ = dect2::namedThread("saurcom-txsend", [this] { senderLoop(); });
     return true;
 }
 

@@ -1173,7 +1173,7 @@ std::string toText(const Result& r) {
         t += b;
         if (i == 0) for (const std::string& e : c.evidence) t += "     " + e + "\n";
     }
-    t += "Identified by Eye of ZorCom (classical DSP, calibrated on its own test signals; not verified on every real signal).\n";
+    t += "Identified by Eye of SaurCom (classical DSP, calibrated on its own test signals; not verified on every real signal).\n";
     return t;
 }
 
@@ -1293,7 +1293,7 @@ struct Capture::Impl {
 };
 
 Capture::Capture() : p_(new Impl) {
-    p_->th = dect2::namedThread("zorcom-sigid", [this] {
+    p_->th = dect2::namedThread("saurcom-sigid", [this] {
         Impl& m = *p_;
         (void)builtinFrequencies(); (void)bandplan::builtinPlans();   // parsed once, on first use: not while someone waits for an answer
         (void)signatureCount();

@@ -29,7 +29,7 @@ struct MacGenConfig {
     bool scrambled = false;       // EuroCrypt: video line rotation, sound scrambled, ACCM / VSAM set
     bool wide = false;            // 16:9 flag (the picture is the same, squeezed)
     int pattern = 0;              // test card, colour bars, grey ramp
-    std::string name = "ZORCOM TV", network = "ZORCOM SATELLITE", country = "LITHUANIA";
+    std::string name = "SAURCOM TV", network = "SAURCOM SATELLITE", country = "LITHUANIA";
     double toneHz = 1000, toneDbfs = -10;
     bool preEmphasis = true, dispersal = true;
     bool invert = false;          // spectrum inversion (the radio's I and Q swapped)

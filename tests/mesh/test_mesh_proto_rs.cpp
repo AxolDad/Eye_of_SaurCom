@@ -1,6 +1,6 @@
-// Golden-vector test of the mesh packet layer (rust/zorcom_mesh behind dect2::), part 1: the protobuf reader, the Meshtastic name / key helpers and the Meshtastic
+// Golden-vector test of the mesh packet layer (rust/saurcom_mesh behind dect2::), part 1: the protobuf reader, the Meshtastic name / key helpers and the Meshtastic
 // packet decoder on random and structured protobuf, every port payload (text, position, node info, telemetry, routing, traceroute, neighbours) encrypted with the
-// default key and with a user key, mutated and truncated packets, headers of every length. ZORCOM_DIFF_ITERS (default 100000, 200000 verified) per family. Part 2 is
+// default key and with a user key, mutated and truncated packets, headers of every length. SAURCOM_DIFF_ITERS (default 100000, 200000 verified) per family. Part 2 is
 // rs_part2_mesh.cpp. Every result goes into a digest (tests/common/golden.h; doubles rounded to 1e-6) compared with the one recorded from the C++ mesh layer the
 // Rust code replaced.
 #include "mesh_rs_cmp.h"
@@ -193,5 +193,5 @@ int main() {
     if (rc2) return 1;
     // recorded again after the decoder kept battery level 101 ("powered") and cut the text detail on a whole UTF-8 character
 
-    return golden::checkDual("mesh_proto_rs", dig, 0xf7b897ff9f2bd52full, 0xad859aebe34a7637ull, !getenv("ZORCOM_DIFF_ITERS"));
+    return golden::checkDual("mesh_proto_rs", dig, 0xf7b897ff9f2bd52full, 0xad859aebe34a7637ull, !getenv("SAURCOM_DIFF_ITERS"));
 }

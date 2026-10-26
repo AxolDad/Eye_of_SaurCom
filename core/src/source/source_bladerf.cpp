@@ -173,7 +173,7 @@ protected:
         blade().set_gain_mode(dev_, ch_, gainMode_);   // configure() switches to the board's AGC when the settings ask for it
         return configure(s, err, false);
     }
-    // manual (the default: Eye of ZorCom's gain control) or the board's own AGC (TuneSettings "gainmode")
+    // manual (the default: Eye of SaurCom's gain control) or the board's own AGC (TuneSettings "gainmode")
     static int gainModeOf(const TuneSettings& s) {
         const std::string m = radioOption(s, "gainmode", "manual");
         return m == "agc" ? BladeApi::kGainDefault : m == "fast" ? BladeApi::kGainFast : m == "slow" ? BladeApi::kGainSlow : m == "hybrid" ? BladeApi::kGainHybrid : BladeApi::kGainMgc;
@@ -247,7 +247,7 @@ protected:
 
 private:
     // A bladeRF 1 loses its FPGA at power-off and libbladeRF loads it at open only when it finds the image in its own folders:
-    // look next to Eye of ZorCom too, and say plainly what is missing.
+    // look next to Eye of SaurCom too, and say plainly what is missing.
     bool loadFpga(std::string& err) {
         if (!blade().is_fpga_configured) return true;
         if (blade().is_fpga_configured(dev_) != 0) return true;   // 1 = configured; an error is left to the calls that follow
@@ -269,7 +269,7 @@ private:
                 }
             }
         }
-        err = "bladeRF 1 needs its FPGA image (hostedx40.rbf or hostedx115.rbf): download it from nuand.com and put it next to Eye of ZorCom";
+        err = "bladeRF 1 needs its FPGA image (hostedx40.rbf or hostedx115.rbf): download it from nuand.com and put it next to Eye of SaurCom";
         return false;
     }
     std::string serial_;
@@ -288,7 +288,7 @@ void listBlade(std::vector<DeviceInfo>& out) {
     for (int i = 0; i < n && i < 16; i++) {
         const std::string serial = trimmed(list[i].serial, sizeof list[i].serial);
         const std::string prod = trimmed(list[i].product, sizeof list[i].product);
-        // one entry per receive input on the bladeRF 2.0 (RX1, RX2), so the user picks the one the antenna is on (the first is what Eye of ZorCom
+        // one entry per receive input on the bladeRF 2.0 (RX1, RX2), so the user picks the one the antenna is on (the first is what Eye of SaurCom
         // used before); the bladeRF 1 has one
         const bool two = prod.find("2.0") != std::string::npos;
         for (int port = 0; port < (two ? 2 : 1); port++) {
@@ -307,10 +307,10 @@ void listBlade(std::vector<DeviceInfo>& out) {
         d.settings = {ppmSetting(0.01)};
         if (two)
             d.settings.push_back(choiceSetting("gainmode", "Gain mode",
-                                               "Manual: the gain slider (and Eye of ZorCom's AGC) set the gain (the default). Otherwise the AD9361's own AGC does (fast attack\nfor bursts, hybrid as the AD9361 defines it); the gain slider then has no effect.",
+                                               "Manual: the gain slider (and Eye of SaurCom's AGC) set the gain (the default). Otherwise the AD9361's own AGC does (fast attack\nfor bursts, hybrid as the AD9361 defines it); the gain slider then has no effect.",
                                                {"manual", "slow", "fast", "hybrid"}, {"Manual", "Radio AGC, slow attack", "Radio AGC, fast attack", "Radio AGC, hybrid"}, "manual"));
         else {
-            d.settings.push_back(choiceSetting("gainmode", "Gain mode", "Manual: the gain slider (and Eye of ZorCom's AGC) set the gain (the default). Radio AGC: the FPGA's AGC (FPGA v0.7 and later); the slider then\nhas no effect.",
+            d.settings.push_back(choiceSetting("gainmode", "Gain mode", "Manual: the gain slider (and Eye of SaurCom's AGC) set the gain (the default). Radio AGC: the FPGA's AGC (FPGA v0.7 and later); the slider then\nhas no effect.",
                                                {"manual", "agc"}, {"Manual", "Radio AGC"}, "manual"));
             if (blade().expansion_attach)
                 d.settings.push_back(boolSetting("xb200", "XB-200 transverter", "The XB-200 expansion board is fitted: the bladeRF then receives 60 kHz - 300 MHz through it (libbladeRF switches its\nmixer and filters by frequency). Takes effect when the radio is started.", false, true));

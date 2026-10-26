@@ -57,7 +57,7 @@ int main() {
         printf("  20 Msps clean: %s, %llu bad, %llu bursts, load %.0f%%\n", wisunSummary(t).c_str(), (unsigned long long)t.blocksBad, (unsigned long long)t.bursts, t.loadPct);
         CHECK(t.blocksOk == frames && t.blocksBad == 0, "%llu of %zu frames, %llu bad", (unsigned long long)t.blocksOk, frames, (unsigned long long)t.blocksBad);
         CHECK(t.region == "ANZ" && t.loMhz <= 915.3 && t.hiMhz >= 927.7 && t.bins == 64, "coverage %s %.1f - %.1f, %d bins", t.region.c_str(), t.loMhz, t.hiMhz, t.bins);
-        CHECK(t.pans.size() == 1 && t.pans[0].pan == 0x7A31 && t.pans[0].netName == "ZorCom-Test-FAN", "pan");
+        CHECK(t.pans.size() == 1 && t.pans[0].pan == 0x7A31 && t.pans[0].netName == "SaurCom-Test-FAN", "pan");
         if (!t.pans.empty()) {
             const WsPan& p = t.pans[0];
             CHECK(p.borderRouter == "00:12:4B:FF:FE:1A:2B:3C" && p.panSize == 3 && p.tpsVersion == 2, "border router %s", p.borderRouter.c_str());

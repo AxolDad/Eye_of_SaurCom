@@ -142,7 +142,7 @@ int main() {
         CHECK(m && txModeFinite(*m), "KAVB is a finite transmission");
     }
 
-    const fs::path dir = fs::temp_directory_path() / "zorcom_kavb_engine_test";
+    const fs::path dir = fs::temp_directory_path() / "saurcom_kavb_engine_test";
     fs::remove_all(dir);
     fs::create_directories(dir);
     std::vector<uint8_t> data(24000);

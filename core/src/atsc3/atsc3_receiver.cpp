@@ -99,7 +99,7 @@ PlpResult Atsc3Receiver::runCti(const PlpResult& in) {
     std::atomic<size_t> next{0};
     const size_t nt = std::min<size_t>(nBatches, (size_t)std::max(1, std::min(8, (int)std::thread::hardware_concurrency())));
     std::vector<std::thread> th;
-    for (size_t t = 1; t < nt; t++) th.emplace_back(dect2::namedThread("zorcom-a3w", work, std::ref(next)));
+    for (size_t t = 1; t < nt; t++) th.emplace_back(dect2::namedThread("saurcom-a3w", work, std::ref(next)));
     work(next);
     for (auto& t : th) t.join();
     for (size_t k = 0; k < n; k++) {

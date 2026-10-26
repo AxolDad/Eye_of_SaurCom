@@ -1,10 +1,10 @@
 # GPS interference map
 
-ADS-B aircraft broadcast how good their own GNSS position is. When a jammer or spoofer is near, many aircraft in one area report a collapsed accuracy or an impossible position jump. Eye of ZorCom counts this per grid cell, shows it on its ADS-B map, and can share the counts (and only the counts) with the public map.
+ADS-B aircraft broadcast how good their own GNSS position is. When a jammer or spoofer is near, many aircraft in one area report a collapsed accuracy or an impossible position jump. Eye of SaurCom counts this per grid cell, shows it on its ADS-B map, and can share the counts (and only the counts) with the public map.
 
 ## What is measured
 
-For every aircraft heard with a fresh position (not on the ground), Eye of ZorCom looks at:
+For every aircraft heard with a fresh position (not on the ground), Eye of SaurCom looks at:
 
 | Field | Source | Used |
 |---|---|---|

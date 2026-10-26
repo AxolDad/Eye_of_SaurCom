@@ -148,7 +148,7 @@ bool kawsFromRequest(const TxRequest& r, KawsTxPlan& plan, std::string& err) {
     std::string cs;
     for (char c : r.callsign) cs += (char)std::toupper((unsigned char)c);
     while (!cs.empty() && cs.back() == ' ') cs.pop_back();
-    if (cs.empty()) cs = "ZORCOM";
+    if (cs.empty()) cs = "SAURCOM";
     if (!callsignValid(cs)) { err = "KAWS: the callsign is 1 to 9 characters of letters, digits, - / and ."; return false; }
     plan.callsign = cs;
     plan.profile = (int)std::lround(r.o("kaws.profile", 3));
@@ -173,7 +173,7 @@ bool kawsFromRequest(const TxRequest& r, KawsTxPlan& plan, std::string& err) {
         for (char& ch : c.to) ch = (char)std::toupper((unsigned char)ch);
         if (!callsignValid(c.to)) { err = "KAWS: the recipient is 1 to 9 characters of letters, digits, - / and ."; return false; }
         c.firstMessage = true;
-        c.text = r.text.empty() ? std::string("ZorCom KAWS test message") : r.text;
+        c.text = r.text.empty() ? std::string("SaurCom KAWS test message") : r.text;
         if (c.text.size() > 100) { err = "KAWS: a chat message is at most 100 characters"; return false; }
         msg = encodeChat(c);
     } else if (plan.kind == 1) {

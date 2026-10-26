@@ -1,5 +1,5 @@
 // View > WiFi sensing: presence, motion, breathing and heart rate in each room an ESP32 CSI node watches (RuView firmware, which sends
-// its channel state frames over UDP). core/src/net/wifisense_rx.cpp listens; the analysis is the Rust crate rust/zorcom_wifisense.
+// its channel state frames over UDP). core/src/net/wifisense_rx.cpp listens; the analysis is the Rust crate rust/saurcom_wifisense.
 #include "../app.h"
 #include "dect2/net/wifisense_rx.h"
 #include <algorithm>

@@ -1,4 +1,4 @@
-# QO-100 (Es'hail-2) narrowband transponder presets: one per Eye of ZorCom mode that is used there, and the wideband DATV transponder
+# QO-100 (Es'hail-2) narrowband transponder presets: one per Eye of SaurCom mode that is used there, and the wideband DATV transponder
 # freq_mhz|name|bandwidth_khz|notes[|mode|region|category]   frequency is the RF downlink dial (USB); the receiver tunes the first IF behind the LNB (LO 9750 MHz by default)
 @region GLOBAL
 @category amateur

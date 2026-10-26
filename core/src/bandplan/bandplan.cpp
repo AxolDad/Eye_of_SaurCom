@@ -461,7 +461,7 @@ bool parseCsv(const std::string& text, Plan& out, std::string& err) {
 
 // ------------------------------------------------------------------ writers
 std::string toJson(const Plan& p) {
-    std::string o = "{\n  \"format\": \"zorcom-bandplan-1\",\n  \"name\": " + mj::quote(p.name) + ",\n  \"region\": " + mj::quote(p.region) + ",\n";
+    std::string o = "{\n  \"format\": \"saurcom-bandplan-1\",\n  \"name\": " + mj::quote(p.name) + ",\n  \"region\": " + mj::quote(p.region) + ",\n";
     o += "  \"itu_region\": " + std::to_string(p.ituRegion) + ",\n  \"countries\": [";
     for (size_t i = 0; i < p.countries.size(); i++) o += (i ? ", " : "") + mj::quote(p.countries[i]);
     o += "],\n  \"source\": " + mj::quote(p.source) + ",\n  \"note\": " + mj::quote(p.note) + ",\n  \"verified\": " + (p.verified ? "true" : "false") + ",\n  \"bands\": [\n";

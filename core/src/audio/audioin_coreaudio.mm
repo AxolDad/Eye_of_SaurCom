@@ -62,7 +62,7 @@ static OSStatus inputCb(void* ref, AudioUnitRenderActionFlags* flags, const Audi
 bool audioInMicStart(AudioIn::Impl* I, int rate, const std::string& deviceId, std::string& err) {
     {   // microphone permission denied in System Settings gives silence, not an error: say so. A chosen input that is gone is not replaced by the default.
         const AVAuthorizationStatus st = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
-        if (st == AVAuthorizationStatusDenied || st == AVAuthorizationStatusRestricted) { err = "microphone access is off for Eye of ZorCom (System Settings > Privacy & Security > Microphone)"; return false; }
+        if (st == AVAuthorizationStatusDenied || st == AVAuthorizationStatusRestricted) { err = "microphone access is off for Eye of SaurCom (System Settings > Privacy & Security > Microphone)"; return false; }
         if (!deviceId.empty()) {
             bool found = false;
             for (const auto& dv : audioInListMic()) if (dv.id == deviceId) found = true;

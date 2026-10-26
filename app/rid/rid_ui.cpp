@@ -81,7 +81,7 @@ std::string altText(float m) { if (m <= -1000) return "-"; char b[24]; snprintf(
 void receiveNote() {
     ImGui::PushTextWrapPos(0);
     ImGui::TextDisabled("Receive only: Remote ID is the identification drones must broadcast openly (EU 2019/945, FAA part 89), meant for anyone to read. "
-                        "Eye of ZorCom never transmits. Heard: Bluetooth LE legacy advertising (BLE 4) and Wi-Fi beacons; BLE 5 long range and Wi-Fi NAN are not.");
+                        "Eye of SaurCom never transmits. Heard: Bluetooth LE legacy advertising (BLE 4) and Wi-Fi beacons; BLE 5 long range and Wi-Fi NAN are not.");
     ImGui::PopTextWrapPos();
 }
 

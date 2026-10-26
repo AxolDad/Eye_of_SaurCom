@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
         CHECK(html.find("<b>x</b>") == std::string::npos && html.find("&lt;script&gt;alert(3)&lt;/script&gt;&amp;amp;") != std::string::npos);
         CHECK(html.find("Content-Security-Policy") != std::string::npos && html.find("default-src 'none'") != std::string::npos);
         CHECK(html.find("href=\"http://") == std::string::npos && html.find("src=\"http") == std::string::npos && html.find("url(") == std::string::npos);
-        CHECK(html.find("https://github.com/AxolDad/OnAir-SDR-Suite") != std::string::npos && html.find("Made with") != std::string::npos);
+        CHECK(html.find("https://github.com/AxolDad/Eye_of_ZorCom") != std::string::npos && html.find("Made with") != std::string::npos);
         CHECK(html.find("prefers-color-scheme:dark") != std::string::npos && html.find("viewport") != std::string::npos);
         CHECK(html.find("data:image/png;base64,") != std::string::npos && html.find("data:audio/wav;base64,") != std::string::npos);
         CHECK(html.find("/Users/") == std::string::npos);
@@ -208,13 +208,13 @@ int main(int argc, char** argv) {
         const std::string d = clips::discordText(c);
         CHECK(d.rfind("**ADS-B", 0) == 0 && d.find("@ 1090 MHz** \xC2\xB7 2025-10-09 ") != std::string::npos && d.find("16 aircraft") != std::string::npos && d.find("SNR 13 dB") != std::string::npos);
         CHECK(d.find("@everyone") == std::string::npos && d.find("[link](") != std::string::npos && d.find("`x`") == std::string::npos);
-        CHECK(d.find("discord.png") != std::string::npos && d.find("Made with ZorCom") != std::string::npos);
+        CHECK(d.find("discord.png") != std::string::npos && d.find("Made with SaurCom") != std::string::npos);
         const clips::Image cp = clips::composite(c);
         CHECK(cp.w == 1024 && cp.h == c.spectro.h + 64);
         const auto cpng = clips::encodePng(cp.rgba.data(), cp.w, cp.h);
         CHECK(cpng.size() < 8u * 1000 * 1000);
-        CHECK(clips::fileStem(c.meta) == "zorcom_ads-b-b-x-b_1090MHz_20251009-" + clips::fileStem(c.meta).substr(clips::fileStem(c.meta).size() - 6) || true);
-        CHECK(clips::fileStem(c.meta).rfind("zorcom_", 0) == 0 && clips::fileStem(c.meta).find(' ') == std::string::npos && clips::fileStem(c.meta).find('/') == std::string::npos);
+        CHECK(clips::fileStem(c.meta) == "saurcom_ads-b-b-x-b_1090MHz_20251009-" + clips::fileStem(c.meta).substr(clips::fileStem(c.meta).size() - 6) || true);
+        CHECK(clips::fileStem(c.meta).rfind("saurcom_", 0) == 0 && clips::fileStem(c.meta).find(' ') == std::string::npos && clips::fileStem(c.meta).find('/') == std::string::npos);
         CHECK(clips::freqText(93.9e6) == "93.9 MHz" && clips::freqText(145800) == "145.8 kHz" && clips::freqText(1296e6) == "1296 MHz" && clips::freqText(10368e6) == "10.368 GHz");
     }
     // ---- a sample clip from a synthetic signal

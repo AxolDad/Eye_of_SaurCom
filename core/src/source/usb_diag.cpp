@@ -24,7 +24,7 @@ namespace fs = std::filesystem;
 
 struct UsbId { uint16_t vid, pid; const char* radio; };   // pid 0: every product of that vendor
 
-// The radios Eye of ZorCom drives. The RTL ids are the ones of the osmocom rtl-sdr udev rules (rtl-sdr.rules).
+// The radios Eye of SaurCom drives. The RTL ids are the ones of the osmocom rtl-sdr udev rules (rtl-sdr.rules).
 const UsbId kRadios[] = {
     {0x1d50, 0x6089, "HackRF"}, {0x1d50, 0xcc15, "HackRF (rad1o)"}, {0x1d50, 0x604b, "HackRF Jawbreaker"},
     {0x0bda, 0x2832, "RTL-SDR"}, {0x0bda, 0x2838, "RTL-SDR"}, {0x0413, 0x6680, "RTL-SDR"}, {0x0413, 0x6f0f, "RTL-SDR"},
@@ -98,21 +98,21 @@ std::vector<std::string> hintsUnder(const std::string& root) {
         const char* radio = radioOf(vid, pid);
         if (!radio) continue;
         if (rtlTvDriver && std::string(radio) == "RTL-SDR" && boundTo(devices, dev, "dvb_usb_rtl28xxu"))
-            out.push_back("The Linux TV driver dvb_usb_rtl28xxu holds the RTL-SDR: run sudo modprobe -r dvb_usb_rtl28xxu, or install Eye of ZorCom's blacklist file (the .deb does it)");
+            out.push_back("The Linux TV driver dvb_usb_rtl28xxu holds the RTL-SDR: run sudo modprobe -r dvb_usb_rtl28xxu, or install Eye of SaurCom's blacklist file (the .deb does it)");
         // an RSP is a Mirics MSi2500/MSi001 underneath: the kernel's Mirics driver (or its USB audio driver) takes it at boot and the SDRplay API
         // lists nothing (issue #17: the RSP showed up only after another program had pulled the kernel driver off it)
         if (std::string(radio) == "SDRplay RSP") {
             if (boundTo(devices, dev, "msi2500"))
-                out.push_back("The Linux driver msi2500 holds the SDRplay RSP, so the SDRplay API cannot see it: run sudo modprobe -r msi2500 msi001, or install Eye of ZorCom's blacklist file (the .deb does it), then unplug and replug it");
+                out.push_back("The Linux driver msi2500 holds the SDRplay RSP, so the SDRplay API cannot see it: run sudo modprobe -r msi2500 msi001, or install Eye of SaurCom's blacklist file (the .deb does it), then unplug and replug it");
             else if (boundTo(devices, dev, "snd-usb-audio"))
-                out.push_back("The Linux sound driver snd-usb-audio holds the SDRplay RSP, so the SDRplay API cannot see it: unplug and replug it after installing Eye of ZorCom's blacklist file (the .deb does it), or restart the SDRplay API service (sudo systemctl restart sdrplay)");
+                out.push_back("The Linux sound driver snd-usb-audio holds the SDRplay RSP, so the SDRplay API cannot see it: unplug and replug it after installing Eye of SaurCom's blacklist file (the .deb does it), or restart the SDRplay API service (sudo systemctl restart sdrplay)");
         }
         int bus = 0, num = 0;
         if (!readInt(e.path() / "busnum", bus) || !readInt(e.path() / "devnum", num)) continue;
         char node[64];
         snprintf(node, sizeof node, "/dev/bus/usb/%03d/%03d", bus, num);
         if (!canOpen(root + node))
-            out.push_back(std::string(radio) + " is plugged in but this user may not open it: install Eye of ZorCom's udev rules (the .deb does it, or run install-udev-rules.sh from the portable folder), then unplug and replug it");
+            out.push_back(std::string(radio) + " is plugged in but this user may not open it: install Eye of SaurCom's udev rules (the .deb does it, or run install-udev-rules.sh from the portable folder), then unplug and replug it");
     }
     return out;
 }
@@ -131,7 +131,7 @@ std::vector<std::string> usbRadioHints() {
 
 std::vector<std::string> sdrplayApiHints() {
     if (native::sdrplayApiInstalled() || !usbVendorPresent(0x1df7)) return {};
-    return {"An SDRplay RSP is plugged in but the SDRplay API is not installed: install the free Hardware API from sdrplay.com/hardware-api (separately from SDRconnect), then restart Eye of ZorCom"};
+    return {"An SDRplay RSP is plugged in but the SDRplay API is not installed: install the free Hardware API from sdrplay.com/hardware-api (separately from SDRconnect), then restart Eye of SaurCom"};
 }
 
 } // namespace dect2

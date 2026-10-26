@@ -1,8 +1,8 @@
 // The receiver's audio path against what a real link does to it (issue #138: sound that stopped and never came back):
 // a real DRA+ stream (tests/cdr/cdr_dra_clip.h) is fed in units that are damaged, lost, or preceded by a long run of junk.
 // The decoder must keep going (skip what is broken) and must recover on its own. Headless: nothing is played.
-// Needs the REAL DRA+ add-on (ZorCom ships none: docs/CODECS.md, tools/addons/dra); without it the test prints SKIP and passes. The loader and the
-// units/frames logic are tested with a fake add-on in test_cdr_dra_addon. Point DECT2_DRA_PATH at your libzorcom_dra to run it.
+// Needs the REAL DRA+ add-on (SaurCom ships none: docs/CODECS.md, tools/addons/dra); without it the test prints SKIP and passes. The loader and the
+// units/frames logic are tested with a fake add-on in test_cdr_dra_addon. Point DECT2_DRA_PATH at your libsaurcom_dra to run it.
 #include "../../core/src/cdr/cdr_audio.h"
 #include "dect2/cdr/cdr_dra.h"
 #include "cdr_dra_clip.h"
@@ -35,7 +35,7 @@ template <class F> static uint64_t run(size_t unit, F mangle, uint64_t* resets =
 }
 
 int main() {
-    if (!cdr::draAvailable()) { printf("SKIP: no DRA+ add-on found (set DECT2_DRA_PATH to libzorcom_dra)\n"); return 0; }
+    if (!cdr::draAvailable()) { printf("SKIP: no DRA+ add-on found (set DECT2_DRA_PATH to libsaurcom_dra)\n"); return 0; }
     const uint64_t clean = run(400, [](auto&) {});
     printf("clean: %llu samples\n", (unsigned long long)clean);
     CHECK(clean >= 60 * 1024, "the real clip should decode (%llu samples)", (unsigned long long)clean);

@@ -10,7 +10,7 @@
 // (0x12 to 0x16 RX8 to RX12); 0x0a the LNA gain (-12 to +48 dB). The radio is only received with here: MOX is never set and the TX samples
 // are zero.
 //
-// Receivers (slices, as Thetis calls them): each one is its own entry in the radio list ("Hermes Lite 2 RX2 ..."), so every Eye of ZorCom receiver
+// Receivers (slices, as Thetis calls them): each one is its own entry in the radio list ("Hermes Lite 2 RX2 ..."), so every Eye of SaurCom receiver
 // can have one of them. They share one stream (Link below): the first one opened starts it, the receiver count in register 0x00 follows the
 // highest one in use and changes while it streams. The packets do not say which layout they carry, and an HL2 sends a few more in the old
 // one (measured: four, then one with both): until a packet has the new layout (its microphone words zero), packets are dropped and counted

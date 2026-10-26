@@ -19,7 +19,7 @@ namespace dect2::plugin {
 namespace {
 std::mutex gMu;
 std::map<std::string, Lib> gLibs;
-bool inVt(const ZorComPluginVTable* v, size_t off, size_t sz) { return v->struct_size >= off + sz; }
+bool inVt(const SaurComPluginVTable* v, size_t off, size_t sz) { return v->struct_size >= off + sz; }
 }
 
 bool loadLibrary(const std::string& path, const Manifest& m, Lib& out, std::string& err) {
@@ -31,25 +31,25 @@ bool loadLibrary(const std::string& path, const Manifest& m, Lib& out, std::stri
 #if defined(_WIN32)
         void* h = (void*)LoadLibraryA(path.c_str());
         if (!h) { err = "cannot load the library (error " + std::to_string(GetLastError()) + ")"; return false; }
-        auto fn = (zorcom_plugin_entry_fn)GetProcAddress((HMODULE)h, "zorcom_plugin_entry");
+        auto fn = (saurcom_plugin_entry_fn)GetProcAddress((HMODULE)h, "saurcom_plugin_entry");
 #else
         void* h = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
         if (!h) { const char* e = dlerror(); err = std::string("cannot load the library: ") + (e ? e : "unknown error"); return false; }
-        auto fn = (zorcom_plugin_entry_fn)dlsym(h, "zorcom_plugin_entry");
+        auto fn = (saurcom_plugin_entry_fn)dlsym(h, "saurcom_plugin_entry");
 #endif
-        if (!fn) { err = "the library has no zorcom_plugin_entry (not an Eye of ZorCom plugin)"; return false; }
+        if (!fn) { err = "the library has no saurcom_plugin_entry (not an Eye of SaurCom plugin)"; return false; }
         lib.handle = h;
-        lib.vt = fn(ZORCOM_PLUGIN_ABI_VERSION);
+        lib.vt = fn(SAURCOM_PLUGIN_ABI_VERSION);
         gLibs[path] = lib;
     }
-    const ZorComPluginVTable* v = lib.vt;
-    if (!v) { err = "the plugin refused this Eye of ZorCom (entry returned nothing)"; return false; }
-    if (v->struct_size < offsetof(ZorComPluginVTable, process_iq)) { err = "plugin table is too small"; return false; }
-    if (v->abi_version != ZORCOM_PLUGIN_ABI_VERSION) { err = "the library was built for plugin ABI " + std::to_string(v->abi_version) + ", this Eye of ZorCom speaks " + std::to_string(ZORCOM_PLUGIN_ABI_VERSION); return false; }
+    const SaurComPluginVTable* v = lib.vt;
+    if (!v) { err = "the plugin refused this Eye of SaurCom (entry returned nothing)"; return false; }
+    if (v->struct_size < offsetof(SaurComPluginVTable, process_iq)) { err = "plugin table is too small"; return false; }
+    if (v->abi_version != SAURCOM_PLUGIN_ABI_VERSION) { err = "the library was built for plugin ABI " + std::to_string(v->abi_version) + ", this Eye of SaurCom speaks " + std::to_string(SAURCOM_PLUGIN_ABI_VERSION); return false; }
     if (!v->id || m.id != v->id) { err = "the library's id does not match manifest.json"; return false; }
     if (!v->create || !v->destroy) { err = "the plugin has no create / destroy"; return false; }
-    if (m.kind == "action" && !((v->caps & ZORCOM_CAP_EVENTS) && inVt(v, offsetof(ZorComPluginVTable, on_event), sizeof(void*)) && v->on_event)) { err = "an action plugin must implement on_event"; return false; }
-    if ((m.kind == "mode" || m.kind == "source") && !((v->caps & ZORCOM_CAP_IQ_SINK) && v->process_iq)) { err = "a mode plugin must implement process_iq"; return false; }
+    if (m.kind == "action" && !((v->caps & SAURCOM_CAP_EVENTS) && inVt(v, offsetof(SaurComPluginVTable, on_event), sizeof(void*)) && v->on_event)) { err = "an action plugin must implement on_event"; return false; }
+    if ((m.kind == "mode" || m.kind == "source") && !((v->caps & SAURCOM_CAP_IQ_SINK) && v->process_iq)) { err = "a mode plugin must implement process_iq"; return false; }
     out = lib;
     return true;
 }
@@ -87,13 +87,13 @@ int32_t cGetFlag(void* c, const char* key, int32_t def) {
     return v == "1" || v == "true" ? 1 : 0;
 }
 int32_t cReq(void* c, double hz, double sr) { return S(c)->alive() ? S(c)->requestIq(hz, sr) : kDeniedCode; }
-int32_t cTableDefine(void* c, const char* id, const char* title, uint32_t n, const ZorComColumn* cols) {
+int32_t cTableDefine(void* c, const char* id, const char* title, uint32_t n, const SaurComColumn* cols) {
     if (!S(c)->alive() || !cols || n == 0 || n > kMaxCols) return -1;
     std::vector<Col> v;
     for (uint32_t i = 0; i < n; i++) v.push_back({str(cols[i].name, 40), cols[i].type});
     return S(c)->tableDefine(str(id, kMaxIdLen + 1), str(title, kMaxTitleLen + 1), v);
 }
-int32_t cTableRow(void* c, const char* id, uint32_t n, const ZorComCell* cells) {
+int32_t cTableRow(void* c, const char* id, uint32_t n, const SaurComCell* cells) {
     if (!S(c)->alive() || !cells || n == 0 || n > kMaxCols) return -1;
     std::vector<Cell> v;
     for (uint32_t i = 0; i < n; i++) { Cell x; x.type = cells[i].type; x.i = cells[i].i; x.d = cells[i].d; x.s = str(cells[i].s, kMaxCellText + 1); v.push_back(std::move(x)); }
@@ -109,7 +109,7 @@ int32_t cImage(void* c, const char* id, int32_t fmt, uint32_t w, uint32_t h, con
     return S(c)->alive() ? S(c)->image(str(id, kMaxIdLen + 1), fmt, w, h, d, n) : kDeniedCode;
 }
 int32_t cMap(void* c, const char* id, const char* l, double la, double lo) { return S(c)->alive() ? S(c)->mapPoint(str(id, kMaxIdLen + 1), str(l, 100), la, lo) : kDeniedCode; }
-int32_t cEvent(void* c, const char* type, uint32_t n, const ZorComField* f) {
+int32_t cEvent(void* c, const char* type, uint32_t n, const SaurComField* f) {
     if (!S(c)->alive() || n > 32 || (n && !f)) return -1;
     automation::Event ev;
     for (uint32_t i = 0; i < n; i++) {
@@ -134,10 +134,10 @@ int32_t cDataDir(void* c, char* out, uint32_t cap) {
 }
 } // namespace
 
-void fillHostApi(ZorComHostApi& a, ApiSink* sink) {
+void fillHostApi(SaurComHostApi& a, ApiSink* sink) {
     memset(&a, 0, sizeof a);
     a.struct_size = sizeof a;
-    a.abi_version = ZORCOM_PLUGIN_ABI_VERSION;
+    a.abi_version = SAURCOM_PLUGIN_ABI_VERSION;
     a.ctx = sink;
     a.log = cLog; a.get_setting_text = cGetText; a.get_setting_number = cGetNum; a.get_setting_flag = cGetFlag; a.request_iq = cReq;
     a.table_define = cTableDefine; a.table_row = cTableRow; a.table_clear = cTableClear; a.status = cStatus; a.result_log = cResultLog;

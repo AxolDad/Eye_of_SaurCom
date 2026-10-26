@@ -251,7 +251,7 @@ void driveNavView(App& a, ImVec2 size) {
     ImGui::SameLine();
     if (ImGui::SmallButton("save route") && S.route.pts.size() >= 2) {
         const std::string path = saveFileDialog("route.gpx");
-        if (!path.empty()) { Route r = S.route; if (r.name.empty()) r.name = "Eye of ZorCom route"; S.note = writeFile(path, gpxRoute(r)) ? "saved " + path : "could not write " + path; }
+        if (!path.empty()) { Route r = S.route; if (r.name.empty()) r.name = "Eye of SaurCom route"; S.note = writeFile(path, gpxRoute(r)) ? "saved " + path : "could not write " + path; }
     }
     ImGui::Separator();
     ImGui::Checkbox("trip log", &S.logOn);
@@ -261,7 +261,7 @@ void driveNavView(App& a, ImVec2 size) {
         char nm[64]; const std::time_t now = std::time(nullptr);
         std::strftime(nm, sizeof nm, "trip_%Y%m%d_%H%M%S.gpx", std::localtime(&now));
         const std::string path = saveFileDialog(nm);
-        if (!path.empty()) S.note = writeFile(path, gpxTrack(S.trip, "Eye of ZorCom trip")) ? "saved " + path : "could not write " + path;
+        if (!path.empty()) S.note = writeFile(path, gpxTrack(S.trip, "Eye of SaurCom trip")) ? "saved " + path : "could not write " + path;
     }
     ImGui::SameLine();
     if (ImGui::SmallButton("new trip")) S.trip.clear();

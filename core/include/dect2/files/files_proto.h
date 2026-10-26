@@ -1,6 +1,6 @@
 // The pure parsing and writing layers of the files the program reads and writes: CSV (channel lists), SigMF meta files, WAV headers of IQ recordings,
 // NORAD two-line elements, the SQLite page / record / cell decoding behind the MBTiles map reader, and the header of the saved results container. Implemented by
-// the Rust crate zorcom_files through core/src/files/files_proto_rs.cpp. The callers
+// the Rust crate saurcom_files through core/src/files/files_proto_rs.cpp. The callers
 // (iq_file.cpp, iq_record.cpp, channel_db.cpp, passes.cpp, mbtiles.h, results_io.h) keep the file access and the state; tests/files/test_files_proto_rs.cpp is the
 // golden-vector test.
 #pragma once
@@ -21,7 +21,7 @@ std::vector<std::string> splitList(const std::string& s, char sep);
 
 // ---------------------------------------------------------------- SigMF
 struct SigmfMeta {
-    int status = 0;                 // 0 ok, 1 not a valid SigMF meta file, 2 no "global" object, 3 no string core:datatype, 4 data type Eye of ZorCom cannot play (see datatype)
+    int status = 0;                 // 0 ok, 1 not a valid SigMF meta file, 2 no "global" object, 3 no string core:datatype, 4 data type Eye of SaurCom cannot play (see datatype)
     int format = 0;                 // 0 CS8, 1 CU8, 2 CF32, 3 CI16, 4 CU16 (the order of FileFormat)
     bool bigEndian = false;
     int annotations = 0;

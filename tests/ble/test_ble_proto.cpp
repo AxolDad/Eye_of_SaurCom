@@ -56,7 +56,7 @@ int main() {
     CHECK(parsePdu(pdu.data(), pdu.size(), o) && has(o.beacon, "Eddystone UID EDD1EBEAC04E5DEFA017 / 000000000001"), "UID: %s", o.beacon.c_str());
     pdu = makePdu(AdvNonconnInd, true, advPayload(addr, AdBuilder().eddystoneTlm(3000, 21.5, 1234, 56789).b));
     CHECK(parsePdu(pdu.data(), pdu.size(), o) && has(o.beacon, "3000 mV, 21.5 C, 1234 adverts"), "TLM: %s", o.beacon.c_str());
-    CHECK(eddystoneUrl((const uint8_t*)"\x00zorcom\x00", 7) == "http://www.zorcom.com/", "URL expansion");
+    CHECK(eddystoneUrl((const uint8_t*)"\x00saurcom\x00", 7) == "http://www.saurcom.com/", "URL expansion");
 
     // exposure notification
     const uint8_t rpi[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}, meta[4] = {0x40, 8, 0, 0};

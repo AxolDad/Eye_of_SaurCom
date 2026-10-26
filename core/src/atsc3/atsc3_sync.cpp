@@ -132,7 +132,7 @@ void resampleExact(const cf32* in, size_t n, double inRate, double outRate, std:
     const int nt = (count >= 200000 && hw >= 4) ? std::min(4, hw / 2) : 1;
     if (nt <= 1) { part(0, count); return; }
     std::vector<std::thread> th;
-    for (int t = 1; t < nt; t++) th.emplace_back(dect2::namedThread("zorcom-a3sync", part, count * t / nt, count * (t + 1) / nt));
+    for (int t = 1; t < nt; t++) th.emplace_back(dect2::namedThread("saurcom-a3sync", part, count * t / nt, count * (t + 1) / nt));
     part(0, count / nt);
     for (auto& t : th) t.join();
 }
@@ -228,7 +228,7 @@ BootstrapFind findBootstrap(const cf32* x, size_t n, double maxCfo, double cente
             std::atomic<size_t> next{0};
             auto work = [&] { for (size_t k; (k = next++) < fs.size();) test(k); };
             std::vector<std::thread> th;
-            for (size_t t = 1; t < std::min(nt, fs.size()); t++) th.emplace_back(dect2::namedThread("zorcom-a3sync", work));
+            for (size_t t = 1; t < std::min(nt, fs.size()); t++) th.emplace_back(dect2::namedThread("saurcom-a3sync", work));
             work();
             for (auto& t : th) t.join();
         }
@@ -288,7 +288,7 @@ struct Atsc3Sync::Pool {
     std::vector<std::thread> th;
 
     Pool(Atsc3Receiver* r, int n) : rx(r), maxInflight(2 * n) {
-        for (int i = 0; i < n; i++) th.emplace_back(dect2::namedThread("zorcom-a3sync", [this] { run(); }));
+        for (int i = 0; i < n; i++) th.emplace_back(dect2::namedThread("saurcom-a3sync", [this] { run(); }));
     }
     ~Pool() {
         flush();

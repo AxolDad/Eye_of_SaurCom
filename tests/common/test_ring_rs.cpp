@@ -1,4 +1,4 @@
-// IqRing: the C++ ring against the Rust ring (rust/zorcom_ring). (1) differential: the same random operation sequences on both, every result
+// IqRing: the C++ ring against the Rust ring (rust/saurcom_ring). (1) differential: the same random operation sequences on both, every result
 // and counter identical; (2) two-thread stress on both (order, no loss, no duplicate, offered = accepted + dropped); (3) with --bench, ns/op.
 // Under -DDECT2_SANITIZE_THREAD=ON ThreadSanitizer sees the C++ ring fully; the Rust code is not instrumented (its orderings are argued in ring.rs).
 #include "dect2/common/ring.h"

@@ -1,4 +1,4 @@
-// A stand-in for a user-installed HDC-patched FAAD2, for the tests of the runtime loader only: the same entry points ZorCom looks up, no codec.
+// A stand-in for a user-installed HDC-patched FAAD2, for the tests of the runtime loader only: the same entry points SaurCom looks up, no codec.
 // Built four times from this file (FAKE_VARIANT, CMakeLists.txt):
 //   0  a good library: any packet "decodes" to 2048 stereo frames at 44.1 kHz, L = first byte * 100, R = packet size * 10; the first packet after
 //      NeAACDecInitHDC is marked by L + 7 (so a test can see that the decoder state was restarted); a packet that starts with 0xEE is a decode error

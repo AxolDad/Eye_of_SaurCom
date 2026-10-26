@@ -1,7 +1,7 @@
 // HD Radio screens: the Radio tab (Station: call sign, names, slogan, location, message, the programs and what is playing with its album
 // art; Data: the large objects and the other data services; Signal: the receiver's figures), the program list on the right, the status
 // lamps, the analysis row (constellation, MER, P1 frames), the Receiver tab and the options of the test signal. HD Radio sound is HDC, a
-// patented codec that Eye of ZorCom does not ship: with the user's own patched FAAD2 the program selected on the right is played (hdr_hdc.h).
+// patented codec that Eye of SaurCom does not ship: with the user's own patched FAAD2 the program selected on the right is played (hdr_hdc.h).
 #include "app.h"
 #include "dect2/hdr/hdr_l2.h"
 #include "dect2/hdr/hdr_rx.h"
@@ -108,7 +108,7 @@ bool isPicture(const HdrLotInfo& l) {
     return ends(".png") || ends(".jpg") || ends(".jpeg");
 }
 
-// The texture of a complete LOT picture: PNG with Eye of ZorCom's own decoder, anything else (JPEG) through the system's picture decoder
+// The texture of a complete LOT picture: PNG with Eye of SaurCom's own decoder, anything else (JPEG) through the system's picture decoder
 const Pic* picture(App& a, const HdrLotInfo& l) {
     if (!l.complete || !gGfx || !isPicture(l)) return nullptr;
     const auto key = std::make_pair(l.port, l.lot);

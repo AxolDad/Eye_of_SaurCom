@@ -1,6 +1,6 @@
 // Decoded results through the engine, as the user meets them: ACARS messages decoded from the test signal stay through a switch to
 // another mode (QO-100) and back, a retune and a stop / start of the receiver; they go into the results folder, a new engine (the next
-// run of ZorCom) shows them again before its radio starts, and only the mode's Clear empties them.
+// run of SaurCom) shows them again before its radio starts, and only the mode's Clear empties them.
 #include "dect2/engine/engine.h"
 #include "dect2/engine/engine_testkit.h"
 #include <chrono>
@@ -29,7 +29,7 @@ static bool reportOf(Engine& e, int act, double secs, RxTelemetry& rx) {
 }
 
 int main() {
-    const std::filesystem::path dir = std::filesystem::temp_directory_path() / ("zorcom-results-test-" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
+    const std::filesystem::path dir = std::filesystem::temp_directory_path() / ("saurcom-results-test-" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code ec;
     std::filesystem::remove_all(dir, ec);
     const std::string d = dir.string();

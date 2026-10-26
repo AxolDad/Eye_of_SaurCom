@@ -49,7 +49,7 @@ bool openCam(VideoIn::Impl* I, const std::string& url, std::string& err) {
     if (!ctx || avcodec_parameters_to_context(ctx, st->codecpar) < 0 || avcodec_open2(ctx, codec, nullptr) < 0) {
         avcodec_free_context(&ctx); avformat_close_input(&fmt); err = "could not decode this capture device"; return false;
     }
-    I->fileTh = dect2::namedThread("zorcom-vidin", [=]() mutable {
+    I->fileTh = dect2::namedThread("saurcom-vidin", [=]() mutable {
         SwsContext* sws = nullptr;
         AVFrame* fr = av_frame_alloc();
         AVPacket* pk = av_packet_alloc();

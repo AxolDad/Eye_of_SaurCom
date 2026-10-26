@@ -28,7 +28,7 @@ unsigned legible(unsigned rgb);                // a marker/line colour pushed to
 bool tilesAvailable();                         // at least one tile is on screen
 void legend(float mapWidth, const char* fmt, ...);   // TextDisabled() along the bottom left of the map (the cursor put there): cut short before the credit
 // The controls every map has, on the line of the screen's own buttons: a "tiles" button with its menu (whether downloaded tiles are kept or
-// deleted when Eye of ZorCom closes, how many there are per zoom level, deleting them) and the "online map" switch. Both are one setting for every
+// deleted when Eye of SaurCom closes, how many there are per zoom level, deleting them) and the "online map" switch. Both are one setting for every
 // map. `privacy` (or null) ends "only tile numbers are sent" in the switch's tooltip, e.g. "never the position itself". After draw(), with
 // SameLine() before it; when they do not fit before the map's right edge they go on a line of their own.
 void tileControls(const char* privacy, bool fullButton = true);
@@ -43,7 +43,7 @@ public:
     FullScope(const FullScope&) = delete;
     FullScope& operator=(const FullScope&) = delete;
 };
-inline int devView(int dflt) { const char* e = std::getenv("ZORCOM_VIEW"); return e ? std::atoi(e) : dflt; }   // dev: open a screen on view N (screenshots)
+inline int devView(int dflt) { const char* e = std::getenv("SAURCOM_VIEW"); return e ? std::atoi(e) : dflt; }   // dev: open a screen on view N (screenshots)
 bool fullActive();                             // the full-screen screen is being drawn now
 void fullCorner(ImVec2 p0, ImVec2 size);       // a full-screen button in the top right corner of a map-sized rectangle, for the maps without the tile controls (cursor is left where it was)
 bool fullDraw(const void* owner, int family, ImVec2 disp);   // draw_ui.cpp, each frame: the full-screen screen over the whole window; false when not full

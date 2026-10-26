@@ -25,7 +25,7 @@ struct MarineBand {
     const char* name;         // "DSC distress and safety"
     const char* protocols;    // what is used there
     const char* notes;
-    int family;               // Eye of ZorCom mode family to open (14 AIS, 15 marine, 63 VDES, 92 COSPAS-SARSAT), -1 = tune only
+    int family;               // Eye of SaurCom mode family to open (14 AIS, 15 marine, 63 VDES, 92 COSPAS-SARSAT), -1 = tune only
     const char* sub;          // protocol entry inside the family ("dsc", "navtex", "wefax"), or nullptr
 };
 const std::vector<MarineBand>& marineBands();

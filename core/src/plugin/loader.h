@@ -1,11 +1,11 @@
 // Internal: loading a plugin library and the C host API trampolines shared by the in-process runner and the helper process.
 #pragma once
 #include "dect2/plugin/host.h"
-#include "zorcom_plugin.h"
+#include "saurcom_plugin.h"
 
 namespace dect2::plugin {
 
-struct Lib { void* handle = nullptr; const ZorComPluginVTable* vt = nullptr; };
+struct Lib { void* handle = nullptr; const SaurComPluginVTable* vt = nullptr; };
 // Loads (once; libraries are never unloaded, an unload can run code of a plugin that has gone wrong) and checks the vtable against the manifest.
 bool loadLibrary(const std::string& path, const Manifest& m, Lib& out, std::string& err);
 
@@ -30,6 +30,6 @@ struct ApiSink {
     virtual bool alive() = 0;
 };
 // Fills the C table; ctx must be the ApiSink*.
-void fillHostApi(ZorComHostApi& api, ApiSink* sink);
+void fillHostApi(SaurComHostApi& api, ApiSink* sink);
 
 } // namespace dect2::plugin

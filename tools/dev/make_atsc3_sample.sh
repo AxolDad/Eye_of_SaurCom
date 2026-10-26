@@ -14,4 +14,4 @@ ffmpeg -hide_banner -loglevel error -y -f lavfi -i "sine=frequency=440:sample_ra
   -filter_complex "[0][1]amerge=inputs=2,volume=0.4" -c:a aac -b:a 96k -movflags frag_keyframe+empty_moov+default_base_moof -frag_duration 1000000 "$TMP/audio.mp4"
 "$BUILD/atsc3gen" --video "$TMP/video.mp4" --audio "$TMP/audio.mp4" --out "$OUT" --rate 10e6 --cfo 2500 --snr 25 --echo-us 2 --echo-db -12
 echo
-echo "Open it in Eye of ZorCom: source 'IQ recording file', format CS8, sample rate 10 Msps, ATSC 3.0 selected."
+echo "Open it in Eye of SaurCom: source 'IQ recording file', format CS8, sample rate 10 Msps, ATSC 3.0 selected."

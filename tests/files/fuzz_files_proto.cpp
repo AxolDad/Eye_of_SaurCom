@@ -1,5 +1,5 @@
 // Seeded mutation run of the file format layer, meant for DECT2_SANITIZE=ON: every parser must never crash or hang on any bytes, at
-// any length (the input is copied to an exactly sized heap block). Also a libFuzzer target with -DZORCOM_LIBFUZZER.
+// any length (the input is copied to an exactly sized heap block). Also a libFuzzer target with -DSAURCOM_LIBFUZZER.
 #include "dect2/files/files_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -37,11 +37,11 @@ static void one(const uint8_t* d, size_t n) {
     free(p);
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const long iters = getenv("ZORCOM_FUZZ_ITERS") ? atol(getenv("ZORCOM_FUZZ_ITERS")) : 100000;
+    const long iters = getenv("SAURCOM_FUZZ_ITERS") ? atol(getenv("SAURCOM_FUZZ_ITERS")) : 100000;
     std::mt19937 g(8642);
     const std::string seeds[] = {
         "{\"global\":{\"core:datatype\":\"cf32_le\",\"core:sample_rate\":2.4e6,\"core:description\":\"a\\\"b\\u0041\"},\"captures\":[{\"core:sample_start\":0,\"core:frequency\":1e8}],\"annotations\":[{}]}",

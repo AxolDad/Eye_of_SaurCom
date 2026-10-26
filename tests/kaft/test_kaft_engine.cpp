@@ -95,11 +95,11 @@ static std::vector<cf32> handmade(const std::string& name, const std::vector<uin
     };
     const Hash32 h = hashBytes(0, data.data(), data.size());
     OpenMsg o;
-    o.session = 77; o.callTx = "ZORCOM"; o.callRx = "CQ"; o.width = (uint8_t)w; o.fileName = name;
+    o.session = 77; o.callTx = "SAURCOM"; o.callRx = "CQ"; o.width = (uint8_t)w; o.fileName = name;
     o.payloadSize = data.size(); o.origSize = data.size(); o.hash = h; o.startProfile = 2; o.blockSize = (uint16_t)dataBytesPerBlock(2);
-    put(buildFrame(frameForCtrl(encode(o), false, 77, 0, w, "ZORCOM")));
+    put(buildFrame(frameForCtrl(encode(o), false, 77, 0, w, "SAURCOM")));
     StartMsg st; st.session = 77; st.profile = 2;
-    put(buildFrame(frameForCtrl(encode(st), false, 77, 1, w, "ZORCOM")));
+    put(buildFrame(frameForCtrl(encode(st), false, 77, 1, w, "SAURCOM")));
     TxBurst tb;
     tb.session = 77; tb.burstNo = 0; tb.profile = 2; tb.width = w;
     const size_t cap = (size_t)dataBytesPerBlock(2);
@@ -115,9 +115,9 @@ static std::vector<cf32> handmade(const std::string& name, const std::vector<uin
         }
         tb.frames.push_back(std::move(fr));
     }
-    put(buildBurst(framesForBurst(tb, "ZORCOM")));
+    put(buildBurst(framesForBurst(tb, "SAURCOM")));
     FinishMsg f; f.session = 77; f.payloadSize = data.size(); f.hash = h; f.origHash = h;
-    put(buildFrame(frameForCtrl(encode(f), false, 77, 2, w, "ZORCOM")));
+    put(buildFrame(frameForCtrl(encode(f), false, 77, 2, w, "SAURCOM")));
     return out;
 }
 
@@ -147,7 +147,7 @@ int main() {
         CHECK(kaftMinRateHz(0) == 1.25e6 && kaftMinRateHz(1) == 0.625e6 && kaftMinRateHz(2) == 0.25e6, "minimum rates");
     }
 
-    const fs::path dir = fs::temp_directory_path() / "zorcom_kaft_engine_test";
+    const fs::path dir = fs::temp_directory_path() / "saurcom_kaft_engine_test";
     fs::remove_all(dir);
     fs::create_directories(dir / "in");
     const std::string out = (dir / "out").string();

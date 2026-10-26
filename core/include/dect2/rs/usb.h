@@ -1,4 +1,4 @@
-// C ABI of the Rust crate rust/zorcom_usb (USB SDR drivers). Written by hand; the Rust test rust/zorcom/tests/headers.rs checks it against ffi.rs.
+// C ABI of the Rust crate rust/saurcom_usb (USB SDR drivers). Written by hand; the Rust test rust/saurcom/tests/headers.rs checks it against ffi.rs.
 // Only meaningful when DECT2_RUST_USB is defined (see rust/README.md). Default OFF: the desktop C++ driver (dlopen of librtlsdr) stays the default.
 //
 // The RTL-SDR protocol layer (RTL2832U registers, R820T / R820T2 / R828D and E4000 tuners) as pure logic over a table of transfer callbacks, so the same
@@ -14,11 +14,11 @@ extern "C" {
 #endif
 
 // ABI version of this module (1).
-uint32_t zorcom_usb_version(void);
+uint32_t saurcom_usb_version(void);
 
 // The transport. All transfers are on the device that interface 0 of was claimed by the caller. Return the byte count (>= 0) or a negative libusb error code.
 // control_in / control_out / bulk_read are required, the others may be NULL. `ctx` is handed back unchanged.
-typedef struct zorcom_usb_ops {
+typedef struct saurcom_usb_ops {
     void* ctx;
     int32_t (*control_in)(void* ctx, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint8_t* data, uint16_t len, uint32_t timeout_ms);
     int32_t (*control_out)(void* ctx, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, const uint8_t* data, uint16_t len, uint32_t timeout_ms);
@@ -29,62 +29,62 @@ typedef struct zorcom_usb_ops {
     int32_t (*reset_device)(void* ctx);
     // Sleep (the EEPROM write needs 5 ms between bytes).
     void (*delay_ms)(void* ctx, uint32_t ms);
-} zorcom_usb_ops;
+} saurcom_usb_ops;
 
-typedef void zorcom_usb_rtl_t;   // an opened RTL-SDR (memory of zorcom_usb_rtl_size() bytes)
+typedef void saurcom_usb_rtl_t;   // an opened RTL-SDR (memory of saurcom_usb_rtl_size() bytes)
 
 // Size and alignment of the memory for one RTL-SDR object (allocate with aligned_alloc / operator new[] with alignment; the crate does not allocate).
-size_t zorcom_usb_rtl_size(void);
-size_t zorcom_usb_rtl_align(void);
+size_t saurcom_usb_rtl_size(void);
+size_t saurcom_usb_rtl_align(void);
 // Opens the dongle behind `ops` into `mem` (resets the baseband, probes and initialises the tuner). 0 on success; -1 bad arguments; -95 an FC0012 / FC0013 /
-// FC2580 tuner (recognised, not driven). `ops` is copied. After 0, release with zorcom_usb_rtl_close.
-int32_t zorcom_usb_rtl_open(void* mem, size_t mem_len, const zorcom_usb_ops* ops);
+// FC2580 tuner (recognised, not driven). `ops` is copied. After 0, release with saurcom_usb_rtl_close.
+int32_t saurcom_usb_rtl_open(void* mem, size_t mem_len, const saurcom_usb_ops* ops);
 // Powers the tuner and the demodulator down. The memory can be freed afterwards; releasing the USB interface is the caller's job.
-int32_t zorcom_usb_rtl_close(zorcom_usb_rtl_t* h);
+int32_t saurcom_usb_rtl_close(saurcom_usb_rtl_t* h);
 
 // rtlsdr_set_center_freq: 0 on success. Below 24 MHz an R820T switches to direct sampling by itself (the Blog fork's behaviour).
-int32_t zorcom_usb_rtl_set_center_freq(zorcom_usb_rtl_t* h, uint32_t freq);
+int32_t saurcom_usb_rtl_set_center_freq(saurcom_usb_rtl_t* h, uint32_t freq);
 // The frequency last set, 0 after a failed tune.
-uint32_t zorcom_usb_rtl_get_center_freq(zorcom_usb_rtl_t* h);
+uint32_t saurcom_usb_rtl_get_center_freq(saurcom_usb_rtl_t* h);
 // rtlsdr_set_sample_rate: 225001..300000 and 900001..3200000 Hz, otherwise -22.
-int32_t zorcom_usb_rtl_set_sample_rate(zorcom_usb_rtl_t* h, uint32_t rate);
+int32_t saurcom_usb_rtl_set_sample_rate(saurcom_usb_rtl_t* h, uint32_t rate);
 // The rate in effect after the resampler's rounding.
-uint32_t zorcom_usb_rtl_get_sample_rate(zorcom_usb_rtl_t* h);
+uint32_t saurcom_usb_rtl_get_sample_rate(saurcom_usb_rtl_t* h);
 // rtlsdr_set_freq_correction in ppm; -2 when unchanged.
-int32_t zorcom_usb_rtl_set_freq_correction(zorcom_usb_rtl_t* h, int32_t ppm);
+int32_t saurcom_usb_rtl_set_freq_correction(saurcom_usb_rtl_t* h, int32_t ppm);
 // rtlsdr_tuner: 0 unknown, 1 E4000, 5 R820T / R820T2, 6 R828D; -1 for a bad handle.
-int32_t zorcom_usb_rtl_get_tuner_type(zorcom_usb_rtl_t* h);
+int32_t saurcom_usb_rtl_get_tuner_type(saurcom_usb_rtl_t* h);
 // Number of discrete tuner gains (tenths of a dB); with a non-NULL `out` of `n` ints also copies them.
-int32_t zorcom_usb_rtl_get_tuner_gains(zorcom_usb_rtl_t* h, int32_t* out, size_t n);
+int32_t saurcom_usb_rtl_get_tuner_gains(saurcom_usb_rtl_t* h, int32_t* out, size_t n);
 // Gain mode: 0 automatic, 1 manual.
-int32_t zorcom_usb_rtl_set_tuner_gain_mode(zorcom_usb_rtl_t* h, int32_t manual);
+int32_t saurcom_usb_rtl_set_tuner_gain_mode(saurcom_usb_rtl_t* h, int32_t manual);
 // Manual gain in tenths of a dB.
-int32_t zorcom_usb_rtl_set_tuner_gain(zorcom_usb_rtl_t* h, int32_t gain);
+int32_t saurcom_usb_rtl_set_tuner_gain(saurcom_usb_rtl_t* h, int32_t gain);
 // IF stage gain of the E4000 (stage 1..6, tenths of a dB); 0 and nothing done for other tuners.
-int32_t zorcom_usb_rtl_set_tuner_if_gain(zorcom_usb_rtl_t* h, int32_t stage, int32_t gain);
+int32_t saurcom_usb_rtl_set_tuner_if_gain(saurcom_usb_rtl_t* h, int32_t stage, int32_t gain);
 // Tuner IF bandwidth in Hz, 0 = the sample rate.
-int32_t zorcom_usb_rtl_set_tuner_bandwidth(zorcom_usb_rtl_t* h, uint32_t bw);
+int32_t saurcom_usb_rtl_set_tuner_bandwidth(saurcom_usb_rtl_t* h, uint32_t bw);
 // The RTL2832U's own AGC.
-int32_t zorcom_usb_rtl_set_agc_mode(zorcom_usb_rtl_t* h, int32_t on);
+int32_t saurcom_usb_rtl_set_agc_mode(saurcom_usb_rtl_t* h, int32_t on);
 // Direct sampling: 0 off (automatic on an R820T below 24 MHz), 1 I branch, 2 Q branch.
-int32_t zorcom_usb_rtl_set_direct_sampling(zorcom_usb_rtl_t* h, int32_t on);
+int32_t saurcom_usb_rtl_set_direct_sampling(saurcom_usb_rtl_t* h, int32_t on);
 // Offset tuning (E4000). On an R820T / R828D the RTL-SDR Blog fork switches the bias-T with it instead and returns -2.
-int32_t zorcom_usb_rtl_set_offset_tuning(zorcom_usb_rtl_t* h, int32_t on);
+int32_t saurcom_usb_rtl_set_offset_tuning(saurcom_usb_rtl_t* h, int32_t on);
 // Antenna power (bias-T, GPIO 0). The EEPROM can force it on (then it cannot be turned off).
-int32_t zorcom_usb_rtl_set_bias_tee(zorcom_usb_rtl_t* h, int32_t on);
+int32_t saurcom_usb_rtl_set_bias_tee(saurcom_usb_rtl_t* h, int32_t on);
 // Any GPIO as an output (GPIO 5 switches the upconverter of the RTL-SDR Blog V4).
-int32_t zorcom_usb_rtl_set_bias_tee_gpio(zorcom_usb_rtl_t* h, int32_t gpio, int32_t on);
+int32_t saurcom_usb_rtl_set_bias_tee_gpio(saurcom_usb_rtl_t* h, int32_t gpio, int32_t on);
 // Flush the sample FIFO; call before streaming.
-int32_t zorcom_usb_rtl_reset_buffer(zorcom_usb_rtl_t* h);
+int32_t saurcom_usb_rtl_reset_buffer(saurcom_usb_rtl_t* h);
 // Reads raw 8 bit I/Q bytes from the bulk endpoint: the byte count or a negative error.
-int32_t zorcom_usb_rtl_read_sync(zorcom_usb_rtl_t* h, uint8_t* buf, size_t len);
+int32_t saurcom_usb_rtl_read_sync(saurcom_usb_rtl_t* h, uint8_t* buf, size_t len);
 // Crystal frequencies in Hz (0 keeps the default 28.8 MHz).
-int32_t zorcom_usb_rtl_set_xtal_freq(zorcom_usb_rtl_t* h, uint32_t rtl_freq, uint32_t tuner_freq);
+int32_t saurcom_usb_rtl_set_xtal_freq(saurcom_usb_rtl_t* h, uint32_t rtl_freq, uint32_t tuner_freq);
 // EEPROM access (256 bytes).
-int32_t zorcom_usb_rtl_read_eeprom(zorcom_usb_rtl_t* h, uint8_t* out, uint32_t offset, size_t len);
-int32_t zorcom_usb_rtl_write_eeprom(zorcom_usb_rtl_t* h, const uint8_t* data, uint32_t offset, size_t len);
+int32_t saurcom_usb_rtl_read_eeprom(saurcom_usb_rtl_t* h, uint8_t* out, uint32_t offset, size_t len);
+int32_t saurcom_usb_rtl_write_eeprom(saurcom_usb_rtl_t* h, const uint8_t* data, uint32_t offset, size_t len);
 // 1 when the manufacturer / product strings read at open equal the NUL terminated arguments (e.g. "RTLSDRBlog", "Blog V4"), else 0.
-int32_t zorcom_usb_rtl_check_dongle_model(zorcom_usb_rtl_t* h, const uint8_t* manufact, const uint8_t* product);
+int32_t saurcom_usb_rtl_check_dongle_model(saurcom_usb_rtl_t* h, const uint8_t* manufact, const uint8_t* product);
 
 #ifdef __cplusplus
 }

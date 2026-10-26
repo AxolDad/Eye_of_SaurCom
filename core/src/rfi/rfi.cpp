@@ -588,7 +588,7 @@ bool Walk::exportCsv(const std::string& path, std::string& err) const {
 bool Walk::exportGpx(const std::string& path, std::string& err) const {
     FILE* f = fopen(path.c_str(), "w");
     if (!f) { err = "cannot write " + path; return false; }
-    fprintf(f, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Eye of ZorCom interference hunter\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n");
+    fprintf(f, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Eye of SaurCom interference hunter\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n");
     for (const Reading& r : rd_) {
         if (!r.hasPos) continue;
         fprintf(f, "<wpt lat=\"%.6f\" lon=\"%.6f\"><time>%s</time><name>%+.1f dB</name><desc>%s, strongest spur %.4f MHz</desc></wpt>\n",

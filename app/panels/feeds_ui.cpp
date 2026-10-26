@@ -330,7 +330,7 @@ void feedsWindow(App& a) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(380 * gUi);
         ImGui::TextUnformatted(tr("Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. "
-            "A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'Eye of ZorCom'. "
+            "A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'Eye of SaurCom'. "
             "Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. "
             "Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'."));
         ImGui::PopTextWrapPos();
@@ -413,7 +413,7 @@ void feedsWindow(App& a) {
             for (const std::string& c : ss.clients) ImGui::BulletText("%s", c.c_str());
         }
         ImGui::PushTextWrapPos(460 * gUi);
-        ImGui::TextDisabled("%s", tr("A second Eye of ZorCom (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. "
+        ImGui::TextDisabled("%s", tr("A second Eye of SaurCom (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. "
                                      "Without 'allow remote control' the clients cannot change the frequency or gain."));
         ImGui::PopTextWrapPos();
         ImGui::Unindent();

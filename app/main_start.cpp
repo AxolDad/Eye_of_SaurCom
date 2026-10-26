@@ -24,20 +24,20 @@
 void startApp(App& app, int argc, char** argv) {
     // startup guard: a start that keeps crashing (a saved setting that breaks it, #59) must not repeat forever. After one unfinished
     // start the other interface is tried (the classic and the new one share little drawing code); after two in a row the saved
-    // settings are set aside and Eye of ZorCom starts with the defaults
+    // settings are set aside and Eye of SaurCom starts with the defaults
     // a start with arguments (the dev and test runs: --shot, --hidden ...) is left out: it neither changes the settings nor counts
     const int failedStarts = argc > 1 ? 0 : dect2::crash::failedStarts();
     if (argc > 1) dect2::crash::startupDone();
     std::string guardNote;
     if (failedStarts >= 2) {
         const std::string kept = plat::prefs().setAside();
-        guardNote = "Eye of ZorCom did not finish starting " + std::to_string(failedStarts) + " times in a row, so it starts with the default settings this time. "
+        guardNote = "Eye of SaurCom did not finish starting " + std::to_string(failedStarts) + " times in a row, so it starts with the default settings this time. "
                   + (kept.empty() ? std::string("The old settings could not be kept.") : "The old settings are kept in " + kept + ".");
     }
     loadPrefs(app);
     if (failedStarts == 1) {
         app.newUi = !app.newUi;
-        guardNote = std::string("Eye of ZorCom did not finish starting last time, so it opens with the ") + (app.newUi ? "new" : "classic")
+        guardNote = std::string("Eye of SaurCom did not finish starting last time, so it opens with the ") + (app.newUi ? "new" : "classic")
                   + " interface this time. The other one is under View (new interface) or the \"New interface\" button (classic).";
     }
     if (!guardNote.empty()) {
@@ -53,7 +53,7 @@ void startApp(App& app, int argc, char** argv) {
     app.engine.player().setHardwareDecode(plat::prefs().getB("hwVideo", true));
     app.tune.synth.demoTv = true;   // the synthetic DVB-T / ATSC signal carries a test-card programme
     if (const char* ws = getenv("DECT2_WIZSTEP")) wizEnter(app, atoi(ws));
-    app.engine.log("Eye of ZorCom started");
+    app.engine.log("Eye of SaurCom started");
     if (!gCrashNote.empty()) app.engine.log(gCrashNote);
     refreshDevices(app);
     bool safeStart = false;   // --safe-start: do not pick or open a radio by itself (a saved network radio that hangs the start-up)

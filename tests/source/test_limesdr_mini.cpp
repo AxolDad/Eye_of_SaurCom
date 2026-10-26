@@ -26,7 +26,7 @@ static std::vector<DeviceInfo> limes() {
 
 int main(int argc, char** argv) {
     if (argc < 2) { printf("usage: test_limesdr_mini <fake library>\n"); return 2; }
-    char tmpl[] = "/tmp/zorcom-lime-XXXXXX";
+    char tmpl[] = "/tmp/saurcom-lime-XXXXXX";
     const char* dir = mkdtemp(tmpl);
     if (!dir) return 2;
 #ifdef __APPLE__

@@ -109,7 +109,7 @@ private:
     std::atomic<size_t> lastN_{0};
 };
 
-// The same ring implemented in Rust (rust/zorcom_ring), with the same API and behaviour. The storage stays here, the algorithm is in Rust.
+// The same ring implemented in Rust (rust/saurcom_ring), with the same API and behaviour. The storage stays here, the algorithm is in Rust.
 // DECT2_RUST_RING (CMake option, default OFF) makes IqRing this class; DECT2_RING_BOTH makes both classes available (tests, benchmark).
 #if defined(DECT2_RUST_RING) || defined(DECT2_RING_BOTH)
 }
@@ -121,8 +121,8 @@ class IqRingRs {
 public:
     explicit IqRingRs(size_t capacityPow2 = 1u << 24) : buf_(capacityPow2) {
         static_assert(alignof(cf32) <= 128, "");
-        if (zorcom_ring_hdr_size() > sizeof(hdr_) || zorcom_ring_hdr_align() > 128 ||
-            zorcom_ring_init(hdr_, reinterpret_cast<uint8_t*>(buf_.data()), capacityPow2, sizeof(cf32), 0) != 0) {
+        if (saurcom_ring_hdr_size() > sizeof(hdr_) || saurcom_ring_hdr_align() > 128 ||
+            saurcom_ring_init(hdr_, reinterpret_cast<uint8_t*>(buf_.data()), capacityPow2, sizeof(cf32), 0) != 0) {
             std::fprintf(stderr, "IqRing: capacity %zu is not a power of two, or the Rust header does not fit\n", capacityPow2);
             std::abort();
         }
@@ -132,22 +132,22 @@ public:
 
     size_t write(const cf32* src, size_t n) {
         const int64_t ns = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-        return zorcom_ring_write(hdr_, reinterpret_cast<const uint8_t*>(src), n, ns);
+        return saurcom_ring_write(hdr_, reinterpret_cast<const uint8_t*>(src), n, ns);
     }
-    bool lastWrite(uint64_t& offered, int64_t& ns, size_t& n) const { return zorcom_ring_last_write(hdr_, &offered, &ns, &n) != 0; }
-    size_t capacity() const { return zorcom_ring_capacity(hdr_); }
-    size_t read(cf32* dst, size_t n) { return zorcom_ring_read(hdr_, reinterpret_cast<uint8_t*>(dst), n); }
-    size_t skipToNewest(size_t keep) { return zorcom_ring_skip_to_newest(hdr_, keep); }
-    size_t dropBacklog() { return zorcom_ring_drop_backlog(hdr_); }
-    size_t available() const { return zorcom_ring_available(hdr_); }
-    uint64_t dropped() const { return zorcom_ring_dropped(hdr_); }
-    void noteLost(uint64_t n) { zorcom_ring_note_lost(hdr_, n); }
-    void clear() { zorcom_ring_clear(hdr_); }
-    void resetDropped() { zorcom_ring_reset_dropped(hdr_); }
+    bool lastWrite(uint64_t& offered, int64_t& ns, size_t& n) const { return saurcom_ring_last_write(hdr_, &offered, &ns, &n) != 0; }
+    size_t capacity() const { return saurcom_ring_capacity(hdr_); }
+    size_t read(cf32* dst, size_t n) { return saurcom_ring_read(hdr_, reinterpret_cast<uint8_t*>(dst), n); }
+    size_t skipToNewest(size_t keep) { return saurcom_ring_skip_to_newest(hdr_, keep); }
+    size_t dropBacklog() { return saurcom_ring_drop_backlog(hdr_); }
+    size_t available() const { return saurcom_ring_available(hdr_); }
+    uint64_t dropped() const { return saurcom_ring_dropped(hdr_); }
+    void noteLost(uint64_t n) { saurcom_ring_note_lost(hdr_, n); }
+    void clear() { saurcom_ring_clear(hdr_); }
+    void resetDropped() { saurcom_ring_reset_dropped(hdr_); }
 
 private:
     std::vector<cf32> buf_;
-    alignas(128) uint8_t hdr_[ZORCOM_RING_HDR_BYTES];
+    alignas(128) uint8_t hdr_[SAURCOM_RING_HDR_BYTES];
 };
 #endif
 

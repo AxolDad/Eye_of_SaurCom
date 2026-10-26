@@ -2663,7 +2663,7 @@ bool ImGui::DragBehavior(ImGuiID id, ImGuiDataType data_type, void* p_v, float v
     return false;
 }
 
-// Eye of ZorCom: mouse wheel over a hovered slider/drag changes the value by one step (Shift = fine, Ctrl = coarse), clamped to the range.
+// Eye of SaurCom: mouse wheel over a hovered slider/drag changes the value by one step (Shift = fine, Ctrl = coarse), clamped to the range.
 static bool WheelAdjustScalar(ImGuiID id, bool hovered, ImGuiDataType dt, void* p, const void* pmin, const void* pmax, float drag_speed, ImGuiSliderFlags flags)
 {
     ImGuiContext& g = *GImGui;

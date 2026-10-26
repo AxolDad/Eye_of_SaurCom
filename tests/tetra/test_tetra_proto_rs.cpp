@@ -1,6 +1,6 @@
-// Golden-vector test of the Rust TETRA network information layer (rust/zorcom_tetra, dect2::tetra): SYNC and SYSINFO parsing (valid, mutated, truncated,
+// Golden-vector test of the Rust TETRA network information layer (rust/saurcom_tetra, dect2::tetra): SYNC and SYSINFO parsing (valid, mutated, truncated,
 // random), service / security / carrier helpers over all inputs, network time text, access-assign usage, and the signalling block walk over generated
-// broadcasts (neighbours, time, encrypted, fragments, fill bits) and noise, over ZORCOM_DIFF_ITERS (default 200000) seeded inputs per family. Every result goes
+// broadcasts (neighbours, time, encrypted, fragments, fill bits) and noise, over SAURCOM_DIFF_ITERS (default 200000) seeded inputs per family. Every result goes
 // into a digest (tests/common/golden.h; doubles rounded to 1e-6) compared with the one recorded from the C++ layer the Rust code replaced.
 #include "dect2/tetra/tetra_pdu.h"
 #include "../common/golden.h"
@@ -92,7 +92,7 @@ static Bits mkBlock(int kind) {
 }
 
 int main() {
-    const char* e = getenv("ZORCOM_DIFF_ITERS");
+    const char* e = getenv("SAURCOM_DIFF_ITERS");
     const long iters = e ? atol(e) : 200000;
     for (long it = 0; it < iters; it++) {
         // SYNC

@@ -38,7 +38,7 @@ namespace {
     N_("libcodec2 is not loaded: live encode is off. Destination callsigns still go on the air; voice bits are the known test pattern. A 1 kHz tone, silence or a WAV/MP3 can still be sent as analog NFM."),
     N_("Live voice is encoded with Codec 2 (FreeDV)."),
     N_("libcodec2 is not loaded: live encode is off. A 1 kHz tone, silence or a WAV/MP3 can still be sent."),
-    N_("This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead."),
+    N_("This vocoder cannot encode: Eye of SaurCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead."),
     N_("TETRA ACELP is not encoded here. Colour code and IDs are shown; the downlink test pattern is sent. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead."),
 };
 }
@@ -251,7 +251,7 @@ TxRequest makeReq(const TxUi& s, const TxModeSpec& mode, bool carrier) {
     r.videoDevice = s.videoDevice;
     for (int i = 0; i < std::max(1, std::min(4, s.nsvc)); i++) {
         DemoTsService p;
-        p.name = s.svc[i][0] ? s.svc[i] : (s.name[0] && i == 0 ? s.name : std::string("Eye of ZorCom ") + std::to_string(i + 1));
+        p.name = s.svc[i][0] ? s.svc[i] : (s.name[0] && i == 0 ? s.name : std::string("Eye of SaurCom ") + std::to_string(i + 1));
         p.picture = i % 3;
         if (s.svcSrc[i] == 1) p.file = s.svcFile[i];
         if (s.svcSrc[i] == 2) { p.liveCamera = true; p.camera = s.svcCam[i]; }
@@ -299,7 +299,7 @@ bool startTx(App& a, TxUi& s, const DeviceInfo* radio, const TxModeSpec* mode, b
         if (!txClaimRadio(*radio, err)) { s.error = err; return false; }
         s.claimed = true;
         sink = makeTxSink(*radio);
-        if (!sink) { s.error = txUnavailableReason(*radio); if (s.error.empty()) s.error = tr("This radio has no transmit driver in Eye of ZorCom."); release(s); return false; }
+        if (!sink) { s.error = txUnavailableReason(*radio); if (s.error.empty()) s.error = tr("This radio has no transmit driver in Eye of SaurCom."); release(s); return false; }
         lim = TxRateLimits{radio->txMinRateHz, radio->txMaxRateHz};
     }
     if (s.session.start(std::move(sink), req, lim, err)) {
@@ -351,7 +351,7 @@ void txNoticePopup(TxUi& s) {
         ImGui::Spacing();
         ImGui::TextUnformatted(tr("Transmitting stays off until you agree here. By agreeing you confirm that you will transmit only within your own legal authority "
                                   "(a licence or permission where you are) and that you are responsible for what you emit and for not interfering with others. "
-                                  "Eye of ZorCom does not limit the frequency, the power or the mode: the radio's own limits are the only ones."));
+                                  "Eye of SaurCom does not limit the frequency, the power or the mode: the radio's own limits are the only ones."));
         ImGui::PopTextWrapPos();
         ImGui::Spacing();
         const float w = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) / 2;

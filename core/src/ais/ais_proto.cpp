@@ -1,5 +1,5 @@
 // The generator side of the AIS frame layer (putU, putS, putText, appendFcs, burstLineBits, toNmea); the reading side (bit fields, HDLC, NMEA, message decoding) is Rust:
-// ais_proto_rs.cpp over rust/zorcom_proto.
+// ais_proto_rs.cpp over rust/saurcom_proto.
 #include "dect2/ais/ais_proto.h"
 #include "dect2/ais/ais_tel.h"
 #include <algorithm>

@@ -6,10 +6,10 @@
 #include <cmath>
 #include <dispatch/dispatch.h>
 
-@interface ZorComVideoSink : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface SaurComVideoSink : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
 @property dect2::VideoIn::Impl* impl;
 @end
-@implementation ZorComVideoSink
+@implementation SaurComVideoSink
 - (void)captureOutput:(AVCaptureVideoDataOutput*)output didOutputSampleBuffer:(CMSampleBufferRef)sb fromConnection:(AVCaptureConnection*)conn {
     (void)output; (void)conn;
     CVImageBufferRef img = CMSampleBufferGetImageBuffer(sb);
@@ -96,14 +96,14 @@ AVCaptureDevice* findDev(const std::string& id) {
 
 struct Cam {
     AVCaptureSession* sess = nil;
-    ZorComVideoSink* sink = nil;
+    SaurComVideoSink* sink = nil;
 };
 }
 
 bool videoInCameraStart(VideoIn::Impl* I, const std::string& deviceId, std::string& err) {
     @autoreleasepool {
         const AVAuthorizationStatus st = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
-        if (st == AVAuthorizationStatusDenied || st == AVAuthorizationStatusRestricted) { err = "camera access is off for Eye of ZorCom (System Settings > Privacy & Security > Camera)"; return false; }
+        if (st == AVAuthorizationStatusDenied || st == AVAuthorizationStatusRestricted) { err = "camera access is off for Eye of SaurCom (System Settings > Privacy & Security > Camera)"; return false; }
         AVCaptureDevice* dev = findDev(deviceId);
         if (!dev) { err = deviceId.empty() ? "no camera or capture card was found" : "the chosen camera is not connected any more"; return false; }
         NSError* nse = nil;
@@ -116,9 +116,9 @@ bool videoInCameraStart(VideoIn::Impl* I, const std::string& deviceId, std::stri
         AVCaptureVideoDataOutput* out = [[AVCaptureVideoDataOutput alloc] init];
         out.videoSettings = @{ (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA) };
         out.alwaysDiscardsLateVideoFrames = YES;
-        ZorComVideoSink* sink = [[ZorComVideoSink alloc] init];
+        SaurComVideoSink* sink = [[SaurComVideoSink alloc] init];
         sink.impl = I;
-        dispatch_queue_t q = dispatch_queue_create("zorcom.videoin", DISPATCH_QUEUE_SERIAL);
+        dispatch_queue_t q = dispatch_queue_create("saurcom.videoin", DISPATCH_QUEUE_SERIAL);
         [out setSampleBufferDelegate:sink queue:q];
         if (![sess canAddOutput:out]) { err = "could not attach a video output to this capture device"; return false; }
         [sess addOutput:out];

@@ -242,7 +242,7 @@ protected:
         bias_ = offset_ = false;
         ppm_ = 0;   // librtlsdr opens without a correction
         rtl().set_agc_mode(dev_, 0);
-        rtl().set_tuner_gain_mode(dev_, 1);   // manual gain: Eye of ZorCom runs its own AGC
+        rtl().set_tuner_gain_mode(dev_, 1);   // manual gain: Eye of SaurCom runs its own AGC
         return configure(s, err, false);
     }
     bool configure(const TuneSettings& s, std::string& err, bool live) override {
@@ -284,7 +284,7 @@ protected:
             else ds = canDirect && f < dsBelow ? 2 : 0;
         }
         if (v4_ && !rtl().blogLib && f < kDirectBelowHz)
-            addNote(err, "this dongle is an RTL-SDR Blog V4: HF needs librtlsdr from rtl-sdr-blog (the stock osmocom library does not switch the upconverter). Install the Blog driver or use an Eye of ZorCom build that bundles it");
+            addNote(err, "this dongle is an RTL-SDR Blog V4: HF needs librtlsdr from rtl-sdr-blog (the stock osmocom library does not switch the upconverter). Install the Blog driver or use an Eye of SaurCom build that bundles it");
         // nothing here refuses a frequency: the driver is asked as is. Outside what the dongle is specified for it gets a note.
         const bool r82 = tuner_ == kR820T || tuner_ == kR828D;
         const double specLo = ds ? dsLo : v4_ ? lo_ : r82 ? ((model_ == kBlogV3 || model_ == kDxPatrol) && canDirect && mode != "off" ? dsLo : kDirectBelowHz) : lo_;
@@ -340,7 +340,7 @@ protected:
         return true;
     }
     void closeDevice() override {
-        if (dev_ && bias_ && rtl().set_bias_tee) rtl().set_bias_tee(dev_, 0);   // antenna power never stays on after Eye of ZorCom lets go of the radio
+        if (dev_ && bias_ && rtl().set_bias_tee) rtl().set_bias_tee(dev_, 0);   // antenna power never stays on after Eye of SaurCom lets go of the radio
         bias_ = false;
         if (dev_) rtl().close(dev_);
         dev_ = nullptr;

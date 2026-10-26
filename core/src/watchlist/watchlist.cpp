@@ -263,7 +263,7 @@ bool buildWebhook(const Channels& c, const Hit& h, const au::Event& ev, Request&
     if (!httpUrlOk(url)) { err = "the webhook address is not a web address"; return false; }
     if (!c.webhookToken.empty() && !tokenOk(c.webhookToken)) { err = "the webhook token has odd characters"; return false; }
     js::Value o = js::Value::object();
-    o.set("source", js::Value::string("Eye of ZorCom"));
+    o.set("source", js::Value::string("Eye of SaurCom"));
     o.set("list", js::Value::string(h.list));
     o.set("kind", js::Value::string(h.kind));
     o.set("matched", js::Value::string(h.matched));
@@ -515,10 +515,10 @@ void Watcher::sendTest() {
     h.list = "Test";
     h.kind = "test";
     h.matched = "test";
-    h.summary = "This is a test alert from Eye of ZorCom.";
+    h.summary = "This is a test alert from Eye of SaurCom.";
     au::Event ev("plugin.test");
-    ev.at(h.time, "Eye of ZorCom", 0);
-    h.result = p_->deliver(sk, s, h, ev, "Eye of ZorCom watchlist test", h.summary, true);
+    ev.at(h.time, "Eye of SaurCom", 0);
+    h.result = p_->deliver(sk, s, h, ev, "Eye of SaurCom watchlist test", h.summary, true);
     h.delivered = true;
     std::lock_guard<std::mutex> lk(p_->mu);
     p_->history.push_back(h);
@@ -538,7 +538,7 @@ void Watcher::submit(const au::Event& ev) {
 void Watcher::start() {
     if (p_->th.joinable()) return;
     p_->stopReq = false;
-    p_->th = dect2::namedThread("zorcom-wlcore", [this] {
+    p_->th = dect2::namedThread("saurcom-wlcore", [this] {
         for (;;) {
             std::deque<au::Event> batch;
             {

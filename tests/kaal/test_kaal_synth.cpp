@@ -45,7 +45,7 @@ static void run(int kb, double secs) {
     CHECK(k.blocksOk > 200 && k.blocksBad * 20 < k.blocksOk, "frames ok %llu bad %llu", (unsigned long long)k.blocksOk, (unsigned long long)k.blocksBad);
     CHECK(std::fabs(k.cfoHz - 1200.0) < 150.0, "carrier offset read %.0f Hz, sent 1200", k.cfoHz);
     CHECK(k.symRate == (kb >= 24 ? 16000 : 8000), "symbol rate %d", k.symRate);
-    CHECK(k.beaconValid && k.callsign == "ZORCOM", "beacon '%s'", k.callsign.c_str());
+    CHECK(k.beaconValid && k.callsign == "SAURCOM", "beacon '%s'", k.callsign.c_str());
     CHECK(e.droppedSamples() == 0, "dropped %llu", (unsigned long long)e.droppedSamples());
     e.stop();
 }

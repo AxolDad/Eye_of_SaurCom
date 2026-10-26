@@ -13,7 +13,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 APP = os.path.join(ROOT, "build", "dect2")
 OUT = os.path.join(ROOT, "video", "assets", "shots")
 TOOLS = os.path.join(ROOT, "video", "tools")
-CONF = os.path.expanduser("~/.config/zorcom/settings.conf")
+CONF = os.path.expanduser("~/.config/saurcom/settings.conf")
 
 SCAN = "\t".join([
     "frequency_mhz,mode,name,dwell_s,lockout,priority,trunk",

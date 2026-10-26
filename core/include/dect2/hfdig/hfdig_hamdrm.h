@@ -18,7 +18,7 @@
 //   modeOpt[1]  mode 1 A, 2 B, 3 E (0: B)             modeOpt[2]  occupancy 1 2.3 kHz, 2 2.5 kHz (0: 2.5 kHz)
 //   modeOpt[3]  QAM 1 4, 2 16, 3 64 (0: 16)            modeOpt[4]  >0: leave out every n-th body segment in the first transmission
 //   modeOpt[5]  transmissions before the pause (0 = 2) modeVal[0]  tuning error of the audio in Hz
-// The file is hamdrmTestPicture() (a 64x48 JPEG), "zorcom-test.jpg" from LY0AIR.
+// The file is hamdrmTestPicture() (a 64x48 JPEG), "saurcom-test.jpg" from LY0AIR.
 #pragma once
 #include "hfdig_rx.h"
 #include <cstddef>
@@ -91,7 +91,7 @@ std::unique_ptr<HfdigHamdrm> makeHamdrmDecoder();
 // The transmitter (test audio and tests): the file sent `repeats` times with a pause after each round, endless
 struct HamdrmTxConfig {
     int mode = 1, occ = 1, qam = 1, prot = 1;   // prot 0 high, 1 normal
-    std::string name = "zorcom-test.jpg", callsign = "LY0AIR", mime = "image/jpeg";
+    std::string name = "saurcom-test.jpg", callsign = "LY0AIR", mime = "image/jpeg";
     uint16_t transportId = 1;
     int repeats = 2;                     // transmissions in one round
     int dropEvery = 0;                   // >0: the first transmission of a round leaves out body segments n-1, 2n-1, ...

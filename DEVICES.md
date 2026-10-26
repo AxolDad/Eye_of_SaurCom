@@ -1,14 +1,14 @@
 # Any frequency, on every radio
 
-Eye of ZorCom does not limit the frequency you can enter, in any mode and on any radio. The numbers in this file (and in the radio list) are
-the range a radio is **specified** for, not a limit Eye of ZorCom enforces: the frequency is passed to the driver as you typed it. Outside the
+Eye of SaurCom does not limit the frequency you can enter, in any mode and on any radio. The numbers in this file (and in the radio list) are
+the range a radio is **specified** for, not a limit Eye of SaurCom enforces: the frequency is passed to the driver as you typed it. Outside the
 specified range you get a note in plain words ("this radio is specified for X to Y MHz; the driver may not reach this frequency or the
 signal may be weak or absent") and the radio keeps running. What stays an error is only what the hardware or its driver itself refuses
 (its error text is shown), and the few cases where the call cannot carry the number: RTL-SDR, rtl_tcp and Airspy take the frequency as a
 32-bit value in Hz (at most 4.29 GHz), and a negative frequency is turned into 0.
 
 RTL-SDR below 24 MHz picks the way down by itself (direct sampling "Auto"): the RTL-SDR Blog V4 and V4 Lite use the upconverter in the
-Blog library (Eye of ZorCom never switches direct sampling on there), every other dongle samples its Q input directly (an RTL-SDR Blog V3 has its
+Blog library (Eye of SaurCom never switches direct sampling on there), every other dongle samples its Q input directly (an RTL-SDR Blog V3 has its
 HF input on Q; a stock dongle has no HF input, so the signal may be weak or absent unless it is modified). The radio settings can still
 pick the I input or switch direct sampling off. Over rtl_tcp "Auto" sends nothing and the server's own library decides.
 
@@ -26,7 +26,7 @@ airspy_info
 
 - R2 runs at 10 Msps for TV, Mini not tried yet
 - Mini: the radio lists 6 and 3 Msps (an R2 lists 10 and 2.5). The radio settings of a Mini have **10 Msps (unofficial)**, off by default.
-  Turned on, Eye of ZorCom adds 10 Msps to the rates it may pick (the smallest listed rate that is fast enough, so 10 Msps is used only when the
+  Turned on, Eye of SaurCom adds 10 Msps to the rates it may pick (the smallest listed rate that is fast enough, so 10 Msps is used only when the
   channel needs more than 6) and asks libairspy for it with `airspy_set_samplerate`; the firmware decides. Not tested on a Mini: it is
   unsupported and may not work, the radio runs warm and may drop samples. If the firmware refuses, the message shows libairspy's error
   (for example `libairspy error -2 AIRSPY_ERROR_INVALID_PARAM`) and the Mini runs at 6 Msps instead.
@@ -35,17 +35,17 @@ airspy_info
 
 # SDRplay RSPduo
 
-Eye of ZorCom talks directly to the [SDRplay Hardware API](https://sdrplay.com/hardware-api/), which supplies IQ samples. Install API 3.x
-(tested with 3.15), then restart Eye of ZorCom. **SDRconnect is a separate application**: installing it alone does not install the Hardware API
-Eye of ZorCom needs. SDRconnect's [WebSocket API](https://sdrplay.com/websocket-api/) is not used by this driver. Close other programs using the
-RSPduo before starting it in Eye of ZorCom.
+Eye of SaurCom talks directly to the [SDRplay Hardware API](https://sdrplay.com/hardware-api/), which supplies IQ samples. Install API 3.x
+(tested with 3.15), then restart Eye of SaurCom. **SDRconnect is a separate application**: installing it alone does not install the Hardware API
+Eye of SaurCom needs. SDRconnect's [WebSocket API](https://sdrplay.com/websocket-api/) is not used by this driver. Close other programs using the
+RSPduo before starting it in Eye of SaurCom.
 
 The radio list offers **Tuner 1** (SMA), **Tuner 2** (SMA), and **Tuner 1 Hi-Z**. Pick the socket with the antenna. Both SMA inputs cover
 1 kHz to 2 GHz; Hi-Z covers 1 kHz to 30 MHz. The gain slider uses the appropriate LNA table for that input. Antenna power is offered
 only on Tuner 2; leave it off unless the connected equipment needs it.
 
 - Single-tuner mode, one input at a time. Simultaneous dual-tuner operation, diversity, and master/slave sharing with another application
-  are not implemented. Multiple Eye of ZorCom receivers cannot claim the same physical RSPduo at once.
+  are not implemented. Multiple Eye of SaurCom receivers cannot claim the same physical RSPduo at once.
 - Output sample rates: 62.5 kS/s to 10 MS/s, using the API's decimation below 2 MS/s. A rate change stops and restarts the stream.
   API 3.15 rejects 10.66 MS/s on the tested device; requests above 10 MS/s are capped with a note about the actual rate.
 - Frequency, gain, PPM correction, and RF/MW and DAB notch filters can change while receiving. Failed starts and rate-change restarts
@@ -70,7 +70,7 @@ The Windows and Linux GUI builds passed. Targeted SDRplay, FM, rate-choice and s
 Linux's no-bias native test also passed. The broader Linux native test has four failures involving Airspy HF+ and RTL-SDR; the same
 four failures were reproduced with the original driver and test sources at commit `6d4fc539`.
 
-The opt-in hardware tool uses Eye of ZorCom's production source and keeps antenna power off:
+The opt-in hardware tool uses Eye of SaurCom's production source and keeps antenna power off:
 
 ```sh
 sdrplay_probe --port 0 --freq 100200000 --gain 40 --secs 3 --matrix
@@ -86,7 +86,7 @@ macOS and Linux hardware reception have not been tested on this device.
 To launch the GUI directly on a particular input, pass its exact source-list name (replace the serial with yours):
 
 ```sh
-Eye of ZorCom --device "SDRplay RSPduo YOUR_SERIAL Tuner 1 (native, experimental)" --fm --freq 100.2
+Eye of SaurCom --device "SDRplay RSPduo YOUR_SERIAL Tuner 1 (native, experimental)" --fm --freq 100.2
 ```
 
 `--device` starts that source and leaves the receiver stopped if it is absent. Bare `--autostart` is a developer option that starts
@@ -97,31 +97,31 @@ the synthetic test signal; its FM test tones are not a received station, even wh
 Not tested on a radio yet: the driver was written against RigExpert's library source and checked with a stand-in for the library
 (`tests/source/native_fakes.cpp`). Reports are welcome.
 
-Eye of ZorCom drives the Fobos SDR through RigExpert's **agile** library, [libfobos-sdr-agile](https://github.com/rigexpert/libfobos-sdr-agile)
+Eye of SaurCom drives the Fobos SDR through RigExpert's **agile** library, [libfobos-sdr-agile](https://github.com/rigexpert/libfobos-sdr-agile)
 (`fobos_sdr.dll`, `libfobos_sdr.so`). That library only sees radios that run the agile firmware: hardware rev. 4 has it from the factory,
 rev. 2 and 3 need the firmware from the library's Releases page. A Fobos SDR with the stock firmware is not listed.
 
-The library is not shipped with Eye of ZorCom:
+The library is not shipped with Eye of SaurCom:
 
-- Windows: copy the 64-bit `fobos_sdr.dll` next to `ZorCom.exe` (it uses the `libusb-1.0.dll` that is already there). The radio needs the
+- Windows: copy the 64-bit `fobos_sdr.dll` next to `SaurCom.exe` (it uses the `libusb-1.0.dll` that is already there). The radio needs the
   WinUSB driver, as for RigExpert's own programs.
 - Linux: build and install libfobos-sdr-agile (`cmake`, `make`, `sudo make install`, which also installs its udev rules), then
   `sudo ldconfig`.
 
-`zorcom.log` (Windows) or the terminal says which library was loaded, how many radios it lists, and the hardware and firmware revision
+`saurcom.log` (Windows) or the terminal says which library was loaded, how many radios it lists, and the hardware and firmware revision
 of the one that was opened.
 
-- RF input: specified for 50 MHz to 6 GHz, at 8, 10, 12.5, 16, 20, 25, 32, 40 or 50 Msps (rev. 4: also 58 and 64); Eye of ZorCom takes the smallest rate that is
+- RF input: specified for 50 MHz to 6 GHz, at 8, 10, 12.5, 16, 20, 25, 32, 40 or 50 Msps (rev. 4: also 58 and 64); Eye of SaurCom takes the smallest rate that is
   fast enough for the mode
 - gain: one slider from 0 to 95 dB. The LNA has three steps (0, +16, +33 dB) and follows the slider; the rest is the VGA in 2 dB steps.
   The radio settings can fix the LNA step
 - HF1 / HF2 inputs: below 50 MHz the radio samples one of them directly (radio settings: HF1, HF2 or off). The converter then runs at
-  its fastest rate and Eye of ZorCom shifts, filters and decimates to the rate the mode asks for; about 70 % of that rate is clean. The range
-  ends at half the converter's rate (25 MHz at 50 Msps, 32 MHz on rev. 4), so 25 to 50 MHz is covered by neither input (Eye of ZorCom still asks for it, with a note). The gain slider
+  its fastest rate and Eye of SaurCom shifts, filters and decimates to the rate the mode asks for; about 70 % of that rate is clean. The range
+  ends at half the converter's rate (25 MHz at 50 Msps, 32 MHz on rev. 4), so 25 to 50 MHz is covered by neither input (Eye of SaurCom still asks for it, with a note). The gain slider
   does nothing here: the HF inputs have no amplifier
 - the fast converter rates need a USB 3 port; on HF, a lower "HF converter rate" in the radio settings takes less of the computer
 - an external 10 MHz reference can be chosen in the radio settings
-- SoapySDR: a SoapyFobosSDR module built with Visual Studio (PothosSDR) cannot be loaded by Eye of ZorCom's Windows build, which is built with
+- SoapySDR: a SoapyFobosSDR module built with Visual Studio (PothosSDR) cannot be loaded by Eye of SaurCom's Windows build, which is built with
   MinGW; the native driver needs no SoapySDR
 
 # LimeSDR Mini (and Mini 2)
@@ -129,13 +129,13 @@ of the one that was opened.
 **Experimental: written from LimeSuite's public C API (`LimeSuite.h`) and tested only against a fake library. It has not run on a real
 LimeSDR Mini; please report what you see.**
 
-Eye of ZorCom loads `libLimeSuite` at run time (no link dependency; the Windows packages ship it with `FTD3XX.dll`) and lists the board by name:
+Eye of SaurCom loads `libLimeSuite` at run time (no link dependency; the Windows packages ship it with `FTD3XX.dll`) and lists the board by name:
 **LimeSDR Mini** or **LimeSDR Mini 2** (from the library's device string, with the end of the serial added when two of one model are plugged in).
 
 - Tuning 10 MHz to 3.5 GHz, 12-bit ADC, analogue bandwidth 1.5 to 130 MHz (follows the sample rate unless a mode sets a filter).
-- Sample rates 1, 2, 4, 5, 8, 10, 15, 20 and 30.72 Msps. **A USB 3 port is needed above about 15 Msps**; on a USB 2 port Eye of ZorCom says so and
+- Sample rates 1, 2, 4, 5, 8, 10, 15, 20 and 30.72 Msps. **A USB 3 port is needed above about 15 Msps**; on a USB 2 port Eye of SaurCom says so and
   keeps modes at or below 15 Msps where they fit. The stream uses the packed 12-bit USB link.
-- Receive inputs: the Mini's second low input is not wired (LimeSuite lists it as `LNAL_NC`), so Eye of ZorCom uses **LNAW below 1.7 GHz and LNAH
+- Receive inputs: the Mini's second low input is not wired (LimeSuite lists it as `LNAL_NC`), so Eye of SaurCom uses **LNAW below 1.7 GHz and LNAH
   above**, the same crossover LimeSuite's own band switching uses. Extra radio-list entries ("LimeSDR Mini LNAW", "... LNAH") force one input.
 - Gain: one slider, 0 to 73 dB, handed to `LMS_SetGaindB`; LimeSuite splits it over LNA (0-30 dB), TIA (0-12 dB) and PGA (-12 to 19 dB).
 - DC offset and I/Q balance are calibrated at start (and again after a sample-rate change, which restarts the stream) and after a retune of more
@@ -143,20 +143,20 @@ Eye of ZorCom loads `libLimeSuite` at run time (no link dependency; the Windows 
 - **Windows:** the Mini needs FTDI's FT60x USB 3 driver (Windows Update or ftdichip.com). Do not use Zadig/WinUSB on it.
 - **Linux:** the udev rules (`install-udev-rules.sh`, vendor `0403` product `601f`) let a normal user open it.
 - **Gateware / firmware:** the images in the board must match the library. If the radio is listed but will not open or initialise, run
-  `LimeUtil --update` (it loads the images that ship with that library); Eye of ZorCom's error message says so.
+  `LimeUtil --update` (it loads the images that ship with that library); Eye of SaurCom's error message says so.
 
 # RFNM
 
 Contributed; tested on Windows only. The driver uses [librfnm](https://github.com/rfnm/librfnm), modelled on the RFNM client in XMC_SDR.
 
-librfnm has a C++ interface only, so Eye of ZorCom cannot load it at run time as it does the other radio libraries: it is linked when Eye of ZorCom is
+librfnm has a C++ interface only, so Eye of SaurCom cannot load it at run time as it does the other radio libraries: it is linked when Eye of SaurCom is
 built, and only when CMake finds it through pkg-config (`librfnm.pc`). The downloads do not include it yet. Without librfnm the build is
 the same as before; `-DDECT2_WITH_RFNM=OFF` leaves it out even when it is installed. CMake says which applies ("librfnm ...: RFNM enabled"
 or "librfnm not found").
 
 Building librfnm (it needs spdlog and libusb-1.0, and pkg-config):
 
-- Windows, in the MSYS2 **UCRT64** shell (build it with the same compiler as Eye of ZorCom: a librfnm built with Visual Studio cannot be linked
+- Windows, in the MSYS2 **UCRT64** shell (build it with the same compiler as Eye of SaurCom: a librfnm built with Visual Studio cannot be linked
   into the MinGW build):
   ```sh
   pacman -S --needed mingw-w64-ucrt-x86_64-{spdlog,libusb}
@@ -166,16 +166,16 @@ Building librfnm (it needs spdlog and libusb-1.0, and pkg-config):
   ```
   If the compiler stops at `'memcpy' is not a member of 'std'` in `src/api/rx_stream.cpp`, add `#include <cstring>` at its top (newer
   GCC no longer brings it in through other headers). Without `-DCMAKE_INSTALL_PREFIX` librfnm installs to `C:/Program Files/RFNM`; then
-  add its `lib/pkgconfig` folder to `PKG_CONFIG_PATH` before running CMake for Eye of ZorCom. `librfnm.dll` must be next to `ZorCom.exe` or on the
+  add its `lib/pkgconfig` folder to `PKG_CONFIG_PATH` before running CMake for Eye of SaurCom. `librfnm.dll` must be next to `SaurCom.exe` or on the
   PATH (`-DDECT2_COPY_RUNTIME_DLLS=ON` copies it into the build folder). The radio needs the WinUSB driver on USB.
 - Linux / macOS: install spdlog and libusb-1.0 from the package manager, then build and install librfnm with CMake (on Linux it also
   installs its udev rules), and `sudo ldconfig`.
 
 The radio list has one entry per receive channel: `RFNM <board> CH<n> <serial>`, with the slot when both slots are fitted. A radio
-that librfnm finds on USB and on the network is listed once, on USB. `zorcom.log`
+that librfnm finds on USB and on the network is listed once, on USB. `saurcom.log`
 (Windows) or the terminal says how many radios librfnm lists, and for the channel that was opened its frequency and gain range.
 
-- sample rates: 7.68, 15.36, 30.72, 61.44 and 122.88 Msps; Eye of ZorCom takes the smallest one that is fast enough for the mode. A new rate
+- sample rates: 7.68, 15.36, 30.72, 61.44 and 122.88 Msps; Eye of SaurCom takes the smallest one that is fast enough for the mode. A new rate
   restarts the stream
 - frequency and gain: the channel's own ranges, as the board reports them once the radio has been opened (until then the list shows a
   guess). A frequency outside the channel's range is clamped to it, with a note: librfnm refuses it otherwise
@@ -191,18 +191,18 @@ that librfnm finds on USB and on the network is listed once, on USB. `zorcom.log
 **Experimental: written from the open SDDC protocol ([SDDC_Driver](https://github.com/renardspark/SDDC_Driver), MIT) and tested only against a
 simulated FX3. It has never run on a real radio; please report what you see.**
 
-Eye of ZorCom talks to the radio over USB itself (no vendor library). HF (direct sampling, 64 or 128 Msps ADC clock) and VHF/UHF (R828D tuner, up
+Eye of SaurCom talks to the radio over USB itself (no vendor library). HF (direct sampling, 64 or 128 Msps ADC clock) and VHF/UHF (R828D tuner, up
 to about 1.75 GHz) are covered; the sample rate list is 0.25 to 64 Msps.
 
-- The radio has no program of its own: the FX3 needs `SDDC_FX3.img`. Official Eye of ZorCom packages ship it in the `codecs` folder (or, on Linux,
-  `lib/zorcom/`). Eye of ZorCom loads it into the radio's **RAM** when needed; **nothing is flashed**. A hand-built copy may need the file from the
-  SDDC_Driver Releases page in the codecs folder, or `ZORCOM_RX888_FIRMWARE` pointing at it.
+- The radio has no program of its own: the FX3 needs `SDDC_FX3.img`. Official Eye of SaurCom packages ship it in the `codecs` folder (or, on Linux,
+  `lib/saurcom/`). Eye of SaurCom loads it into the radio's **RAM** when needed; **nothing is flashed**. A hand-built copy may need the file from the
+  SDDC_Driver Releases page in the codecs folder, or `SAURCOM_RX888_FIRMWARE` pointing at it.
 - It must be on a USB 3 port (the stream is up to 256 MB/s). On Windows install WinUSB with Zadig for both `04b4:00f3` (boot loader) and
   `04b4:00f1` (running); on Linux the udev rule for `04b4:00f1` / `00f3` is needed.
 - **Windows quick start (what most users need):** in [Zadig](https://zadig.akeo.ie), turn on **List All Devices**, install **WinUSB** for
-  `04B4:00F3` and again for `04B4:00F1` (`RX888mk2`), **unplug and replug** the cable on a USB 3 port, then press **refresh** in Eye of ZorCom's
+  `04B4:00F3` and again for `04B4:00F1` (`RX888mk2`), **unplug and replug** the cable on a USB 3 port, then press **refresh** in Eye of SaurCom's
   radio list. If the Cypress driver from the official RX-888 / HDSDR installer still owns the device, repeat Zadig on `00F1` and replug.
-- A LimeSDR-USB shares `04b4:00f1`; Eye of ZorCom tells them apart by the product name ("RX888mk2").
+- A LimeSDR-USB shares `04b4:00f1`; Eye of SaurCom tells them apart by the product name ("RX888mk2").
 - Settings: ADC clock (auto, 64, 128 MHz or exact), input (auto, HF, VHF), HF attenuator, dither, randomiser, PGA, bias tee.
 
 # SDR++ server
@@ -211,26 +211,26 @@ Tested with SDR++ 1.2 running `sdrpp --server` on a NanoPi R5S with an Airspy R2
 connection), and against a fake server in the test suite (`test_sdrpp`).
 
 Add it under **Add network radio...** (or **Add a network radio...** in the setup wizard): type **SDR++ server**, the computer's address,
-port 5259. Eye of ZorCom reads the server's source menu, so the radio list shows the server's source, its sample rates and its gain range before
+port 5259. Eye of SaurCom reads the server's source menu, so the radio list shows the server's source, its sample rates and its gain range before
 the radio is started.
 
 - **Any SDR++ source.** SDR++ has no protocol command for the sample rate or the gain: they live in the source module's menu, which the
-  server sends to its client as a list of widgets. Eye of ZorCom picks the sample rate combo (the one whose entries read as rates), the gain
+  server sends to its client as a list of widgets. Eye of SaurCom picks the sample rate combo (the one whose entries read as rates), the gain
   slider (an Airspy's linear or sensitive gain, an RTL-SDR's gain, a PlutoSDR's, ...), or, when the source has only stage sliders (LNA,
-  mixer, VGA: an Airspy in Free mode, a HackRF), moves them together. Eye of ZorCom's gain slider then runs over the server's own scale.
+  mixer, VGA: an Airspy in Free mode, a HackRF), moves them together. Eye of SaurCom's gain slider then runs over the server's own scale.
 - **The server's other controls** are under **Radio settings**, named "SDR++: ...": gain mode, bias tee, AGC, offset tuning, antenna, the
-  device and the server's source. Untouched, Eye of ZorCom leaves them as the server has them; a value set in Eye of ZorCom is set again whenever the radio
-  starts. **These are changes to the server**: SDR++ keeps them after Eye of ZorCom disconnects, and another client sees them.
-  **Leave the gain to the server** stops Eye of ZorCom moving the gain slider.
+  device and the server's source. Untouched, Eye of SaurCom leaves them as the server has them; a value set in Eye of SaurCom is set again whenever the radio
+  starts. **These are changes to the server**: SDR++ keeps them after Eye of SaurCom disconnects, and another client sees them.
+  **Leave the gain to the server** stops Eye of SaurCom moving the gain slider.
 - **Sample rate**: the slowest entry of the server's list at or above what the mode needs. SDR++ only takes a new rate (or a new device or
-  source) while it is not streaming, so Eye of ZorCom stops the stream, changes it and starts again; the samples in between are dropped.
-- **Wire format**: 16-bit (the default), 8-bit (half the network) or float. Compression (zstd) is switched off: Eye of ZorCom does not read it, and
+  source) while it is not streaming, so Eye of SaurCom stops the stream, changes it and starts again; the samples in between are dropped.
+- **Wire format**: 16-bit (the default), 8-bit (half the network) or float. Compression (zstd) is switched off: Eye of SaurCom does not read it, and
   noise-like IQ hardly compresses.
 - **Retuning** never waits for the network: the samples are dropped until the server has answered the change, and two of SDR++'s buffers
   after that, so the decoder does not see samples from before it.
-- **One client at a time.** While SDR++'s own client (or another Eye of ZorCom) is connected the server turns Eye of ZorCom away; the message says so, and
-  Eye of ZorCom tries again. When the server drops the connection, Eye of ZorCom reconnects by itself and counts the samples lost.
-- **A link slower than the stream** (Wi-Fi, a VPN, powerline): SDR++ numbers nothing, so Eye of ZorCom compares what arrives with the rate the
+- **One client at a time.** While SDR++'s own client (or another Eye of SaurCom) is connected the server turns Eye of SaurCom away; the message says so, and
+  Eye of SaurCom tries again. When the server drops the connection, Eye of SaurCom reconnects by itself and counts the samples lost.
+- **A link slower than the stream** (Wi-Fi, a VPN, powerline): SDR++ numbers nothing, so Eye of SaurCom compares what arrives with the rate the
   server announced. Below 90 % the difference is counted as lost samples (the status bar shows them) and the log says what the link
   carries; use a lower rate or the 8-bit format. 2.5 Msps needs about 10 MB/s in 16-bit, 10 Msps about 40 MB/s. On a link that cannot carry
   the stream, SDR++ queues samples inside itself, so a change can take a second or two to show.
@@ -249,7 +249,7 @@ same way. Nothing is stopped silently.
 Transmitting is off until you press the big **Start transmitting** button: it never starts by itself, never restarts after a crash or when the program starts
 (the settings do not remember "transmitting"; the program opens in RX view), and it stops when you stop it, the radio fails or you quit. The frequency is
 pre-filled from the receiver but is yours to edit. Transmitting needs a licence or permission where you are; the first time, a notice asks you to confirm that
-you understand (one button, once per install). Eye of ZorCom limits neither the frequency nor the power: what you type goes to the radio's driver as typed, and a
+you understand (one button, once per install). Eye of SaurCom limits neither the frequency nor the power: what you type goes to the radio's driver as typed, and a
 refusal by the driver is shown in its own words. The gain slider is the radio's own TX gain range (lowest by default). Connect an antenna, an attenuator or a dummy load.
 **ADS-B** shows a standing warning: it simulates aircraft and must only go into a dummy load or a shielded setup.
 
@@ -261,7 +261,7 @@ same USB id 1d50:6089 (the code lists it in `kPids`, and `boardName(5)` reads "H
 
 | Radio | Path | Notes |
 |---|---|---|
-| HackRF One / Pro (Eye of ZorCom's own USB driver) | `UsbHackrfTx` | 2 to 20 Msps, TX VGA 0 to 47 dB, the +14 dB amplifier is a switch |
+| HackRF One / Pro (Eye of SaurCom's own USB driver) | `UsbHackrfTx` | 2 to 20 Msps, TX VGA 0 to 47 dB, the +14 dB amplifier is a switch |
 | PlutoSDR (libiio) | `PlutoTx` | 2.1 Msps and up, TX attenuation -89.75 to 0 dB; simultaneous RX/TX under the conditions below |
 | Any SoapySDR radio with a TX channel (LimeSDR, bladeRF, USRP, ...) | `SoapyTx` (`writeStream`) | known after the radio has been opened once, or by its driver name |
 
@@ -290,7 +290,7 @@ Other radios still need separate devices for RX and TX.
 
 **Modes that can transmit** (the table is `txModes()` in `core/src/tx/tx.cpp`; deny-list, not allow-list). Every engine mode that has a generator is offered except pointless / jammer / impersonation cases. No frequency limit is applied here. Empty payload fields fall back to the demo signal; the Transmit panel has a real payload UI on every row (callsign, grid, text, IDs, file, microphone as that mode fits).
 
-**Voice.** FM broadcast: live microphone or WAV/MP3 into a stereo multiplex with RDS (PI, PS, RT), deviation and 50/75 µs pre-emphasis, and a mic-level meter. NFM, airband AM, analog-TV sound and amateur SSB (when offered) take the same audio path. M17 and FreeDV encode live speech with Codec 2 when `libcodec2` is loaded. DMR, P25, NXDN, dPMR and D-STAR cannot encode: Eye of ZorCom loads mbelib for decode only; the panel says so, IDs still go on the air, and a 1 kHz tone / silence / WAV is still offered. The microphone is never opened until **START TRANSMITTING** (`AudioIn`: CoreAudio on macOS, miniaudio elsewhere).
+**Voice.** FM broadcast: live microphone or WAV/MP3 into a stereo multiplex with RDS (PI, PS, RT), deviation and 50/75 µs pre-emphasis, and a mic-level meter. NFM, airband AM, analog-TV sound and amateur SSB (when offered) take the same audio path. M17 and FreeDV encode live speech with Codec 2 when `libcodec2` is loaded. DMR, P25, NXDN, dPMR and D-STAR cannot encode: Eye of SaurCom loads mbelib for decode only; the panel says so, IDs still go on the air, and a 1 kHz tone / silence / WAV is still offered. The microphone is never opened until **START TRANSMITTING** (`AudioIn`: CoreAudio on macOS, miniaudio elsewhere).
 
 **Carrier tune.** Every offered mode has a hold button that sends an unmodulated carrier (I = 1, Q = 0 at DC) at the current frequency and gain, independent of the payload, for setting drive / SWR / dummy-load level. Not saved as transmitting.
 
@@ -320,7 +320,7 @@ interfaces and have never been run on hardware.
 Any radio SoapySDR supports can sit on another computer (a Raspberry Pi, a PC in the attic) and be used here:
 
 1. On the computer with the radio install SoapySDR, the radio's module and SoapyRemote; run `SoapySDRServer --bind` (port 55132; check with `SoapySDRUtil --find` there).
-2. Here, install SoapyRemote too (its client module; on Windows it comes with PothosSDR, macOS `brew install soapyremote`, Linux `apt install soapyremote-server`). Eye of ZorCom tells you if it is missing.
+2. Here, install SoapyRemote too (its client module; on Windows it comes with PothosSDR, macOS `brew install soapyremote`, Linux `apt install soapyremote-server`). Eye of SaurCom tells you if it is missing.
 3. **Add network radio...**, type **SoapyRemote**, the server's address and port 55132. Leave "Remote driver" empty to list what the server offers (a sound card is skipped), or type the driver (`rtlsdr`) or `driver=sdrplay,serial=1`.
 
 The radio is then listed as `SoapyRemote host:port: driver` and works like a local SoapySDR radio. The network must carry the stream: use wired Ethernet for more than a few Msps. A server that logs `SoapyRPCUnpacker::recv(header)` is on a different SoapyRemote version than this computer's client: install the same version on both. Not tested against real hardware; the arguments, server listing, errors and the stream path are tested against fakes.

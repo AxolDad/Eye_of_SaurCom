@@ -6,7 +6,7 @@ Pick "Sound card: ..." as the source for audio that does not come from an SDR: a
 
 | Setting | Use |
 |---|---|
-| I/Q mode | I/Q stereo (left I, right Q: HDSDR / WebSDR cable), USB audio, LSB audio, Real (mono). For audio from a cable or a speaker use Real (mono) or USB audio. Eye of ZorCom warns when left and right are identical in the I/Q mode and offers Real (mono). |
+| I/Q mode | I/Q stereo (left I, right Q: HDSDR / WebSDR cable), USB audio, LSB audio, Real (mono). For audio from a cable or a speaker use Real (mono) or USB audio. Eye of SaurCom warns when left and right are identical in the I/Q mode and offers Real (mono). |
 | Channel | Left, right, or both mixed (the real modes). |
 | IF centre | The audio frequency of the signal's centre in the card. It is shifted down to 0 Hz, so the decoder sees the signal at the dial frequency. Plain audio: 0. A 12 kHz IF: 12000. "Find centre" sets it from the strongest signal on the screen (halfway between the two tones of an FSK signal). |
 | Audio range | A Real mode shows the whole card range, 0 Hz to half the sample rate, across the spectrum, with the scale in audio Hz from the dial. Display only; the decoders always get the IF centre at 0 Hz. |

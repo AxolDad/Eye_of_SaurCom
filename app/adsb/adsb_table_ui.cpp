@@ -407,7 +407,7 @@ void sourcesPanel(App& a) {
         for (char& c : st) if (c == '\n') c = '|';
         plat::prefs().setS("adsbSources", st); plat::prefs().flush();
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("dump1090 / readsb: port 30005 (Beast) or 30003 (SBS); another Eye of ZorCom: the port of its Beast or SBS feed. Their aircraft join this table and the map. Positions from other receivers are shown, not computed (no MLAT: that needs synchronised time stamps across sites).");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("dump1090 / readsb: port 30005 (Beast) or 30003 (SBS); another Eye of SaurCom: the port of its Beast or SBS feed. Their aircraft join this table and the map. Positions from other receivers are shown, not computed (no MLAT: that needs synchronised time stamps across sites).");
     if (ImGui::Checkbox("also hosts outside my network", &S.srcAny)) { plat::prefs().setB("adsbSrcAny", S.srcAny); plat::prefs().flush(); }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Off: only addresses on this network (192.168.x.x, 10.x.x.x, 172.16-31.x.x, localhost, *.local). On: any host. Positions from other receivers are shown, not computed.");
     for (size_t i = 1; i < t.sources.size(); i++) {

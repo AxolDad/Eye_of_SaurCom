@@ -40,7 +40,7 @@ std::string icecastRequest(const AudioStreamConfig& c) {
     std::string r = "PUT " + oneLine(mountOf(c.mount)) + " HTTP/1.1\r\n";
     r += "Host: " + oneLine(c.host) + ":" + std::to_string(c.port) + "\r\n";
     r += "Authorization: Basic " + netp::base64(c.user + ":" + c.password) + "\r\n";
-    r += "User-Agent: EyeOfZorCom\r\n";
+    r += "User-Agent: EyeOfSaurCom\r\n";
     r += "Content-Type: audio/mpeg\r\n";
     r += "Ice-Public: " + std::string(c.publicListing ? "1" : "0") + "\r\n";
     r += "Ice-Name: " + oneLine(c.name) + "\r\n";

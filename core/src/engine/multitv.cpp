@@ -177,7 +177,7 @@ void MultiTv::startSlot(const SlotPower& p) {
         s->t2->configure(outRate, o_.widthMhz);
         s->t2->setPlpCallback([raw](const PlpResult& r) { raw->onPlp(r); });
     }
-    s->th = dect2::namedThread("zorcom-mtv", [raw] { raw->run(); });
+    s->th = dect2::namedThread("saurcom-mtv", [raw] { raw->run(); });
     std::lock_guard<std::mutex> lk(mu_);
     live_.push_back(std::move(s));
     if (sel_.load() == kNone) sel_ = p.pos.index;

@@ -814,7 +814,7 @@ struct HfdigFtx::Impl {
         for (auto& e : per) e = 0.0;
         for (int s = 0; s < kStreams; s++) rs[s] = std::make_unique<Resampler>(kStreamL[s], kStreamM[s], kStreamCut[s]);
         for (double& v : nextSlot) v = std::numeric_limits<double>::quiet_NaN();
-        th = dect2::namedThread("zorcom-ftx", [this] { worker(); });
+        th = dect2::namedThread("saurcom-ftx", [this] { worker(); });
     }
     ~Impl() {
         { std::lock_guard<std::mutex> lk(mu); quit = true; }

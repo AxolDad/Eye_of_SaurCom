@@ -1,5 +1,5 @@
-// Linux and Windows services. Linux: dialogs through zenity/kdialog, settings in ~/.config/zorcom/settings.conf.
-// Windows: the standard Open/Save dialogs, settings in %APPDATA%\\ZorCom\\settings.conf.
+// Linux and Windows services. Linux: dialogs through zenity/kdialog, settings in ~/.config/saurcom/settings.conf.
+// Windows: the standard Open/Save dialogs, settings in %APPDATA%\\SaurCom\\settings.conf.
 #include "platform.h"
 #include "dect2/common/png.h"
 #include <algorithm>
@@ -327,7 +327,7 @@ HttpResult httpRequest(const std::string& method, const std::string& url, const 
 bool postJson(const std::string& url, const std::string& json, const std::string& userAgent) { return postImpl(url, json, userAgent, nullptr); }
 bool postJsonReply(const std::string& url, const std::string& json, const std::string& userAgent, std::string& reply) { return postImpl(url, json, userAgent, &reply); }
 
-// the map tiles are PNG: Eye of ZorCom's own decoder (these systems have none it could call without an extra library)
+// the map tiles are PNG: Eye of SaurCom's own decoder (these systems have none it could call without an extra library)
 bool decodeImage(const std::string& path, int& w, int& h, std::vector<uint32_t>& rgba) {
     std::ifstream f(std::filesystem::path(reinterpret_cast<const char8_t*>(path.c_str())), std::ios::binary);
     if (!f) return false;
@@ -354,11 +354,11 @@ static void adoptLegacyFolders() {
     };
 #ifdef _WIN32
     static const char* kLegacy = "OnAir";   // the folder name before the rename
-    if (const wchar_t* la = _wgetenv(L"LOCALAPPDATA")) move(utf8(la) + "\\" + kLegacy, utf8(la) + "\\ZorCom");
-    if (const wchar_t* ad = _wgetenv(L"APPDATA")) move(utf8(ad) + "\\" + kLegacy, utf8(ad) + "\\ZorCom");
+    if (const wchar_t* la = _wgetenv(L"LOCALAPPDATA")) move(utf8(la) + "\\" + kLegacy, utf8(la) + "\\SaurCom");
+    if (const wchar_t* ad = _wgetenv(L"APPDATA")) move(utf8(ad) + "\\" + kLegacy, utf8(ad) + "\\SaurCom");
     wchar_t t[MAX_PATH + 1];
     const DWORD n = GetTempPathW(MAX_PATH, t);
-    if (n) move(utf8(std::wstring(t, n)) + kLegacy, utf8(std::wstring(t, n)) + "ZorCom");
+    if (n) move(utf8(std::wstring(t, n)) + kLegacy, utf8(std::wstring(t, n)) + "SaurCom");
 #else
     static const char* kLegacy = "onair";   // the folder name before the rename
     const char* h = getenv("HOME");
@@ -369,50 +369,50 @@ static void adoptLegacyFolders() {
     const std::string cache = xc && *xc ? std::string(xc) : home + "/.cache";
     const std::string data = xd && *xd ? std::string(xd) : home + "/.local/share";
     const std::string conf = xf && *xf ? std::string(xf) : home + "/.config";
-    for (const std::string& base : {cache, data, conf}) move(base + "/" + kLegacy, base + "/zorcom");
+    for (const std::string& base : {cache, data, conf}) move(base + "/" + kLegacy, base + "/saurcom");
 #endif
 }
 
-// Windows: %LOCALAPPDATA%\ZorCom\cache; Linux: $XDG_CACHE_HOME/zorcom or ~/.cache/zorcom. Paths are UTF-8.
+// Windows: %LOCALAPPDATA%\SaurCom\cache; Linux: $XDG_CACHE_HOME/saurcom or ~/.cache/saurcom. Paths are UTF-8.
 std::string cacheDir() {
     adoptLegacyFolders();
     std::string d;
 #ifdef _WIN32
-    if (const wchar_t* la = _wgetenv(L"LOCALAPPDATA")) d = utf8(la) + "\\ZorCom\\cache";
-    else { wchar_t t[MAX_PATH + 1]; const DWORD n = GetTempPathW(MAX_PATH, t); d = utf8(std::wstring(t, n)) + "ZorCom"; }
+    if (const wchar_t* la = _wgetenv(L"LOCALAPPDATA")) d = utf8(la) + "\\SaurCom\\cache";
+    else { wchar_t t[MAX_PATH + 1]; const DWORD n = GetTempPathW(MAX_PATH, t); d = utf8(std::wstring(t, n)) + "SaurCom"; }
 #else
     const char* x = getenv("XDG_CACHE_HOME");
     const char* h = getenv("HOME");
-    d = x && *x ? std::string(x) + "/zorcom" : std::string(h ? h : "/tmp") + "/.cache/zorcom";
+    d = x && *x ? std::string(x) + "/saurcom" : std::string(h ? h : "/tmp") + "/.cache/saurcom";
 #endif
     std::error_code ec;
     std::filesystem::create_directories(std::filesystem::path(reinterpret_cast<const char8_t*>(d.c_str())), ec);
     return d;
 }
-// Windows: %LOCALAPPDATA%\ZorCom; Linux: $XDG_DATA_HOME/zorcom or ~/.local/share/zorcom. Paths are UTF-8.
+// Windows: %LOCALAPPDATA%\SaurCom; Linux: $XDG_DATA_HOME/saurcom or ~/.local/share/saurcom. Paths are UTF-8.
 std::string dataDir() {
     adoptLegacyFolders();
     std::string d;
-    // DECT2_DATA_DIR: another folder for everything Eye of ZorCom writes (test runs keep away from the user's own data)
+    // DECT2_DATA_DIR: another folder for everything Eye of SaurCom writes (test runs keep away from the user's own data)
     if (const char* o = getenv("DECT2_DATA_DIR"); o && *o) {
         std::error_code ec;
         std::filesystem::create_directories(std::filesystem::path(reinterpret_cast<const char8_t*>(o)), ec);
         return o;
     }
 #ifdef _WIN32
-    if (const wchar_t* la = _wgetenv(L"LOCALAPPDATA")) d = utf8(la) + "\\ZorCom";
+    if (const wchar_t* la = _wgetenv(L"LOCALAPPDATA")) d = utf8(la) + "\\SaurCom";
     else return cacheDir();
 #else
     const char* x = getenv("XDG_DATA_HOME");
     const char* h = getenv("HOME");
-    d = x && *x ? std::string(x) + "/zorcom" : std::string(h ? h : "/tmp") + "/.local/share/zorcom";
+    d = x && *x ? std::string(x) + "/saurcom" : std::string(h ? h : "/tmp") + "/.local/share/saurcom";
 #endif
     std::error_code ec;
     std::filesystem::create_directories(std::filesystem::path(reinterpret_cast<const char8_t*>(d.c_str())), ec);
     return d;
 }
 void locateStart() {}
-int locateState(double&, double&, double&, std::string& msg) { msg = "this system has no location service in Eye of ZorCom yet: enter the position by hand"; return 3; }
+int locateState(double&, double&, double&, std::string& msg) { msg = "this system has no location service in Eye of SaurCom yet: enter the position by hand"; return 3; }
 
 namespace {
 
@@ -435,7 +435,7 @@ std::wstring wide(const std::string& s) {
 std::string configDir() {   // UTF-8, like every path here: getenv() would give the ANSI code page and lose a user name such as "Jūratė"
     adoptLegacyFolders();
     const wchar_t* a = _wgetenv(L"APPDATA");
-    return (a && *a ? utf8(a) : std::string(".")) + "/ZorCom";
+    return (a && *a ? utf8(a) : std::string(".")) + "/SaurCom";
 }
 
 void makeDirs(const std::string& path) {
@@ -486,9 +486,9 @@ std::string shellQuote(const std::string& s) {
 std::string configDir() {
     adoptLegacyFolders();
     const char* x = getenv("XDG_CONFIG_HOME");
-    if (x && *x) return std::string(x) + "/zorcom";
+    if (x && *x) return std::string(x) + "/saurcom";
     const char* h = getenv("HOME");
-    return std::string(h ? h : ".") + "/.config/zorcom";
+    return std::string(h ? h : ".") + "/.config/saurcom";
 }
 
 void makeDirs(const std::string& path) {

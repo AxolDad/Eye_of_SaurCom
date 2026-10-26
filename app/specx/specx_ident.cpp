@@ -298,7 +298,7 @@ void identifyWindow(App& a) {
                             ImGui::TextDisabled(tr("Evidence for %s:"), I.res.cands[0].name.c_str());
                             for (const std::string& e : I.res.cands[0].evidence) ImGui::BulletText("%s", e.c_str());
                         }
-                        ImGui::TextDisabled("%s", tr("A score is the share of the evidence that holds; the percentages are calibrated on Eye of ZorCom's own test signals, not on every real signal."));
+                        ImGui::TextDisabled("%s", tr("A score is the share of the evidence that holds; the percentages are calibrated on Eye of SaurCom's own test signals, not on every real signal."));
                         ImGui::TreePop();
                     }
                 }

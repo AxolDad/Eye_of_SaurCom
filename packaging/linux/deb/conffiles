@@ -1,2 +1,2 @@
-/etc/modprobe.d/zorcom-rtlsdr-blacklist.conf
-/etc/modprobe.d/zorcom-sdrplay-blacklist.conf
+/etc/modprobe.d/saurcom-rtlsdr-blacklist.conf
+/etc/modprobe.d/saurcom-sdrplay-blacklist.conf

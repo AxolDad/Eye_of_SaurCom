@@ -21,7 +21,7 @@ const SstvModeInfo& sstvModeInfo(int index) {
     return t[(size_t)std::max(0, std::min((int)t.size() - 1, index))].info;
 }
 
-// colour bars on top, a grey gradient, then "ZorCom" in blocks on dark blue; all edges on even pixels and rows, in cells of 8 (or 16) pixels
+// colour bars on top, a grey gradient, then "SaurCom" in blocks on dark blue; all edges on even pixels and rows, in cells of 8 (or 16) pixels
 void sstvStampText(int w, int h, std::vector<uint8_t>& rgb, const std::string& text) {
     if (w <= 0 || h <= 0 || (int)rgb.size() < w * h * 3 || text.empty()) return;
     auto glyph = [](char ch, int row) -> unsigned {

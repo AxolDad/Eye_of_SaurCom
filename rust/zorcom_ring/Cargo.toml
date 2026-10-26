@@ -1,9 +1,0 @@
-[package]
-name = "zorcom_ring"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-publish.workspace = true
-description = "Eye of ZorCom engine threading core: the lock-free SPSC sample ring behind core/include/dect2/common/ring.h"
-
-[dependencies]

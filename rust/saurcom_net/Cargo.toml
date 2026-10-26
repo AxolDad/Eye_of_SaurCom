@@ -1,0 +1,10 @@
+[package]
+name = "saurcom_net"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Eye of SaurCom network (empty skeleton)"
+
+[dependencies]
+saurcom_common = { path = "../saurcom_common" }

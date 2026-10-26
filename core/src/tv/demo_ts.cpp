@@ -36,17 +36,17 @@ std::vector<DemoTsService> programmesOf(const DemoTsIdentity& id) {
     if (!id.programmes.empty()) {
         std::vector<DemoTsService> v = id.programmes;
         if (v.size() > 4) v.resize(4);
-        for (size_t i = 0; i < v.size(); i++) if (v[i].name.empty()) v[i].name = "Eye of ZorCom " + std::to_string(i + 1);
+        for (size_t i = 0; i < v.size(); i++) if (v[i].name.empty()) v[i].name = "Eye of SaurCom " + std::to_string(i + 1);
         return v;
     }
     std::vector<DemoTsService> v;
     if (id.services.empty()) {
-        DemoTsService s; s.name = "Eye of ZorCom"; s.picture = 0; v.push_back(s);
+        DemoTsService s; s.name = "Eye of SaurCom"; s.picture = 0; v.push_back(s);
         return v;
     }
     for (size_t i = 0; i < id.services.size() && i < 4; i++) {
         DemoTsService s;
-        s.name = id.services[i].empty() ? ("Eye of ZorCom " + std::to_string(i + 1)) : id.services[i];
+        s.name = id.services[i].empty() ? ("Eye of SaurCom " + std::to_string(i + 1)) : id.services[i];
         s.picture = (int)i % 3;
         v.push_back(s);
     }
@@ -171,7 +171,7 @@ bool encode(Clip& clip, const DemoTsIdentity& id) {
     struct ProgEnc { AVCodecContext *vx = nullptr, *ax = nullptr; AVStream *vs = nullptr, *as = nullptr; AVFrame *vf = nullptr, *af = nullptr; int64_t aPts = 0; };
     std::vector<ProgEnc> pe((size_t)nsvc);
     bool ok = true;
-    const std::string prov = id.provider.empty() ? "Eye of ZorCom" : id.provider;
+    const std::string prov = id.provider.empty() ? "Eye of SaurCom" : id.provider;
     av_dict_set(&oc->metadata, "service_provider", prov.c_str(), 0);
     av_dict_set(&oc->metadata, "service_name", progs[0].name.c_str(), 0);
     for (int s = 0; s < nsvc && ok; s++) {
@@ -310,7 +310,7 @@ struct LiveMux {
             if (!cams[i]->start(cam ? VideoIn::Camera : VideoIn::File, cam ? progs[i].camera : progs[i].file, err))
                 cams[i].reset();
         }
-        th = dect2::namedThread("zorcom-demots", [this, id, progs] {
+        th = dect2::namedThread("saurcom-demots", [this, id, progs] {
             AVFormatContext* oc = nullptr;
             if (avformat_alloc_output_context2(&oc, nullptr, "mpegts", nullptr) < 0) return;
             unsigned char* iob = (unsigned char*)av_malloc(4096);
@@ -320,7 +320,7 @@ struct LiveMux {
             struct PE { AVCodecContext *vx = nullptr, *ax = nullptr; AVStream *vs = nullptr, *as = nullptr; AVFrame *vf = nullptr, *af = nullptr; int64_t aPts = 0; };
             std::vector<PE> pe(progs.size());
             bool ok = vc != nullptr;
-            const std::string prov = id.provider.empty() ? "Eye of ZorCom" : id.provider;
+            const std::string prov = id.provider.empty() ? "Eye of SaurCom" : id.provider;
             for (size_t s = 0; s < progs.size() && ok; s++) {
                 pe[s].vx = avcodec_alloc_context3(vc);
                 pe[s].vx->width = kW; pe[s].vx->height = kH; pe[s].vx->pix_fmt = AV_PIX_FMT_YUV420P;

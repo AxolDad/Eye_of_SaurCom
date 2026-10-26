@@ -163,7 +163,7 @@ static void interp_band_gain(float *g, const float *bandE) {
 }
 
 
-/* Eye of ZorCom: static (was an exported global). */
+/* Eye of SaurCom: static (was an exported global). */
 static CommonState common;
 
 static void check_init() {
@@ -263,7 +263,7 @@ int rnnoise_get_frame_size() {
 }
 
 int rnnoise_init(DenoiseState *st, RNNModel *model) {
-  check_init();   /* Eye of ZorCom: build the shared tables when a state is created (callers serialise creation), not lazily on the audio thread */
+  check_init();   /* Eye of SaurCom: build the shared tables when a state is created (callers serialise creation), not lazily on the audio thread */
   memset(st, 0, sizeof(*st));
   if (model)
     st->rnn.model = model;

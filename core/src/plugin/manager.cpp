@@ -210,7 +210,7 @@ void Manager::beginSession() {
     if (crashed) {
         std::string who = m.substr(0, m.find('\n'));
         p_->safe = true;
-        p_->safeReason = "Eye of ZorCom did not shut down cleanly while plugin code was running" + (who.empty() ? std::string() : " (" + who + ")");
+        p_->safeReason = "Eye of SaurCom did not shut down cleanly while plugin code was running" + (who.empty() ? std::string() : " (" + who + ")");
         writeFileAtomic(safeFlagPath(cfg_), p_->safeReason);
         fs::remove(markerPath(cfg_), ec);
         // the plugin that was running stays off until the user turns it on again

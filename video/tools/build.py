@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds the Eye of ZorCom videos with HyperFrames from video/storyboard.json.
+"""Builds the Eye of SaurCom videos with HyperFrames from video/storyboard.json.
 
 For each video: one voice-over WAV per scene (Piper, offline), each scene as long as its narration plus a pause, then one standalone
 HyperFrames composition (video/compositions/<id>.html) with the screenshot (video/assets/shots), a slow zoom towards the scene's focus point,
@@ -75,7 +75,7 @@ def scene_html(i, sc, start, dur, vid, vo):
             cls = "hl" if k == 0 and sc.get("dim", True) else "hl2"
             parts.append(f'<div id="{sid}b{k}" class="{cls}" style="left:{b[0]}px;top:{b[1]}px;width:{b[2]}px;height:{b[3]}px;opacity:0"></div>')
         parts.append("</div></div>")
-        parts.append(f'<div class="brand">EYE OF ZORCOM</div>')
+        parts.append(f'<div class="brand">EYE OF SAURCOM</div>')
         parts.append(f'<div id="{sid}c" class="cap"><div class="step">{html.escape(sc.get("step", ""))}</div>'
                      f'<div class="captext">{html.escape(sc["caption"])}</div></div>')
     else:

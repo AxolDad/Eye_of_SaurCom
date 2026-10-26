@@ -181,7 +181,7 @@ std::string streamPath(Format f, int rateReduction, const std::string& input) {
 
 std::string httpRequest(const std::string& method, const std::string& path, const std::string& host, const std::string& body,
                         const std::string& auth) {
-    std::string r = method + " " + path + " HTTP/1.1\r\nHost: " + host + "\r\nUser-Agent: EyeOfZorCom\r\nAccept: */*\r\n";
+    std::string r = method + " " + path + " HTTP/1.1\r\nHost: " + host + "\r\nUser-Agent: EyeOfSaurCom\r\nAccept: */*\r\n";
     if (!auth.empty()) r += "Authorization: " + auth + "\r\n";
     if (!body.empty()) r += "Content-Type: application/json\r\nContent-Length: " + std::to_string(body.size()) + "\r\n";
     r += "Connection: keep-alive\r\n\r\n";

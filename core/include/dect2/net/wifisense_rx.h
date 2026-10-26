@@ -1,5 +1,5 @@
 // WiFi sensing in: listens for the CSI frames of RuView's ESP32 nodes (ADR-018, UDP port 5005 by default) and runs one Rust sensor
-// (rust/zorcom_wifisense) per node: presence, motion, breathing and heart rate for each room a node watches.
+// (rust/saurcom_wifisense) per node: presence, motion, breathing and heart rate for each room a node watches.
 #pragma once
 #include "dect2/rs/wifisense.h"
 #include <atomic>
@@ -16,7 +16,7 @@ public:
     static constexpr double kFramesPerSec = 50.0;   // RuView firmware default
 
     struct Node {
-        ZorcomWifiSense s{};
+        SaurcomWifiSense s{};
         int64_t heardMs = 0;   // ms since 1970 of the last frame
         std::string from;      // sender address
     };

@@ -1,5 +1,5 @@
 // Seeded mutation run of the AX.25 / APRS layer, meant for DECT2_SANITIZE=ON: frame parser, text forms, FCS, the
-// HDLC receiver and the APRS parser must never crash or hang on any bytes. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
+// HDLC receiver and the APRS parser must never crash or hang on any bytes. Also a libFuzzer target with -DSAURCOM_LIBFUZZER.
 #include "dect2/packet/packet_ax25.h"
 #include "dect2/packet/packet_aprs.h"
 #include <cstdio>
@@ -26,11 +26,11 @@ static void one(const uint8_t* d, size_t n) {
     if (n >= 8) { memcpy(&v, d, 8); dect2::aprs::fmtLat(v); dect2::aprs::fmtLon(v); }
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* it = getenv("ZORCOM_FUZZ_ITERS");
+    const char* it = getenv("SAURCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 200000;
     std::mt19937 g(909);
     const std::string seeds[] = {"!4903.50N/07201.75W-Test", "`(_f\"Oj/>comment}ab!}", ":WB4APR   :Hello{3", ";LEADER   *092345z4903.50N/07201.75W>088/036", "!/5L!!<*e7>7P[",

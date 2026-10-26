@@ -137,7 +137,7 @@ std::string chanId(uint32_t sid) {
 
 std::string SpiStore::toXmltv(int64_t from, int64_t to) const {
     const SpiSnapshot s = snapshot();
-    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tv SYSTEM \"xmltv.dtd\">\n<tv generator-info-name=\"Eye of ZorCom\">\n";
+    std::string o = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tv SYSTEM \"xmltv.dtd\">\n<tv generator-info-name=\"Eye of SaurCom\">\n";
     std::set<uint32_t> used;
     for (const SpiEvent& e : s.events) used.insert(e.sid);
     for (uint32_t sid : used) {
@@ -212,7 +212,7 @@ void line(std::string& o, char tag, std::initializer_list<std::string> f) {
 
 std::string SpiStore::serialize() const {
     const SpiSnapshot s = snapshot();
-    std::string o = "ZORCOMSPI 1\n";
+    std::string o = "SAURCOMSPI 1\n";
     line(o, 'E', {std::to_string(s.ecc), std::to_string(s.eid)});
     for (const auto& kv : s.services) {
         const SpiService& v = kv.second;
@@ -235,7 +235,7 @@ std::string SpiStore::serialize() const {
 bool SpiStore::deserialize(const std::string& text) {
     std::istringstream in(text);
     std::string l;
-    if (!std::getline(in, l) || l != "ZORCOMSPI 1") return false;
+    if (!std::getline(in, l) || l != "SAURCOMSPI 1") return false;
     std::lock_guard<std::mutex> lk(mu_);
     SpiService* curS = nullptr;
     SpiProgramme* curP = nullptr;

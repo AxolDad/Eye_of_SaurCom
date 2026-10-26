@@ -265,7 +265,7 @@ public:
         rate_ = iq_->sampleRate();
         stopFlag_ = false;
         publishLocked(true, "", false);
-        poll_ = dect2::namedThread("zorcom-hamlib", [this] { pollLoop(); });
+        poll_ = dect2::namedThread("saurcom-hamlib", [this] { pollLoop(); });
         return true;
     }
 
@@ -304,7 +304,7 @@ public:
             if (!link_.setFreq(s.centerHz, e)) { noteLost(e); err = e; return false; }
         }
         bool modeChanged;
-        { std::lock_guard<std::mutex> lk(mu_); modeChanged = mode != appMode_; appMode_ = mode; }   // only when the operator changed it in Eye of ZorCom
+        { std::lock_guard<std::mutex> lk(mu_); modeChanged = mode != appMode_; appMode_ = mode; }   // only when the operator changed it in Eye of SaurCom
         if (modeChanged) {
             if (!link_.setMode(mode, 0, e)) err = e;   // refused mode: keep the frequency change
             else { std::lock_guard<std::mutex> lk(mu_); mode_ = mode; }

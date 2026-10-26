@@ -315,7 +315,7 @@ std::unique_ptr<HfdigFreedv> makeFreedvDecoder() { return std::make_unique<Hfdig
 
 namespace {
 
-struct TxText { const char* s = "ZORCOM TEST\r"; size_t i = 0; };
+struct TxText { const char* s = "SAURCOM TEST\r"; size_t i = 0; };
 char txChar(void* st) {
     TxText* t = static_cast<TxText*>(st);
     const char c = t->s[t->i++];
@@ -401,9 +401,9 @@ class FreedvLiveAudio : public HfdigTestAudio {
 public:
     FreedvLiveAudio(const Api& a, freedv* f, std::function<void(float*, int)> pull, const std::string& txt)
         : a_(a), f_(f), pull_(std::move(pull)) {
-        txt_.s = txt.empty() ? "ZORCOM\r" : txt.c_str();
+        txt_.s = txt.empty() ? "SAURCOM\r" : txt.c_str();
         // TxText holds a pointer — keep a copy
-        text_ = txt.empty() ? "ZORCOM\r" : (txt.back() == '\r' ? txt : txt + "\r");
+        text_ = txt.empty() ? "SAURCOM\r" : (txt.back() == '\r' ? txt : txt + "\r");
         txt_.s = text_.c_str();
         a_.setTxt(f_, nullptr, txChar, &txt_);
         nSpeech_ = std::max(a_.nSpeech(f_), 1);

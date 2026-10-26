@@ -1,22 +1,23 @@
-<p align="center"><img src="packaging/icons/zorcom_1024.png" width="140" alt="Eye of ZorCom logo"></p>
+<p align="center"><img src="packaging/icons/saurcom_1024.png" width="180" alt="Eye of SaurCom: a burning eye with a slit pupil"></p>
 
-<h1 align="center">Eye of ZorCom</h1>
+<h1 align="center">Eye of SaurCom</h1>
 
-<p align="center"><i>One program for radio and communications. A fork of <a href="https://github.com/adswill/OnAir">OnAir</a> by its authors (GPL-3.0), growing towards transmit, trunking, streaming, ATAK and mesh messaging. The plan: <a href="docs/superpowers/specs/2026-10-23-eye-of-zorcom-design.md">design</a>.</i></p>
+<p align="center"><b><i>One eye. Every band. It sees what is on the air.</i></b></p>
 
-<p align="center"><b>Receive TV, radio, aircraft, ships, satellites, two-way radio, pagers, time signals and more: 142 modes with one software-defined radio.</b><br>
-Free and open source, for macOS, Windows, Linux and Android.</p>
+<p align="center">A software-defined radio suite that watches the whole spectrum: 145 receive modes, transmit, trunking, streaming, ATAK and mesh messaging, all in one program on your own computer.<br>
+Free and open source (GPL-3.0), for macOS, Windows, Linux and Android.</p>
 
 <p align="center">
-  <a href="https://github.com/AxolDad/OnAir-SDR-Suite/releases/latest"><img src="https://img.shields.io/github/v/release/AxolDad/OnAir-SDR-Suite?label=download&color=2ea44f" alt="Latest release"></a>
-  <a href="https://github.com/AxolDad/OnAir-SDR-Suite/actions/workflows/ci.yml"><img src="https://github.com/AxolDad/OnAir-SDR-Suite/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/AxolDad/Eye_of_ZorCom/actions/workflows/ci.yml"><img src="https://github.com/AxolDad/Eye_of_ZorCom/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Android-lightgrey" alt="Platforms">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-orange" alt="License: GPL-3.0"></a>
 </p>
 
 <p align="center">
+  <a href="#what-this-fork-adds"><b>What it adds</b></a> &nbsp;·&nbsp;
+  <a href="#build-from-source"><b>Build</b></a> &nbsp;·&nbsp;
   <a href="docs/"><b>Docs</b></a> &nbsp;·&nbsp;
-  <a href="https://github.com/AxolDad/OnAir-SDR-Suite/releases/latest"><b>Download</b></a>
+  <a href="#videos"><b>Videos</b></a>
 </p>
 
 ---
@@ -36,21 +37,24 @@ Free and open source, for macOS, Windows, Linux and Android.</p>
 </tr>
 </table>
 
-<sub>Screenshots use the built-in test signals and demo data, so no radio is shown. Click one to enlarge.</sub>
+<sub>Screenshots use the built-in test signals and demo data, so no radio is shown. They were taken before the rename. Click one to enlarge.</sub>
 
 </div>
 
-Eye of ZorCom turns a low-cost SDR (a HackRF, an RTL-SDR, an Airspy and many other radios) into a receiver for most of what is on the air. Plug in an antenna, pick a mode, and watch what happens inside: the spectrum, the sync, the error correction and the decoded data. It is built for people who want a receiver that is both easy to use and honest about what is happening inside it.
+Eye of SaurCom turns a low-cost SDR (a HackRF, an RTL-SDR, an Airspy and many other radios) into one station for most of what is on the air. Plug in an antenna, pick a mode, and see everything inside the signal: the spectrum, the sync, the error correction and the decoded data. Aircraft, ships, satellites, broadcast TV and radio, trunked two-way radio, pagers, sensors and mesh networks all show up in the same place, on the same map.
 
-It receives and transmits. Transmit is off by default and turns on once you agree to transmit only within your own legal authority; after that nothing limits the frequency, the power or the mode (see [Transmit](#transmit)).
+It started as a fork of [OnAir](https://github.com/adswill/OnAir), Kristijonas Adomaitis's receiver, and keeps all of its decoders. On top of that it **talks back**: it transmits, follows trunked systems, streams what it hears, hands positions to ATAK, and sends mesh messages. See [What this fork adds](#what-this-fork-adds).
+
+**Your station, your data.** Everything runs on your own computer. There are no accounts and no cloud service of the project's own. The program only goes on the network for things you turn on (a feed, a stream, map tiles, an update check), and decodes every aircraft and signal it receives the same way.
+
+> **About the name:** yes, it is a nod to a certain lidless eye on a dark tower. This one only watches the airwaves, and it reports to you alone.
 
 > [!TIP]
-> New here? Press **Tour** in the app: a little TV walks you through Eye of ZorCom with a built-in demo signal, so you can explore everything before you buy a radio.
+> New here? Press **Tour** in the app: a little TV walks you through Eye of SaurCom with a built-in demo signal, so you can explore everything before you buy a radio.
 
 ## Contents
 
-- [What it does](#what-it-does)
-- [What is new in 0.2.8](#what-is-new-in-028) · [0.2.7](#what-is-new-in-027) · [0.2.6](#what-is-new-in-026)
+- [What it does](#what-it-does) · [What this fork adds](#what-this-fork-adds) · [Videos](#videos)
 - [Install](#install) · [Android app](#android-app) · [Development version](#development-version-nightly)
 - [Quick start](#quick-start)
 - [Modes](#modes) · [Tools and notes](#tools-and-notes)
@@ -83,124 +87,104 @@ It receives and transmits. Transmit is off by default and turns on once you agre
 
 **Many radios:** HackRF, RTL-SDR, Airspy, SDRplay, BladeRF, LimeSDR, USRP, Pluto, Fobos, RX888, RFNM, network radios, sound cards and Hamlib rigs. Details per mode are under [Modes](#modes).
 
-## What is new in 0.2.8
+## What this fork adds
 
-<details open>
-<summary><b>Show the 0.2.8 changes</b></summary>
+Everything above came from OnAir. This is what Eye of SaurCom built on top of it. Most of it has been tested on generated signals and recordings; a few parts say *experimental* in the app.
 
-- **22 new modes** (142 in all): the **KA family** (KAAL, KAPP, KAFT, KAVB, KAIT, KAWS, see below), eLoran / Loran-C, MPT1327, LTR and EDACS trunking control channels, Yaesu Fusion, a military HF waveform identifier (identify only), ARDOP, GOES DCS, Mode A/C, a BLE tracker detector, AM stereo (C-QUAM), DGPS beacons, SITOR, DME, FSQ and IFKP. Several are marked *in development* in the app and here: they have only been tested on generated signals.
-- **Voice you install yourself:** TETRA voice (unencrypted calls only) and Yaesu Fusion voice through a user-installed codec plug-in, for example one built from [mbelib-neo](https://github.com/arancormonk/mbelib-neo). Nothing patented is bundled; see [docs/CODECS.md](docs/CODECS.md).
-- **Easier to use:** a command palette (Ctrl+K), a get-me-listening wizard, four guided tours, workspaces with crash restore, a recording library with re-analyse, a Report a problem dialog with a local diagnostics bundle, a typography choice (Current, Clean, Compact) and a larger-touch-targets option.
-- **Receiver and display:** the demod mode shown and settable in the FFT panel, with a name search in the mode list (#212); waterfall export as PNG frames and a timelapse; a Solar and Jupiter burst monitor; FM tone control and a warm preset; C-QUAM stereo; VHF DSC channel 70; a toolbar button that says Memory; contact lines between stations on the FT8 and JS8 maps.
-- **Satellite dishes:** a dish alignment assistant (beacon level meter and look angles), LNB calibration from a beacon, a rotator north-offset calibration, a LEO Doppler monitor (detect only) and a SatNOGS transmitter browser (in development).
-- **Synchronous AM and the co-channel canceller:** the General receiver has a SAM demodulator next to AM. A loop locks the station's own carrier instead of measuring the envelope, so fading that takes the carrier down no longer distorts the audio, and either sideband can be heard on its own to step around a station crowding the other side. For two AM stations on one channel, switch on Co-channel: it locks the near station, rebuilds it from the sideband the far one is not on and subtracts it, so the station underneath comes up out of it. Slide the depth to 0 to hear the channel untouched and compare. Receive only.
-- **Radio tools:** Tools > Radio tools gathers the receive-only tools in one window, grouped as a pocket multi-tool would: Wi-Fi, Bluetooth, sub-GHz and spectrum, logging. It adds a deauthentication flood alarm, an evil twin check (the same network name open on one address and protected on another) and a list of Bluetooth serial module names (HC-05 type, used by some card skimmers), all read from what the Wi-Fi and Bluetooth modes already hear; a frequency analyzer (the strongest carriers in the span with a Tune button, and sub-GHz band presets); and a drive log that writes the networks (and, if you ask, Bluetooth devices) heard with a GPS or receiver position to a WiGLE CSV or KML file on your computer. Nothing in it transmits, joins a network, pairs with a device or captures a key exchange.
-- **Deep Space Network:** Tools > Deep Space Network shows what NASA's dishes at Goldstone, Madrid and Canberra are talking to now (the public DSN Now feed, every 5 s): spacecraft, distance and light time, up and down links with band, data rate and power, the band plan of each link, and a Tune button when the feed publishes a downlink frequency.
-- **Radios:** DXpatrol SDR (RTL2832U based, HF direct sampling, #220); PlutoSDR no longer contacts network Plutos you did not add (#215); the Linux RX888 start and a failed LimeSDR probe now name the device (see the release notes).
-- **Fixes:** GOES-19 HRIT differentially coded (NRZ-M) frames decode, HD Radio long station names and per-service logos, HaLow 2 MHz sub-channel scan and vendor elements (#192, #167), LTE / NR scan filters (#164), ADS-B altitude colours and display options, spectrum analyser resolution, DVB-T2 HEVC software fallback (#203), Android USB (#201), Meteor-M Doppler retune (#199), a DAB crash (#210), CDR audio recovery (#138, #121), a mesh clock that keeps running through a receiver reset (PR #217, thanks @ffishman).
-- **DVB-S / S2:** carrier survey, symbol dump and DVB-RCS / DVB-CID work from the DecSAT code by Arclamp (GPL-3.0-or-later), in development.
-- The full list, with issue numbers and known limits, is in the release notes.
+**Talking back**
 
-### The KA family (own modes, in development)
+- **Transmit, unlocked.** Every mode with a signal generator can be sent through a radio that transmits. A one-time agreement ("I will transmit only within my legal authority") turns it on; after that there are no band, power or mode locks, and **TX ON AIR** stays in the top bar while you are on the air. See [Transmit](#transmit).
+- **Mesh send.** Meshtastic and MeshCore text and position go out through the SDR, not only in.
+- **ATAK / TAK bridge.** Aircraft, ships, APRS stations and radiosondes go out as Cursor on Target over UDP (the 239.2.3.1:6969 group ATAK and WinTAK listen on, or a TAK server), and TAK contacts show on the map. *Tools > Data feeds*.
 
-KAAL, KAPP, KAFT, KAVB, KAIT and KAWS are digital modes designed from scratch by Kristijonas Adomaitis for amateur radio and built into Eye of ZorCom. Every transmission carries the sender's callsign, nothing is encrypted, and they use their own unpatented codecs. **All figures below were measured in simulation (generated signals with simulated noise); no KA mode has been on the air yet.**
+**Listening wider**
 
-| Mode | Job | Width | Notes |
-|---|---|---|---|
-| KAAL | voice, beacon, station ID | about 10 kHz (8 ksym/s, 16-QAM) | own 12 / 16 kbit/s voice codec live; 24 / 32 kbit/s live at 16 ksym/s; the callsign is also hidden in a sweep signature |
-| KAPP | short messages and small data | 100 kHz | nine profiles, BPSK to 1024-QAM, selective-repeat bursts |
-| KAFT | file transfer | 200 / 500 / 1000 kHz | ten profiles, hash-checked files |
-| KAVB | video | 1 to 2 MHz | physical layer and container only; no video codec yet (in development) |
-| KAIT | still pictures | under 200 kHz | a picture in a 10 s burst, sent in layers |
-| KAWS | HF weak-signal chat and beacons | 2.4 kHz | chirp and OFDM profiles in UTC slots |
+- **Trunking and scanning.** P25, DMR Tier III and NXDN Type C call following, several trunked systems scanned with conventional channels in one list, talkgroup names and call recording. sdrtrunk is the reference. [docs/trunking.md](docs/trunking.md), [docs/scanner.md](docs/scanner.md)
+- **Synchronous AM and a co-channel canceller** in the General receiver: SAM locks the station's own carrier so fading no longer distorts it, and the canceller rebuilds the near station and subtracts it so the one underneath comes up.
+- **NFC / RFID sniffer** at 13.56 MHz, from nfc-laboratory's decoder. [docs/nfc.md](docs/nfc.md)
+- **Inmarsat-C:** EGC areas, the land-earth-station list, announcements and messages to ships.
+- **WiFi sensing.** Presence, motion, breathing and heart rate per room, from the CSI frames that [RuView](https://github.com/ruvnet/RuView)'s ESP32 firmware sends. *Tools > WiFi sensing*.
 
-KAAL, KAPP and KAFT can write an IQ file you can open in SDR++ or Eye of ZorCom without a radio. KAPP and KAFT only listen: they send no acknowledgement.
+**Aviation**
 
-</details>
+- **NOTAMs and TFRs** that fall back to the most accurate source available: the FAA NOTAM API, then tfr.faa.gov, then FIS-B off the air from UAT 978. TFRs are drawn on the ADS-B map. [docs/notams.md](docs/notams.md)
+- **Flight history.** Flights cut into phases (ground, take-off, climb, cruise, descent, approach, landing), tracks, per-aircraft dossiers and pattern questions, kept in a local database, with the OurAirports runways. [docs/flight-history.md](docs/flight-history.md)
+- **ADS-B networks both ways:** feed presets for the aggregators, and asking a service what is in the air near you. [docs/adsb-services.md](docs/adsb-services.md)
+- **Better transcripts:** the audio is cleaned up before the speech engine hears it, and the engine is told what is on the air (the call signs in range, nearby runways and airports, the talkgroups you follow). [docs/TRANSCRIBE.md](docs/TRANSCRIBE.md)
 
-## What is new in 0.2.7
+**Out to the world**
 
-<details>
-<summary><b>Show the 0.2.7 changes</b></summary>
+- **Audio out and Icecast.** The sound you hear goes to any output device (a virtual cable included) or as MP3 to an Icecast server.
+- **Internet radio** (*Tools > Internet radio*): search the radio-browser.info directory and play a station through the same sound output, so recording, streaming and virtual cables get it too.
+- **Video out:** the **Stream** button next to the analog TV and FPV pictures sends them as MPEG-2 in a transport stream over UDP, to one computer or a multicast group; VLC opens it.
 
-- **About twenty new modes** (120 in all): Wireless M-Bus, tone decoders, COSPAS-SARSAT 406 MHz, MT63, Z-Wave, meteor scatter, analog FPV video, Wi-Fi HaLow, a P25 trunking follower, e-Czas, a working LBJ decoder, and KiwiSDR as a network radio.
-- **New tools:** [band survey](docs/band-survey.md), a [message database](docs/messages.md) with full-text search, a [flight history](docs/flight-history.md) with per-aircraft dossiers, [watchlists](docs/watchlists.md) with ntfy / Telegram / webhook alerts, a [time machine](docs/time-machine.md) (a rolling memory of raw IQ), a pass scheduler, a [Doppler orbit fit](docs/doppler-orbit.md), [self-calibration](docs/self-calibration.md), [station health](docs/STATION_HEALTH.md), an [interference hunter](docs/rfi-hunter.md), HF propagation and GNSS navigation views, a [hydrogen line toolkit](docs/hydrogen-line.md), [passive radar](docs/passive-radar.md), an [RF camera](docs/rf-camera.md) and a [protocol lab](docs/protocol-lab.md).
-- **TV and DAB:** a [TV recorder](docs/tv-recorder.md) (programme guide grid, scheduled recording, timeshift, subtitle export) and a DAB programme guide with XMLTV export.
-- **Plugin SDK** ([docs/plugins.md](docs/plugins.md)): add a mode or action as a plugin file without rebuilding. **Headless server** ([docs/headless-server.md](docs/headless-server.md)): `zorcom-server` runs Eye of ZorCom without a window, controlled from a browser. **Raspberry Pi** ([docs/RASPBERRY_PI.md](docs/RASPBERRY_PI.md)): arm64 install and which modes fit (untested on real hardware).
-- **Audio and signals:** an [audio cleanup chain](docs/audio-cleanup.md), [auto gain](docs/auto-gain.md) with per-device tables, live translation to English ([docs/TRANSCRIBE.md](docs/TRANSCRIBE.md)), auto-labelled spectrum, a calibrated signal identifier, a weather picture studio, [offline data packs](docs/PACKS.md) and [sound card input](docs/SOUND-CARD.md) for narrowband modes.
-- **Interface:** a [touch interface](#features), full-screen maps, an airband airport search with an On the air tab, a redesigned Transmit panel, a new logo.
-- **Android:** direct USB for RTL-SDR radios. The APK is signed with a new permanent key, so **uninstall 0.2.6 first**; later updates install normally.
-- **Fixes:** DVB-T2 16K extended pilot table (the 642 MHz capture decodes), TETRA no longer calls clear cells encrypted, HFDL strong bursts, DRA+ bit rate, mode switch while running, rtl_tcp greeting wait, Airspy HF+ late callbacks, accented paths on Windows.
-- **Under the hood:** the C++ protocol layers were replaced by Rust; **Rust is now required to build** (see [Build from source](#build-from-source)).
-- Most new modes and tools have been tested on synthetic signals only; the full list is in the release notes.
-</details>
+**Tools and radios**
 
-## What is new in 0.2.6
+- **Radio tools** (*Tools > Radio tools*): Wi-Fi deauthentication flood and evil-twin alarms, a list of Bluetooth names used by card skimmers, a frequency analyzer with sub-GHz presets, and a drive log of Wi-Fi and Bluetooth with GPS to a WiGLE CSV or KML file. Receive only: nothing joins, pairs or transmits.
+- **Deep Space Network** (*Tools > Deep Space Network*): what NASA's dishes at Goldstone, Madrid and Canberra are talking to right now, with a Tune button when a downlink frequency is published.
+- **New radios and files:** Aaronia Spectran V6 through RTSA-Suite ([docs/NETWORK_RADIOS.md](docs/NETWORK_RADIOS.md)), ESP32 boards as radios ([docs/esp-sdr.md](docs/esp-sdr.md)), and Flipper Zero `.sub` captures in and out of the ISM sensor mode.
 
-<details>
-<summary><b>Show the 0.2.6 changes</b></summary>
+**Taken out:** the features that depended on servers run by the upstream project (the shared map, live rooms, the update mirror, the shared DAB transmitter list and the online channel database). Updates now come only from this repository's GitHub releases.
 
-- **[Android app](#android-app):** the same decoder core with a phone interface (receive only).
-- **Hamlib rig control and rotators:** drive CAT radios such as an Icom IC-R8600 or IC-7300 (frequency and mode follow in both directions), and aim an antenna rotator.
-- **A real-time map of positions** (aircraft, ships, APRS, mesh nodes, radiosondes and more), with offline map files, and a receiver-range plot on the ADS-B and AIS maps.
-- **DRM data services:** slide show, broadcast website, programme guide (EPG), TPEG and Journaline. DAB and DRM share the same MOT object handling.
-- **Whole-span decoding** for pagers (POCSAG, FLEX) and APRS / packet: every channel in the captured span at once.
-- **TV:** teletext pages and DVB subtitles, recording with pause and live buffer, multi-channel DVB-T/T2 from one wide capture, user-set channel logos, DVB-S2X VL-SNR frames, DTMB LDPC on the GPU.
-- **ADS-B:** feeds from other receivers, offline registrations and countries, range statistics, metric vertical speed.
-- **FM:** a Mono switch for weak stations, a saved-station library, a scan with full RDS.
-- **Scroll to tune:** the wheel (or a trackpad) steps the frequency field digit by digit.
-- **Share my radio:** an rtl_tcp server for the radio Eye of ZorCom is running.
-- **More radios:** Fobos SDR, RX888 MkII (native USB 3 driver), RFNM, Red Pitaya, Pluto+ Ethernet, SpyServer, SDR++ server, Hermes Lite 2.
-- **Transmit** of every mode that has a signal generator, listed in [docs/TRANSMIT.md](docs/TRANSMIT.md).
-- **New modes** since 0.2.5: Tone decoders (CTCSS, DCS, DTMF, selcall), Wi-SUN FAN, e-Czas (Polish time service on 225 kHz), UAT 978 MHz, VDL Mode 4, TETRAPOL, Elektro-L, LBJ (Chinese railway warnings), COSPAS-SARSAT 406 MHz beacons, Wireless M-Bus, Z-Wave, MT63, FSQ, IFKP, meteor scatter, DECT, ANT+ sensors, NB-IoT and 5G NR cells, MAC, DVB-C, MeshCom, Q65 and the other WSJT modes, and more (120 modes in all).
-- **Interface:** Light and High contrast themes, an accent colour, colour maps and scroll-back for the spectrum, a General receiver with up to 4 channels and MP3 / FLAC recording, a one-button **Record audio** in the Source panel (next to Record IQ) that saves the sound you hear in any mode to WAV, FLAC or MP3 (optionally only while there is sound, one file per transmission), **Monitor audio** (Source panel): hear the tuned channel of any mode, also the decoders that have no sound of their own, as USB / LSB / narrow FM / AM, on a chosen output device, a second device (a virtual audio cable for fldigi, WSJT-X, multimon-ng) or a local TCP stream (off by default, 127.0.0.1 only unless you allow other computers; see docs/AUDIO.md), a "Save bug report" zip, translations (German, French, Spanish, Chinese, Lithuanian, Hungarian, Japanese, Polish, Dutch, Portuguese, Italian, Russian).
-- **Docker image** that shows the Eye of ZorCom GUI in a browser, published with each release.
-- **mbelib is no longer included** (patented AMBE/IMBE vocoders): see [Good to know](#good-to-know).
-</details>
+The plan this grew from: [design](docs/superpowers/specs/2026-10-23-eye-of-saurcom-design.md). OnAir's own release notes up to 0.2.8: [docs/ONAIR-HISTORY.md](docs/ONAIR-HISTORY.md).
+
+## Videos
+
+Short how-tos, in [video/renders](video/renders). They were recorded under the earlier working name, ZorCom.
+
+| | |
+|---|---|
+| [Overview](video/renders/01-overview.mp4) | [Getting started](video/renders/02-getting-started.mp4) |
+| [Trunking](video/renders/03-trunking.mp4) | [ATAK](video/renders/04-atak.mp4) |
+| [WiFi sensing](video/renders/05-wifi-sensing.mp4) | [Transmit and mesh](video/renders/06-transmit-mesh.mp4) |
+| [Audio and internet radio](video/renders/07-audio-radio.mp4) | |
 
 ## Install
 
-Download the file for your system from the **[latest release](https://github.com/AxolDad/OnAir-SDR-Suite/releases/latest)**. There is nothing to compile.
+> [!NOTE]
+> **No release has been published from this fork yet.** Until the first one, [build from source](#build-from-source). When a version is tagged, the release workflow publishes these files on the [Releases page](https://github.com/AxolDad/Eye_of_ZorCom/releases).
+
+Download the file for your system from the **[latest release](https://github.com/AxolDad/Eye_of_ZorCom/releases/latest)**. There is nothing to compile.
 
 | System | Download | How to install |
 |---|---|---|
-| **macOS** 15 or later | `ZorCom-…-macos-arm64.dmg` (Apple silicon)<br>`ZorCom-…-macos-x86_64.dmg` (Intel) | Open the `.dmg` and drag Eye of ZorCom to Applications. The app is not signed with a developer certificate yet, so on the first launch right-click it and choose *Open*. Intel Macs need a CPU with AVX2 (2013 or newer). |
-| **Windows** 10 / 11, 64-bit | `ZorCom-…-windows-x64-setup.exe`<br>or `ZorCom-…-windows-x64.zip` | Run the installer, or unpack the zip and start `ZorCom.exe`. Windows may warn about an unknown publisher because the installer is not code-signed. Needs a CPU with AVX2 (Intel or AMD from about 2013 on). |
-| **Linux** x86-64 and arm64 | `zorcom_…_amd64.deb` / `zorcom_…_arm64.deb`<br>or `zorcom-…-portable.tar.gz` | Debian / Ubuntu: `sudo apt install ./zorcom_<version>_<arch>.deb`, then start Eye of ZorCom from the menu or with `zorcom`. The `.deb` carries its own video decoder, so it does not depend on your system's FFmpeg. Other distributions: unpack the portable archive and run `bin/zorcom`. |
-| **Android** 9+, arm64 | `ZorCom-…-android.apk` | Sideload the APK, see [Android app](#android-app). |
+| **macOS** 15 or later | `SaurCom-…-macos-arm64.dmg` (Apple silicon)<br>`SaurCom-…-macos-x86_64.dmg` (Intel) | Open the `.dmg` and drag Eye of SaurCom to Applications. The app is not signed with a developer certificate yet, so on the first launch right-click it and choose *Open*. Intel Macs need a CPU with AVX2 (2013 or newer). |
+| **Windows** 10 / 11, 64-bit | `SaurCom-…-windows-x64-setup.exe`<br>or `SaurCom-…-windows-x64.zip` | Run the installer, or unpack the zip and start `SaurCom.exe`. Windows may warn about an unknown publisher because the installer is not code-signed. Needs a CPU with AVX2 (Intel or AMD from about 2013 on). |
+| **Linux** x86-64 and arm64 | `saurcom_…_amd64.deb` / `saurcom_…_arm64.deb`<br>or `saurcom-…-portable.tar.gz` | Debian / Ubuntu: `sudo apt install ./saurcom_<version>_<arch>.deb`, then start Eye of SaurCom from the menu or with `saurcom`. The `.deb` carries its own video decoder, so it does not depend on your system's FFmpeg. Other distributions: unpack the portable archive and run `bin/saurcom`. |
+| **Android** 9+, arm64 | `SaurCom-…-android.apk` | Sideload the APK, see [Android app](#android-app). |
 | **Docker** (a server without a screen, used from a browser) | `packaging/docker` in this repository | `docker compose up -d --build` in that folder, then open `https://<server>:3001`. See [packaging/docker/README.md](packaging/docker/README.md) for radios, graphics chips and settings. |
 
 > [!NOTE]
-> **SDRplay RSPs (RSP1, RSP1A, RSP1B, RSP2, RSPduo, RSPdx):** install the free **[SDRplay Hardware API](https://sdrplay.com/hardware-api/)** once, separately from SDRconnect, and restart Eye of ZorCom. Eye of ZorCom loads SDRplay's own library and service; it does not bundle them. Make sure the "SDRplay API Service" is running (the installer starts it). For the RSPduo, select the input with the antenna: **Tuner 1**, **Tuner 2**, or **Tuner 1 Hi-Z**. Eye of ZorCom uses one tuner at a time, at 62.5 kS/s to 10 MS/s; see [tested features and limits](DEVICES.md#sdrplay-rspduo). An RSP-compatible radio not made by SDRplay (for example a Mirics MSi2500 "RSP1A clone") is not seen by the SDRplay API; use SoapySDR's `mirisdr` module instead.
+> **SDRplay RSPs (RSP1, RSP1A, RSP1B, RSP2, RSPduo, RSPdx):** install the free **[SDRplay Hardware API](https://sdrplay.com/hardware-api/)** once, separately from SDRconnect, and restart Eye of SaurCom. Eye of SaurCom loads SDRplay's own library and service; it does not bundle them. Make sure the "SDRplay API Service" is running (the installer starts it). For the RSPduo, select the input with the antenna: **Tuner 1**, **Tuner 2**, or **Tuner 1 Hi-Z**. Eye of SaurCom uses one tuner at a time, at 62.5 kS/s to 10 MS/s; see [tested features and limits](DEVICES.md#sdrplay-rspduo). An RSP-compatible radio not made by SDRplay (for example a Mirics MSi2500 "RSP1A clone") is not seen by the SDRplay API; use SoapySDR's `mirisdr` module instead.
 
 > [!IMPORTANT]
-> **Windows USB drivers:** for a HackRF, RTL-SDR, Airspy, Airspy HF+, Fobos SDR or RX888 MkII (its boot loader 04b4:00f3 and its running firmware 04b4:00f1 both need it), install the WinUSB driver once with [Zadig](https://zadig.akeo.ie). A LimeSDR Mini needs FTDI's FT60x driver (see the README inside the download). A LimeSDR-USB (Cypress FX3) needs the Cypress/LimeSuite USB driver (CyUSB3, the one LimeGUI installs), not WinUSB: do not replace it with Zadig. Eye of ZorCom's own LimeSuite has no FX3 support, so for a LimeSDR-USB also install [PothosSDR](https://downloads.myriadrf.org/builds/PothosSDR/) or LimeSuite; Eye of ZorCom finds its LimeSuite.dll by itself and the log (zorcom.log) says which copy saw the radio ("LimeSuite ...: N radio(s)").
+> **Windows USB drivers:** for a HackRF, RTL-SDR, Airspy, Airspy HF+, Fobos SDR or RX888 MkII (its boot loader 04b4:00f3 and its running firmware 04b4:00f1 both need it), install the WinUSB driver once with [Zadig](https://zadig.akeo.ie). A LimeSDR Mini needs FTDI's FT60x driver (see the README inside the download). A LimeSDR-USB (Cypress FX3) needs the Cypress/LimeSuite USB driver (CyUSB3, the one LimeGUI installs), not WinUSB: do not replace it with Zadig. Eye of SaurCom's own LimeSuite has no FX3 support, so for a LimeSDR-USB also install [PothosSDR](https://downloads.myriadrf.org/builds/PothosSDR/) or LimeSuite; Eye of SaurCom finds its LimeSuite.dll by itself and the log (saurcom.log) says which copy saw the radio ("LimeSuite ...: N radio(s)").
 
 ### Android app
 
 <details>
 <summary><b>The Android app: sources, limits, how to install</b></summary>
 
- is the desktop decoder core (the same C++ code, built as `libzorcom.so`) with a phone interface in Kotlin Compose: spectrum and waterfall, the mode list with search and groups, a results tab with the decoded data of the selected mode, and a log.
+The Android app is the desktop decoder core (the same C++ code, built as `libsaurcom.so`) with a phone interface in Kotlin Compose: spectrum and waterfall, the mode list with search and groups, a results tab with the decoded data of the selected mode, and a log.
 
 - **Receive only.** The app never transmits. Its only permission is INTERNET (for rtl_tcp and SpyServer, and for map tiles).
 - **Sources:** an RTL-SDR on the USB port (0.2.7), `rtl_tcp` (an RTL-SDR served over the network, or on the phone itself), SpyServer, an IQ file (cs8, cu8, cf32, ci16, cu16, with its sample rate) and a built-in test signal for the selected mode that needs no radio.
 - **Results:** per-mode results (cards and tables), an OpenStreetMap map (tiles are only fetched after you agree), and FM with RDS.
 - **Use it:** pick a source on the Receiver tab, a mode on the Mode tab, press play. Tap the spectrum to tune, drag to move, pinch to zoom (double tap resets).
-- **Install:** download `ZorCom-…-android.apk` from the [release](https://github.com/AxolDad/OnAir-SDR-Suite/releases/latest), copy it to the phone, open it and allow installs from unknown sources for the app you opened it with. The APK is signed with the project's own key, not a Play Store key; updating later needs the same key.
+- **Install:** download `SaurCom-…-android.apk` from the [release](https://github.com/AxolDad/Eye_of_ZorCom/releases/latest), copy it to the phone, open it and allow installs from unknown sources for the app you opened it with. The APK is signed with the project's own key, not a Play Store key; updating later needs the same key.
 - **Limits:** arm64-v8a only, Android 9 (API 28) or newer. Direct USB works for RTL-SDR radios (new in 0.2.7); HackRF and Airspy USB are not supported yet, so use rtl_tcp or SpyServer for those. No vocoder voice (DMR, P25, NXDN, D-STAR, TETRA), no TV video or sound, and no images yet (the satellite pictures and the SSTV / fax pictures). Wide modes (DVB, ATSC) need a fast phone.
 </details>
 
 ### Development version ("nightly")
 
-Fixes and new features land on the `main` branch first, before they go into a release. To try them early, [build Eye of ZorCom from source](#build-from-source) from the latest `main`.
+Fixes and new features land on the `main` branch first, before they go into a release. To try them early, [build Eye of SaurCom from source](#build-from-source) from the latest `main`.
 
 > [!WARNING]
-> The development version is **not tested like a release**. It can contain bugs, unfinished features or changes that stop parts of the app (or the whole app) from working. Use the [latest release](https://github.com/AxolDad/OnAir-SDR-Suite/releases/latest) for everyday use, and if something breaks in a development build, please say so in [GitHub Issues](https://github.com/AxolDad/OnAir-SDR-Suite/issues), mentioning the commit you built.
+> The development version is **not tested like a release**. It can contain bugs, unfinished features or changes that stop parts of the app (or the whole app) from working. Use the [latest release](https://github.com/AxolDad/Eye_of_ZorCom/releases/latest) for everyday use, and if something breaks in a development build, please say so in [GitHub Issues](https://github.com/AxolDad/Eye_of_ZorCom/issues), mentioning the commit you built.
 
 ## Quick start
 
-1. Connect your radio and antenna, then start Eye of ZorCom. Connected radios appear in the source menu.
+1. Connect your radio and antenna, then start Eye of SaurCom. Connected radios appear in the source menu.
 2. Pick what you want to receive in the mode list.
 3. Enter a frequency, or open the **Scan** tab to find channels automatically.
 4. Press **Start**. When the receiver locks, the channels appear on the right: click one to watch or listen.
@@ -213,10 +197,10 @@ No radio? Open an IQ recording through the *IQ recording file* source (cs8, cu8,
 
 ## Modes
 
-142 modes, grouped as in the app (the list in the app also has a Plugins entry for managing add-ons). Every receiver is built from the published specifications and tested on generated signals (carrier offsets, noise, echoes, clock errors) and, where recordings exist, on real captures. Reports and recordings from your own antenna help most: attach them to an issue in [GitHub Issues](https://github.com/AxolDad/OnAir-SDR-Suite/issues). Where a mode has a specific caveat it is said below. **Receive only** means nothing is transmitted, decrypted or joined.
+145 modes, grouped as in the app (the list in the app also has a Plugins entry for managing add-ons). Every receiver is built from the published specifications and tested on generated signals (carrier offsets, noise, echoes, clock errors) and, where recordings exist, on real captures. Reports and recordings from your own antenna help most: attach them to an issue in [GitHub Issues](https://github.com/AxolDad/Eye_of_ZorCom/issues). Where a mode has a specific caveat it is said below. **Receive only** means nothing is transmitted, decrypted or joined.
 
 <details>
-<summary><b>All 142 modes, by family</b></summary>
+<summary><b>All 145 modes, by family</b></summary>
 
 ### TV
 
@@ -352,7 +336,7 @@ Cell towers broadcast who they are but not where they stand. The Cells mode can 
 
 1. Sign up (free) at https://opencellid.org and confirm your e-mail.
 2. Log in and copy your API token from your account page.
-3. In Eye of ZorCom, open Cells → Map and paste it into **OpenCelliD API key**.
+3. In Eye of SaurCom, open Cells → Map and paste it into **OpenCelliD API key**.
 
 Lookups need internet and run at most once a second; only the cell identity (MCC, MNC, TAC, cell id) and your key are sent. Answers are cached on disk, so the map also works offline afterwards. A CSV downloaded from OpenCelliD works too (Load tower file). Tower data © OpenCelliD, CC BY-SA 4.0.
 </details>
@@ -360,20 +344,20 @@ Lookups need internet and run at most once a second; only the cell identity (MCC
 <details>
 <summary><b>Iridium bursts for iridium-toolkit</b></summary>
 
-In the Iridium screen, **Save for iridium-toolkit** writes every demodulated burst as the `RAW:` lines of gr-iridium's `iridium-extractor` (by default `output.bits` in the recordings folder). From the command line: `zorcom-cli --standard iridium --iridium-bits output.bits --secs 600`. Then run [muccc/iridium-toolkit](https://github.com/muccc/iridium-toolkit):
+In the Iridium screen, **Save for iridium-toolkit** writes every demodulated burst as the `RAW:` lines of gr-iridium's `iridium-extractor` (by default `output.bits` in the recordings folder). From the command line: `saurcom-cli --standard iridium --iridium-bits output.bits --secs 600`. Then run [muccc/iridium-toolkit](https://github.com/muccc/iridium-toolkit):
 
 ```
 iridium-parser.py output.bits > output.parsed
 ```
 
-Eye of ZorCom writes the bits only and never decodes voice (the AMBE codec is patented).
+Eye of SaurCom writes the bits only and never decodes voice (the AMBE codec is patented).
 </details>
 
 <details>
 <summary><b>TV standards: what has been checked</b></summary>
 
 - **T2-Lite** (1/3 and 2/5 code rates, short FEC frames, 1.7 MHz channels) is decoded like any other DVB-T2 signal and checked on simulated signals; not tried on a real T2-Lite broadcast. A T2-Lite signal sharing a channel with a normal T2 one (in its future-extension frames) is not decoded.
-- **ATSC 3.0** is built from the specifications and works on simulated signals (synchronisation, error correction, link layer, ROUTE, HEVC with AAC); details may need fixing against a real broadcast. If you have a recording, please tell us on Discord.
+- **ATSC 3.0** is built from the specifications and works on simulated signals (synchronisation, error correction, link layer, ROUTE, HEVC with AAC); details may need fixing against a real broadcast. If you have a recording, please open an issue.
 - **ISDB-T** follows ARIB STD-B31 (all modes and guard intervals, up to three layers, TMCC, interleavers, Viterbi, Reed-Solomon) and decodes simulated signals exactly; not checked against a real broadcast. Channel names in the Japanese character set are not converted yet. To try it without a signal, `isdbtgen --out sample.cs8` (built with the tools) makes a recording: open it as an IQ recording, 10 Msps, CS8, with ISDB-T selected.
 </details>
 
@@ -391,7 +375,7 @@ Eye of ZorCom writes the bits only and never decodes voice (the AMBE codec is pa
 - Spectrum and waterfall (colour maps, pause and scroll-back, averaging, max hold, peak markers), every constellation, signal-to-noise and error figures.
 - A single **quality score**, and an **echo (multipath) detector**.
 - **Neural noise remover** for speech in the General receiver (NFM, WFM, AM) and Airband: RNNoise ([BSD-3-Clause](third_party/rnnoise/COPYING)) in the Listen chain, off by default, with a strength slider. See [docs/noise-remover.md](docs/noise-remover.md).
-- **DAB transmitter map:** Eye of ZorCom reads the transmitter identification (TII) that DAB networks send and lists the transmitters heard.
+- **DAB transmitter map:** Eye of SaurCom reads the transmitter identification (TII) that DAB networks send and lists the transmitters heard.
 
 **Tablets and touch screens**
 - **Touch interface** (View side panel > Touch interface, or `--touch`): 48 px targets, a bottom dock with Start / Stop, tuning, gain, volume and tuner, a numeric keypad for the frequency (MHz, kHz, GHz), a full-screen mode picker in the mode list's colours, bottom-sheet dialogs, drag and fling scrolling, swipe between tabs, long press for the context menu, portrait and landscape.
@@ -415,11 +399,11 @@ Eye of ZorCom writes the bits only and never decodes voice (the AMBE codec is pa
 
 ## Supported radios
 
-Eye of ZorCom supports the **HackRF One and HackRF Pro** natively, and drives these radios directly too:
+Eye of SaurCom supports the **HackRF One and HackRF Pro** natively, and drives these radios directly too:
 
 | Radio | Wide TV channels (6 – 8 MHz) | DAB, FM and narrow channels | Notes |
 |---|:---:|:---:|---|
-| **HackRF One / Pro** | ✅ | ✅ | The radio Eye of ZorCom is developed and tested with |
+| **HackRF One / Pro** | ✅ | ✅ | The radio Eye of SaurCom is developed and tested with |
 | **BladeRF**, **LimeSDR** (USB, **Mini**, Mini 2) | ✅ | ✅ | LimeSDR-USB: external reference clock (10-40 MHz on CLK IN) in the radio settings; any SoapySDR radio that lists clock or time sources gets the same choice. LimeSDR Mini: 10 MHz - 3.5 GHz, up to 30.72 Msps (USB 3 above about 15), listed by name; Windows needs FTDI's FT60x driver, and `LimeUtil --update` if the gateware is old. See [DEVICES.md](DEVICES.md) |
 | **USRP** | ✅ | ✅ | Reference clock (internal, external 10 MHz, GPSDO) and time source (PPS) are picked in the radio settings. On Windows, install UHD from [Ettus](https://files.ettus.com) (with its firmware images) |
 | **PlutoSDR** | ⚠️ | ✅ | Over its USB cable it streams about 4 Msps, too little for a 6 – 8 MHz channel. Library not included on macOS yet: install libiio 0.26 (Analog Devices' macOS package, or Homebrew) |
@@ -427,27 +411,27 @@ Eye of ZorCom supports the **HackRF One and HackRF Pro** natively, and drives th
 | **SDRplay RSPduo** | Streaming tested at 10 MS/s; TV decoding untested | FM and RDS tested on Windows | Select Tuner 1 SMA, Tuner 2 SMA, or Tuner 1 Hi-Z; one input at a time. [Setup and validation](DEVICES.md#sdrplay-rspduo) |
 | **RTL-SDR** | ❌ | ✅ | An RTL-SDR Blog V4 works for HF on macOS too |
 | **Airspy HF+** | ❌ | Narrow channels only | Specified for HF and 60 – 260 MHz |
-| **Fobos SDR** (agile firmware) | ✅ | ✅ | Contributed, untested here. Specified for 50 MHz – 6 GHz on the RF input, HF on the HF1 / HF2 inputs. Library not included: put RigExpert's `fobos_sdr` library next to Eye of ZorCom, see [DEVICES.md](DEVICES.md) |
+| **Fobos SDR** (agile firmware) | ✅ | ✅ | Contributed, untested here. Specified for 50 MHz – 6 GHz on the RF input, HF on the HF1 / HF2 inputs. Library not included: put RigExpert's `fobos_sdr` library next to Eye of SaurCom, see [DEVICES.md](DEVICES.md) |
 | **RX888 MkII** | ✅ | ✅ | Native SDDC/USB driver (FX3 firmware, 16-bit ADC), still being hardened on real hardware. USB 3 required. Packages include `SDDC_FX3.img` (RAM load only); see [DEVICES.md](DEVICES.md) |
 | **RFNM** | ✅ | ✅ | Contributed. Only in builds made with [librfnm](https://github.com/rfnm/librfnm) installed (not the downloads yet), see [DEVICES.md](DEVICES.md). One entry per receive channel of the daughterboards |
 | **ESP32 boards** (ESP-SDR: SoapyESPSDR for the ESPARGOS ESP32-S31 on USB or Ethernet, the serial SoapyESPSDR for an ESP32-S3, esp-sdr-zephyr for a XIAO ESP32S3 / ESP32-C6) | ❌ | 2.4 GHz band only | Through their SoapySDR modules; recognised and named, with the documented ranges shown before the board has been started. 4 – 40 Msps (S31) or up to 625 ksps (serial boards), 2150 – 2800 MHz, gain a PHY index. Untested on a board, see [docs/esp-sdr.md](docs/esp-sdr.md) |
 | **Anything else** | depends | depends | Through [SoapySDR](https://github.com/pothosware/SoapySDR), once its SoapySDR module is installed |
 
 - The libraries these radios need are included in the downloads, except as noted above.
-- A TV channel needs a radio that samples fast enough: roughly 1 million samples per second per MHz of channel width. If a radio cannot reach the rate or frequency a mode needs, Eye of ZorCom says so next to the source.
-- **Any frequency.** Eye of ZorCom never limits the frequency you enter, in any mode and on any radio. The ranges listed for a radio are what it is *specified* for: outside them Eye of ZorCom still asks the driver and shows a note. An RTL-SDR picks the way down below 24 MHz by itself (an RTL-SDR Blog V4 upconverts HF in its library, any other dongle samples its Q input directly). Only what a driver itself refuses stays an error.
+- A TV channel needs a radio that samples fast enough: roughly 1 million samples per second per MHz of channel width. If a radio cannot reach the rate or frequency a mode needs, Eye of SaurCom says so next to the source.
+- **Any frequency.** Eye of SaurCom never limits the frequency you enter, in any mode and on any radio. The ranges listed for a radio are what it is *specified* for: outside them Eye of SaurCom still asks the driver and shows a note. An RTL-SDR picks the way down below 24 MHz by itself (an RTL-SDR Blog V4 upconverts HF in its library, any other dongle samples its Q input directly). Only what a driver itself refuses stays an error.
 - The radios other than the HackRF have had less real-world testing. Notes for specific radios are in **[DEVICES.md](DEVICES.md)**.
 
 <details>
 <summary><b>Sound card and Hamlib rig sources</b></summary>
 
 - **Sound card** (the radio list: **Sound card: …**, including Default input): WebSDR, a virtual audio cable, or a handheld radio's speaker/line into the computer, for HF decoders (FT8, RTTY, CW, SSB) at the capture rate (usually 48 kHz). Four mappings: I/Q stereo, USB audio, LSB audio, mono real. The frequency field is the *dial* the decoder should assume; nothing is tuned. Unverified against a real WebSDR.
-- **Hamlib rig** (source list: **Add Hamlib rig…**): a CAT-controlled radio such as an Icom IC-R8600 or IC-7300. Search the model by name or type its Hamlib number, pick the serial port Eye of ZorCom finds (or `host:port` for a `rigctld` on the network), and choose a sound card for the audio or IQ. The frequency and mode follow in both directions. If the rig is unplugged or `rigctld` stops, Eye of ZorCom says so and reconnects by itself. Receiving never keys the transmitter. **Rotators** are driven the same way.
+- **Hamlib rig** (source list: **Add Hamlib rig…**): a CAT-controlled radio such as an Icom IC-R8600 or IC-7300. Search the model by name or type its Hamlib number, pick the serial port Eye of SaurCom finds (or `host:port` for a `rigctld` on the network), and choose a sound card for the audio or IQ. The frequency and mode follow in both directions. If the rig is unplugged or `rigctld` stops, Eye of SaurCom says so and reconnects by itself. Receiving never keys the transmitter. **Rotators** are driven the same way.
 </details>
 
 ### Network radios
 
-Add them from the source list: **Add network radio…**, choose the type, type its address and press **Connect**. Eye of ZorCom tries for a few seconds and says why when it gets no answer; added radios are remembered.
+Add them from the source list: **Add network radio…**, choose the type, type its address and press **Connect**. Eye of SaurCom tries for a few seconds and says why when it gets no answer; added radios are remembered.
 
 <details>
 <summary><b>Network radio types, ports and notes</b></summary>
@@ -469,12 +453,12 @@ Add them from the source list: **Add network radio…**, choose the type, type i
 
 - rtl_tcp carries 8-bit samples at up to about 2.5 Msps (more with the Auto server radio setting). SoapyRemote needs SoapySDR with the SoapyRemote module on both computers; if it picks the wrong radio or lists none, type the radio's driver (for example `mirisdr`) in "Remote driver". Do not confuse SpyServer's port 5555 with SoapyRemote's 55132.
 - **SpyServer** is spoken from the public protocol description (2.0.1700): the full IQ stream (8-bit or 16-bit), sample rates from the server's decimation stages, frequency and gain control. Tell us if your server misbehaves.
-- **SDR++ server**: Eye of ZorCom sets the sample rate and the gain through the server's own source menu, so it works with whatever radio SDR++ drives there, and that source's other controls (gain mode, bias tee, AGC, antenna, the server's source) show up under **Radio settings** as "SDR++: ...". Those are changes to the server: SDR++ keeps them after Eye of ZorCom disconnects. The server takes one client at a time. See [DEVICES.md](DEVICES.md).
-- **Aaronia RTSA-Suite**: the radio stays with RTSA-Suite, which must be running a graph that ends in an IQ demodulator block feeding an HTTP Server block; Eye of ZorCom reads that block's `/stream` and sends the frequency and span to its `/control`. The graph decides what is possible, so the sample rate reported is the one its packets carry, not the one asked for, and a graph serving spectra instead of IQ says so rather than sitting silent. Samples the server drops when its outbound buffer fills are counted from the gaps in its own timestamps. Put `user:password` in the Password field when the block asks for one. Written from Aaronia's published endpoint document and tested only against a fake server, so the sample scaling and the behaviour of a real V6 are unverified.
+- **SDR++ server**: Eye of SaurCom sets the sample rate and the gain through the server's own source menu, so it works with whatever radio SDR++ drives there, and that source's other controls (gain mode, bias tee, AGC, antenna, the server's source) show up under **Radio settings** as "SDR++: ...". Those are changes to the server: SDR++ keeps them after Eye of SaurCom disconnects. The server takes one client at a time. See [DEVICES.md](DEVICES.md).
+- **Aaronia RTSA-Suite**: the radio stays with RTSA-Suite, which must be running a graph that ends in an IQ demodulator block feeding an HTTP Server block; Eye of SaurCom reads that block's `/stream` and sends the frequency and span to its `/control`. The graph decides what is possible, so the sample rate reported is the one its packets carry, not the one asked for, and a graph serving spectra instead of IQ says so rather than sitting silent. Samples the server drops when its outbound buffer fills are counted from the gaps in its own timestamps. Put `user:password` in the Password field when the block asks for one. Written from Aaronia's published endpoint document and tested only against a fake server, so the sample scaling and the behaviour of a real V6 are unverified.
 - **Hermes Lite 2** receives up to 38.4 MHz at 48 to 384 ksps, so only HF and narrow modes fit; the N2ADR filter board's band filters follow the frequency. **Red Pitaya** runs Pavel Demin's HPSDR-compatible SDR transceiver app: 48 to 384 ksps, tuning up to 61.44 MHz, no gain control; tested only against a fake server, so sample rate accuracy, level scaling and mirroring (setting "Swap I and Q") are unverified.
-- **Several receivers (slices) of one Hermes Lite 2 or Red Pitaya**: the radio list has one entry per receiver ("Hermes Lite 2 RX1 ...", "Hermes Lite 2 RX2 ..."; as many as the HL2's gateware says it has, three on a Red Pitaya), so each Eye of ZorCom receiver tab can take its own, on its own frequency and mode. They share the radio's one stream, so they share its sample rate (the first one opened sets it), its gain and the filter board (the filter for the highest frequency in use). Opening or closing a receiver above the others restarts the stream for a fraction of a second. One program at a time can stream from the radio.
-- When a network radio drops, Eye of ZorCom reconnects by itself, and the status bar shows the samples lost. Nothing is opened to the network by default.
-- **Share my radio** (View > Data feeds): Eye of ZorCom becomes an rtl_tcp server for the radio it is running, so a second Eye of ZorCom, SDR#, SDR++ or any rtl_tcp client can listen to the same signal (8-bit IQ at the radio's rate). Only this computer can connect until you tick **Let other computers connect (LAN)**; clients can change the frequency and gain only when **Allow remote control** is ticked.
+- **Several receivers (slices) of one Hermes Lite 2 or Red Pitaya**: the radio list has one entry per receiver ("Hermes Lite 2 RX1 ...", "Hermes Lite 2 RX2 ..."; as many as the HL2's gateware says it has, three on a Red Pitaya), so each Eye of SaurCom receiver tab can take its own, on its own frequency and mode. They share the radio's one stream, so they share its sample rate (the first one opened sets it), its gain and the filter board (the filter for the highest frequency in use). Opening or closing a receiver above the others restarts the stream for a fraction of a second. One program at a time can stream from the radio.
+- When a network radio drops, Eye of SaurCom reconnects by itself, and the status bar shows the samples lost. Nothing is opened to the network by default.
+- **Share my radio** (View > Data feeds): Eye of SaurCom becomes an rtl_tcp server for the radio it is running, so a second Eye of SaurCom, SDR#, SDR++ or any rtl_tcp client can listen to the same signal (8-bit IQ at the radio's rate). Only this computer can connect until you tick **Let other computers connect (LAN)**; clients can change the frequency and gain only when **Allow remote control** is ticked.
 - **Data feeds** (View > Data feeds), all off until you turn one on: ADS-B SBS-1 and Beast (TCP), AIS NMEA (UDP), APRS-IS and KISS (TCP), ACARS and VDL2 JSON (UDP), GNSS NMEA RMC/GGA (UDP), Bluetooth LE JSON (UDP), LoRa / LoRaWAN / Meshtastic JSON (UDP). The TCP servers stay on this computer unless **Let other computers connect (LAN)** is ticked.
 - **NOTAMs and TFRs** (Tools > NOTAMs and TFRs; [details](docs/notams.md)): off the air from FIS-B on 978 MHz, from tfr.faa.gov, and from the FAA, through its new NOTAM Management Service (NMS) or the older NOTAM API, with your own credentials. Each NOTAM comes from the most accurate source that has it now, and falls back to the next when one cannot be reached. Anything out of date is marked stale with its age, never shown as current. TFRs are drawn on the ADS-B map, and each airport lists its own NOTAMs.
 - **ADS-B networks, both directions** (View > Data feeds; [details](docs/adsb-services.md)). **Feed** airplanes.live, adsb.lol, adsb.fi, TheAirTraffic, ADS-B Exchange or ADSBHub directly — with the feeder id the readsb-based networks know a station by, made for you — and Flightradar24, FlightAware or Plane Finder through the client you already run. For MLAT, airplanes.live's own `mlat-client` reads this program's Beast server. Or **ask** adsb.lol, adsb.fi or OpenSky what is in the air around you, including where your antenna cannot reach: those aircraft show on the map and in the table marked with the service they came from, and are never re-sent to a network nor recorded in the flight history, which stays a record of what this antenna heard.
@@ -482,13 +466,13 @@ Add them from the source list: **Add network radio…**, choose the type, type i
 
 ## Transmit
 
-Eye of ZorCom sends the signal of a mode through a radio that can transmit (a HackRF, for example). Transmit is off until you agree, once, that you will transmit only within your own legal authority (a licence or permission where you are).
+Eye of SaurCom sends the signal of a mode through a radio that can transmit (a HackRF, for example). Transmit is off until you agree, once, that you will transmit only within your own legal authority (a licence or permission where you are).
 
 - **Needs a radio that can transmit.** A receive-only radio (RTL-SDR, Airspy and so on) cannot be used.
 - **A one-time agreement** appears the first time you start a transmission: "I understand" turns transmit on, Cancel leaves it off. While a radio transmits, **TX ON AIR** shows in the top bar of every view.
 - **No frequency, power or mode limits.** The frequency and the gain you enter go to the radio as typed. You are responsible for staying within the law where you are: transmitting needs a licence on most frequencies, and a radio without a filter or an antenna can disturb others.
 - **A guided panel.** Switch RX / TX at the top left: a status header with one Start / Stop button (Space starts and stops, Esc stops), then three steps: **1 Signal** (a searchable, grouped list), **2 Settings** (radio, frequency with the radio's range as a hint, output level, the signal's own options, and a **Test (dry run, no RF)** switch that runs the generator into nothing and shows the spectrum) and **3 Preview and send** (live spectrum, peak / RMS meters, clipping lamp, sample rate, occupied bandwidth, **STOP ALL**). It can pop out into its own window. A soft limiter keeps the generated signal inside the converter's range; it is not a power limit.
-- **Every mode with a signal generator can be sent.** Eye of ZorCom refuses no mode; only a mode without a generator says "this mode has no transmit generator".
+- **Every mode with a signal generator can be sent.** Eye of SaurCom refuses no mode; only a mode without a generator says "this mode has no transmit generator".
 
 The full list of modes offered is in [docs/TRANSMIT.md](docs/TRANSMIT.md).
 
@@ -498,7 +482,7 @@ The full list of modes offered is in [docs/TRANSMIT.md](docs/TRANSMIT.md).
 <summary><b>Endpoints and examples</b></summary>
 
 
-Scripts and other programs can control Eye of ZorCom over HTTP and WebSocket. It is **off by default**: turn it on in **View > Data feeds > Remote control API**. It listens on `127.0.0.1` (port 8765) only; **Let other computers connect** opens it to the network and then needs a token (at least 16 characters, made for you; the app shows it and can copy it). Programs on the same computer need no token; every other address must send `Authorization: Bearer <token>` (or `?token=<token>`, which ends up in logs: prefer the header). A web page cannot drive it: no CORS headers are sent, a POST must be `Content-Type: application/json`, and a request with a foreign `Origin` is refused.
+Scripts and other programs can control Eye of SaurCom over HTTP and WebSocket. It is **off by default**: turn it on in **View > Data feeds > Remote control API**. It listens on `127.0.0.1` (port 8765) only; **Let other computers connect** opens it to the network and then needs a token (at least 16 characters, made for you; the app shows it and can copy it). Programs on the same computer need no token; every other address must send `Authorization: Bearer <token>` (or `?token=<token>`, which ends up in logs: prefer the header). A web page cannot drive it: no CORS headers are sent, a POST must be `Content-Type: application/json`, and a request with a foreign `Origin` is refused.
 
 | Endpoint | What it does |
 |---|---|
@@ -527,15 +511,15 @@ The server is `core/src/net/remote_api.cpp`; `tests/net/test_remote_api.cpp` run
 
 ## Updates
 
-Eye of ZorCom checks GitHub for a newer version a few seconds after it starts (then at most once a day), downloads the package for your system in the background, verifies it against the SHA-256 that GitHub lists, and installs it when you close the program.
+Eye of SaurCom checks GitHub for a newer version a few seconds after it starts (then at most once a day), downloads the package for your system in the background, verifies it against the SHA-256 that GitHub lists, and installs it when you close the program.
 
 - The version button at the top right shows the state and has the settings: turn the check off, turn automatic install off (you then get a button instead), or leave out pre-releases.
-- macOS replaces `ZorCom.app`; Windows runs the installer quietly (Windows asks for permission); Linux replaces the portable folder, and a `.deb` install asks for your password through the system's installer.
+- macOS replaces `SaurCom.app`; Windows runs the installer quietly (Windows asks for permission); Linux replaces the portable folder, and a `.deb` install asks for your password through the system's installer.
 - Only github.com is contacted, and nothing is sent but the usual request.
 
 ## Discord status
 
-Off, and unavailable until you give it a Discord application: none is built in. Register one at the Discord developer portal, upload the icon as a Rich Presence art asset named `zorcom`, and set the environment variable `ZORCOM_DISCORD_APP_ID` to its id (or `kDiscordAppId` in `app/platform/discord_rpc.cpp`). Then **View > Show in Discord** shows on your Discord profile that you are using Eye of ZorCom, the mode and (optionally, **Show the frequency**) the frequency. It needs the Discord desktop app running, talks only to it on your computer, and sends nothing else anywhere.
+Off, and unavailable until you give it a Discord application: none is built in. Register one at the Discord developer portal, upload the icon as a Rich Presence art asset named `saurcom`, and set the environment variable `SAURCOM_DISCORD_APP_ID` to its id (or `kDiscordAppId` in `app/platform/discord_rpc.cpp`). Then **View > Show in Discord** shows on your Discord profile that you are using Eye of SaurCom, the mode and (optionally, **Show the frequency**) the frequency. It needs the Discord desktop app running, talks only to it on your computer, and sends nothing else anywhere.
 
 ## Good to know
 
@@ -543,10 +527,10 @@ Off, and unavailable until you give it a Discord application: none is built in. 
 > [!NOTE]
 > **mbelib is not included from 0.2.6.** DMR, P25, NXDN, dPMR and D-STAR voice is silent until you install mbelib yourself, because the AMBE / IMBE vocoders are patented. Calls, IDs and data work without it. Put the library in the codecs folder (the **?** next to the sound has an **Open codecs folder** button), then press **Look again**. Steps: **[docs/CODECS.md](docs/CODECS.md)**.
 >
-> **HD Radio sound is not included.** HDC is a proprietary codec of Xperi, so Eye of ZorCom shows the stations, program data and pictures but is silent until you build the HDC-patched FAAD2 (`libfaad_hdc`) yourself from the open-source nrsc5 patch and put it in the codecs folder, then press **Look again** (the **?** next to the sound). Steps and the legal note: **[docs/CODECS.md](docs/CODECS.md#hd-radio-sound-hdc-build-it-yourself)**.
+> **HD Radio sound is not included.** HDC is a proprietary codec of Xperi, so Eye of SaurCom shows the stations, program data and pictures but is silent until you build the HDC-patched FAAD2 (`libfaad_hdc`) yourself from the open-source nrsc5 patch and put it in the codecs folder, then press **Look again** (the **?** next to the sound). Steps and the legal note: **[docs/CODECS.md](docs/CODECS.md#hd-radio-sound-hdc-build-it-yourself)**.
 
-- codec2 (FreeDV and M17 speech) comes with Eye of ZorCom as a separate shared library, nothing to install. Some other voice and audio codecs are not shipped (AMBE and HDC are patented, DRA+ is of unclear status). **[docs/CODECS.md](docs/CODECS.md)** says how to install the ones you can, and what to use for the others; the **?** button next to the sound of each such mode says the same.
-- **Saving DRA sound.** Eye of ZorCom does not include a DRA decoder (CDR sound needs the optional add-on in [docs/CODECS.md](docs/CODECS.md#dra-cdr-sound), TV DRA needs a patched FFmpeg), but it can save the raw sound. In the CDR *Radio* tab, and in the *Player* section of the TV tab for a DTMB service whose sound is DRA (or any service with MPEG audio), press **Save stream**. The raw audio goes to `audio-streams/<name>_<date>_<time>.dra` (`.mp2` for MPEG audio) in Eye of ZorCom's data folder; press **Stop saving** to close the file. Play it with an FFmpeg that has DRA support (`ffplay stream.dra`, or `ffplay -f dra stream.dra` if it is not recognised); a normal FFmpeg cannot read `.dra`, while `.mp2` plays anywhere.
+- codec2 (FreeDV and M17 speech) comes with Eye of SaurCom as a separate shared library, nothing to install. Some other voice and audio codecs are not shipped (AMBE and HDC are patented, DRA+ is of unclear status). **[docs/CODECS.md](docs/CODECS.md)** says how to install the ones you can, and what to use for the others; the **?** button next to the sound of each such mode says the same.
+- **Saving DRA sound.** Eye of SaurCom does not include a DRA decoder (CDR sound needs the optional add-on in [docs/CODECS.md](docs/CODECS.md#dra-cdr-sound), TV DRA needs a patched FFmpeg), but it can save the raw sound. In the CDR *Radio* tab, and in the *Player* section of the TV tab for a DTMB service whose sound is DRA (or any service with MPEG audio), press **Save stream**. The raw audio goes to `audio-streams/<name>_<date>_<time>.dra` (`.mp2` for MPEG audio) in Eye of SaurCom's data folder; press **Stop saving** to close the file. Play it with an FFmpeg that has DRA support (`ffplay stream.dra`, or `ffplay -f dra stream.dra` if it is not recognised); a normal FFmpeg cannot read `.dra`, while `.mp2` plays anywhere.
 - Reception depends heavily on your antenna and location. A weak or echo-filled signal is the usual cause of a broken picture; the quality score and echo detector help you improve it.
 - Receiving broadcasts is legal in most places, but laws differ. Check the rules where you live.
 
@@ -560,7 +544,7 @@ Off, and unavailable until you give it a Discord application: none is built in. 
 - **macOS will not open the app.** It is not signed with a developer certificate yet: right-click it and choose *Open* on the first launch.
 - **No voice in DMR, P25, NXDN, dPMR or D-STAR.** Install mbelib yourself, see [Good to know](#good-to-know) and [docs/CODECS.md](docs/CODECS.md).
 - **No radio at all.** Open an IQ recording through the *IQ recording file* source, or press **Tour**.
-- **Still stuck.** Press **Save bug report** (one zip with diagnostics, log and crash report) and attach it to an issue in [GitHub Issues](https://github.com/AxolDad/OnAir-SDR-Suite/issues).
+- **Still stuck.** Press **Save bug report** (one zip with diagnostics, log and crash report) and attach it to an issue in [GitHub Issues](https://github.com/AxolDad/Eye_of_ZorCom/issues).
 </details>
 
 ## Build from source
@@ -606,16 +590,16 @@ Configure with a clean `build` folder after changing these. Other options in `CM
    ```sh
    pacman -S --needed git zip mingw-w64-ucrt-x86_64-{gcc,cmake,ninja,pkgconf,ffmpeg,glfw,hackrf,soapysdr,libiconv}
    ```
-   Optional: `mingw-w64-ucrt-x86_64-nsis` for the setup .exe. (codec2 is built from `third_party/codec2` with Eye of ZorCom and goes into the zip.)
+   Optional: `mingw-w64-ucrt-x86_64-nsis` for the setup .exe. (codec2 is built from `third_party/codec2` with Eye of SaurCom and goes into the zip.)
 4. Get the source and build:
    ```sh
-   git clone https://github.com/AxolDad/OnAir-SDR-Suite.git
-   cd Eye of ZorCom
+   git clone https://github.com/AxolDad/Eye_of_ZorCom.git
+   cd Eye of SaurCom
    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DDECT2_BUILD_APP=ON
    cmake --build build
    ```
 5. Run it from the same shell, so Windows finds the DLLs: `./build/dect2.exe`. Tests: `ctest --test-dir build`.
-6. For a folder that runs on any PC, with all DLLs next to `ZorCom.exe`, run `tools/package/make_windows.sh`: a portable zip in `build-windows/`, plus a setup .exe if NSIS is installed. From macOS or Linux, `tools/package/make_windows_cross.sh` builds the same package with a cross-compiler.
+6. For a folder that runs on any PC, with all DLLs next to `SaurCom.exe`, run `tools/package/make_windows.sh`: a portable zip in `build-windows/`, plus a setup .exe if NSIS is installed. From macOS or Linux, `tools/package/make_windows_cross.sh` builds the same package with a cross-compiler.
 
 To use a HackRF, RTL-SDR or Airspy, install the WinUSB driver once with [Zadig](https://zadig.akeo.ie).
 
@@ -635,20 +619,20 @@ To use a HackRF, RTL-SDR or Airspy, install the WinUSB driver once with [Zadig](
 ## Community
 
 - **[Docs](docs/)**: the guides and notes in this repository.
-- **[GitHub Issues](https://github.com/AxolDad/OnAir-SDR-Suite/issues)**: bug reports. Attach an IQ recording of the problem: press **Record IQ** in the Source panel (or run `zorcom-cli --record auto --secs 10`); files go to the `recordings` folder of the app data folder, and **Show recording** opens it. With **SigMF** ticked (the default) every recording also gets a `.sigmf-meta` file, so it opens directly in [IQEngine](https://iqengine.org). **Save bug report** makes one zip with diagnostics, log and crash report.
-- **[Pull requests](https://github.com/AxolDad/OnAir-SDR-Suite/pulls)** are welcome.
+- **[GitHub Issues](https://github.com/AxolDad/Eye_of_ZorCom/issues)**: bug reports. Attach an IQ recording of the problem: press **Record IQ** in the Source panel (or run `saurcom-cli --record auto --secs 10`); files go to the `recordings` folder of the app data folder, and **Show recording** opens it. With **SigMF** ticked (the default) every recording also gets a `.sigmf-meta` file, so it opens directly in [IQEngine](https://iqengine.org). **Save bug report** makes one zip with diagnostics, log and crash report.
+- **[Pull requests](https://github.com/AxolDad/Eye_of_ZorCom/pulls)** are welcome.
 
 ## License
 
-Eye of ZorCom is released under the **GNU General Public License v3.0 or later**, see [LICENSE](LICENSE).
+Eye of SaurCom is released under the **GNU General Public License v3.0 or later**, see [LICENSE](LICENSE).
 
 ### Name and icon
 
-Eye of ZorCom is a fork of [OnAir](https://github.com/adswill/OnAir) by Kristijonas Adomaitis and its contributors; their copyright notices stay with their code. The icon is a placeholder until the project has its own artwork.
+Eye of SaurCom is a fork of [OnAir](https://github.com/adswill/OnAir) by Kristijonas Adomaitis and its contributors; their copyright notices stay with their code. The name and the burning-eye icon are this fork's own, a playful nod to Tolkien's Eye; the icon is drawn by [tools/make_icons.py](tools/make_icons.py), which writes every size the packages use.
 
 ## Credits
 
-Eye of ZorCom stands on the work of many people. Full list with authors, licences and what each licence asks of us: **[THIRD_PARTY.md](THIRD_PARTY.md)** (also in the program: Help, Credits and licences). The main ones:
+Eye of SaurCom stands on the work of many people. Full list with authors, licences and what each licence asks of us: **[THIRD_PARTY.md](THIRD_PARTY.md)** (also in the program: Help, Credits and licences). The main ones:
 
 - **Code in the program:** [Dear ImGui](https://github.com/ocornut/imgui) (Omar Cornut), [miniaudio](https://github.com/mackron/miniaudio) (David Reid), [codec2](https://github.com/drowe67/codec2) (David Rowe, LGPL-2.1, a separate library loaded at run time, see [docs/CODECS.md](docs/CODECS.md)), `dump978` UAT code (Oliver Jowett), the DRA decoder (maliwen2015), the RX888 firmware (Oscar Steila, SDDC_Driver).
 - **Decoders written from or ported from open-source receivers:** [nrsc5](https://github.com/theori-io/nrsc5) (HD Radio), [etisnoop](https://github.com/Opendigitalradio/etisnoop) (DAB), [WSJT-X](https://sourceforge.net/projects/wsjt/), JS8Call and fldigi (HF digital modes), [rtl_433](https://github.com/merbanan/rtl_433), [gr-dvbt2](https://github.com/drmpeg/gr-dvbt2), [gr-lora_sdr](https://github.com/tapparelj/gr-lora_sdr), [e-Czas](https://github.com/sp5wwp/e-Czas), [JAERO](https://github.com/jontio/JAERO), [Scytale-C](https://bitbucket.org/scytalec/scytalec) (Inmarsat-C), acarsdec, libacars, dumphfdl, dumpvdl2, iridium-toolkit, multimon-ng, Meshtastic, MeshCore, MeshCom.

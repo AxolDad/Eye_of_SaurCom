@@ -48,7 +48,7 @@ void importSub(App& a) {
 // The selected unknown signal as a .sub file a Flipper reads
 void saveSub(const dect2::IsmRaw& r) {
     char name[64];
-    snprintf(name, sizeof name, "zorcom_%.3fMHz_%s.sub", r.freqHz / 1e6, r.fsk ? "fsk" : "ook");
+    snprintf(name, sizeof name, "saurcom_%.3fMHz_%s.sub", r.freqHz / 1e6, r.fsk ? "fsk" : "ook");
     const std::string path = saveFileDialog(name);
     if (path.empty()) return;
     dect2::IsmTrain t;

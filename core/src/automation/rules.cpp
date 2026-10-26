@@ -342,7 +342,7 @@ json::Value scriptToJson(const Script& s) {
 
 json::Value recipeToJson(const Recipe& r) {
     json::Value j = r.kind == Recipe::KindRule ? ruleToJson(r.rule) : scriptToJson(r.script);
-    j.set("format", json::Value::string("zorcom-automation"));
+    j.set("format", json::Value::string("saurcom-automation"));
     j.set("version", json::Value::number(1));
     j.set("kind", json::Value::string(r.kind == Recipe::KindRule ? "rule" : "script"));
     return j;
@@ -353,9 +353,9 @@ std::string recipeToText(const Recipe& r) { return json::dump(recipeToJson(r), t
 bool recipeFromText(const std::string& text, Recipe& out, std::string& err, bool fromStore) {
     json::Value j;
     if (!json::parse(text, j, err)) return false;
-    if (j.type != json::Value::Obj) { err = "not an Eye of ZorCom automation file"; return false; }
-    if (j.str("format") != "zorcom-automation") { err = "not an Eye of ZorCom automation file (\"format\" is missing)"; return false; }
-    if (j.num("version", 0) > 1) { err = "this file is from a newer Eye of ZorCom"; return false; }
+    if (j.type != json::Value::Obj) { err = "not an Eye of SaurCom automation file"; return false; }
+    if (j.str("format") != "saurcom-automation") { err = "not an Eye of SaurCom automation file (\"format\" is missing)"; return false; }
+    if (j.num("version", 0) > 1) { err = "this file is from a newer Eye of SaurCom"; return false; }
     const std::string kind = j.str("kind");
     Recipe r;
     auto str = [&](const char* k, size_t n) { return clip(j.str(k), n); };

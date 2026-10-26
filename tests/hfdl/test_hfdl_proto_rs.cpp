@@ -1,7 +1,7 @@
-// Golden-vector test of the HFDL layers (rust/zorcom_hfdl behind the D::hfdl* functions): rates and burst sizes, the A / M sequences and the preamble, the
+// Golden-vector test of the HFDL layers (rust/saurcom_hfdl behind the D::hfdl* functions): rates and burst sizes, the A / M sequences and the preamble, the
 // scrambler, the interleavers, the convolutional encoder, the Viterbi decoder (random soft values and encoded data with noise, every rate), the bit chain of every
 // rate, bursts, the FCS, the station table and masks, and the PDU parser on built (SPDU, MPDU up and down, logon, unnumbered data with performance / frequency
-// data, ACARS, system table), mutated and random PDUs. ZORCOM_DIFF_ITERS (default 200000) inputs per family. Every result goes into a digest
+// data, ACARS, system table), mutated and random PDUs. SAURCOM_DIFF_ITERS (default 200000) inputs per family. Every result goes into a digest
 // (tests/common/golden.h; doubles rounded to 1e-6, floats widened) compared with the one recorded from the C++ layers the Rust code replaced.
 #include "dect2/hfdl/hfdl_proto.h"
 #include "../common/golden.h"
@@ -192,7 +192,7 @@ static bool testParse(long iters) {
 }
 
 int main() {
-    const char* it = getenv("ZORCOM_DIFF_ITERS");
+    const char* it = getenv("SAURCOM_DIFF_ITERS");
     const long iters = it ? atol(it) : 200000;
     testBitLayer(iters);
     testFcsStations(iters);

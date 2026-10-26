@@ -33,7 +33,7 @@ static std::vector<char> slurp(const std::string& p) { std::ifstream f(p, std::i
 
 int main() {
     namespace fs = std::filesystem;
-    const fs::path dir = fs::temp_directory_path() / "zorcom_audio_rec_test";
+    const fs::path dir = fs::temp_directory_path() / "saurcom_audio_rec_test";
     fs::remove_all(dir);
     AudioRecorder& rec = AudioRecorder::instance();
     int srcA = 0, srcB = 0;
@@ -112,7 +112,7 @@ int main() {
 
     // a bad folder is reported
     CHECK(!rec.start((dir / "r_2.wav" / "x" / "a.wav").string(), o, err)   /* below a plain file */ && !err.empty(), "bad folder reported");
-    CHECK(AudioRecorder::fileName("fm", 93.9e6, AudioRecFormat::Flac).find("zorcom_audio_fm_93.900MHz_") == 0, "file name");
+    CHECK(AudioRecorder::fileName("fm", 93.9e6, AudioRecFormat::Flac).find("saurcom_audio_fm_93.900MHz_") == 0, "file name");
 
     fs::remove_all(dir);
     printf(fails ? "FAILED\n" : "audio_rec OK\n");

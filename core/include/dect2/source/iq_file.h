@@ -21,7 +21,7 @@ struct IqFileInfo {
 };
 
 // .sigmf-meta, .sigmf-data (the meta beside it is found), .wav. Returns false with err set when the file cannot be read or is a
-// kind Eye of ZorCom cannot play (real-valued samples, 64-bit floats ...). Other extensions return false with an empty err.
+// kind Eye of SaurCom cannot play (real-valued samples, 64-bit floats ...). Other extensions return false with an empty err.
 bool probeIqFile(const std::string& path, IqFileInfo& out, std::string& err);
 
 // One recording in a folder, as the recording library lists it. Only the sidecar (or the file header) is read, never the samples.

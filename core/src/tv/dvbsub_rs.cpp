@@ -1,4 +1,4 @@
-// The DVB subtitle layer of dvbsub.h on top of the Rust crate rust/zorcom_dvbsi: PES header, segment walk, the five segment parsers, the colour
+// The DVB subtitle layer of dvbsub.h on top of the Rust crate rust/saurcom_dvbsi: PES header, segment walk, the five segment parsers, the colour
 // tables, the run-length pixel decoder, region blending and the PTS arithmetic. The decoder class with its page, region, CLUT and object state stays in
 // dvbsub.cpp.
 #include "dect2/tv/dvbsub.h"
@@ -14,31 +14,31 @@ namespace {
 struct AbiCheck {
     AbiCheck() {
         size_t s[10];
-        zorcom_dvbsi_struct_sizes(s);
-        dect2::rsAbiCheck("zorcom_dvbsi", s, {sizeof(ZorcomDvbsiTtxUnit), sizeof(ZorcomDvbsiTtxCell), sizeof(ZorcomDvbsiSubPesInfo), sizeof(ZorcomDvbsiSubSegment), sizeof(ZorcomDvbsiSubPageInfo), sizeof(ZorcomDvbsiSubPageRegion), sizeof(ZorcomDvbsiSubRegionInfo), sizeof(ZorcomDvbsiSubRegionObject), sizeof(ZorcomDvbsiSubClutEntry), sizeof(ZorcomDvbsiSubObjectInfo)});
+        saurcom_dvbsi_struct_sizes(s);
+        dect2::rsAbiCheck("saurcom_dvbsi", s, {sizeof(SaurcomDvbsiTtxUnit), sizeof(SaurcomDvbsiTtxCell), sizeof(SaurcomDvbsiSubPesInfo), sizeof(SaurcomDvbsiSubSegment), sizeof(SaurcomDvbsiSubPageInfo), sizeof(SaurcomDvbsiSubPageRegion), sizeof(SaurcomDvbsiSubRegionInfo), sizeof(SaurcomDvbsiSubRegionObject), sizeof(SaurcomDvbsiSubClutEntry), sizeof(SaurcomDvbsiSubObjectInfo)});
     }
 } abiCheck;
 inline size_t L(int n) { return n < 0 ? 0 : (size_t)n; }   // negative lengths are 0 bytes
 }
 
-double ptsDelta(double a, double b) { return zorcom_dvbsi_sub_pts_delta(a, b); }
+double ptsDelta(double a, double b) { return saurcom_dvbsi_sub_pts_delta(a, b); }
 
 void dvbSubComposite(const DvbSubDisplay& d, std::vector<uint8_t>& out) {
     out.assign((size_t)d.dispW * d.dispH * 4, 0);
     for (const auto& r : d.regions)
-        if (r.rgba.size() >= (size_t)r.w * r.h * 4) zorcom_dvbsi_sub_blend_region(out.data(), d.dispW, d.dispH, r.x, r.y, r.w, r.h, r.rgba.data());
+        if (r.rgba.size() >= (size_t)r.w * r.h * 4) saurcom_dvbsi_sub_blend_region(out.data(), d.dispW, d.dispH, r.x, r.y, r.w, r.h, r.rgba.data());
 }
 
 bool dvbSubPesInfo(const uint8_t* pes, size_t n, DvbSubPesInfo& out) {
-    ZorcomDvbsiSubPesInfo c;
-    if (!zorcom_dvbsi_sub_pes_info(pes, n, &c)) return false;
+    SaurcomDvbsiSubPesInfo c;
+    if (!saurcom_dvbsi_sub_pes_info(pes, n, &c)) return false;
     out.payloadOff = c.payload_off; out.hasPts = c.has_pts != 0; out.pts = c.pts;
     return true;
 }
 
 std::vector<DvbSubSegment> dvbSubSegments(const uint8_t* d, size_t n) {
-    std::vector<ZorcomDvbsiSubSegment> v(n / 6 + 1);
-    const size_t c = zorcom_dvbsi_sub_segments(d, n, v.data(), v.size());
+    std::vector<SaurcomDvbsiSubSegment> v(n / 6 + 1);
+    const size_t c = saurcom_dvbsi_sub_segments(d, n, v.data(), v.size());
     std::vector<DvbSubSegment> out;
     for (size_t i = 0; i < c && i < v.size(); i++) out.push_back(DvbSubSegment{v[i].type, v[i].page, v[i].off, v[i].len});
     return out;
@@ -46,9 +46,9 @@ std::vector<DvbSubSegment> dvbSubSegments(const uint8_t* d, size_t n) {
 
 bool dvbSubParsePage(const uint8_t* d, int n, DvbSubPageInfo& out) {
     out = DvbSubPageInfo();
-    std::vector<ZorcomDvbsiSubPageRegion> v(L(n) / 6 + 1);
-    ZorcomDvbsiSubPageInfo info;
-    if (!zorcom_dvbsi_sub_page_composition(d, L(n), &info, v.data(), v.size())) return false;
+    std::vector<SaurcomDvbsiSubPageRegion> v(L(n) / 6 + 1);
+    SaurcomDvbsiSubPageInfo info;
+    if (!saurcom_dvbsi_sub_page_composition(d, L(n), &info, v.data(), v.size())) return false;
     out.timeout = info.timeout; out.version = info.version; out.state = info.state;
     for (uint32_t i = 0; i < info.n_regions && i < v.size(); i++) out.regions.push_back(DvbSubPageReg{v[i].id, v[i].x, v[i].y});
     return true;
@@ -56,9 +56,9 @@ bool dvbSubParsePage(const uint8_t* d, int n, DvbSubPageInfo& out) {
 
 bool dvbSubParseRegion(const uint8_t* d, int n, DvbSubRegionInfo& out) {
     out = DvbSubRegionInfo();
-    std::vector<ZorcomDvbsiSubRegionObject> v(L(n) / 6 + 1);
-    ZorcomDvbsiSubRegionInfo info;
-    if (!zorcom_dvbsi_sub_region_composition(d, L(n), &info, v.data(), v.size())) return false;
+    std::vector<SaurcomDvbsiSubRegionObject> v(L(n) / 6 + 1);
+    SaurcomDvbsiSubRegionInfo info;
+    if (!saurcom_dvbsi_sub_region_composition(d, L(n), &info, v.data(), v.size())) return false;
     out.id = info.id; out.version = info.version; out.fill = info.fill != 0; out.w = info.w; out.h = info.h; out.depth = info.depth; out.clut = info.clut;
     out.pix8 = info.pix8; out.pix4 = info.pix4; out.pix2 = info.pix2;
     for (uint32_t i = 0; i < info.n_objs && i < v.size(); i++) out.objs.push_back(DvbSubObjRef{v[i].id, v[i].type, v[i].x, v[i].y, v[i].fg, v[i].bg});
@@ -67,9 +67,9 @@ bool dvbSubParseRegion(const uint8_t* d, int n, DvbSubRegionInfo& out) {
 
 bool dvbSubParseClut(const uint8_t* d, int n, int& id, std::vector<DvbSubClutEntry>& out) {
     out.clear();
-    std::vector<ZorcomDvbsiSubClutEntry> v(L(n) / 4 + 1);
+    std::vector<SaurcomDvbsiSubClutEntry> v(L(n) / 4 + 1);
     int32_t cid = 0;
-    const size_t c = zorcom_dvbsi_sub_clut_definition(d, L(n), &cid, v.data(), v.size());
+    const size_t c = saurcom_dvbsi_sub_clut_definition(d, L(n), &cid, v.data(), v.size());
     if (c == SIZE_MAX) return false;
     id = cid;
     for (size_t i = 0; i < c && i < v.size(); i++) out.push_back(DvbSubClutEntry{v[i].id, v[i].flags, v[i].rgba});
@@ -78,27 +78,27 @@ bool dvbSubParseClut(const uint8_t* d, int n, int& id, std::vector<DvbSubClutEnt
 
 bool dvbSubParseDisplay(const uint8_t* d, int n, int& w, int& h) {
     int32_t a, b;
-    if (!zorcom_dvbsi_sub_display_definition(d, L(n), &a, &b)) return false;
+    if (!saurcom_dvbsi_sub_display_definition(d, L(n), &a, &b)) return false;
     w = a; h = b;
     return true;
 }
 
 bool dvbSubParseObject(const uint8_t* d, int n, DvbSubObjectInfo& out) {
-    ZorcomDvbsiSubObjectInfo c;
-    if (!zorcom_dvbsi_sub_object_data(d, L(n), &c)) return false;
+    SaurcomDvbsiSubObjectInfo c;
+    if (!saurcom_dvbsi_sub_object_data(d, L(n), &c)) return false;
     out.id = c.id; out.topOff = c.top_off; out.topLen = c.top_len; out.botOff = c.bot_off; out.botLen = c.bot_len;
     return true;
 }
 
-void dvbSubDefaultClut(uint32_t e2[4], uint32_t e4[16], uint32_t e8[256]) { zorcom_dvbsi_sub_default_clut(e2, e4, e8); }
-uint32_t dvbSubYcrcb(int y, int cr, int cb, int t) { return zorcom_dvbsi_sub_ycrcb(y, cr, cb, t); }
+void dvbSubDefaultClut(uint32_t e2[4], uint32_t e4[16], uint32_t e8[256]) { saurcom_dvbsi_sub_default_clut(e2, e4, e8); }
+uint32_t dvbSubYcrcb(int y, int cr, int cb, int t) { return saurcom_dvbsi_sub_ycrcb(y, cr, cb, t); }
 
 void dvbSubDecodeField(const uint8_t* f, size_t n, int x0, int y0, int lineStep, bool doubleLines, int w, int h, int depth, uint8_t* pix) {
-    zorcom_dvbsi_sub_decode_field(f, n, x0, y0, lineStep, doubleLines, w, h, depth, pix);
+    saurcom_dvbsi_sub_decode_field(f, n, x0, y0, lineStep, doubleLines, w, h, depth, pix);
 }
 
 void dvbSubRegionRgba(const uint8_t* pix, size_t n, int depth, const uint32_t* e2, const uint32_t* e4, const uint32_t* e8, uint8_t* out) {
-    zorcom_dvbsi_sub_region_rgba(pix, n, depth, e2, e4, e8, out);
+    saurcom_dvbsi_sub_region_rgba(pix, n, depth, e2, e4, e8, out);
 }
 
 } // namespace dect2

@@ -3,7 +3,7 @@
 // receiver's 250 kHz tune offset), and the Kiwi is tuned to the DIAL frequency: the engine's tune offset (a narrow-channel mode sits that far above
 // the dial in a normal radio's samples) is put back by a mixer here, so the same receivers work on a radio with a 12 kHz window.
 // Protocol: see the facts and their VERIFIED / ASSUMED marks in kiwisdr_proto.h. Public Kiwis are somebody's hobby: one connection per radio, a
-// keepalive every second (what the official page does), SET ident_user=EyeOfZorCom so the owner sees who listens, and a growing pause (5 s .. 2 min,
+// keepalive every second (what the official page does), SET ident_user=EyeOfSaurCom so the owner sees who listens, and a growing pause (5 s .. 2 min,
 // a minute at least after "busy" or a time limit) before every new connection after one was lost. A first connection that fails is not repeated.
 // Not tested against a real KiwiSDR: only against a fake one in tests/source/test_kiwisdr.cpp.
 #include "../net/tcp_client.h"
@@ -190,7 +190,7 @@ protected:
         expectSeq_ = 0; haveSeq_ = false;
         maxHz_ = info.maxHz;
         // set-up commands that need no tuning
-        bool ok = ws_.sendText("SET ident_user=EyeOfZorCom") && ws_.sendText("SET compression=0") && ws_.sendText("SET squelch=0 max=0") && ws_.sendText("SET genattn=0") && ws_.sendText("SET gen=0 mix=-1");
+        bool ok = ws_.sendText("SET ident_user=EyeOfSaurCom") && ws_.sendText("SET compression=0") && ws_.sendText("SET squelch=0 max=0") && ws_.sendText("SET genattn=0") && ws_.sendText("SET gen=0 mix=-1");
         if (!ok) { closeWs(ws_); err = "KiwiSDR: the connection to " + addr_ + " dropped"; if (established_) schedule(Why::Closed); else openFailure_ = OpenFailure::Final; return false; }
         sockRecvTimeout(ws_.sock(), kKeepaliveMs);
         if (!configure(s, err, false)) { closeWs(ws_); if (established_) schedule(Why::Closed); else openFailure_ = OpenFailure::Final; return false; }

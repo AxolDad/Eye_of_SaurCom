@@ -1,0 +1,34 @@
+# Eye of SaurCom headless server as a systemd service (docs/headless-server.md).
+#   sudo useradd --system --home /var/lib/saurcom --create-home --groups plugdev saurcom      (plugdev: access to the USB radios; install the udev rules of your radio)
+#   sudo cp saurcom-server /usr/local/bin/ && sudo cp saurcom-server.service /etc/systemd/system/
+#   sudo -u saurcom saurcom-server --config /var/lib/saurcom/server.conf --lan --new-token       (once: makes the settings file and prints the access token)
+#   sudo systemctl enable --now saurcom-server
+[Unit]
+Description=Eye of SaurCom headless server (software radio controlled from a web browser)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=saurcom
+Group=plugdev
+ExecStart=/usr/local/bin/saurcom-server --config /var/lib/saurcom/server.conf
+Restart=on-failure
+RestartSec=5
+StateDirectory=saurcom
+StateDirectoryMode=0750
+# the radio needs the USB bus; everything else is closed
+NoNewPrivileges=yes
+ProtectSystem=full
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+# a Raspberry Pi 4 or better; the receiver's threads should not be starved by other work
+Nice=-5
+
+[Install]
+WantedBy=multi-user.target

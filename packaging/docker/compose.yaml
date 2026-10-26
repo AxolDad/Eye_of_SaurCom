@@ -1,18 +1,18 @@
-# Eye of ZorCom in a browser (README.md here). In this folder: put ZORCOM_PASSWORD=<a password> into a file named .env, then
-# docker compose up -d --build and open https://<this computer>:3001 (log in as zorcom).
+# Eye of SaurCom in a browser (README.md here). In this folder: put SAURCOM_PASSWORD=<a password> into a file named .env, then
+# docker compose up -d --build and open https://<this computer>:3001 (log in as saurcom).
 services:
-  zorcom:
+  saurcom:
     build: .
-    image: zorcom
-    container_name: zorcom
+    image: saurcom
+    container_name: saurcom
     restart: unless-stopped
     environment:
-      PUID: "1000"              # the owner of the files Eye of ZorCom writes into the config volume
+      PUID: "1000"              # the owner of the files Eye of SaurCom writes into the config volume
       PGID: "1000"
       TZ: Etc/UTC               # the time zone the clocks and logs show
       # the login of the page, which is the whole desktop: compose stops with this message until .env sets a password
-      CUSTOM_USER: ${ZORCOM_USER:-zorcom}
-      PASSWORD: ${ZORCOM_PASSWORD:?set ZORCOM_PASSWORD=<a password> in the file .env next to compose.yaml}
+      CUSTOM_USER: ${SAURCOM_USER:-saurcom}
+      PASSWORD: ${SAURCOM_PASSWORD:?set SAURCOM_PASSWORD=<a password> in the file .env next to compose.yaml}
       # DRINODE: /dev/dri/renderD128    # Intel / AMD graphics: draw the GUI and encode the stream on the GPU (with the device below)
       # DRI_NODE: /dev/dri/renderD128
     ports:
@@ -22,7 +22,7 @@ services:
       - /dev/bus/usb:/dev/bus/usb   # the USB radios; restart the container after plugging one in
       # - /dev/dri/renderD128:/dev/dri/renderD128
     volumes:
-      - zorcom-config:/config    # settings, recordings and zorcom.log
+      - saurcom-config:/config    # settings, recordings and saurcom.log
 
 volumes:
-  zorcom-config:
+  saurcom-config:

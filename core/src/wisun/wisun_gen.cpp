@@ -147,17 +147,17 @@ std::vector<WisunGenFrame> wisunTestSchedule(double centerMhz, double spanMhz) {
     // the border router's PAN advert (routing cost 0) and the router's (cost 128)
     {
         Build b; b.utt = PA; b.src = br; b.srcPanPresent = true; b.pan = pan; b.ufsi = 0x1234;
-        b.us = us; b.panIe = true; b.panSize = 3; b.routingCost = 0; b.tpsVersion = 2; b.netName = "ZorCom-Test-FAN"; b.phyModes = {0x03, 0x05};
+        b.us = us; b.panIe = true; b.panSize = 3; b.routingCost = 0; b.tpsVersion = 2; b.netName = "SaurCom-Test-FAN"; b.phyModes = {0x03, 0x05};
         add(b, 150000, 0.004, 1.0, 3e3);
     }
     {
         Build b; b.utt = PA; b.src = router; b.srcPanPresent = true; b.pan = pan; b.ufsi = 0x4321;
-        b.us = us; b.panIe = true; b.panSize = 3; b.routingCost = 128; b.tpsVersion = 2; b.netName = "ZorCom-Test-FAN";
+        b.us = us; b.panIe = true; b.panSize = 3; b.routingCost = 128; b.tpsVersion = 2; b.netName = "SaurCom-Test-FAN";
         add(b, 150000, 0.004, 0.6, -5e3);
     }
     // the meter: a PAN advert solicit (with its own schedule), then the EAPOL exchange through the router (authenticator: the border router)
     {
-        Build b; b.utt = PAS; b.src = meter; b.srcPanPresent = true; b.pan = 0xFFFF; b.us = us; b.netName = "ZorCom-Test-FAN";
+        Build b; b.utt = PAS; b.src = meter; b.srcPanPresent = true; b.pan = 0xFFFF; b.us = us; b.netName = "SaurCom-Test-FAN";
         add(b, 150000, 0.004, 0.4, 8e3);
     }
     {

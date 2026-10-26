@@ -342,7 +342,7 @@ Bits encodeData(const std::vector<uint8_t>& bytes) {
     putHeader(w, FrameType::Data);
     w.put(bytes.size() & 0xFFFFu, 16);
     for (uint8_t b : bytes) w.put(b, 8);
-    w.put(zorcom_kaws_crc24(bytes.data(), (int32_t)bytes.size()), 24);
+    w.put(saurcom_kaws_crc24(bytes.data(), (int32_t)bytes.size()), 24);
     return w.bits;
 }
 
@@ -355,7 +355,7 @@ bool decodeData(const Bits& m, std::vector<uint8_t>& bytes) {
     bytes.resize(n);
     for (size_t i = 0; i < n; i++) bytes[i] = (uint8_t)r.get(8);
     uint32_t c = (uint32_t)r.get(24);
-    return c == zorcom_kaws_crc24(bytes.data(), (int32_t)bytes.size());
+    return c == saurcom_kaws_crc24(bytes.data(), (int32_t)bytes.size());
 }
 
 // ---------------------------------------------------------------- voice

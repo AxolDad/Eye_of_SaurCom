@@ -1,4 +1,4 @@
-# Eye of ZorCom interface in Hungarian. One text per line: the English text as in the source, a tab, the translation.
+# Eye of SaurCom interface in Hungarian. One text per line: the English text as in the source, a tab, the translation.
 # \n is a line break. Keep the printf conversions (%s, %d, %.1f ...) in the same order. tests/app/test_i18n.cpp checks this file.
 #  menus, status words, common buttons
 %.1f dB	%.1f dB
@@ -108,7 +108,7 @@ The file bytes go out as a HamDRM object with this callsign. Empty file: the tes
 The microphone starts only when you press START TRANSMITTING.	The microphone starts only when you press START TRANSMITTING.
 The registration and free-text go on the air as an H1 / ACARS downlink. Empty: the demo traffic.	The registration and free-text go on the air as an H1 / ACARS downlink. Empty: the demo traffic.
 this mode has no transmit generator	this mode has no transmit generator
-This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.	This vocoder cannot encode: Eye of ZorCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.
+This vocoder cannot encode: Eye of SaurCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.	This vocoder cannot encode: Eye of SaurCom loads mbelib for decode only (AMBE/IMBE). Destination ID / talkgroup / colour code still go on the air; voice bits are the test pattern. A 1 kHz tone, silence or a WAV/MP3 can be sent as analog NFM instead.
 Timeslot	Timeslot
 To	To
 USB audio	USB hang
@@ -201,7 +201,7 @@ Instrument palette	Műszer színséma
 Mono palette	Mono színséma
 Show in Discord	Megjelenítés a Discordon
 Show the frequency	A frekvencia megjelenítése
-Shows on your Discord profile that you are using Eye of ZorCom, the mode and the frequency. Needs the Discord desktop app running.	Megjeleníti a Discord-profilodon, hogy az ZorCom-t használod, az üzemmódot és a frekvenciát. A Discord asztali alkalmazásnak futnia kell.
+Shows on your Discord profile that you are using Eye of SaurCom, the mode and the frequency. Needs the Discord desktop app running.	Megjeleníti a Discord-profilodon, hogy az SaurCom-t használod, az üzemmódot és a frekvenciát. A Discord asztali alkalmazásnak futnia kell.
 Discord application ID not set in this build	A Discord alkalmazásazonosító nincs beállítva ebben a kiadásban
 Passes	Átvonulások
 Data feeds...	Adatforrások...
@@ -258,7 +258,7 @@ no stations yet: run the scan	még nincs állomás: indítsd el a keresést
 no saved channels yet: run the scan	még nincsenek mentett csatornák: indítsd el a keresést
 Hz	Hz
 Frequency in MHz (%.3f to %.3f)	Frekvencia MHz-ben (%.3f – %.3f)
-Eye of ZorCom crashed	Az Eye of ZorCom összeomlott
+Eye of SaurCom crashed	Az Eye of SaurCom összeomlott
 no picture - press Esc	nincs kép - nyomd meg az Esc-et
 no picture	nincs kép
 Video	Videó
@@ -513,7 +513,7 @@ Auto start at AOS, stop at LOS	Automatikus indítás AOS-nál, leállítás LOS-
 Switches to the satellite's mode and starts the receiver at AOS (when it is stopped), and stops it at LOS	AOS-nál átvált a műhold üzemmódjára és elindítja a vevőt (ha le van állítva), LOS-nál leállítja
 Auto record IQ	Automatikus IQ-felvétel
 Records the radio's IQ during the pass, as Record IQ does (format from the Record IQ setting), into %s/recordings	Az átvonulás alatt rögzíti a rádió IQ-jét, mint az IQ rögzítése (a formátum az IQ rögzítése beállításból), ide: %s/recordings
-Eye of ZorCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	Az ZorComnek nincs dekódere ehhez: az automatikus indítás a Spektrumfelfedezőt nyitja meg, az automatikus felvétel pedig megtartja az IQ-t
+Eye of SaurCom has no decoder for this: auto start opens the Spectrum explorer, and Auto record keeps the IQ	Az SaurComnek nincs dekódere ehhez: az automatikus indítás a Spektrumfelfedezőt nyitja meg, az automatikus felvétel pedig megtartja az IQ-t
 tracking%s	követés%s
 , recording	, felvétel
 Sends decoded data to other programs while the mode runs. Every feed is off until you turn it on.	Dekódolt adatot küld más programoknak, amíg az üzemmód fut. Minden adatforrás ki van kapcsolva, amíg be nem kapcsolod.
@@ -549,7 +549,7 @@ Import CSV...	CSV importálása...
 Export CSV...	CSV exportálása...
 Columns: frequency_mhz, mode, name, dwell_s, lockout, priority, trunk.\nmode is a mode id: fm, dab, airband, dmr, pocsag, ft8 ...	Oszlopok: frequency_mhz, mode, name, dwell_s, lockout, priority, trunk.\nA mode egy üzemmód-azonosító: fm, dab, airband, dmr, pocsag, ft8 ...
 imported %d entries%s	%d bejegyzés importálva%s
- (some with a mode Eye of ZorCom does not know)	 (némelyik olyan üzemmóddal, amelyet az Eye of ZorCom nem ismer)
+ (some with a mode Eye of SaurCom does not know)	 (némelyik olyan üzemmóddal, amelyet az Eye of SaurCom nem ismer)
 exported	exportálva
 could not write	nem sikerült írni
 start MHz	kezdő MHz
@@ -614,11 +614,11 @@ Skip this version	Ennek a verziónak a kihagyása
 Release page	Kiadási oldal
 Download page	Letöltési oldal
 Checking and preparing the new version…	Az új verzió ellenőrzése és előkészítése…
-Downloaded and checked. It is installed when you close Eye of ZorCom.	Letöltve és ellenőrizve. Az Eye of ZorCom bezárásakor települ.
+Downloaded and checked. It is installed when you close Eye of SaurCom.	Letöltve és ellenőrizve. Az Eye of SaurCom bezárásakor települ.
 Restart now and update	Újraindítás és frissítés most
 Windows asks for permission to run the installer.	A Windows engedélyt kér a telepítő futtatásához.
 The system asks for your password to install the package.	A rendszer a jelszavadat kéri a csomag telepítéséhez.
-This copy of Eye of ZorCom cannot replace itself.	Ez az ZorCom-példány nem tudja lecserélni önmagát.
+This copy of Eye of SaurCom cannot replace itself.	Ez az SaurCom-példány nem tudja lecserélni önmagát.
 The update to v%s did not install (setup exit code %d).	A v%s verzióra frissítés nem települt (telepítő kilépési kódja: %d).
 Only github.com is contacted. Downloads are checked against the SHA-256 GitHub lists for the file.	Csak a github.com-mal létesít kapcsolatot. A letöltéseket a GitHub által a fájlhoz megadott SHA-256 ellenőrzi.
 checking…	ellenőrzés…
@@ -657,7 +657,7 @@ Add a receiver: another radio with its own mode	Vevő hozzáadása: másik rádi
 Add receiver	Vevő hozzáadása
 Added to a level in dBFS to give dBm for this radio: feed a known signal into the antenna port and set the difference. Used when the spectrum shows dBm (Spectrum button on the plot).	A dBFS szinthez adódik, hogy ennek a rádiónak dBm értéket kapjon: adjon ismert jelet az antennacsatlakozóra, és állítsa be a különbséget. Akkor használja a program, ha a spektrum dBm-ben jelenik meg (az ábra Spektrum gombja).
 Aircraft	Repülők
-All set. Eye of ZorCom will start here:	Minden kész. Az Eye of ZorCom itt indul:
+All set. Eye of SaurCom will start here:	Minden kész. Az Eye of SaurCom itt indul:
 Allow remote control (frequency and gain)	Távvezérlés engedélyezése (frekvencia és erősítés)
 Amateur radio	Rádióamatőr
 An SDRplay RSP is plugged in, but the SDRplay Hardware API is not installed. Install it separately even if SDRconnect already works with the radio.	Egy SDRplay RSP csatlakoztatva van, de az SDRplay Hardware API nincs telepítve. Telepítsd külön, még akkor is, ha az SDRconnect már működik a rádióval.
@@ -665,7 +665,7 @@ Another program is using the HackRF	Egy másik program használja a HackRF-et
 Australia and New Zealand	Ausztrália és Új-Zéland
 Average	Átlag
 CPU load now: %.0f%% (100%% = one core)	Jelenlegi CPU-terhelés: %.0f%% (100%% = egy mag)
-Calls and data are shown, but the voice is silent until you install the codec yourself. Eye of ZorCom does not ship it (patents).	A hívások és az adatok megjelennek, de a hang némán marad, amíg Ön nem telepíti a kodeket. Az Eye of ZorCom nem tartalmazza (szabadalmak).
+Calls and data are shown, but the voice is silent until you install the codec yourself. Eye of SaurCom does not ship it (patents).	A hívások és az adatok megjelennek, de a hang némán marad, amíg Ön nem telepíti a kodeket. Az Eye of SaurCom nem tartalmazza (szabadalmak).
 Cancel	Mégse
 Carrier MHz	Vivő MHz
 Carriers in the span (click: listen and show; double click: tune to it)	Vivők a tartományban (kattintás: hallgatás és megjelenítés; dupla kattintás: ráhangolás)
@@ -682,7 +682,7 @@ Choose a frequency inside the range shown in the message.	Válasszon az üzenetb
 Choose the file again.	Válassza ki újra a fájlt.
 Close other programs that use the radio.	Zárja be a rádiót használó többi programot.
 Close programs that hold the sound device exclusively.	Zárja be azokat a programokat, amelyek kizárólagosan használják a hangeszközt.
-Close the other program (a second Eye of ZorCom, SDR software, hackrf_info).	Zárja be a másik programot (egy második Eye of ZorCom, SDR-szoftver, hackrf_info).
+Close the other program (a second Eye of SaurCom, SDR software, hackrf_info).	Zárja be a másik programot (egy második Eye of SaurCom, SDR-szoftver, hackrf_info).
 Close this receiver: it stops and lets go of its radio	A vevő bezárása: leáll és elengedi a rádióját
 Colour map	Színskála
 Colours	Színek
@@ -706,7 +706,7 @@ Files: audio and IQ	Fájlok: hang és IQ
 Fill under the line	Vonal alatti kitöltés
 Find "SDRplay API Service" and press Start (or Restart).	Keresse meg az „SDRplay API Service” szolgáltatást, és nyomja meg az Indítás (vagy Újraindítás) gombot.
 Fix the address of the network radio (host:port).	Javítsa ki a hálózati rádió címét (gép:port).
-Download Eye of ZorCom again and unpack or install the whole package: the codec2 library belongs next to the program.	Töltse le újra az ZorComt, és csomagolja ki vagy telepítse a teljes csomagot: a codec2 könyvtár a program mellett van.
+Download Eye of SaurCom again and unpack or install the whole package: the codec2 library belongs next to the program.	Töltse le újra az SaurComt, és csomagolja ki vagy telepítse a teljes csomagot: a codec2 könyvtár a program mellett van.
 Follow the steps in the full instructions to install the codec.	A kodek telepítéséhez kövesse a teljes útmutató lépéseit.
 For an RSP, install the SDRplay API first (sdrplay.com).	RSP esetén először telepítse az SDRplay API-t (sdrplay.com).
 Found %s (%s)	Megtalálva: %s (%s)
@@ -719,13 +719,13 @@ How far the converter's oscillator runs fast (positive) or slow. The LO used is 
 How fast the max-hold line falls; 0: it stays until reset	Milyen gyorsan esik a csúcstartó vonal; 0: törlésig megmarad
 How to fix	A javítás módja
 Images	Képek
-Install Eye of ZorCom's blacklist file (the .deb package does it), or run: sudo systemctl restart sdrplay	Telepítse az Eye of ZorCom tiltólista-fájlját (a .deb csomag megteszi), vagy futtassa: sudo systemctl restart sdrplay
+Install Eye of SaurCom's blacklist file (the .deb package does it), or run: sudo systemctl restart sdrplay	Telepítse az Eye of SaurCom tiltólista-fájlját (a .deb csomag megteszi), vagy futtassa: sudo systemctl restart sdrplay
 Install the SDRplay API	SDRplay API telepítése
 Install the SDRplay API from sdrplay.com if you have not.	Ha még nem tette, telepítse az SDRplay API-t a sdrplay.com oldalról.
 Install the WinUSB driver once with Zadig (zadig.akeo.ie): choose the radio, then the driver WinUSB, then Install.	Telepítse egyszer a WinUSB illesztőprogramot a Zadiggal (zadig.akeo.ie): válassza ki a rádiót, majd a WinUSB illesztőt, végül a Telepítést.
 Install the udev rules (install-udev-rules.sh), then unplug and replug the radio.	Telepítse az udev-szabályokat (install-udev-rules.sh), majd húzza ki és dugja vissza a rádiót.
-Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb does it).	Telepítse az udev-szabályokat: futtassa az install-udev-rules.sh fájlt az Eye of ZorCom mappából (a .deb megteszi).
-Install the udev rules: run install-udev-rules.sh from the Eye of ZorCom folder (the .deb package does it for you).	Telepítse az udev-szabályokat: futtassa az install-udev-rules.sh fájlt az Eye of ZorCom mappából (a .deb csomag megteszi helyette).
+Install the udev rules: run install-udev-rules.sh from the Eye of SaurCom folder (the .deb does it).	Telepítse az udev-szabályokat: futtassa az install-udev-rules.sh fájlt az Eye of SaurCom mappából (a .deb megteszi).
+Install the udev rules: run install-udev-rules.sh from the Eye of SaurCom folder (the .deb package does it for you).	Telepítse az udev-szabályokat: futtassa az install-udev-rules.sh fájlt az Eye of SaurCom mappából (a .deb csomag megteszi helyette).
 Intensity (dB)	Intenzitás (dB)
 IoT, 2.4 GHz	IoT, 2,4 GHz
 IoT, sub-GHz	IoT, sub-GHz
@@ -759,13 +759,13 @@ No sound output	Nincs hangkimenet
 North America	Észak-Amerika
 Not a locator or coordinates	Nem lokátor és nem koordináták
 On Windows a HackRF needs its WinUSB driver once: install it with Zadig (zadig.akeo.ie).	Windowson a HackRF-hez egyszer kell a WinUSB illesztőprogram: telepítse a Zadiggal (zadig.akeo.ie).
-Eye of ZorCom %s	Eye of ZorCom %s
-Eye of ZorCom cannot see a HackRF on the USB ports.	Az Eye of ZorCom nem lát HackRF-et az USB-portokon.
-Eye of ZorCom could not open the speakers, so there will be no sound.	Az Eye of ZorCom nem tudta megnyitni a hangszórókat, ezért nem lesz hang.
-Eye of ZorCom could not use the rtl_tcp server, or the connection dropped.	Az Eye of ZorCom nem tudta használni az rtl_tcp szervert, vagy megszakadt a kapcsolat.
-Eye of ZorCom found the SDRplay software, but its background service does not answer, so the RSP cannot be opened.	Az Eye of ZorCom megtalálta az SDRplay szoftvert, de a háttérszolgáltatása nem válaszol, ezért az RSP nem nyitható meg.
-Eye of ZorCom lists a radio when the computer sees it. You can still try everything with the synthetic signal or an IQ file.	Az Eye of ZorCom akkor listáz egy rádiót, amikor a számítógép látja. A szintetikus jellel vagy egy IQ-fájllal így is kipróbálhat mindent.
-Eye of ZorCom needs SDRplay API 3.07 or a newer 3.x.	Az ZorCom-hez SDRplay API 3.07 vagy újabb 3.x szükséges.
+Eye of SaurCom %s	Eye of SaurCom %s
+Eye of SaurCom cannot see a HackRF on the USB ports.	Az Eye of SaurCom nem lát HackRF-et az USB-portokon.
+Eye of SaurCom could not open the speakers, so there will be no sound.	Az Eye of SaurCom nem tudta megnyitni a hangszórókat, ezért nem lesz hang.
+Eye of SaurCom could not use the rtl_tcp server, or the connection dropped.	Az Eye of SaurCom nem tudta használni az rtl_tcp szervert, vagy megszakadt a kapcsolat.
+Eye of SaurCom found the SDRplay software, but its background service does not answer, so the RSP cannot be opened.	Az Eye of SaurCom megtalálta az SDRplay szoftvert, de a háttérszolgáltatása nem válaszol, ezért az RSP nem nyitható meg.
+Eye of SaurCom lists a radio when the computer sees it. You can still try everything with the synthetic signal or an IQ file.	Az Eye of SaurCom akkor listáz egy rádiót, amikor a számítógép látja. A szintetikus jellel vagy egy IQ-fájllal így is kipróbálhat mindent.
+Eye of SaurCom needs SDRplay API 3.07 or a newer 3.x.	Az SaurCom-hez SDRplay API 3.07 vagy újabb 3.x szükséges.
 Only one program can use an rtl_tcp server at a time: close any other client.	Egyszerre csak egy program használhat egy rtl_tcp szervert: zárja be a többi klienst.
 Only one program can use the radio at a time.	Egyszerre csak egy program használhatja a rádiót.
 Only one receiver plays its sound at a time: click to hear this one	Egyszerre csak egy vevő játssza a hangját: kattintson, hogy ezt hallja
@@ -778,7 +778,7 @@ Open the SDRplay API page	Az SDRplay API oldalának megnyitása
 Open the device list	Eszközlista megnyitása
 Optional: your position, as a Maidenhead locator (KO24pq) or coordinates (54.68, 25.28). It is kept on this computer and used for maps and satellite passes.	Nem kötelező: a helyzete Maidenhead-lokátorként (KO24pq) vagy koordinátákkal (54.68, 25.28). Ezen a számítógépen marad, és térképekhez, műholdátvonulásokhoz használjuk.
 Or choose another radio from the list.	Vagy válasszon másik rádiót a listából.
-Or install Eye of ZorCom's blacklist file (the .deb package does it).	Vagy telepítse az Eye of ZorCom tiltólista-fájlját (a .deb csomag megteszi).
+Or install Eye of SaurCom's blacklist file (the .deb package does it).	Vagy telepítse az Eye of SaurCom tiltólista-fájlját (a .deb csomag megteszi).
 Or set the UHD_IMAGES_DIR variable to the folder with the images.	Vagy állítsa az UHD_IMAGES_DIR változót a képfájlokat tartalmazó mappára.
 Own accent colour	Saját kiemelőszín
 PSK Reporter	PSK Reporter
@@ -791,7 +791,7 @@ Plug the radio in, directly or through a powered hub.	Csatlakoztassa a rádiót 
 Press "Look again" in the ? help next to the sound.	Nyomja meg a „Keresés újra” gombot a hang melletti ? súgóban.
 Press the refresh button next to the radio list.	Nyomja meg a rádiólista melletti frissítés gombot.
 Press the refresh button next to the source.	Nyomja meg a forrás melletti frissítés gombot.
-Put the library in the Eye of ZorCom codecs folder (button below).	Tegye a könyvtárat az Eye of ZorCom kodekmappájába (lenti gomb).
+Put the library in the Eye of SaurCom codecs folder (button below).	Tegye a könyvtárat az Eye of SaurCom kodekmappájába (lenti gomb).
 Put the panels back to their automatic sizes (drag the bars between panels to resize them)	A panelek visszaállítása az automatikus méretre (a panelek közti sávok húzásával méretezhetők át)
 Radar chirps, HF	Radar-chirpek, HF
 Radio settings (%d changed)###radioset	Rádiobeállítások (%d módosítva)###radioset
@@ -801,8 +801,8 @@ Reduce CPU when hidden	CPU-terhelés csökkentése rejtett állapotban
 Remote driver	Távoli illesztő
 Reset	Visszaállítás
 Reset layout	Elrendezés visszaállítása
-Restart Eye of ZorCom (the installer starts SDRplay's background service).	Indítsa újra az ZorCom-t (a telepítő elindítja az SDRplay háttérszolgáltatását).
-Restart Eye of ZorCom.	Indítsa újra az ZorCom-t.
+Restart Eye of SaurCom (the installer starts SDRplay's background service).	Indítsa újra az SaurCom-t (a telepítő elindítja az SDRplay háttérszolgáltatását).
+Restart Eye of SaurCom.	Indítsa újra az SaurCom-t.
 Restart the Mac, or run in Terminal: sudo launchctl kickstart -k system/com.sdrplay.service	Indítsa újra a Mac-et, vagy futtassa a Terminálban: sudo launchctl kickstart -k system/com.sdrplay.service
 Right-click the speaker icon, open Sound settings and pick an output device.	Kattintson jobb gombbal a hangszóró ikonra, nyissa meg a hangbeállításokat, és válasszon kimeneti eszközt.
 Run in a terminal: sudo systemctl restart sdrplay	Futtassa terminálban: sudo systemctl restart sdrplay
@@ -850,7 +850,7 @@ The USRP software is installed, but the firmware images it loads are missing.	Az
 The address of the network radio must look like host:port, for example 192.168.1.20:1234.	A hálózati rádió címe gép:port alakú legyen, például 192.168.1.20:1234.
 The file could not be opened	A fájl nem nyitható meg
 The firmware inside the HackRF is older than the software talking to it.	A HackRF firmware régebbi, mint a vele kommunikáló szoftver.
-Eye of ZorCom still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.	Az Eye of ZorCom ennek ellenére elkéri a rádiótól, de a rádió vagy az illesztőprogramja nem biztos, hogy eléri ezt a frekvenciát, vagy a jel gyenge lehet, illetve hiányozhat.
+Eye of SaurCom still asks the radio for it, but the radio or its driver may not reach this frequency, or the signal may be weak or absent.	Az Eye of SaurCom ennek ellenére elkéri a rádiótól, de a rádió vagy az illesztőprogramja nem biztos, hogy eléri ezt a frekvenciát, vagy a jel gyenge lehet, illetve hiányozhat.
 The most receivers are open	A legtöbb vevő nyitva van
 The network radio (rtl_tcp) does not answer	A hálózati rádió (rtl_tcp) nem válaszol
 The picture holds the last %.0f s.	A kép az utolsó %.0f másodpercet tartalmazza.
@@ -864,7 +864,7 @@ The radio's USB connection failed	A rádió USB-kapcsolata megszakadt
 The recording file is missing, moved or not readable.	A felvételfájl hiányzik, át lett helyezve vagy nem olvasható.
 The rtl_tcp address is not valid	Az rtl_tcp cím érvénytelen
 The server has no radio	A kiszolgálón nincs rádió
-The text and data are shown, but speech needs the codec2 library. It comes with Eye of ZorCom, so this copy is probably incomplete.	A szöveg és az adatok megjelennek, de a beszédhez a codec2 könyvtár kell. Az ZorComhez tartozik, ezért ez a példány valószínűleg hiányos.
+The text and data are shown, but speech needs the codec2 library. It comes with Eye of SaurCom, so this copy is probably incomplete.	A szöveg és az adatok megjelennek, de a beszédhez a codec2 könyvtár kell. Az SaurComhez tartozik, ezért ez a példány valószínűleg hiányos.
 The voice codec (mbelib) is not installed	A hangkodek (mbelib) nincs telepítve
 This frequency is not reachable through the converter.	Ez a frekvencia nem érhető el a konverteren keresztül.
 This is a Linux problem. On this system, unplug the radio, plug it in again and press the refresh button.	Ez Linux-probléma. Ezen a rendszeren húzza ki a rádiót, dugja vissza, majd nyomja meg a frissítés gombot.
@@ -898,7 +898,7 @@ Weather pictures, 1.7 GHz	Időjárási képek, 1,7 GHz
 What do you want to receive? Tick anything that interests you.	Mit szeretne venni? Jelölje be, ami érdekli.
 What to add to a level in dBFS to get dBm for this radio (its calibration: a known signal into the antenna port shows it). Also in the radio's settings.	Mit kell hozzáadni a dBFS szinthez, hogy ennek a rádiónak dBm értéket kapjunk (a kalibrációja: egy ismert jel az antennacsatlakozón megmutatja). A rádió beállításaiban is megtalálható.
 Where are you? This picks the right TV standard and FM band.	Hol van? Ez kiválasztja a megfelelő TV-szabványt és FM-sávot.
-Which language do you want Eye of ZorCom in?	Milyen nyelven szeretné használni az ZorCom-t?
+Which language do you want Eye of SaurCom in?	Milyen nyelven szeretné használni az SaurCom-t?
 Which radio do you have?	Milyen rádiója van?
 You can change the mode any time, and run this setup again from Help > Setup wizard.	Az üzemmódot bármikor megváltoztathatja, és ezt a beállítást újra futtathatja a Súgó > Beállítási varázsló menüből.
 You can go on without one: the synthetic signal and IQ files work with no hardware.	Folytathatja nélküle is: a szintetikus jel és az IQ-fájlok hardver nélkül is működnek.
@@ -957,17 +957,17 @@ WSJT, 14.100 MHz	WSJT, 14.100 MHz
 %s, %llu spots sent in %llu packets, %llu duplicates skipped	%s, %llu spot elküldve %llu csomagban, %llu duplikátum kihagyva
 offset %+.3f %+.3f	eltolás %+.3f %+.3f
 sigma %.3f per axis (%.0f%% of the half-distance to a neighbour)	sigma %.3f tengelyenként (a szomszédig mért fél távolság %.0f%%-a)
-A second Eye of ZorCom (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. Without 'allow remote control' the clients cannot change the frequency or gain.	Egy második Eye of ZorCom (Hálózati rádió hozzáadása, rtl_tcp), SDR# vagy SDR++ csatlakozik ennek a számítógépnek a címéhez és a porthoz. A minták 8 bites IQ-ként, a rádió működési sebességével kerülnek elküldésre. „Távvezérlés engedélyezése” nélkül a kliensek nem tudják módosítani a frekvenciát vagy az erősítést.
-Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'Eye of ZorCom'. Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'.	A dekódolt FT8, FT4, FT2, WSPR, JS8Call, PSK31 és CW állomásokat elküldi a pskreporter.info oldalnak, így megjelennek annak nyilvános térképén és statisztikáin. Egy jelentés tartalma: a feladó hívójele, frekvencia, SNR, üzemmód, a lokátora, ha az üzenet tartalmaz ilyet, és mikor hallották; valamint a saját hívójeled, lokátorod, antennaszöveged és az „Eye of ZorCom”. A jelentések csoportosan, 5 percenként kerülnek elküldésre; ugyanaz az állomás ugyanazon a sávon 10 percenként egyszer kerül elküldésre. Addig semmi sem kerül elküldésre, amíg be nem jelölöd a négyzetet. A spotok nyilvánosak: használd a saját érvényes amatőrrádiós hívójeled. A CW és a PSK31 csak akkor kerül jelentésre, ha a szöveg tartalmazza: „DE hívójel”.
+A second Eye of SaurCom (Add network radio, rtl_tcp), SDR# or SDR++ connects to this computer's address and the port. Samples are sent as 8-bit IQ at the rate the radio runs at. Without 'allow remote control' the clients cannot change the frequency or gain.	Egy második Eye of SaurCom (Hálózati rádió hozzáadása, rtl_tcp), SDR# vagy SDR++ csatlakozik ennek a számítógépnek a címéhez és a porthoz. A minták 8 bites IQ-ként, a rádió működési sebességével kerülnek elküldésre. „Távvezérlés engedélyezése” nélkül a kliensek nem tudják módosítani a frekvenciát vagy az erősítést.
+Sends the FT8, FT4, FT2, WSPR, JS8Call, PSK31 and CW stations you decode to pskreporter.info, so they show on its public map and statistics. A report is: the sender's callsign, frequency, SNR, mode, its locator when the message has one, and when it was heard; with your callsign, locator, antenna text and 'Eye of SaurCom'. Reports are batched and sent every 5 minutes; the same station on the same band is sent once per 10 minutes. Nothing is sent until you tick the box. Spots are public: use your own valid amateur radio callsign. CW and PSK31 are only reported when the text says 'DE callsign'.	A dekódolt FT8, FT4, FT2, WSPR, JS8Call, PSK31 és CW állomásokat elküldi a pskreporter.info oldalnak, így megjelennek annak nyilvános térképén és statisztikáin. Egy jelentés tartalma: a feladó hívójele, frekvencia, SNR, üzemmód, a lokátora, ha az üzenet tartalmaz ilyet, és mikor hallották; valamint a saját hívójeled, lokátorod, antennaszöveged és az „Eye of SaurCom”. A jelentések csoportosan, 5 percenként kerülnek elküldésre; ugyanaz az állomás ugyanazon a sávon 10 percenként egyszer kerül elküldésre. Addig semmi sem kerül elküldésre, amíg be nem jelölöd a négyzetet. A spotok nyilvánosak: használd a saját érvényes amatőrrádiós hívójeled. A CW és a PSK31 csak akkor kerül jelentésre, ha a szöveg tartalmazza: „DE hívójel”.
 BW	BW
 CH	CH
 Channel scan	Csatornakeresés
 FM	FM
 # RX888 MkII
 The RX888 needs its firmware file	Az RX888-nak szüksége van a firmware-fájljára
-The RX888 MkII has no program of its own in its USB chip: Eye of ZorCom loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official Eye of ZorCom packages include this file; a copy built by hand may not.	Az RX888 MkII USB-chipjében nincs saját program: az Eye of ZorCom a boot-loader módban SDDC_FX3.img-et tölt a RAM-ba (semmit nem ír a rádióba). A hivatalos Eye of ZorCom csomagok tartalmazzák; egy kézzel épített másolatban lehet, hogy nincs benne.
+The RX888 MkII has no program of its own in its USB chip: Eye of SaurCom loads SDDC_FX3.img into RAM when the radio is in boot-loader mode (nothing is flashed to the radio). Official Eye of SaurCom packages include this file; a copy built by hand may not.	Az RX888 MkII USB-chipjében nincs saját program: az Eye of SaurCom a boot-loader módban SDDC_FX3.img-et tölt a RAM-ba (semmit nem ír a rádióba). A hivatalos Eye of SaurCom csomagok tartalmazzák; egy kézzel épített másolatban lehet, hogy nincs benne.
 Download SDDC_FX3.img from the Releases page of the SDDC_Driver project (button below).	Töltse le az SDDC_FX3.img fájlt az SDDC_Driver projekt Releases oldaláról (lenti gomb).
-Put the file in Eye of ZorCom's codecs folder (button below).	Tegye a fájlt az Eye of ZorCom kodekmappájába (lenti gomb).
+Put the file in Eye of SaurCom's codecs folder (button below).	Tegye a fájlt az Eye of SaurCom kodekmappájába (lenti gomb).
 The RX888 is on a USB 2 port	Az RX888 USB 2 porton van
 The RX888 MkII sends up to 256 MB per second. It needs a USB 3 (SuperSpeed) port and a USB 3 cable; on a USB 2 port it cannot stream.	Az RX888 MkII másodpercenként akár 256 MB-ot küld. USB 3 (SuperSpeed) portra és USB 3 kábelre van szüksége; USB 2 porton nem tud streamelni.
 Plug the radio into a USB 3 port directly on the computer, not through a USB 2 hub.	Dugja a rádiót közvetlenül a számítógép egyik USB 3 portjába, ne USB 2 elosztón keresztül.
@@ -1027,7 +1027,7 @@ Frequency (MHz)	Frekvencia (MHz)
 Repeat until stopped	Ismétlés leállításig
 seconds	másodperc
 START TRANSMITTING	ADÁS INDÍTÁSA
-This radio has no transmit driver in Eye of ZorCom.	Ennek a rádiónak nincs adó-illesztőprogramja az ZorComben.
+This radio has no transmit driver in Eye of SaurCom.	Ennek a rádiónak nincs adó-illesztőprogramja az SaurComben.
 Before you transmit	Adás előtt
 I understand	Megértettem
 TX VGA 0 to 47 dB; the +14 dB amplifier has its own switch	TX VGA 0-tól 47 dB-ig; a +14 dB-es erősítőnek saját kapcsolója van
@@ -1079,7 +1079,7 @@ start the receiver to see the channels	indítsd el a vevőt a csatornák megteki
 (hidden)	(rejtett)
 The radio runs at %.1f Msps: %d MHz channels need at least %.0f Msps (%.0f recommended). Pick the RATE in the top bar or another receive width.	A rádió %.1f Msps sebességgel megy: a %d MHz-es csatornákhoz legalább %.0f Msps kell (%.0f ajánlott). Válassz SEBESSÉGET a felső sávban, vagy másik vételi szélességet.
 At %.1f Msps channels up to %d MHz are read; 16 MHz channels need 16 Msps or more (20 recommended).	%.1f Msps mellett legfeljebb %d MHz-es csatornákat olvas; a 16 MHz-eshez 16 Msps vagy több kell (20 ajánlott).
-Receive only: Eye of ZorCom never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon announces, shown for information. Sub-GHz Wi-Fi HaLow (802.11ah) is for low power sensors and cameras at long range; 1, 2, 4, 8 and 16 MHz channels. 1 and 2 MHz channels work from 2.4 Msps (an RTL-SDR), 4 MHz from 4 Msps, 8 MHz from 10 Msps, 16 MHz from 20 Msps.	Csak vétel: az Eye of ZorCom sosem ad, nem kérdez, nem csatlakozik és nem válaszol hálózatnak, és semmit sem fejt vissza. A biztonság típusa azt mutatja, amit a beacon hirdet, csak tájékoztatásul. A sub-GHz Wi-Fi HaLow (802.11ah) alacsony fogyasztású, nagy hatótávú szenzorokhoz és kamerákhoz való; 1, 2, 4, 8 és 16 MHz-es csatornák. Az 1 és 2 MHz-es csatornák 2,4 Msps-től (RTL-SDR), a 4 MHz 4 Msps-től, a 8 MHz 10 Msps-től, a 16 MHz 20 Msps-től működnek.
+Receive only: Eye of SaurCom never transmits, probes, joins or answers a network, and nothing is decrypted. The security type is what the beacon announces, shown for information. Sub-GHz Wi-Fi HaLow (802.11ah) is for low power sensors and cameras at long range; 1, 2, 4, 8 and 16 MHz channels. 1 and 2 MHz channels work from 2.4 Msps (an RTL-SDR), 4 MHz from 4 Msps, 8 MHz from 10 Msps, 16 MHz from 20 Msps.	Csak vétel: az Eye of SaurCom sosem ad, nem kérdez, nem csatlakozik és nem válaszol hálózatnak, és semmit sem fejt vissza. A biztonság típusa azt mutatja, amit a beacon hirdet, csak tájékoztatásul. A sub-GHz Wi-Fi HaLow (802.11ah) alacsony fogyasztású, nagy hatótávú szenzorokhoz és kamerákhoz való; 1, 2, 4, 8 és 16 MHz-es csatornák. Az 1 és 2 MHz-es csatornák 2,4 Msps-től (RTL-SDR), a 4 MHz 4 Msps-től, a 8 MHz 10 Msps-től, a 16 MHz 20 Msps-től működnek.
 channel	csatorna
 Filter	Szűrő
 SSID, BSSID, vendor, security, country	SSID, BSSID, gyártó, biztonság, ország
@@ -1105,7 +1105,7 @@ Security	Biztonság
 Beacon	Beacon
 Country	Ország
 Last seen	Utoljára látva
-What the beacon announces, for information. Eye of ZorCom does not decrypt or test anything.	Amit a beacon hirdet, csak tájékoztatásul. Az Eye of ZorCom nem fejt vissza és nem tesztel semmit.
+What the beacon announces, for information. Eye of SaurCom does not decrypt or test anything.	Amit a beacon hirdet, csak tájékoztatásul. Az Eye of SaurCom nem fejt vissza és nem tesztel semmit.
 nothing heard yet	még nincs vétel
 no network passes the filter	egy hálózat sem felel meg a szűrőnek
 start the receiver to see the frames	indítsd el a vevőt a keretek megtekintéséhez
@@ -1320,7 +1320,7 @@ Ham It Down: 1500 MHz down-converter for about 1.5 to 3 GHz (2.4 GHz, 2.3/3.4 GH
 Contrast	Kontraszt
 Below 1 lifts the weak signals, above 1 darkens the noise (double click: 1)	Below 1 lifts the weak signals, above 1 darkens the noise (double click: 1)
 Credits and licences	Credits and licences
-Eye of ZorCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.	Eye of ZorCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.
+Eye of SaurCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.	Eye of SaurCom is free software under the GNU General Public License v3 or later. It is built on the work of the people and projects below; thank you.
 Click a link to open it in your browser. The full notices and open licence points are in THIRD_PARTY.md.	Click a link to open it in your browser. The full notices and open licence points are in THIRD_PARTY.md.
 Project	Project
 Author	Author
@@ -1405,13 +1405,13 @@ HDC sound codec not installed (no sound; click ? for the steps)	A HDC hangkodek 
 sound: HD%d (HDC)	hang: HD%d (HDC)
 sound: HD%d, waiting for audio	hang: HD%d, hangra vár
 The HD Radio sound codec (HDC) is not installed	A HD Radio hangkodek (HDC) nincs telepítve
-The station, program data and pictures are shown, but HD Radio sound stays silent until you install the codec yourself. Eye of ZorCom does not ship it (HDC is patented and owned by Xperi).	Az állomás, a műsoradatok és a képek megjelennek, de a HD Radio hang néma marad, amíg nem telepíted magad a kodeket. Az Eye of ZorCom nem tartalmazza (a HDC szabadalmaztatott, az Xperi tulajdona).
+The station, program data and pictures are shown, but HD Radio sound stays silent until you install the codec yourself. Eye of SaurCom does not ship it (HDC is patented and owned by Xperi).	Az állomás, a műsoradatok és a képek megjelennek, de a HD Radio hang néma marad, amíg nem telepíted magad a kodeket. Az Eye of SaurCom nem tartalmazza (a HDC szabadalmaztatott, az Xperi tulajdona).
 Build the HDC-patched FAAD2 as the full instructions explain (it needs the open-source nrsc5 patch).	Fordítsd le a HDC-javítással ellátott FAAD2-t, ahogy a teljes útmutató leírja (kell hozzá az nrsc5 nyílt forrású javítása).
-Put the library (libfaad_hdc) in the Eye of ZorCom codecs folder (button below).	Tedd a könyvtárat (libfaad_hdc) az Eye of ZorCom kodekmappájába (gomb alul).
+Put the library (libfaad_hdc) in the Eye of SaurCom codecs folder (button below).	Tedd a könyvtárat (libfaad_hdc) az Eye of SaurCom kodekmappájába (gomb alul).
 The HD Radio sound library cannot be used	A HD Radio hangkönyvtár nem használható
-Eye of ZorCom found a library for HDC, but it is not a FAAD2 build with the HDC patch that Eye of ZorCom knows how to call, so it was left alone.	Az Eye of ZorCom talált egy HDC-könyvtárat, de ez nem olyan FAAD2-fordítás HDC-javítással, amelyet az Eye of ZorCom hívni tud, ezért nem használta.
+Eye of SaurCom found a library for HDC, but it is not a FAAD2 build with the HDC patch that Eye of SaurCom knows how to call, so it was left alone.	Az Eye of SaurCom talált egy HDC-könyvtárat, de ez nem olyan FAAD2-fordítás HDC-javítással, amelyet az Eye of SaurCom hívni tud, ezért nem használta.
 Build the library again from FAAD2 2.10 or 2.11 with the nrsc5 patch, as the full instructions explain.	Fordítsd le újra a könyvtárat a FAAD2 2.10 vagy 2.11 változatából az nrsc5 javításával, ahogy a teljes útmutató leírja.
-Replace the file in the Eye of ZorCom codecs folder (button below).	Cseréld ki a fájlt az Eye of ZorCom kodekmappájában (gomb alul).
+Replace the file in the Eye of SaurCom codecs folder (button below).	Cseréld ki a fájlt az Eye of SaurCom kodekmappájában (gomb alul).
 # band plans (scan tab, TV channel list)
 Band plan	Sávterv
 None (built-in ranges)	Nincs (beépített tartományok)
@@ -1487,9 +1487,9 @@ WAV: 16-bit, large. FLAC: lossless, about half the size. MP3: small (needs libmp
 Saves only while there is sound (like a squelch): silence is cut out, with a short lead-in and tail	Csak akkor ment, amikor van hang (mint egy zajzár): a csend kimarad, rövid előzmény és lecsengés marad
 One file per transmission: a new file starts after 3 s of silence	Adásonként egy fájl: 3 s csend után új fájl kezdődik
 Keeps recording when the mode or the frequency changes. Off: the recording stops then.	Folytatja a felvételt, ha a mód vagy a frekvencia változik. Kikapcsolva: ilyenkor leáll a felvétel.
-The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Ebből az ZorCom-telepítésből hiányzik a SoapyRemote modul, ezért nem éri el a távoli rádiót. Telepítse újra az ZorCom-t, és jelezze, ha újra előfordul. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
-The SoapyRemote module is missing from this installation of Eye of ZorCom, so it cannot reach a remote radio. Reinstall Eye of ZorCom (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Ebből az ZorCom-telepítésből hiányzik a SoapyRemote modul, ezért nem éri el a távoli rádiót. Telepítse újra az ZorCom-t (vagy futtassa: brew install soapyremote), és jelezze, ha újra előfordul. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
-SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart Eye of ZorCom. The radio's computer must run SoapySDRServer --bind.	Ebből a SoapySDR-ből hiányzik a SoapyRemote kliensmodul, ezért nem éri el a távoli rádiót. Telepítse (Debian/Ubuntu: sudo apt install soapysdr-module-remote; más rendszereken: github.com/pothosware/SoapyRemote), majd indítsa újra az ZorCom-t. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
+The SoapyRemote module is missing from this installation of Eye of SaurCom, so it cannot reach a remote radio. Reinstall Eye of SaurCom, and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Ebből az SaurCom-telepítésből hiányzik a SoapyRemote modul, ezért nem éri el a távoli rádiót. Telepítse újra az SaurCom-t, és jelezze, ha újra előfordul. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
+The SoapyRemote module is missing from this installation of Eye of SaurCom, so it cannot reach a remote radio. Reinstall Eye of SaurCom (or run brew install soapyremote), and please report it if it happens again. The radio's computer must run SoapySDRServer --bind.	Ebből az SaurCom-telepítésből hiányzik a SoapyRemote modul, ezért nem éri el a távoli rádiót. Telepítse újra az SaurCom-t (vagy futtassa: brew install soapyremote), és jelezze, ha újra előfordul. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
+SoapySDR here has no SoapyRemote client module, so it cannot reach a remote radio. Install it (Debian/Ubuntu: sudo apt install soapysdr-module-remote; other systems: github.com/pothosware/SoapyRemote), then restart Eye of SaurCom. The radio's computer must run SoapySDRServer --bind.	Ebből a SoapySDR-ből hiányzik a SoapyRemote kliensmodul, ezért nem éri el a távoli rádiót. Telepítse (Debian/Ubuntu: sudo apt install soapysdr-module-remote; más rendszereken: github.com/pothosware/SoapyRemote), majd indítsa újra az SaurCom-t. A rádió számítógépén futnia kell a SoapySDRServer --bind parancsnak.
 # frequency database
 %zu built in, %zu yours	%zu beépített, %zu saját
 Add entry...	Bejegyzés hozzáadása...
@@ -1575,7 +1575,7 @@ Listeners:	Hallgatók:
 video	video
 audio	audio
 profile	profile
-Video: %s (Eye of ZorCom cannot decode this video) — audio, subtitles and data still work	Video: %s (Eye of ZorCom cannot decode this video) — audio, subtitles and data still work
+Video: %s (Eye of SaurCom cannot decode this video) — audio, subtitles and data still work	Video: %s (Eye of SaurCom cannot decode this video) — audio, subtitles and data still work
 Open in an external player	Open in an external player
 Save the transport stream to a file	Save the transport stream to a file
 Stream it as UDP to %s	Stream it as UDP to %s
@@ -1723,7 +1723,7 @@ Hides tone-only pages and pages whose text could not be decoded.	Elrejti a csak 
 hidden	elrejtve
 # LBJ (Chinese railway train warning)
 What LBJ carries	Mit visz az LBJ
-LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of ZorCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	Az LBJ a kínai vonat-közeledési figyelmeztetés kb. 821,2375 MHz-en. Minden mozdony 1200 bit/s sebességű numerikus POCSAG-üzeneteket küld: néhány másodpercenként rövid üzenetet a vonatszámmal, a sebességgel (km/h) és a kilométerszelvénnyel, valamint hosszabb üzeneteket a mozdony típusával, számával és az útvonallal.\n\nAz Eye of ZorCom maga dekódolja az üzeneteket (csak vétel). Az üres érték sérült számjegyeket jelent; a szürke sorban javított hibák voltak, ezért ellenőrizd ugyanannak a vonatnak a következő üzenetével.
+LBJ is the Chinese railway train approach warning on about 821.2375 MHz. Every locomotive sends 1200 bit/s POCSAG numeric pages: a short message every few seconds with the train number, the speed (km/h) and the kilometre post, and longer messages with the locomotive type and number and the route.\n\nEye of SaurCom decodes the pages itself (receive only). A value that is blank had damaged digits; a row in grey had errors that were corrected, so check it against the next message of the same train.	Az LBJ a kínai vonat-közeledési figyelmeztetés kb. 821,2375 MHz-en. Minden mozdony 1200 bit/s sebességű numerikus POCSAG-üzeneteket küld: néhány másodpercenként rövid üzenetet a vonatszámmal, a sebességgel (km/h) és a kilométerszelvénnyel, valamint hosszabb üzeneteket a mozdony típusával, számával és az útvonallal.\n\nAz Eye of SaurCom maga dekódolja az üzeneteket (csak vétel). Az üres érték sérült számjegyeket jelent; a szürke sorban javított hibák voltak, ezért ellenőrizd ugyanannak a vonatnak a következő üzenetével.
 tune to about 821.2375 MHz and start the receiver	hangolj kb. 821,2375 MHz-re és indítsd el a vevőt
 FM, 1200 bit/s FSK, %.2f Msps	FM, 1200 bit/s FSK, %.2f Msps
 %llu messages, %llu sync words, %llu blank, %llu failed checks	%llu üzenet, %llu szinkronszó, %llu üres, %llu sikertelen ellenőrzés
@@ -1774,7 +1774,7 @@ Password	Jelszó
 blank if the owner set none	üresen hagyható, ha a tulajdonos nem állított be
 Find KiwiSDR…	KiwiSDR keresése…
 pick a public receiver from the list	nyilvános vevő kiválasztása a listából
-A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; Eye of ZorCom takes its 12 kHz IQ stream. Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. The password is kept in Eye of ZorCom's settings.	A KiwiSDR egy az interneten elérhető vevő, amely 0–30 MHz-et fed le; az Eye of ZorCom a 12 kHz-es IQ-adatfolyamát veszi. A nyilvánosaknak kevés felhasználói helyük van, és sokan körülbelül 30 perc után megszakítják a munkamenetet: vevőnként egy kapcsolatot használj, és ha végeztél, lépj ki. A jelszót az Eye of ZorCom beállításai tárolják.
+A KiwiSDR is a receiver on the internet that covers 0 to 30 MHz; Eye of SaurCom takes its 12 kHz IQ stream. Public ones have few user slots and many end a session after about 30 minutes: use one connection per receiver and leave when you are done. The password is kept in Eye of SaurCom's settings.	A KiwiSDR egy az interneten elérhető vevő, amely 0–30 MHz-et fed le; az Eye of SaurCom a 12 kHz-es IQ-adatfolyamát veszi. A nyilvánosaknak kevés felhasználói helyük van, és sokan körülbelül 30 perc után megszakítják a munkamenetet: vevőnként egy kapcsolatot használj, és ha végeztél, lépj ki. A jelszót az Eye of SaurCom beállításai tárolják.
 S-meter %.0f dBm%s	S-mérő %.0f dBm%s
 , ADC overload	, ADC túlvezérlés
 Find KiwiSDR	KiwiSDR keresése
@@ -1789,7 +1789,7 @@ Distance	Távolság
 offline	offline
 full	tele
 Adds this receiver to the Network radios (it does not connect until you pick it as the radio).	Hozzáadja ezt a vevőt a hálózati rádiókhoz (addig nem csatlakozik, amíg rádiónak nem választod).
-The downloaded list has no receivers Eye of ZorCom can read.	A letöltött listában nincs olyan vevő, amelyet az Eye of ZorCom olvasni tud.
+The downloaded list has no receivers Eye of SaurCom can read.	A letöltött listában nincs olyan vevő, amelyet az Eye of SaurCom olvasni tud.
 Could not download the list. Check the internet connection.	A listát nem sikerült letölteni. Ellenőrizd az internetkapcsolatot.
 # live transcripts (docs/TRANSCRIBE.md)
 Transcribing speech: %s	Beszéd átírása: %s
@@ -1835,7 +1835,7 @@ How many processor threads the speech engine may use for one transmission. Fewer
 Keep transcripts (days)	Átiratok megőrzése (nap)
 Heard %llu, kept %llu, left out %llu (silence, noise, repeats), skipped %llu (too slow), speed %.2f x real time	Hallott %llu, megtartott %llu, eldobott %llu (csend, zaj, ismétlés), kihagyott %llu (túl lassú), sebesség %.2f x valós idő
 Download the speech model %s (%d MB)?	Letöltöd a(z) %s beszédmodellt (%d MB)?
-Eye of ZorCom asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed.	Az Eye of ZorCom ezt az egy fájlt kéri el a modelltárból (huggingface.co), mást nem küld. A fájlt egy rögzített SHA-256 ellenőrzőösszeggel ellenőrzi, és eldobja, ha nem egyezik. A modell MIT licencű.
+Eye of SaurCom asks the model repository (huggingface.co) for this one file and sends nothing else. The file is checked against a fixed SHA-256 checksum and thrown away if it does not match. The model is MIT licensed.	Az Eye of SaurCom ezt az egy fájlt kéri el a modelltárból (huggingface.co), mást nem küld. A fájlt egy rögzített SHA-256 ellenőrzőösszeggel ellenőrzi, és eldobja, ha nem egyezik. A modell MIT licencű.
 Download	Letöltés
 Delete all saved transcripts? This cannot be undone.	Törlöd az összes mentett átiratot? Ez nem vonható vissza.
 Delete all	Összes törlése
@@ -2111,7 +2111,7 @@ Timeshift	Időeltolás
 Play	Lejátszás
 behind live	az élő adás mögött
 Live	Élő
-Recordings run only while Eye of ZorCom is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only.	A felvételek csak akkor futnak, ha az Eye of ZorCom meg van nyitva és a számítógép ébren van; alvó gép nem rögzít semmit. A kódolt szolgáltatások úgy kerülnek rögzítésre, ahogy megérkeznek, nem lesznek dekódolva. Kizárólag személyes használatra.
+Recordings run only while Eye of SaurCom is open and the computer is awake; a sleeping computer records nothing. Scrambled services are recorded as they arrive and are not decoded. For personal use only.	A felvételek csak akkor futnak, ha az Eye of SaurCom meg van nyitva és a számítógép ébren van; alvó gép nem rögzít semmit. A kódolt szolgáltatások úgy kerülnek rögzítésre, ahogy megérkeznek, nem lesznek dekódolva. Kizárólag személyes használatra.
 Scheduled	Ütemezett
 recording	rögzít
 conflict	ütközés
@@ -2154,7 +2154,7 @@ Last 24 hours (UTC), 15 minute cells, darker: fewer stations	Utolsó 24 óra (UT
 # plugins (plugin/plugin_app.cpp, the PLUGINS group, View > Plugins)
 %s asks for these permissions:	%s ezeket az engedélyeket kéri:
 A crash or a hang of the plugin then only ends its helper process. Takes effect the next time the plugin starts.	A bővítmény összeomlása vagy lefagyása ilyenkor csak a segédfolyamatát állítja le. A bővítmény következő indításakor lép érvénybe.
-Add decoders and actions without rebuilding Eye of ZorCom: install, enable and set up plugins	Dekóderek és műveletek hozzáadása az Eye of ZorCom újrafordítása nélkül: bővítmények telepítése, engedélyezése és beállítása
+Add decoders and actions without rebuilding Eye of SaurCom: install, enable and set up plugins	Dekóderek és műveletek hozzáadása az Eye of SaurCom újrafordítása nélkül: bővítmények telepítése, engedélyezése és beállítása
 Add-ons	Bővítmények
 Allow	Engedélyez
 Asks for	Kéri
@@ -2169,11 +2169,11 @@ Kind	Fajta
 Map points	Térképpontok
 Modes (in the mode list, group PLUGINS)	Módok (a módlistában, PLUGINS csoport)
 Network: talk to other computers	Hálózat: kommunikálhat más számítógépekkel
-No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .zorcomplugin file.	Nincs telepített bővítmény. Használja a „Telepítés fájlból” gombot, vagy másoljon egy bővítménymappát a bővítmények mappájába. A bővítmény egy .zorcomplugin fájl.
+No plugins installed. Use Install from file, or copy a plugin folder into the plugins folder. A plugin is a .saurcomplugin file.	Nincs telepített bővítmény. Használja a „Telepítés fájlból” gombot, vagy másoljon egy bővítménymappát a bővítmények mappájába. A bővítmény egy .saurcomplugin fájl.
 Not installed	Nincs telepítve
 Open its folder	Mappájának megnyitása
 PLUGINS	BŐVÍTMÉNYEK
-Permissions are what Eye of ZorCom hands the plugin. A plugin running inside Eye of ZorCom can still use the system itself: install plugins you trust, or run them in a helper process.	Az engedélyek azt jelentik, mit ad át az Eye of ZorCom a bővítménynek. Az ZorComen belül futó bővítmény ettől még maga is használhatja a rendszert: csak megbízható bővítményt telepítsen, vagy futtassa segédfolyamatban.
+Permissions are what Eye of SaurCom hands the plugin. A plugin running inside Eye of SaurCom can still use the system itself: install plugins you trust, or run them in a helper process.	Az engedélyek azt jelentik, mit ad át az Eye of SaurCom a bővítménynek. Az SaurComen belül futó bővítmény ettől még maga is használhatja a rendszert: csak megbízható bővítményt telepítsen, vagy futtassa segédfolyamatban.
 Plugin idle	A bővítmény tétlen
 Plugin log	Bővítménynapló
 Plugin modes run on receiver 1.	A bővítménymódok az 1. vevőn futnak.
@@ -2251,7 +2251,7 @@ sky + spill K	ég + túlcsordulás K
 , bursts (%.0f %% on)	, impulzusok (%.0f %% aktív)
 , every %.3g ms	, %.3g ms-onként
 , useful symbol %.4g us	, hasznos szimbólum %.4g µs
-A score is the share of the evidence that holds; the percentages are calibrated on Eye of ZorCom's own test signals, not on every real signal.	A pontszám a teljesülő bizonyítékok aránya; a százalékokat az Eye of ZorCom saját tesztjelein kalibráltuk, nem minden valódi jelen.
+A score is the share of the evidence that holds; the percentages are calibrated on Eye of SaurCom's own test signals, not on every real signal.	A pontszám a teljesülő bizonyítékok aránya; a százalékokat az Eye of SaurCom saját tesztjelein kalibráltuk, nem minden valódi jelen.
 Add to memory	Hozzáadás a Memoryhoz
 Best guess	Legjobb tipp
 Copy as text	Másolás szövegként
@@ -2269,7 +2269,7 @@ Opened %s	%s megnyitva
 Perhaps %s (%.0f %%).	Talán %s (%.0f %%).
 Signals in the view	Jelek a nézetben
 The frequency list has here:	A frekvencialista itt ezt tartalmazza:
-What is this? Click a signal, or drag across it, and Eye of ZorCom says what it is and how sure it is. Key I. Shift+drag does it without the tool.	Mi ez? Kattints egy jelre, vagy húzd át rajta, és az Eye of ZorCom megmondja, mi az és mennyire biztos. I billentyű. A Shift+húzás az eszköz nélkül is működik.
+What is this? Click a signal, or drag across it, and Eye of SaurCom says what it is and how sure it is. Key I. Shift+drag does it without the tool.	Mi ez? Kattints egy jelre, vagy húzd át rajta, és az Eye of SaurCom megmondja, mi az és mennyire biztos. I billentyű. A Shift+húzás az eszköz nélkül is működik.
 Why?	Miért?
 Identify selected	A kijelölt azonosítása
 Tune the radio to the selected signal and say what it is (needs the receiver in a mode whose sample rate covers it)	A rádiót a kijelölt jelre hangolja, és megmondja, mi az (a vevőnek olyan módban kell lennie, amelynek mintavételi sebessége lefedi)
@@ -2609,7 +2609,7 @@ One per line: a call sign. Without an SSID (LY1ABC) every SSID matches; with one
 One per line: a frequency in MHz (162.025), with a unit (162025 kHz) or a range (144-146). Anything decoded on it counts.	Soronként egy: frekvencia MHz-ben (162.025), mértékegységgel (162025 kHz) vagy tartomány (144-146). Minden dekódolt jel számít rajta.
 One per line: a word or a phrase (not case sensitive). A trailing * matches word starts (fire*). Searched in pager, ACARS, APRS and other decoded text.	Soronként egy: szó vagy kifejezés (kis- és nagybetű nem számít). A végén lévő * a szókezdetekre illeszkedik (fire*). Keresés a személyhívó, ACARS, APRS és más dekódolt szövegekben.
 New list...	Új lista...
-Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. Eye of ZorCom tells you when something on it is heard.	Hozz létre egy listát balra: repülők, hajók, APRS hívójelek, frekvenciák vagy szavak. Az Eye of ZorCom szól, ha valamelyik hallható.
+Make a list on the left: aircraft, ships, APRS call signs, frequencies or words. Eye of SaurCom tells you when something on it is heard.	Hozz létre egy listát balra: repülők, hajók, APRS hívójelek, frekvenciák vagy szavak. Az Eye of SaurCom szól, ha valamelyik hallható.
 On	Be
 Tolerance (kHz)	Tűrés (kHz)
 entries	bejegyzés
@@ -3020,7 +3020,7 @@ Tone decoders	Hangdekóderek
 The test signal repeats every 40 s: CTCSS 123.0 Hz under speech-like noise, DCS D023N, DTMF 159#, a ZVEI1 call 12345, SELCAL AM-CP and a two-tone page.	A tesztjel 40 másodpercenként ismétlődik: CTCSS 123,0 Hz beszédszerű zaj alatt, DCS D023N, DTMF 159#, egy ZVEI1 hívás 12345, SELCAL AM-CP és egy kéthangos hívás.
 CTCSS, DCS, DTMF, selcall	CTCSS, DCS, DTMF, szelektív hívás
 # COSPAS-SARSAT 406 MHz
-A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of ZorCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	A 406 MHz-es vészjeladó (EPIRB hajón, ELT repülőgépben, PLB személynél) körülbelül 50 másodpercenként egy kb. fél másodperces adást küld: modulálatlan vivő, majd 112 vagy 144 bit 400 bit/s sebességgel. Az üzenet tartalmaz egy, a jeladóra egyedi 15 jegyű hexa azonosítót, az országot, a jeladó fajtáját és gyakran egy pozíciót (rövid üzenetben 15 percre, hosszúban 4 másodpercre kerekítve). Két BCH-ellenőrzés védi az üzenetet; az első mező legfeljebb három sérült bitje javítható.\n\nAz Eye of ZorCom csak vesz. A tesztjeladók és az önteszt-adások jelölve vannak. Ha úgy gondolja, valódit hallott, értesítse országa mentési koordinációs központját; biztonsága érdekében ne erre a programra támaszkodjon.
+A 406 MHz distress beacon (EPIRB on a boat, ELT in an aircraft, PLB carried by a person) sends a burst of about half a second every 50 seconds: an unmodulated carrier, then 112 or 144 bits at 400 bit/s. The message holds a 15 digit hex ID that is unique to the beacon, the country, the kind of beacon, and often a position (rounded to 15 minutes in a short message, to 4 seconds in a long one). Two BCH checks protect the message; up to three damaged bits in the first field are repaired.\n\nEye of SaurCom only receives. Test beacons and self-test bursts are marked. If you think you heard a real one, tell the rescue coordination centre of your country; do not rely on this program for safety.	A 406 MHz-es vészjeladó (EPIRB hajón, ELT repülőgépben, PLB személynél) körülbelül 50 másodpercenként egy kb. fél másodperces adást küld: modulálatlan vivő, majd 112 vagy 144 bit 400 bit/s sebességgel. Az üzenet tartalmaz egy, a jeladóra egyedi 15 jegyű hexa azonosítót, az országot, a jeladó fajtáját és gyakran egy pozíciót (rövid üzenetben 15 percre, hosszúban 4 másodpercre kerekítve). Két BCH-ellenőrzés védi az üzenetet; az első mező legfeljebb három sérült bitje javítható.\n\nAz Eye of SaurCom csak vesz. A tesztjeladók és az önteszt-adások jelölve vannak. Ha úgy gondolja, valódit hallott, értesítse országa mentési koordinációs központját; biztonsága érdekében ne erre a programra támaszkodjon.
 EPIRB (boat)	EPIRB (hajó)
 ELT (aircraft)	ELT (repülőgép)
 PLB (person)	PLB (személy)
@@ -3361,7 +3361,7 @@ start the receiver to see the codes	indítsa el a vevőt a kódok megtekintésé
 Squawk and altitude, 1090 MHz	Squawk és magasság, 1090 MHz
 Mode A is the squawk, Mode C the altitude in 100 ft steps. A reply does not say which of the two it is: a code shows as A/C until it can only be a squawk or is matched to a Mode S aircraft by its squawk or its altitude.	Az A mód a squawk, a C mód a magasság 100 láb lépésekben. A válasz nem árulja el, melyik a kettő közül: a kód A/C-ként jelenik meg, amíg csak squawk lehet, vagy amíg squawk vagy magasság alapján nem társítják egy Mode S légijárműhöz.
 # BLE tracker detector
-Receive only: item trackers are recognised from their public advertisements. Eye of ZorCom never connects to one, sends to one or reads its owner's data. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.	Csak vétel: a tárgykövetőket nyilvános hirdetéseikről ismeri fel. Az Eye of ZorCom soha nem csatlakozik egyhez sem, nem küld neki semmit, és nem olvassa a tulajdonos adatait. Az azonosítók az utolsó vétel után 30 percig maradnak a memóriában, csak a cím utolsó két bájtjaként jelennek meg, és soha nem kerülnek mentésre.
+Receive only: item trackers are recognised from their public advertisements. Eye of SaurCom never connects to one, sends to one or reads its owner's data. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.	Csak vétel: a tárgykövetőket nyilvános hirdetéseikről ismeri fel. Az Eye of SaurCom soha nem csatlakozik egyhez sem, nem küld neki semmit, és nem olvassa a tulajdonos adatait. Az azonosítók az utolsó vétel után 30 percig maradnak a memóriában, csak a cím utolsó két bájtjaként jelennek meg, és soha nem kerülnek mentésre.
 your own	a saját
 following you	követ téged
 separated from its owner	elvált a tulajdonosától

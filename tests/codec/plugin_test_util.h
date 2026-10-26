@@ -35,7 +35,7 @@ inline bool install(const std::string& id, const std::string& stubPath) {
     setenv("DECT2_MBELIB_PATH", "none", 1);
 #endif
     namespace fs = std::filesystem;
-    const fs::path dir = fs::temp_directory_path() / ("zorcom-test-plugin-" + id);
+    const fs::path dir = fs::temp_directory_path() / ("saurcom-test-plugin-" + id);
     std::error_code ec;
     fs::remove_all(dir, ec);
     fs::create_directories(dir, ec);

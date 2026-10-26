@@ -1,5 +1,5 @@
 #!/bin/bash
-# A Linux package that carries its own libraries: unpack anywhere and run bin/zorcom. Run inside the build container.
+# A Linux package that carries its own libraries: unpack anywhere and run bin/saurcom. Run inside the build container.
 #   make_portable_linux.sh <build dir> <output dir>
 # The libraries of the system that every program has anyway (libc, graphics, windowing, sound) are NOT included: those must be the
 # system's own. The C++ runtime is not included either: the build container is old, so the system's is always newer.
@@ -8,9 +8,9 @@ B=$1; OUT=$2
 SRC=${SRC:-/src}   # the source tree (the build container mounts it at /src)
 VERSION=$(grep -m1 'project(' $SRC/CMakeLists.txt | sed -E 's/.*VERSION ([0-9.]+).*/\1/')
 ARCH=$(uname -m)
-D=$(mktemp -d)/zorcom-$VERSION-linux-$ARCH-portable
+D=$(mktemp -d)/saurcom-$VERSION-linux-$ARCH-portable
 mkdir -p "$D/bin" "$D/lib"
-cp $B/dect2 "$D/bin/zorcom"; cp $B/dect2cli "$D/bin/zorcom-cli"; cp $B/dect2scan "$D/bin/zorcom-scan"
+cp $B/dect2 "$D/bin/saurcom"; cp $B/dect2cli "$D/bin/saurcom-cli"; cp $B/dect2scan "$D/bin/saurcom-scan"
 SKIP='linux-vdso|ld-linux|/libc\.so|/libm\.so|/libdl\.so|/libpthread\.so|/librt\.so|/libutil\.so|/libresolv\.so|/libstdc\+\+|/libgcc_s|/libGL|/libEGL|/libOpenGL|/libX|/libxcb|/libwayland|/libdrm|/libasound|/libpulse|/libudev|/libdbus|/libsystemd|/libxkbcommon|/libffi|/libgbm|/libva'
 collect() {
   ldd "$1" | awk '/=> \//{print $3}' | while read -r lib; do
@@ -20,21 +20,21 @@ collect() {
 }
 for p in "$D"/bin/*; do collect "$p"; done
 # the radio libraries (RTL-SDR, Airspy, BladeRF, LimeSDR, PlutoSDR, USRP), found by name next to the program
-# codec2 (FreeDV and M17 speech, LGPL-2.1, third_party/codec2): its own shared library, next to the radio libraries (Eye of ZorCom looks in ../lib of its program)
+# codec2 (FreeDV and M17 speech, LGPL-2.1, third_party/codec2): its own shared library, next to the radio libraries (Eye of SaurCom looks in ../lib of its program)
 cp -a "$B"/libcodec2.so* "$D/lib/" 2>/dev/null || echo "warning: no libcodec2 in $B (built with -DDECT2_BUNDLE_CODEC2=OFF?)"
-mkdir -p "$D/licenses/codec2"; cp $SRC/third_party/codec2/COPYING "$D/licenses/codec2/COPYING"; cp $SRC/third_party/codec2/README-ZorCom.md "$D/licenses/codec2/NOTICE.md"
-mkdir -p "$D/licenses/hamlib"; cp $SRC/packaging/licenses/hamlib/README-ZorCom.md "$D/licenses/hamlib/NOTICE.md"
+mkdir -p "$D/licenses/codec2"; cp $SRC/third_party/codec2/COPYING "$D/licenses/codec2/COPYING"; cp $SRC/third_party/codec2/README-SaurCom.md "$D/licenses/codec2/NOTICE.md"
+mkdir -p "$D/licenses/hamlib"; cp $SRC/packaging/licenses/hamlib/README-SaurCom.md "$D/licenses/hamlib/NOTICE.md"
 [ -f /usr/share/doc/libhamlib2/copyright ] && cp /usr/share/doc/libhamlib2/copyright "$D/licenses/hamlib/COPYING"
 if [ -f "$SRC/third_party/sddc_fx3/SDDC_FX3.img" ]; then
   mkdir -p "$D/codecs" "$D/licenses/sddc_fx3"
   cp "$SRC/third_party/sddc_fx3/SDDC_FX3.img" "$D/codecs/"
-  cp "$SRC/third_party/sddc_fx3/README-ZorCom.md" "$D/licenses/sddc_fx3/NOTICE.md"
+  cp "$SRC/third_party/sddc_fx3/README-SaurCom.md" "$D/licenses/sddc_fx3/NOTICE.md"
 fi
 [ -d "$B/radiolibs" ] && cp -a "$B"/radiolibs/. "$D/lib/"
 for p in "$D"/bin/*; do patchelf --set-rpath '$ORIGIN/../lib' "$p"; done
 for l in "$D"/lib/*.so*; do patchelf --set-rpath '$ORIGIN' "$l" 2>/dev/null || true; done
 mkdir -p "$D/share/applications" "$D/share/icons"
-cp $SRC/packaging/linux/zorcom.desktop "$D/share/applications/"; cp $SRC/packaging/icons/zorcom_1024.png "$D/share/icons/zorcom.png"
+cp $SRC/packaging/linux/saurcom.desktop "$D/share/applications/"; cp $SRC/packaging/icons/saurcom_1024.png "$D/share/icons/saurcom.png"
 cp $SRC/LICENSE "$D/LICENSE"
 $SRC/tools/package/add_license_files.sh "$D" "$SRC"   # THIRD_PARTY.md, LICENSES/, LICENSE-NOTICES-BINARIES.md (licence of every bundled library, source offer)
 # the Debian copyright file of each bundled system library (the ones built here, RTL-SDR Blog and codec2, are covered by the files above)
@@ -46,12 +46,12 @@ for l in "$D"/lib/*.so.*; do
 done
 # udev rules and the kernel-driver blacklist for the radios, with the script that installs them (the .deb installs them itself)
 mkdir -p "$D/udev"
-cp $SRC/packaging/linux/60-zorcom-sdr.rules $SRC/packaging/linux/zorcom-rtlsdr-blacklist.conf $SRC/packaging/linux/zorcom-sdrplay-blacklist.conf "$D/udev/"
+cp $SRC/packaging/linux/60-saurcom-sdr.rules $SRC/packaging/linux/saurcom-rtlsdr-blacklist.conf $SRC/packaging/linux/saurcom-sdrplay-blacklist.conf "$D/udev/"
 cp $SRC/packaging/linux/install-udev-rules.sh "$D/"; chmod 755 "$D/install-udev-rules.sh"
 cat > "$D/README.txt" <<'TXT'
-Eye of ZorCom portable: run bin/zorcom. Nothing to install.
+Eye of SaurCom portable: run bin/saurcom. Nothing to install.
 If a radio is not found, run sudo ./install-udev-rules.sh once (it lets a normal user open the radios and keeps the kernel's TV driver off RTL-SDR dongles), then replug the radio.
-Libraries Eye of ZorCom needs from the system: the graphics driver (OpenGL), X11 or Wayland, and for sound ALSA, PulseAudio or PipeWire.
+Libraries Eye of SaurCom needs from the system: the graphics driver (OpenGL), X11 or Wayland, and for sound ALSA, PulseAudio or PipeWire.
 TXT
 (cd "$(dirname "$D")" && tar czf "$OUT/$(basename "$D").tar.gz" "$(basename "$D")")
 echo "$OUT/$(basename "$D").tar.gz"; ls "$D/lib"

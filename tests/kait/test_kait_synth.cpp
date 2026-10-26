@@ -44,7 +44,7 @@ static bool run(int opt, double maxSec) {
     printf("  %s: %d reports, bursts %llu decoded %llu, layers %d of %d, %zu bytes, cfo %.0f Hz, %dx%d \"%s\"\n", kaitSummary(k).c_str(), reports, (unsigned long long)k.bursts, (unsigned long long)k.burstsDecoded, k.layersComplete, k.nLayers, k.bytesGood, k.cfoHz, k.width, k.height, k.callsign.c_str());
     CHECK(reports > 5 && wrong == 0, "%d reports, %d wrong", reports, wrong);
     CHECK(doneAt > 0, "no decode within %.0f s", maxSec);
-    CHECK(k.headerOk && k.callsign == "ZORCOM", "header / callsign '%s'", k.callsign.c_str());
+    CHECK(k.headerOk && k.callsign == "SAURCOM", "header / callsign '%s'", k.callsign.c_str());
     CHECK(k.nLayers > 0 && k.layersComplete == k.nLayers, "layers %d of %d", k.layersComplete, k.nLayers);
     CHECK(k.image && !k.image->rgb.empty() && k.image->w == k.width && k.image->h == k.height, "the picture");
     CHECK(k.profile == (opt > 0 ? opt - 1 : 0), "profile %d", k.profile);

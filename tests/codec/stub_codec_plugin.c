@@ -9,10 +9,10 @@
 #else
 #define STUB_API __attribute__((visibility("default")))
 #endif
-STUB_API void* zorcom_speech_open(void) { return malloc(1); }
-STUB_API void zorcom_speech_close(void* s) { free(s); }
-STUB_API int zorcom_speech_sample_rate(void) { return 8000; }
-STUB_API int zorcom_speech_decode(void* s, const uint8_t* coded, size_t n, int16_t* pcm, size_t max) {
+STUB_API void* saurcom_speech_open(void) { return malloc(1); }
+STUB_API void saurcom_speech_close(void* s) { free(s); }
+STUB_API int saurcom_speech_sample_rate(void) { return 8000; }
+STUB_API int saurcom_speech_decode(void* s, const uint8_t* coded, size_t n, int16_t* pcm, size_t max) {
     (void)s;
     if (!n || max < 160) return -1;
     for (int i = 0; i < 160; i++) pcm[i] = (int16_t)(i * 37 + 1);

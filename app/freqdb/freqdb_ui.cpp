@@ -377,12 +377,12 @@ void panelBody(App& a) {
     ImGui::SameLine();
     ImGui::BeginDisabled(u.user.empty());
     if (ImGui::Button(tr("Export CSV..."))) {
-        const std::string p = saveFileDialog("zorcom-frequencies.csv");
+        const std::string p = saveFileDialog("saurcom-frequencies.csv");
         if (!p.empty()) { std::ofstream f(dect2::u8file(p), std::ios::binary); f << dect2::freqExportCsv(u.user); say(f ? std::string(tr("Exported to ")) + p : std::string(tr("Could not save ")) + p, !f); }
     }
     ImGui::SameLine();
     if (ImGui::Button(tr("Export JSON..."))) {
-        const std::string p = saveFileDialog("zorcom-frequencies.json");
+        const std::string p = saveFileDialog("saurcom-frequencies.json");
         if (!p.empty()) { std::ofstream f(dect2::u8file(p), std::ios::binary); f << dect2::freqExportJson(u.user); say(f ? std::string(tr("Exported to ")) + p : std::string(tr("Could not save ")) + p, !f); }
     }
     ImGui::EndDisabled();

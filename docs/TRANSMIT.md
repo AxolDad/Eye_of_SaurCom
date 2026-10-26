@@ -1,6 +1,6 @@
 # Transmit
 
-**You are responsible.** Eye of ZorCom limits nothing: not the frequency, not the power. What you type goes to the radio as typed (the radio's own range is shown as information only). Transmitting needs a licence or permission where you are, and a radio without an antenna, an attenuator or a dummy load can disturb others. Transmit is meant for test signals into a dummy load or a shielded setup, and for your own use. The first time you start, a one-time notice has to be accepted with "I understand".
+**You are responsible.** Eye of SaurCom limits nothing: not the frequency, not the power. What you type goes to the radio as typed (the radio's own range is shown as information only). Transmitting needs a licence or permission where you are, and a radio without an antenna, an attenuator or a dummy load can disturb others. Transmit is meant for test signals into a dummy load or a shielded setup, and for your own use. The first time you start, a one-time notice has to be accepted with "I understand".
 
 ## How to transmit
 
@@ -162,4 +162,4 @@ This list is taken from the tables in `core/src/tx/tx.cpp` (`txModes()`).
 
 ### Modes without a generator
 
-Nothing is refused: Eye of ZorCom blocks no mode, frequency or power. A mode can only be missing when it has no signal generator (for example the signal workbench, engine code 75); the panel then says "this mode has no transmit generator". Limits of the radio (no transmit path, a sample rate too low for the mode) are reported as they come.
+Nothing is refused: Eye of SaurCom blocks no mode, frequency or power. A mode can only be missing when it has no signal generator (for example the signal workbench, engine code 75); the panel then says "this mode has no transmit generator". Limits of the radio (no transmit path, a sample rate too low for the mode) are reported as they come.

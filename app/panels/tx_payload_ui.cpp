@@ -135,7 +135,7 @@ void tvFilePanel(TxUi& s, const TxModeSpec& mode, bool running) {
     (void)running;
     const std::string id = mode.id ? mode.id : "";
     fileRow(s, tr("MPEG-TS / video file"), tr("Browse…##ts"));
-    ImGui::TextDisabled("%s", tr("Your .ts / .m2ts is sent as-is (service names come from that file). Other video is remuxed when FFmpeg can. Empty: Eye of ZorCom encodes a test card with the names below."));
+    ImGui::TextDisabled("%s", tr("Your .ts / .m2ts is sent as-is (service names come from that file). Other video is remuxed when FFmpeg can. Empty: Eye of SaurCom encodes a test card with the names below."));
     muxIdentity(s);
     if (!s.fileNote.empty()) ImGui::TextWrapped("%s", s.fileNote.c_str());
     if (id == "atsc3") ImGui::TextDisabled("%s", tr("ATSC 3.0 uses a ROUTE / fMP4 demo; a custom MPEG-TS is not the payload path."));
@@ -247,7 +247,7 @@ void payloadPanel(TxUi& s, const TxModeSpec& mode, bool running) {
         }
         ImGui::SetNextItemWidth(200 * gUi);
         ImGui::InputText(tr("Ident on the card"), s.name, sizeof s.name);
-        ImGui::TextDisabled("%s", tr("Empty: ZORCOM TEST. This is the station name drawn on the picture, not a file."));
+        ImGui::TextDisabled("%s", tr("Empty: SAURCOM TEST. This is the station name drawn on the picture, not a file."));
         const char* sndn[] = {"1 kHz tone (with gaps)", "melody", "sound carrier only", "no sound carrier", "microphone", "WAV / MP3 file"};
         int snd = s.audioSrc == 0 ? 4 : s.audioSrc == 1 ? 5 : std::max(0, std::min(3, s.synth.modeOpt[3]));
         ImGui::SetNextItemWidth(220 * gUi);

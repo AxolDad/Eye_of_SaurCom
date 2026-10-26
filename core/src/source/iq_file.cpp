@@ -34,7 +34,7 @@ size_t bytesPerSample(FileFormat f) { return f == FileFormat::CF32 ? 8 : (f == F
 bool probeSigmf(const std::string& metaPath, const std::string& dataPathIn, IqFileInfo& out, std::string& err) {
     std::string txt;
     if (!readAll(metaPath, txt)) { err = "cannot read " + metaPath; return false; }
-    // the meta text is read by core/src/files/files_proto.cpp (C++) or the Rust crate zorcom_files
+    // the meta text is read by core/src/files/files_proto.cpp (C++) or the Rust crate saurcom_files
     const filesp::SigmfMeta m = filesp::sigmfParse(txt);
     if (m.status == 1) { err = "not a valid SigMF meta file: " + metaPath; return false; }
     if (m.status == 2) { err = "SigMF meta has no \"global\" section"; return false; }
@@ -91,7 +91,7 @@ bool probeWav(const std::string& path, IqFileInfo& out, std::string& err) {
         if (!memcmp(ck, "fmt ", 4)) {
             std::vector<uint8_t> b(std::max<uint32_t>(len, 16));
             if (!f.read((char*)b.data(), len)) break;
-            const filesp::WavFmt w = filesp::wavFmt(b.data(), b.size(), len);   // the fields of the chunk: files_proto.cpp (C++) or the Rust crate zorcom_files
+            const filesp::WavFmt w = filesp::wavFmt(b.data(), b.size(), len);   // the fields of the chunk: files_proto.cpp (C++) or the Rust crate saurcom_files
             tag = (uint16_t)w.tag; ch = (uint16_t)w.channels; rate = w.rate; bits = (uint16_t)w.bits;
             haveFmt = true;
             if (len & 1) f.seekg(1, std::ios::cur);
@@ -201,7 +201,7 @@ bool writeSigmfMeta(const std::string& metaPath, FileFormat fmt, bool be, double
                     const std::string& description, std::string& err) {
     std::ofstream f(fsPath(metaPath), std::ios::binary);
     if (!f) { err = "cannot create " + metaPath; return false; }
-    const std::string b = filesp::sigmfToolMeta(sigmfDatatype(fmt, be), rate, center, sampleStart, description);   // the text: files_proto.cpp (C++) or the Rust crate zorcom_files
+    const std::string b = filesp::sigmfToolMeta(sigmfDatatype(fmt, be), rate, center, sampleStart, description);   // the text: files_proto.cpp (C++) or the Rust crate saurcom_files
     f << b;
     if (!f) { err = "writing failed: " + metaPath; return false; }
     return true;

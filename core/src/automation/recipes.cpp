@@ -73,7 +73,7 @@ std::vector<Recipe> builtinRecipes() {
         {act("notify", {{"title", "Sonde {{serial}} landed"}, {"body", "{{distance_km}} km away at {{lat}}, {{lon}}"}}), act("log", {{"file", "sondes-landed"}})}, "serial", 3600));
     v.push_back(rule("Emergency squawk to my phone (ntfy)", "Sends the emergency squawk to the ntfy app on your phone. Change the topic to something only you know.",
         "adsb.aircraft", "squawk in [7500, 7600, 7700]",
-        {act("webhook", {{"preset", "ntfy"}, {"topic", "zorcom-change-this-topic"}, {"title", "Squawk {{squawk}}"}, {"text", "{{callsign}} {{hex}} at {{alt_ft}} ft"}})}, "hex", 900));
+        {act("webhook", {{"preset", "ntfy"}, {"topic", "saurcom-change-this-topic"}, {"title", "Squawk {{squawk}}"}, {"text", "{{callsign}} {{hex}} at {{alt_ft}} ft"}})}, "hex", 900));
     v.push_back(script("Busy sky counter", "Lua example: counts the aircraft heard in the last 5 minutes within 50 km and tells you when there are more than 15.", {"adsb.aircraft"},
         "-- on_event(e) is called for every event the script asked for\n"
         "local seen = {}\n"

@@ -39,7 +39,7 @@ static bool heard(const MeshTelemetry& t, const std::string& text) {
 }
 
 int main() {
-    const std::string msg = "ZorCom test 73, ünïcödé ok";
+    const std::string msg = "SaurCom test 73, ünïcödé ok";
     MeshTelemetry t = run(1, msg, "ZOR1 Base", 4);
     CHECK(heard(t, msg) && t.blocksBad == 0, "Meshtastic: the text decodes (%zu messages, %llu bad)", t.messages.size(), (unsigned long long)t.blocksBad);
     bool named = false;

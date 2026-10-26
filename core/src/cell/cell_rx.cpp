@@ -202,7 +202,7 @@ struct CellReceiver::Impl {
     // results (under mu)
     CellTelemetry tel, pub;
 
-    Impl() { th = dect2::namedThread("zorcom-cell", [this] { run(); }); }
+    Impl() { th = dect2::namedThread("saurcom-cell", [this] { run(); }); }
     ~Impl() {
         { std::lock_guard<std::mutex> lk(mu); stop = true; }
         cv.notify_all();

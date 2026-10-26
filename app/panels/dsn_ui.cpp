@@ -1,6 +1,6 @@
 // Tools > Deep Space Network: what NASA's DSN dishes are doing now, from the public DSN Now XML (eyes.nasa.gov, read only, nothing is
 // sent), fetched every 5 s while the window is open. The configuration (spacecraft names, dish sizes, site positions) is fetched once and
-// kept in the data folder for the next start. core/src/net/dsn.cpp and the Rust crate zorcom_dsn read the files.
+// kept in the data folder for the next start. core/src/net/dsn.cpp and the Rust crate saurcom_dsn read the files.
 #include "../app.h"
 #include "dect2/net/dsn.h"
 #include <algorithm>
@@ -42,7 +42,7 @@ std::string configPath() { return plat::dataDir() + "/dsn_config.xml"; }
 Fetch get(std::string url, std::string path) {
     Fetch r;
     const std::string part = path + ".part";
-    if (plat::fetchUrl(url, part, "EyeOfZorCom (DSN Now)")) {
+    if (plat::fetchUrl(url, part, "EyeOfSaurCom (DSN Now)")) {
         r.text = readFile(part);
         r.ok = !r.text.empty();
         std::remove(path.c_str());

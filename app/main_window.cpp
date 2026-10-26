@@ -28,16 +28,16 @@ bool gWayland = false;
 // on a timer while the pointer is over the window; when the seat loses its pointer (the mouse sleeps or is unplugged, a KVM switch, the
 // screen locks or turns off) it destroys the wl_pointer and sets it to NULL, but neither disarms the timer nor forgets the window under the
 // pointer, so the next tick calls wl_pointer_set_cursor(NULL, ...). That is inside GLFW and cannot be caught from here, so:
-// - by default Eye of ZorCom asks a GLFW that has both (3.4 and later) for X11 when an X server is there (every GNOME / KDE Wayland session runs
+// - by default Eye of SaurCom asks a GLFW that has both (3.4 and later) for X11 when an X server is there (every GNOME / KDE Wayland session runs
 //   XWayland); the X11 code has none of this
-// - ZORCOM_DISPLAY=wayland (or --wayland, or the "displayServer" setting) keeps native Wayland; ZORCOM_DISPLAY=x11 / --x11 forces X11
+// - SAURCOM_DISPLAY=wayland (or --wayland, or the "displayServer" setting) keeps native Wayland; SAURCOM_DISPLAY=x11 / --x11 forces X11
 // - on native Wayland ImGui does not change the cursor shape (ImGuiConfigFlags_NoMouseCursorChange): with the default cursor GLFW's timer
-//   finds no cursor of Eye of ZorCom's to animate, which avoids the crash at the cost of resize / text cursors
+//   finds no cursor of Eye of SaurCom's to animate, which avoids the crash at the cost of resize / text cursors
 // The functions are looked up at run time: the build may have the GLFW 3.3 headers, the library on the user's system decides.
 constexpr int kGlfwPlatform = 0x00050003, kGlfwAnyPlatform = 0x00060000, kGlfwPlatformWayland = 0x00060003, kGlfwPlatformX11 = 0x00060004;
 static void chooseGlfwPlatform(int argc, char** argv) {
     std::string want = plat::prefs().getS("displayServer", "auto");
-    if (const char* e = getenv("ZORCOM_DISPLAY")) if (*e) want = e;
+    if (const char* e = getenv("SAURCOM_DISPLAY")) if (*e) want = e;
     for (int i = 1; i < argc; i++) {
         if (std::string(argv[i]) == "--wayland") want = "wayland";
         if (std::string(argv[i]) == "--x11") want = "x11";
@@ -51,7 +51,7 @@ static void chooseGlfwPlatform(int argc, char** argv) {
         if (supported(kGlfwPlatformWayland)) glfwInitHint(kGlfwPlatform, kGlfwPlatformWayland);
     } else if ((want == "x11" || (wl && x11)) && supported(kGlfwPlatformX11)) {
         glfwInitHint(kGlfwPlatform, kGlfwPlatformX11);
-        if (wl) fprintf(stderr, "display: X11 (XWayland) on a Wayland desktop; ZORCOM_DISPLAY=wayland for native Wayland\n");
+        if (wl) fprintf(stderr, "display: X11 (XWayland) on a Wayland desktop; SAURCOM_DISPLAY=wayland for native Wayland\n");
     }
 }
 static bool glfwOnWayland() {
@@ -77,7 +77,7 @@ GLFWwindow* createMainWindow(int argc, char** argv) {
     gfx::windowHints();
     glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);   // a fullscreen main window stays up when another window or monitor is clicked (#71)
     for (int i = 1; i < argc; i++) if (std::string(argv[i]) == "--hidden") { glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); gNoOsWindows = true; }   // dev: with --shot, render without showing the window
-    GLFWwindow* window = glfwCreateWindow(1500, 900, "Eye of ZorCom", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1500, 900, "Eye of SaurCom", nullptr, nullptr);
     if (!window) return nullptr;
 #ifndef __APPLE__
     {   // the default size is in pixels: make the window as large (in points) as on a 96 dpi display, but never larger than the screen

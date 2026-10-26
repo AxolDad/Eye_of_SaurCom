@@ -1,5 +1,5 @@
 // SatNOGS DB (db.satnogs.org), read only: the public lists of satellites and transmitters, parsed from the JSON the API answers with,
-// the mapping of SatNOGS mode names to Eye of ZorCom modes and the list filters. Nothing here touches the network (the panel downloads with curl).
+// the mapping of SatNOGS mode names to Eye of SaurCom modes and the list filters. Nothing here touches the network (the panel downloads with curl).
 #pragma once
 #include <map>
 #include <string>
@@ -20,7 +20,7 @@ int parseSatnogsSatellites(const std::string& json, std::map<int, std::string>& 
 // (downHz = 0). Returns the number read.
 int parseSatnogsTransmitters(const std::string& json, const std::map<int, std::string>& names, std::vector<SatnogsTx>& out);
 
-// The Eye of ZorCom mode family (the number selectMode takes) that receives a SatNOGS mode name at this baud rate, 0 when Eye of ZorCom has none (then the panel
+// The Eye of SaurCom mode family (the number selectMode takes) that receives a SatNOGS mode name at this baud rate, 0 when Eye of SaurCom has none (then the panel
 // only tunes). Case does not matter; "AFSK1k2", "BPSK1k2", "GMSK9k6", "FM", "CW", "LRPT", "APT" and their relatives are known.
 int satnogsFamily(const std::string& mode, double baud);
 

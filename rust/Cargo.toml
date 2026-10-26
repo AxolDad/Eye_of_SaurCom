@@ -1,10 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-    "zorcom_common", "zorcom_proto", "zorcom",
-    "zorcom_adsb", "zorcom_acars", "zorcom_same", "zorcom_pager", "zorcom_ax25", "zorcom_dmr", "zorcom_p25", "zorcom_nxdn",
-    "zorcom_dstar", "zorcom_tetra", "zorcom_vdl2", "zorcom_hfdl", "zorcom_mesh", "zorcom_wisun", "zorcom_uat",
-    "zorcom_ts", "zorcom_dvbsi", "zorcom_dab", "zorcom_drm", "zorcom_files", "zorcom_net", "zorcom_engine", "zorcom_fec", "zorcom_usb", "zorcom_ring", "zorcom_kris", "zorcom_kaws", "zorcom_cot", "zorcom_wifisense", "zorcom_dsn",
+    "saurcom_common", "saurcom_proto", "saurcom",
+    "saurcom_adsb", "saurcom_acars", "saurcom_same", "saurcom_pager", "saurcom_ax25", "saurcom_dmr", "saurcom_p25", "saurcom_nxdn",
+    "saurcom_dstar", "saurcom_tetra", "saurcom_vdl2", "saurcom_hfdl", "saurcom_mesh", "saurcom_wisun", "saurcom_uat",
+    "saurcom_ts", "saurcom_dvbsi", "saurcom_dab", "saurcom_drm", "saurcom_files", "saurcom_net", "saurcom_engine", "saurcom_fec", "saurcom_usb", "saurcom_ring", "saurcom_kris", "saurcom_kaws", "saurcom_cot", "saurcom_wifisense", "saurcom_dsn",
 ]
 
 [workspace.package]

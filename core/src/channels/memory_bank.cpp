@@ -187,7 +187,7 @@ void MemoryBank::sortInPlace(MemorySort sort, bool desc) {
 RecallResult memoryRecall(MemoryHost& h, const Memory& m, bool withMode) {
     RecallResult r;
     if (withMode && !m.mode.empty()) {
-        if (!h.hasMode(m.mode)) { r.note = "this mode is not in this build of Eye of ZorCom: " + m.mode; return r; }
+        if (!h.hasMode(m.mode)) { r.note = "this mode is not in this build of Eye of SaurCom: " + m.mode; return r; }
         std::string note;
         if (!h.setMode(m, note)) { r.note = note; return r; }
         r.modeChanged = true;

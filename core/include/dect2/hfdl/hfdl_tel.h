@@ -8,7 +8,7 @@
 
 namespace dect2 {
 
-// One decoded PDU part: a squitter (SPDU), or one LPDU of an MPDU, as far as Eye of ZorCom reads it.
+// One decoded PDU part: a squitter (SPDU), or one LPDU of an MPDU, as far as Eye of SaurCom reads it.
 struct HfdlMessage {
     uint64_t serial = 0;         // grows by one per message, never restarts
     double timeSec = 0;          // signal seconds at the start of the burst

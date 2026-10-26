@@ -1,6 +1,6 @@
 // A real HFDL burst for a known-answer test: 13.351 MHz (Auckland's channel), received with a Hermes Lite 2 near Sydney on
 // 2026-10-17 at 00:51:43 UTC. An aircraft downlink, 600 bit/s single slot: performance data from CES202 at about -33.93, 151.17.
-// Cut from a 384 ksps ZorCom recording (50.45 to 53.15 s), mixed so the carrier sits at -2700 Hz, low-pass filtered and taken
+// Cut from a 384 ksps SaurCom recording (50.45 to 53.15 s), mixed so the carrier sits at -2700 Hz, low-pass filtered and taken
 // down to 12 kHz, then scaled to int8 (I, Q interleaved, peak 120). Base64 text, one array
 // element per line (MSVC limits a single string literal to 64 KB).
 #pragma once

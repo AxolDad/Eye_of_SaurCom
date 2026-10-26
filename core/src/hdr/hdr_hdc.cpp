@@ -1,5 +1,5 @@
 // Finding and calling the user's patched FAAD2 (see hdr_hdc.h and hdr_hdc_abi.h). The same search as the mbelib and codec2 loaders
-// (source/native_common.h): DECT2_FAAD_HDC_PATH, the Eye of ZorCom codecs folders, the program's folder, the system's places.
+// (source/native_common.h): DECT2_FAAD_HDC_PATH, the Eye of SaurCom codecs folders, the program's folder, the system's places.
 #include "dect2/hdr/hdr_hdc.h"
 #include "hdr_hdc_abi.h"
 #include "../source/native_common.h"
@@ -9,7 +9,7 @@
 #include <cstring>
 #include <mutex>
 
-// The file names Eye of ZorCom accepts: libfaad_hdc is what the patch's CMake target is called (nrsc5's own build names it so); libfaad2-hdc is the
+// The file names Eye of SaurCom accepts: libfaad_hdc is what the patch's CMake target is called (nrsc5's own build names it so); libfaad2-hdc is the
 // distribution style name.
 #define DECT2_FAADHDC_STEM "faad_hdc"
 #define DECT2_FAADHDC_SO {".2", ".0"}
@@ -35,7 +35,7 @@ struct Api {
 };
 
 // What a frame info that came back from the library has to look like. A layout that differs from the one in hdr_hdc_abi.h puts other fields
-// where Eye of ZorCom reads them and shows up here as impossible numbers.
+// where Eye of SaurCom reads them and shows up here as impossible numbers.
 bool plausible(const FaadFrameInfo& i) {
     return i.error < 64 && i.channels <= 64 && i.samplerate <= 192000 && i.samples <= (1u << 20);
 }
@@ -67,8 +67,8 @@ const Api* scan() {
         r->version(&id, &cp);
         int ma = 0, mi = 0;
         if (id) r->versionText = id;
-        if (!parseVersion(id, ma, mi)) { r->problem = "cannot read the FAAD2 version (\"" + r->versionText + "\"): not a layout Eye of ZorCom knows"; return r; }
-        if (ma != 2 || mi < 7 || mi > 99) { r->problem = "FAAD2 version " + r->versionText + " is not one Eye of ZorCom knows (2.7 to 2.11); build the patch on a 2.10 or 2.11 source"; return r; }
+        if (!parseVersion(id, ma, mi)) { r->problem = "cannot read the FAAD2 version (\"" + r->versionText + "\"): not a layout Eye of SaurCom knows"; return r; }
+        if (ma != 2 || mi < 7 || mi > 99) { r->problem = "FAAD2 version " + r->versionText + " is not one Eye of SaurCom knows (2.7 to 2.11); build the patch on a 2.10 or 2.11 source"; return r; }
     }
     // The canary: decode one byte of nothing. Any FAAD2 refuses it with an error; the answer has to be inside the ranges of our layout.
     FaadHandle h = nullptr;
@@ -79,7 +79,7 @@ const Api* scan() {
     unsigned char junk[1] = {0};
     r->decode(h, &info, junk, 1);
     r->close(h);
-    if (!plausible(info)) { r->problem = "the frame info of this FAAD2 does not have the layout Eye of ZorCom expects (a different FAAD2 version?)"; return r; }
+    if (!plausible(info)) { r->problem = "the frame info of this FAAD2 does not have the layout Eye of SaurCom expects (a different FAAD2 version?)"; return r; }
     r->ok = true;
     return r;
 }

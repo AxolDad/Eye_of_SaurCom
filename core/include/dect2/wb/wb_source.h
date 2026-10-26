@@ -1,6 +1,6 @@
 // Signal workbench: a recording opened for analysis. A Source gives random access to complex samples of any size:
 //  - raw IQ files (.cs8 .cu8 .cf32 .ci16 .cu16, SigMF, IQ WAV) are read from disk on demand and never held in memory,
-//  - audio (WAV, MP3, FLAC, OGG, M4A ... decoded with the FFmpeg libraries Eye of ZorCom links) is decoded once into memory; it is a real signal
+//  - audio (WAV, MP3, FLAC, OGG, M4A ... decoded with the FFmpeg libraries Eye of SaurCom links) is decoded once into memory; it is a real signal
 //    (imaginary part 0) or, for a stereo file, I (left) and Q (right) when treat-stereo-as-IQ is on,
 //  - synthetic signals from memory (tests, the generator).
 // read() is thread safe.

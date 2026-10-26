@@ -19,7 +19,7 @@ constexpr double kC = 299792.458, kOmegaE = 7.292115e-5;
 
 }
 
-// the parsing is core/src/files/files_proto.cpp (C++) or the Rust crate zorcom_files
+// the parsing is core/src/files/files_proto.cpp (C++) or the Rust crate saurcom_files
 bool parseTle(const std::string& a, const std::string& b, Tle& t, const std::string& name) {
     const filesp::TleData d = filesp::tleParse(a, b, name);
     if (d.status == 1) return false;   // not a TLE: t is left as it was

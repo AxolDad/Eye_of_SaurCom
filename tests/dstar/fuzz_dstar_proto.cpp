@@ -1,5 +1,5 @@
 // Seeded mutation run of the D-STAR frame layer, meant for DECT2_SANITIZE=ON: header unpack / decode, the FEC pieces, the
-// flag text and both GPS parsers must never crash or hang on any bytes. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
+// flag text and both GPS parsers must never crash or hang on any bytes. Also a libFuzzer target with -DSAURCOM_LIBFUZZER.
 #include "dect2/dstar/dstar_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -42,11 +42,11 @@ static void one(const uint8_t* d, size_t n) {
     D::nmeaChecksum(s);
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* it = getenv("ZORCOM_FUZZ_ITERS");
+    const char* it = getenv("SAURCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 50000;
     std::mt19937 g(777);
     const char seed[] = "LY1TST-7>API282,DSTAR*:!5441.23N/02516.78E>123/045hello/A=000200";

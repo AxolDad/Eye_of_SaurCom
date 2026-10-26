@@ -77,7 +77,7 @@ int main() {
         std::vector<int16_t> pcm; const std::vector<uint8_t> p = packet(1, 100);
         CHECK(d.decode(p.data(), p.size(), pcm) == -1, "decode without a library");
     }
-    struct { const char* env; const char* want; } bad[] = {{FAKE_HDC_BADVER, "not one ZorCom knows"}, {FAKE_HDC_NOINIT, "NeAACDecInitHDC"}, {FAKE_HDC_BADLAYOUT, "layout"}};
+    struct { const char* env; const char* want; } bad[] = {{FAKE_HDC_BADVER, "not one SaurCom knows"}, {FAKE_HDC_NOINIT, "NeAACDecInitHDC"}, {FAKE_HDC_BADLAYOUT, "layout"}};
     for (const auto& b : bad) {
         setEnv("DECT2_FAAD_HDC_PATH", b.env);
         CHECK(!hdcRescan(), "refused library accepted: %s", b.env);
@@ -85,7 +85,7 @@ int main() {
     }
     // a good one, from a copy that is deleted again after loading (an uninstalled or moved library must not take the program down)
     namespace fs = std::filesystem;
-    const fs::path tmp = fs::temp_directory_path() / ("zorcom_hdc_test_" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
+    const fs::path tmp = fs::temp_directory_path() / ("saurcom_hdc_test_" + std::to_string((long long)std::chrono::steady_clock::now().time_since_epoch().count()));
     fs::create_directories(tmp);
     const fs::path copy = tmp / fs::path(FAKE_HDC_GOOD).filename();
     std::error_code ec;

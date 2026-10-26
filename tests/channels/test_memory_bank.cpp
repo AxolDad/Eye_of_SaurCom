@@ -190,7 +190,7 @@ int main() {
     }
     // files: atomic save, load, corrupt, missing
     {
-        const std::string dir = (std::filesystem::temp_directory_path() / "zorcom_memtest_\xC3\xA9").string();
+        const std::string dir = (std::filesystem::temp_directory_path() / "saurcom_memtest_\xC3\xA9").string();
         std::filesystem::remove_all(u8file(dir));
         const std::string path = dir + "/sub/memories.json";
         MemoryBank b;

@@ -15,7 +15,7 @@ static int fails = 0;
 static void put(const fs::path& p, const std::string& s) { fs::create_directories(p.parent_path()); std::ofstream(p, std::ios::binary) << s; }
 
 int main() {
-    const fs::path T = fs::temp_directory_path() / "zorcom_test_packs";
+    const fs::path T = fs::temp_directory_path() / "saurcom_test_packs";
     fs::remove_all(T);
     const fs::path src = T / "src", data = T / "data", cache = T / "cache";
     put(src / "a.txt", "alpha alpha alpha");

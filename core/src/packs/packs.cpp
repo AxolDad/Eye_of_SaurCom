@@ -240,7 +240,7 @@ bool PackManager::start(const std::string& id, std::string* why) {
     { std::lock_guard<std::mutex> lk(mu_); err_.clear(); active_ = id; }
     state_ = State::Downloading;
     Pack copy = *p;
-    th_ = dect2::namedThread("zorcom-packs", [this, copy] { run(copy); });
+    th_ = dect2::namedThread("saurcom-packs", [this, copy] { run(copy); });
     return true;
 }
 

@@ -101,10 +101,10 @@ std::vector<BleGenPacket> bleTestSchedule(int channel) {
     const uint8_t rpi[16] = {0x3C, 0x1A, 0x09, 0x77, 0x5E, 0x42, 0x81, 0x0D, 0xC6, 0x2B, 0x94, 0xF0, 0x6E, 0x13, 0xA5, 0x58};
     const uint8_t meta[4] = {0x40, 0x08, 0x00, 0x00};
 
-    add(makePdu(AdvInd, true, advPayload(phone, AdBuilder().flags(0x06).name("ZorCom").txPower(4).uuid16({0x180F, 0x180D}).mfr(0xFFFF, {0x01, 0x02, 0x03, 0x04}).b)), 0.003);
+    add(makePdu(AdvInd, true, advPayload(phone, AdBuilder().flags(0x06).name("SaurCom").txPower(4).uuid16({0x180F, 0x180D}).mfr(0xFFFF, {0x01, 0x02, 0x03, 0x04}).b)), 0.003);
     add(makePdu(AdvNonconnInd, false, advPayload(beacon, AdBuilder().flags(0x04).ibeacon(uuid, 100, 7, -59).b)), 0.004, 20e3);
     add(makePdu(ScanReq, true, [&] { std::vector<uint8_t> p(scanner, scanner + 6); p.insert(p.end(), phone, phone + 6); return p; }(), true), 0.0002, -15e3);
-    add(makePdu(ScanRsp, true, advPayload(phone, AdBuilder().name("ZorCom test phone").b)), 0.003);
+    add(makePdu(ScanRsp, true, advPayload(phone, AdBuilder().name("SaurCom test phone").b)), 0.003);
     add(makePdu(AdvNonconnInd, true, advPayload(eddy, AdBuilder().flags(0x06).eddystoneUrl(-20, 3, "example\x07").b)), 0.003, -30e3);
     add(makePdu(AdvNonconnInd, true, advPayload(eddy, AdBuilder().eddystoneTlm(3000, 21.5, 1234, 56789).b)), 0.003, -30e3);
     add(makePdu(AdvNonconnInd, true, advPayload(eddy, AdBuilder().eddystoneUid(-20, ns, inst).b)), 0.003, -30e3);

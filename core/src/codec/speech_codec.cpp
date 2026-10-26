@@ -15,7 +15,7 @@ namespace dect2::codec {
 
 namespace {
 
-constexpr const char* kDocUrl = "https://github.com/AxolDad/OnAir-SDR-Suite/blob/main/docs/CODECS.md";
+constexpr const char* kDocUrl = "https://github.com/AxolDad/Eye_of_ZorCom/blob/main/docs/CODECS.md";
 constexpr size_t kMaxSamplesPerFrame = 16000;   // a bit over one second at 16 kHz: no coded frame is longer
 
 struct Api {
@@ -97,16 +97,16 @@ std::unique_ptr<SpeechCodec> openSharedLibrary(const std::string& path, std::str
     void* lib = openLibrary(path, err);
     if (!lib) return nullptr;
     Api a;
-    a.open = reinterpret_cast<decltype(a.open)>(symbol(lib, "zorcom_speech_open"));
-    a.close = reinterpret_cast<decltype(a.close)>(symbol(lib, "zorcom_speech_close"));
-    a.rate = reinterpret_cast<decltype(a.rate)>(symbol(lib, "zorcom_speech_sample_rate"));
-    a.decode = reinterpret_cast<decltype(a.decode)>(symbol(lib, "zorcom_speech_decode"));
+    a.open = reinterpret_cast<decltype(a.open)>(symbol(lib, "saurcom_speech_open"));
+    a.close = reinterpret_cast<decltype(a.close)>(symbol(lib, "saurcom_speech_close"));
+    a.rate = reinterpret_cast<decltype(a.rate)>(symbol(lib, "saurcom_speech_sample_rate"));
+    a.decode = reinterpret_cast<decltype(a.decode)>(symbol(lib, "saurcom_speech_decode"));
     if (!a.open || !a.close || !a.rate || !a.decode) {
         std::string miss;
-        if (!a.open) miss += " zorcom_speech_open";
-        if (!a.close) miss += " zorcom_speech_close";
-        if (!a.rate) miss += " zorcom_speech_sample_rate";
-        if (!a.decode) miss += " zorcom_speech_decode";
+        if (!a.open) miss += " saurcom_speech_open";
+        if (!a.close) miss += " saurcom_speech_close";
+        if (!a.rate) miss += " saurcom_speech_sample_rate";
+        if (!a.decode) miss += " saurcom_speech_decode";
         closeLibrary(lib);
         err = "it does not export the codec functions (missing:" + miss + ")";
         return nullptr;
@@ -126,7 +126,7 @@ bool validId(const std::string& id) {
 } // namespace
 
 std::string speechCodecNotice() {
-    return "Legal notice. Eye of ZorCom does not include, download or distribute this speech codec. You install it yourself, and you are "
+    return "Legal notice. Eye of SaurCom does not include, download or distribute this speech codec. You install it yourself, and you are "
            "responsible for it: for following the laws where you live on receiving and listening to radio transmissions, and for the "
            "licence and patent terms of the codec. Install only a codec you are allowed to use.";
 }
@@ -139,7 +139,7 @@ std::string speechCodecFileName(const std::string& id) {
 #else
     const char* ext = ".so";
 #endif
-    return "zorcom-codec-" + id + ext;
+    return "saurcom-codec-" + id + ext;
 }
 
 CodecLookup loadSpeechCodec(const std::string& id, const std::string& folder, bool noticeAccepted,
@@ -156,7 +156,7 @@ CodecLookup loadSpeechCodec(const std::string& id, const std::string& folder, bo
     std::error_code ec;
     if (!std::filesystem::is_regular_file(path, ec)) {
         r.status = CodecStatus::NotInstalled;
-        r.message = "Codec not installed: this mode needs the " + id + " speech codec. Eye of ZorCom does not include it. Install it yourself "
+        r.message = "Codec not installed: this mode needs the " + id + " speech codec. Eye of SaurCom does not include it. Install it yourself "
                     "(see " + std::string(kDocUrl) + ") and put the plug-in file " + file + " in " + folder + ".";
         return r;
     }

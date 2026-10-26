@@ -1,15 +1,15 @@
-// The parts of the SDRplay API 3.x that Eye of ZorCom uses, written out from the official headers sdrplay_api.h, sdrplay_api_dev.h,
+// The parts of the SDRplay API 3.x that Eye of SaurCom uses, written out from the official headers sdrplay_api.h, sdrplay_api_dev.h,
 // sdrplay_api_rx_channel.h, sdrplay_api_tuner.h, sdrplay_api_control.h, sdrplay_api_callback.h, sdrplay_api_rsp1a.h, sdrplay_api_rsp2.h,
 // sdrplay_api_rspDuo.h and sdrplay_api_rspDx.h of API version 3.15 (SDRPLAY_API_VERSION 3.15; the same files as in the API installer,
 // public copies e.g. in github.com/DSheirer/sdrtrunk artifacts/sdrplay-api-headers/v3_15), and the "SDRplay API Specification" v3.15.
 // The library is loaded at run time (source_sdrplay.cpp), so nothing here links against it.
 //
-// Licence note: this file holds only what the binary interface needs so that Eye of ZorCom can call the library the user installs from SDRplay:
-// struct layouts, field order and types, constant values and function signatures (interoperability facts), in Eye of ZorCom's own names, layout
-// and wording. It contains no SDRplay source code, comments or documentation text, and no SDRplay library or header is shipped with Eye of ZorCom.
+// Licence note: this file holds only what the binary interface needs so that Eye of SaurCom can call the library the user installs from SDRplay:
+// struct layouts, field order and types, constant values and function signatures (interoperability facts), in Eye of SaurCom's own names, layout
+// and wording. It contains no SDRplay source code, comments or documentation text, and no SDRplay library or header is shipped with Eye of SaurCom.
 // The SDRplay API itself is the user's own download under SDRplay's licence.
 //
-// Every struct the library reads or writes is here with the official field order and types, the nested ones that Eye of ZorCom only passes
+// Every struct the library reads or writes is here with the official field order and types, the nested ones that Eye of SaurCom only passes
 // through included, because the library fills them in its own layout. The official headers set no packing and no calling convention:
 // natural alignment and the platform's default C convention (DECT2_CALL, __cdecl on Windows). Their C enums are 4 bytes on every compiler
 // the API is built with; the enums below say so explicitly. The sizes checked at the end hold on 64-bit Windows (LLP64) and 64-bit Unix (LP64)
@@ -18,7 +18,7 @@
 // Differences between API versions that matter here (3.07 and 3.15 headers compared):
 //   DeviceT.valid is new in 3.08; in 3.07 those bytes are padding (same size, same offsets of everything else), so it is read from 3.08 on only.
 //   RspDuoTunerParamsT gained resetSlaveFlags after 3.08, which moved RxChannelParamsT.rspDxTunerParams from offset 136 to 140 (the size
-//   stays 144). Eye of ZorCom writes tunerParams, ctrlParams, rsp1aTunerParams, rsp2TunerParams and rspDuoTunerParams of a channel (never
+//   stays 144). Eye of SaurCom writes tunerParams, ctrlParams, rsp1aTunerParams, rsp2TunerParams and rspDuoTunerParams of a channel (never
 //   rspDxTunerParams), which sit at the same offsets in 3.07 to 3.15.
 #pragma once
 #include <cstddef>

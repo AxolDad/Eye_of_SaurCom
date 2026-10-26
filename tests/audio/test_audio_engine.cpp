@@ -375,7 +375,7 @@ static void testModes() {
             for (size_t i = 0; i < a.size(); i++) a[i] = up[i].real();
             snprintf(nm, sizeof nm, "rtty%d", rate);
             const bool ok = viaCard(nm, cardWav(nm, a, rate), rate, 27, 14.080e6, 0, 40, [](Engine& e) { e.hfdig().setSilent(true); },
-                [](Engine&, const RxTelemetry& rx) { return rx.hfdig.rtty.text.find("CQ CQ DE ZORCOM TEST 0123456789 1/2 -.:? THE QUICK BROWN FOX\n") != std::string::npos; });
+                [](Engine&, const RxTelemetry& rx) { return rx.hfdig.rtty.text.find("CQ CQ DE SAURCOM TEST 0123456789 1/2 -.:? THE QUICK BROWN FOX\n") != std::string::npos; });
             printf("RTTY from a card at %d Hz: %s\n", rate, ok ? "text arrived" : "NO TEXT");
             CHECK(ok, "RTTY from a sound card at %d Hz did not decode", rate);
         }

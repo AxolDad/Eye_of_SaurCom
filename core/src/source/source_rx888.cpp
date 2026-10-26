@@ -4,10 +4,10 @@
 // ExtIO_sddc / libsddc. See rx888_usb.h for the requests. NOT tested on a real radio: tests/source/test_rx888.cpp runs it against a fake FX3.
 //
 // - The FX3 has no firmware of its own: it enumerates as 04b4:00f3 until the image of the SDDC project (SDDC_FX3.img) is written into its
-//   RAM, then as 04b4:00f1 "RX888mk2". Eye of ZorCom does not ship the image (it contains Cypress SDK code under a licence of its own): the driver
-//   looks for it in the Eye of ZorCom codecs folders and in ZORCOM_RX888_FIRMWARE (rx888FirmwarePaths()). Loading that image makes the chip drop off
+//   RAM, then as 04b4:00f1 "RX888mk2". Eye of SaurCom does not ship the image (it contains Cypress SDK code under a licence of its own): the driver
+//   looks for it in the Eye of SaurCom codecs folders and in SAURCOM_RX888_FIRMWARE (rx888FirmwarePaths()). Loading that image makes the chip drop off
 //   the bus and come back at a new address. On Windows the Cypress driver from the official RX-888 setup (HDSDR / ExtIO) binds 04b4:00f1;
-//   Eye of ZorCom uses libusb and needs WinUSB for that device. Eye of ZorCom does not ship a driver.
+//   Eye of SaurCom uses libusb and needs WinUSB for that device. Eye of SaurCom does not ship a driver.
 // - The converter delivers REAL 16-bit samples at the ADC clock (64 Msps typically, 128 at most 130). HF (below half the clock): the wanted
 //   frequency is shifted to zero, filtered and decimated by RealDdc (native_realddc.h, the same code as the Fobos SDR's HF inputs).
 //   VHF (the R828D tuner, from half the clock up to 1.75 GHz): the tuner puts the channel on an IF of 4.57 MHz, spectrum inverted
@@ -278,8 +278,8 @@ void rx888SetReenumPollMs(int ms) { gReenumPollOverrideMs = ms; }
 
 std::vector<std::string> rx888FirmwarePaths() {
     std::vector<std::string> v;
-    if (const char* e = getenv("ZORCOM_RX888_FIRMWARE")) if (*e) v.push_back(e);
-    if (const char* n = getenv("ZORCOM_RX888_NO_CODEC_SEARCH")) if (*n) return v;   // (tests: a firmware image next to the build must not decide the "no image" cases)
+    if (const char* e = getenv("SAURCOM_RX888_FIRMWARE")) if (*e) v.push_back(e);
+    if (const char* n = getenv("SAURCOM_RX888_NO_CODEC_SEARCH")) if (*n) return v;   // (tests: a firmware image next to the build must not decide the "no image" cases)
     for (const auto& dir : codecFolders()) v.push_back(dir + "SDDC_FX3.img");
     return v;
 }
@@ -422,7 +422,7 @@ std::vector<RadioSetting> rx888Settings() {
                       "R828D (VHF). Raise the attenuation when the converter overloads on strong shortwave stations.",
                       {"0", "6", "12", "18", "24", "31.5"}, {"0 dB", "6 dB", "12 dB", "18 dB", "24 dB", "31.5 dB"}, "0"),
         boolSetting("dither", "Dither", "The converter's dither noise: less distortion from weak signals, a little more noise.", false),
-        boolSetting("rand", "Randomizer", "The converter's output randomiser: keeps its own clock out of the spectrum. Eye of ZorCom undoes it.", false),
+        boolSetting("rand", "Randomizer", "The converter's output randomiser: keeps its own clock out of the spectrum. Eye of SaurCom undoes it.", false),
         boolSetting("pga", "PGA", "The converter's programmable gain stage (full-scale range).", false)};
 }
 
@@ -494,13 +494,13 @@ static std::string reenumTimeoutMessage() {
     const std::string svc = windowsUsbService(kRx888Vid, kRx888PidApp);
     const bool cypress = svc.find("cyusb") != std::string::npos || svc.find("cypress") != std::string::npos;
     if (cypress)
-        return "RX888 MkII: the firmware was loaded and the radio left the bus, but Eye of ZorCom cannot see it come back. Windows has bound USB\\VID_04B4&PID_00F1 to the Cypress driver, which Eye of ZorCom cannot use. Eye of ZorCom does not ship a driver. Install the WinUSB driver for 04B4:00F1 with Zadig (zadig.akeo.ie); the Cypress driver stays what HDSDR and ExtIO use.";
+        return "RX888 MkII: the firmware was loaded and the radio left the bus, but Eye of SaurCom cannot see it come back. Windows has bound USB\\VID_04B4&PID_00F1 to the Cypress driver, which Eye of SaurCom cannot use. Eye of SaurCom does not ship a driver. Install the WinUSB driver for 04B4:00F1 with Zadig (zadig.akeo.ie); the Cypress driver stays what HDSDR and ExtIO use.";
     const bool libusbDriver = svc == "winusb" || svc == "libusbk" || svc == "libusb0" || svc == "libusb-win32";
     if (!svc.empty() && svc != "present" && !libusbDriver)
-        return "RX888 MkII: the firmware was loaded and the radio left the bus, but Eye of ZorCom cannot see it come back. Windows has bound USB\\VID_04B4&PID_00F1 to the driver \"" + svc + "\". Eye of ZorCom uses libusb, needs the WinUSB driver for that device (Zadig, zadig.akeo.ie), and does not ship a driver.";
+        return "RX888 MkII: the firmware was loaded and the radio left the bus, but Eye of SaurCom cannot see it come back. Windows has bound USB\\VID_04B4&PID_00F1 to the driver \"" + svc + "\". Eye of SaurCom uses libusb, needs the WinUSB driver for that device (Zadig, zadig.akeo.ie), and does not ship a driver.";
     std::string e = "RX888 MkII: the firmware was loaded and the radio left the bus, but it did not come back in time. Unplug it, plug it in again and try once more.";
     if (kOnWindows && !libusbDriver)
-        e += " On Windows the USB package from the official RX-888 setup binds USB\\VID_04B4&PID_00F1 and hides the radio from Eye of ZorCom. Eye of ZorCom needs the WinUSB driver for that device (Zadig, zadig.akeo.ie) and does not ship a driver.";
+        e += " On Windows the USB package from the official RX-888 setup binds USB\\VID_04B4&PID_00F1 and hides the radio from Eye of SaurCom. Eye of SaurCom needs the WinUSB driver for that device (Zadig, zadig.akeo.ie) and does not ship a driver.";
     return e;
 }
 
@@ -522,7 +522,7 @@ protected:
             err = "RX888 MkII: cannot open the radio: " + usbErrorText(code);
             if (code == LIBUSB_ERROR_ACCESS || code == LIBUSB_ERROR_NOT_SUPPORTED) openFailure_ = OpenFailure::Final;
             if (kOnWindows && code == LIBUSB_ERROR_NOT_SUPPORTED)
-                err += " The Cypress driver from the official RX-888 setup is not usable by Eye of ZorCom, and Eye of ZorCom does not ship a driver. After the firmware loads, the radio is USB\\VID_04B4&PID_00F1 and needs the WinUSB driver: install it once with Zadig (zadig.akeo.ie), choosing that device and the driver WinUSB.";
+                err += " The Cypress driver from the official RX-888 setup is not usable by Eye of SaurCom, and Eye of SaurCom does not ship a driver. After the firmware loads, the radio is USB\\VID_04B4&PID_00F1 and needs the WinUSB driver: install it once with Zadig (zadig.akeo.ie), choosing that device and the driver WinUSB.";
             return false;
         }
         if (!link_->superSpeed()) {
@@ -537,7 +537,7 @@ protected:
         const int r = link_->control(true, kTestFx3, 0, 0, info, sizeof info);
         if (r != (int)sizeof info && r != LIBUSB_ERROR_PIPE) { err = "RX888 MkII: the radio did not answer (" + std::string(usbErrorName(r)) + ")"; link_.reset(); return false; }
         if (info[0] != kModelRx888Mk2) {
-            err = "RX888: the radio reports SDDC model " + std::to_string(info[0]) + " (not an RX888 MkII, which is 4): Eye of ZorCom drives the RX888 MkII only";
+            err = "RX888: the radio reports SDDC model " + std::to_string(info[0]) + " (not an RX888 MkII, which is 4): Eye of SaurCom drives the RX888 MkII only";
             link_.reset();
             openFailure_ = OpenFailure::Final;
             return false;
@@ -590,7 +590,7 @@ protected:
         bool done = false;
         size_t dropped = 0;
         std::thread worker([&] {
-            dect2::setThreadName("zorcom-rx888");
+            dect2::setThreadName("saurcom-rx888");
             for (;;) {
                 std::vector<int16_t> b;
                 {
@@ -693,7 +693,7 @@ private:
             break;
         }
         if (image.empty()) {
-            err = "RX888 MkII: the FX3 firmware image (SDDC_FX3.img) was not found. The radio needs it each time it is plugged in; put the file in Eye of ZorCom's codecs folder";
+            err = "RX888 MkII: the FX3 firmware image (SDDC_FX3.img) was not found. The radio needs it each time it is plugged in; put the file in Eye of SaurCom's codecs folder";
             openFailure_ = OpenFailure::Final;
             return false;
         }
@@ -787,11 +787,11 @@ private:
         const bool pipeIo = lastUsbErr_ == LIBUSB_ERROR_PIPE || lastUsbErr_ == LIBUSB_ERROR_IO;
         if (windowsLibusbDriverBound()) {
             if (pipeIo)
-                e += " WinUSB is already bound to this radio. Close HDSDR, ExtIO or any other program that may have the RX888 open, unplug the USB cable and plug it in again, then retry. If it keeps failing, replace SDDC_FX3.img in Eye of ZorCom's codecs folder with the image from SDDC_Driver v2.0.0 (see third_party/sddc_fx3 in the source tree).";
+                e += " WinUSB is already bound to this radio. Close HDSDR, ExtIO or any other program that may have the RX888 open, unplug the USB cable and plug it in again, then retry. If it keeps failing, replace SDDC_FX3.img in Eye of SaurCom's codecs folder with the image from SDDC_Driver v2.0.0 (see third_party/sddc_fx3 in the source tree).";
             else if (lastUsbErr_ == LIBUSB_ERROR_NOT_SUPPORTED)
                 e += " WinUSB is bound but this request was refused: the RAM firmware may be too old — load SDDC_FX3.img from SDDC_Driver v2.0.0 (unplug and replug so the boot loader at 04b4:00f3 appears, or use the official RX-888 tools once).";
         } else if (pipeIo || lastUsbErr_ == LIBUSB_ERROR_NOT_SUPPORTED)
-            e += " If another SDR program has the radio open, close it. Otherwise install WinUSB for USB\\VID_04B4&PID_00F1 with Zadig (zadig.akeo.ie); the Cypress driver from the official RX-888 setup cannot be used by Eye of ZorCom.";
+            e += " If another SDR program has the radio open, close it. Otherwise install WinUSB for USB\\VID_04B4&PID_00F1 with Zadig (zadig.akeo.ie); the Cypress driver from the official RX-888 setup cannot be used by Eye of SaurCom.";
         return e;
     }
     // RX888R2Radio::SetRFMode(HFMODE): Control(TUNERSTDBY) then VHF off. WinUSB often stalls the first EP0 write after open.

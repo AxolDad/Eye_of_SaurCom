@@ -77,10 +77,10 @@ std::vector<uint8_t> goesTestMeso(int& w, int& h) {
 }
 
 const char* goesTestAdminText() {
-    return "ZorCom HRIT test signal\r\nADMINISTRATIVE MESSAGE\r\nThis is a synthetic GOES-R HRIT admin message made by ZorCom; nothing is transmitted.\r\n";
+    return "SaurCom HRIT test signal\r\nADMINISTRATIVE MESSAGE\r\nThis is a synthetic GOES-R HRIT admin message made by SaurCom; nothing is transmitted.\r\n";
 }
 const char* goesTestEmwinText() {
-    return "ZFPOUNOK\r\nZONE FORECAST PRODUCT\r\nSYNTHETIC TEST PRODUCT MADE BY ZORCOM\r\nTODAY...SUNNY. HIGHS IN THE MID 70S.\r\n";
+    return "ZFPOUNOK\r\nZONE FORECAST PRODUCT\r\nSYNTHETIC TEST PRODUCT MADE BY SAURCOM\r\nTODAY...SUNNY. HIGHS IN THE MID 70S.\r\n";
 }
 
 std::vector<GoesTestFile> goesTestFiles() {

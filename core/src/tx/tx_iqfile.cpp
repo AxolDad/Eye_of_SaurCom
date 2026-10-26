@@ -43,7 +43,7 @@ std::string iqFileBaseName(const std::string& modeId, double centerHz, double ra
     char when[32];
     strftime(when, sizeof when, "%Y%m%d-%H%M%S", &tm);
     char b[256];
-    snprintf(b, sizeof b, "zorcom_tx_%s_%.3fMHz_%.0fsps_%s", modeId.c_str(), centerHz / 1e6, rateHz, when);
+    snprintf(b, sizeof b, "saurcom_tx_%s_%.3fMHz_%.0fsps_%s", modeId.c_str(), centerHz / 1e6, rateHz, when);
     return b;
 }
 

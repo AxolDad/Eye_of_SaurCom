@@ -33,7 +33,7 @@ def main():
     ap.add_argument("--json"); ap.add_argument("--out", default=OUT)
     a = ap.parse_args()
     if a.json: raw = open(a.json, "rb").read()
-    else: raw = urllib.request.urlopen(urllib.request.Request(URL, headers={"User-Agent": "ZorCom-presets-generator"}), timeout=30).read()
+    else: raw = urllib.request.urlopen(urllib.request.Request(URL, headers={"User-Agent": "SaurCom-presets-generator"}), timeout=30).read()
     rows = parse(json.loads(raw))
     if not rows: sys.exit("no preset entries in the document")
     now = datetime.datetime.now(datetime.timezone.utc)

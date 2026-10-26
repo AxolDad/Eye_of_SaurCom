@@ -31,7 +31,7 @@ void startMeasure() {
     auto src = s.src;
     Job* job = &s.mJob;
     s.mJob.cancel = false; s.mJob.finished = false; s.mJob.running = true; s.mJob.prog = 0;
-    s.mJob.th = dect2::namedThread("zorcom-wbm", [=]() {
+    s.mJob.th = dect2::namedThread("saurcom-wbm", [=]() {
         measure(*src, t0, t1, f0, f1, o, *res, [job](double p) { job->prog = p; return !job->cancel.load(); });
         job->finished = true;
     });
@@ -51,7 +51,7 @@ void startDemod() {
     Job* job = &s.dJob;
     s.dJob.cancel = false; s.dJob.finished = false; s.dJob.running = true; s.dJob.prog = 0;
     stopAudio();
-    s.dJob.th = dect2::namedThread("zorcom-wbd", [=]() {
+    s.dJob.th = dect2::namedThread("saurcom-wbd", [=]() {
         *res = demodulate(*src, t0, t1, p);
         job->finished = true;
     });
@@ -459,7 +459,7 @@ void drawDemod(App& a) {
     if (!r.audio.empty()) {
         if (!s.playing) { if (ImGui::Button("Listen")) { s.playing = true; s.playPos = 0; if (s.aud) s.aud->flush(); } }
         else if (ImGui::Button("Stop")) stopAudio();
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Play the demodulated audio through Eye of ZorCom's audio output (volume and mute are the app's)");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Play the demodulated audio through Eye of SaurCom's audio output (volume and mute are the app's)");
         ImGui::SameLine(0, 8 * gUi);
         ImGui::SetNextItemWidth(90 * gUi);
         ImGui::SliderFloat("##wbvol", &a.volume, 0.f, 1.f, "vol %.2f");

@@ -1,13 +1,13 @@
 # Passive radar (View > Passive radar)
 
-Detects aircraft from the echoes of a transmitter that already exists (an FM or DVB-T station), with no transmitter of your own. **Status: the processing is tested against a built-in simulator only. It has never been run on a real radio, and Eye of ZorCom makes no claim about what it will detect with real hardware.**
+Detects aircraft from the echoes of a transmitter that already exists (an FM or DVB-T station), with no transmitter of your own. **Status: the processing is tested against a built-in simulator only. It has never been run on a real radio, and Eye of SaurCom makes no claim about what it will detect with real hardware.**
 
 ## What you need (honest hardware list)
 
 - **Two phase-coherent receive channels on one clock**: a reference channel and a surveillance channel sampled in step. A KrakenSDR (5 coherent RTL-SDR channels), a USRP with two channels from one clock, a BladeRF 2.0 or an Airspy-style multi-channel setup would do. Two separate dongles with separate clocks do **not** work: the Doppler processing needs the two channels to share the same oscillator and sample clock.
 - **Two antennas with direction**: the reference antenna aims at the transmitter; the surveillance antenna aims at the sky area to watch, and should be as deaf as possible toward the transmitter (a Yagi pointed away, or a null steered toward it). The transmitter's direct signal is typically 60 to 100 dB above an aircraft echo. The receiver's dynamic range and the antenna isolation decide the result, more than the software.
 - A transmitter whose position you know. The receiver position is the one set for ADS-B.
-- Range: with FM at 250 kS/s one range sample is 1.2 km of bistatic range; FM resolves roughly 2 to 3 km. Detection range depends on transmitter power, antenna gain and aircraft size, and Eye of ZorCom cannot predict it.
+- Range: with FM at 250 kS/s one range sample is 1.2 km of bistatic range; FM resolves roughly 2 to 3 km. Detection range depends on transmitter power, antenna gain and aircraft size, and Eye of SaurCom cannot predict it.
 
 ## What it does
 
@@ -19,7 +19,7 @@ Detects aircraft from the echoes of a transmitter that already exists (an FM or 
 
 Sources: the simulator (synthetic targets of chosen range, speed and level; FM or noise-like waveform), one two-channel interleaved cf32 file, or two single-channel cf32 files (reference, surveillance), all sample-synchronous. A source object for live coherent receivers is the same `MultiChannelSource` interface the direction finder uses, so a coherent-radio driver can feed this window later.
 
-The illuminator (transmitter) is entered by hand: latitude, longitude, a name, saved in a list. There is no transmitter database in Eye of ZorCom.
+The illuminator (transmitter) is entered by hand: latitude, longitude, a name, saved in a list. There is no transmitter database in Eye of SaurCom.
 
 ## Verified in the tests (tests/radar/test_passive_radar.cpp)
 

@@ -1,5 +1,5 @@
 // Seeded mutation run of the P25 frame layer, meant for DECT2_SANITIZE=ON: NID, Reed-Solomon, Golay, trellis, TSBK,
-// link control, header / encryption sync words and the IMBE interleave must never crash or hang on any bytes. Also a libFuzzer target with -DZORCOM_LIBFUZZER.
+// link control, header / encryption sync words and the IMBE interleave must never crash or hang on any bytes. Also a libFuzzer target with -DSAURCOM_LIBFUZZER.
 #include "dect2/p25/p25_proto.h"
 #include <cstdio>
 #include <cstdlib>
@@ -52,11 +52,11 @@ static void one(const uint8_t* d, size_t n) {
     P::channelText((int)(at(0) << 8 | at(1)));
 }
 
-#ifdef ZORCOM_LIBFUZZER
+#ifdef SAURCOM_LIBFUZZER
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t n) { one(d, n); return 0; }
 #else
 int main() {
-    const char* it = getenv("ZORCOM_FUZZ_ITERS");
+    const char* it = getenv("SAURCOM_FUZZ_ITERS");
     const long iters = it ? atol(it) : 50000;
     std::mt19937 g(777);
     for (long i = 0; i < iters; i++) {
