@@ -55,6 +55,8 @@ static void runCase(const char* name, int opt0, double cfo, double expectRs, int
     CHECK(services, "%s: the TS analysis sees a service with video and audio", name);
     CHECK(d.qam == expectQam, "%s: QAM %d", name, d.qam);
     CHECK(std::fabs(d.symbolRate / expectRs - 1) < 1e-4, "%s: symbol rate %.1f", name, d.symbolRate);
+    // the test signal waits for a slow receiver (a loaded CI runner) instead of losing samples: a gap in the input costs packets
+    CHECK(d.dropped == 0, "%s: the receiver dropped %llu input samples", name, (unsigned long long)d.dropped);
     CHECK(t.rateOk && d.packets - packets0 > 1000 && d.packetsBad == bad0, "%s: %llu packets in the steady state, %llu bad", name, (unsigned long long)(d.packets - packets0),
           (unsigned long long)(d.packetsBad - bad0));
     CHECK(!d.cells.empty() && !d.psdDb.empty() && !d.eqDb.empty(), "%s: pictures for the interface", name);
