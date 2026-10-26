@@ -24,20 +24,28 @@ int main() {
     FileOptions fo;
     e.setStandard(43);
     e.specx().setFftSize(4096);
-    e.specx().setAveraging(8);
+    // the -3 dB width of an 8-frame average moves by several per cent from one snapshot to the next (the carrier check failed about one run
+    // in six, fast machine or slow): 64 frames hold it well inside the 5 % the symbol rate is checked to
+    e.specx().setAveraging(64);
     CHECK(e.start(dev, t, fo), "engine start");
     CHECK(e.activeStandard() == 42, "active standard %d", e.activeStandard());
     RxTelemetry rx;
     uint64_t seq = 0;
     int reports = 0, wrong = 0;
+    // at least 3 s, then until the receiver has made 20 reports and averaged 4 x 64 frames: a slow runner plays the test signal slower
+    // than real time (the source waits for the receiver), so the signal heard in a fixed time varies
     const auto t0 = std::chrono::steady_clock::now();
-    while (std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count() < 3.0) {
+    for (;;) {
         if (e.latestRx(rx, seq)) { seq = rx.seq; reports++; if (rx.standard != 42) wrong++; }
+        const double el = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+        if ((el >= 3.0 && rx.specx.seq > 20 && rx.specx.frames >= 4 * 64) || el > 60) break;
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     const SpecxTelemetry& s = rx.specx;
     printf("  %d reports: %s\n", reports, specxSummary(s).c_str());
-    CHECK(reports > 20 && wrong == 0, "%d reports, %d wrong", reports, wrong);
+    // reports made by the receiver (its sequence number), not the polls that happened to see one
+    CHECK(s.seq > 20 && wrong == 0, "%llu reports made (%d seen), %d wrong", (unsigned long long)s.seq, reports, wrong);
+    CHECK(s.averaging == 64 && s.frames >= 4 * 64, "averaging %d, %llu frames", s.averaging, (unsigned long long)s.frames);
     CHECK(rx.rateOk && s.fftSize == 4096 && (int)s.spectrum.size() == 4096, "fft %d", s.fftSize);
     const double fs = s.rate, bin = fs / s.fftSize;
     CHECK(std::fabs(s.peakOffsetHz - kSpecxCwOffset * fs) < 2 * bin, "tone at %.0f", s.peakOffsetHz);
