@@ -33,7 +33,7 @@ int main() {
     need("app/ui/mode_table.cpp", table, "{123, \"KAVB\", 15,");
     need("app/ui/mode_table.cpp", table, "{124, \"KAPP\", 15,");
     need("app/ui/mode_table.cpp", table, "{125, \"KAFT\", 15,");
-    need("app/ui/mode_table.cpp", table, "N_(\"PLUGINS\"), \"Kris custom modes\"}");
+    need("app/ui/mode_table.cpp", table, "N_(\"PLUGINS\"), N_(\"KA FAMILY (EXPERIMENTAL)\")}");
     need("app/ui/mode_table.cpp", table, "IM_COL32(236, 160, 84, 255)};");
 
     const std::string app = readSource("app/app.h");
