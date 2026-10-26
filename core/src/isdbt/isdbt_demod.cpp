@@ -660,6 +660,7 @@ void Demod::setTmccInfo(const uint8_t info[kTmccInfoBits]) {
     I.haveTmcc = true;
 }
 void Demod::pushSymbol(const cf32* Y, int symIdx) { impl_->pushSymbol(Y, symIdx); }
+void Demod::waitDecoded() { impl_->drain(); }
 void Demod::setDelayCentre(double tau0) { impl_->tau0 = tau0; }
 void Demod::takePackets(int layer, std::vector<uint8_t>& out) {
     std::lock_guard<std::mutex> g(impl_->mu);

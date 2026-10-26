@@ -26,7 +26,7 @@ inline long long sockPeekClosed(sock_t s) {
     char c; return recv(s, &c, 1, 0);
 }
 inline void sockShutdown(sock_t s) { shutdown(s, SD_BOTH); }
-inline void sockShutdownRead(sock_t s) { shutdown(s, SD_RECEIVE); }
+inline void sockShutdownWrite(sock_t s) { shutdown(s, SD_SEND); }
 } // namespace dect2
 #else
 #include <arpa/inet.h>
@@ -45,6 +45,6 @@ inline long long sockSendTo(sock_t s, const void* d, size_t n, const sockaddr_in
 inline long long sockRecv(sock_t s, void* d, size_t n) { return recv(s, d, n, 0); }
 inline long long sockPeekClosed(sock_t s) { char c; return recv(s, &c, 1, MSG_DONTWAIT); }
 inline void sockShutdown(sock_t s) { shutdown(s, SHUT_RDWR); }
-inline void sockShutdownRead(sock_t s) { shutdown(s, SHUT_RD); }
+inline void sockShutdownWrite(sock_t s) { shutdown(s, SHUT_WR); }
 } // namespace dect2
 #endif

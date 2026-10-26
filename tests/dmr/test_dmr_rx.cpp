@@ -90,16 +90,21 @@ static void testThreads() {
                 std::this_thread::sleep_for(std::chrono::microseconds(500));
             }
         });
+        // the interface thread's first pass (k = 0) sets both callbacks: wait for it, and after the signal for one whole pass that reads the last
+        // report. A busy runner (Windows CI, tests in parallel) may otherwise start the thread only after feeding is done: then nothing was counted.
+        while (polls == 0) std::this_thread::yield();
         DmrSignal sig(base(25));
         std::vector<cf32> g(65536);
         for (int blk = 0; blk < 110; blk++) { sig.generate(g.data(), g.size()); rx.feed(g.data(), g.size()); }      // 3 s
+        const uint64_t fed = polls;
+        while (polls < fed + 2) std::this_thread::yield();
         stop = true;
         ui.join();
         DmrTelemetry t;
         rx.telemetry(t, 0);
         printf("%-36s %llu polls, %llu new reports, %llu voice bursts handed on, %llu log lines, state %d\n", "controls from another thread", (unsigned long long)polls.load(), (unsigned long long)newer.load(),
                (unsigned long long)voiceCalls.load(), (unsigned long long)logLines.load(), t.state);
-        // (reports come at intervals of real time: a fast machine feeds the 3 s of signal in a few of them, a Windows runner gave exactly 3)
+        // (reports come every so many samples; the interface thread may see only some of them, at least the last)
         CHECK(t.state == 2 && newer >= 1 && voiceCalls > 10 && logLines > 0, "state %d, %llu reports, %llu voice bursts, %llu log lines", t.state, (unsigned long long)newer.load(), (unsigned long long)voiceCalls.load(), (unsigned long long)logLines.load());
     }
 }

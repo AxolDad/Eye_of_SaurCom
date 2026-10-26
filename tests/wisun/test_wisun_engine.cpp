@@ -28,16 +28,21 @@ int main() {
     RxTelemetry rx;
     uint64_t seq = 0;
     int reports = 0, wrong = 0;
+    // at least 5 s, then until the receiver has heard 5 s of signal: a slow runner plays the 20 Msps test signal slower than real time
+    // (the source waits for the receiver), so the reports and the one-a-second packet rates of a fixed wait vary
     const auto t0 = std::chrono::steady_clock::now();
-    while (std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count() < 5.0) {
+    for (;;) {
         if (e.latestRx(rx, seq)) { seq = rx.seq; reports++; if (rx.standard != 85) wrong++; }
+        const double el = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+        if ((el >= 5.0 && rx.wisun.timeSec >= 5.0) || el > 60) break;
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     const WisunTelemetry& d = rx.wisun;
-    printf("  %d reports: %s, %llu bad, %llu dropped, load %.0f%%, %.1f - %.1f MHz\n", reports, wisunSummary(d).c_str(), (unsigned long long)d.blocksBad,
-           (unsigned long long)d.dropped, d.loadPct, d.loMhz, d.hiMhz);
-    // reports made by the engine (its sequence number), not the polls that happened to see one: a fast or slow runner polls a different share of them
-    CHECK(rx.seq > 10 && wrong == 0, "%llu reports made (%d seen), %d wrong", (unsigned long long)rx.seq, reports, wrong);
+    printf("  %d reports: %s, %llu bad, %llu dropped, load %.0f%%, %.1f - %.1f MHz, %.1f s of signal\n", reports, wisunSummary(d).c_str(), (unsigned long long)d.blocksBad,
+           (unsigned long long)d.dropped, d.loadPct, d.loMhz, d.hiMhz, d.timeSec);
+    // reports made by the receiver (its sequence number), not the polls that happened to see one: a fast or slow runner polls a different share
+    // of them, and the engine passes on only the newest when it is starved
+    CHECK(d.seq > 10 && wrong == 0, "%llu reports made (%d seen), %d wrong", (unsigned long long)d.seq, reports, wrong);
     CHECK(rx.rateOk, "rate");
     CHECK(d.region == "ANZ" && d.loMhz < 915.5 && d.hiMhz > 927.5, "coverage %s %.1f - %.1f", d.region.c_str(), d.loMhz, d.hiMhz);
     CHECK(d.pans.size() == 1 && d.nodes.size() == 3 && d.blocksOk > 100 && d.blocksBad == 0, "%zu PANs, %zu nodes, %llu frames", d.pans.size(), d.nodes.size(),

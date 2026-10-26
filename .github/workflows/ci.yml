@@ -76,9 +76,11 @@ jobs:
         if: always()
         run: ccache -s
       - name: Test (fast tests)
-        run: ctest --test-dir build -j 4 -LE slow --output-on-failure --timeout 600
-      - name: Retry timing tests once
-        run: ctest --test-dir build -L timing --repeat until-pass:2 --output-on-failure --timeout 600
+        run: ctest --test-dir build -j 4 -LE "slow|timing" --output-on-failure --timeout 600
+      # the timing tests on their own, one at a time, and once more if one fails (a shared runner can starve a socket or thread test);
+      # in the step above a failure would stop the job before the retry
+      - name: Timing tests (retried once)
+        run: ctest --test-dir build -L timing -LE slow --repeat until-pass:2 --output-on-failure --timeout 600
 
   windows:
     name: Windows x64 (MinGW-w64)
@@ -108,4 +110,6 @@ jobs:
         if: always()
         run: ccache -s
       - name: Test (fast tests)
-        run: ctest --test-dir build -j 4 -LE slow --output-on-failure --timeout 600
+        run: ctest --test-dir build -j 4 -LE "slow|timing" --output-on-failure --timeout 600
+      - name: Timing tests (retried once)
+        run: ctest --test-dir build -L timing -LE slow --repeat until-pass:2 --output-on-failure --timeout 600

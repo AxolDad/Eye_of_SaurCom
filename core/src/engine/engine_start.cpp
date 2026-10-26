@@ -322,6 +322,7 @@ void Engine::configureDecoderReceivers(const DeviceInfo& dev, const TuneSettings
     rxAero_.configure(rate_);
     rxAero_.setLogCallback([this](const std::string& s) { log(s); });
     rxIridium_.configure(rate_);
+    rxIridium_.setOffline(!src_->realtimeHardware());   // a recording or the test signal waits for the burst worker: only a live radio drops bursts
     rxIridium_.setLogCallback([this](const std::string& s) { log(s); });
     rxMesh_.configure(rate_);
     rxMesh_.setLogCallback([this](const std::string& s) { log(s); });
@@ -410,7 +411,7 @@ void Engine::configureDecoderReceivers(const DeviceInfo& dev, const TuneSettings
 // Configures the remaining decoders (cube, flarm, DJI, wifi, general, goes...), their log callbacks and clocks
 void Engine::configureDataReceivers(const DeviceInfo& dev, const TuneSettings& tune) {
     rxDvbc_.configure(rate_);
-    rxDvbc_.setBlocking(dev.kind == DeviceInfo::File);
+    rxDvbc_.setBlocking(!src_->realtimeHardware());   // a recording or the test signal waits for a slow receiver (see the paced source): only a live radio drops
     rxDvbc_.setPacketCallback([this](const uint8_t* pk, size_t n, double secs) { onTsPackets(pk, n, secs); });   // runs on the receiver thread
     rxDvbc_.setLogCallback([this](const std::string& s) { log(s); });
     rxOrb_.configure(rate_);

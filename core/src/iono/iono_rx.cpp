@@ -46,6 +46,9 @@ struct IonoReceiver::Impl {
             }
         seenEvents = t.timeline.size();
         std::lock_guard<std::mutex> lk(mu);
+        // a Clear or a load that came in while this feed() ran has not reached the processor yet: t holds the sounders from before it and
+        // would replace the emptied report (#244, a sel of a sounder that is gone); the next feed() applies the request first, then publishes
+        if (clearReq || loadReq) return;
         t.seq = pub.seq + 1;
         pub = std::move(t);
     }

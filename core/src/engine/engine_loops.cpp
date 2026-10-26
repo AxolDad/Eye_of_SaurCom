@@ -76,7 +76,10 @@ void Engine::analysisLoop() {
         if (resetReq_.exchange(false)) { applyReset(); rxSeq = 0; }
         size_t n;
         catchUp();
-        while ((n = ring_.read(buf.data(), buf.size())) > 0) { ingest(buf.data(), n); if (std::chrono::steady_clock::now() > next + std::chrono::milliseconds(250)) break; } // keep publishing spectrum/telemetry even when the receiver is behind
+        // keep publishing spectrum/telemetry even when the receiver is behind (250 ms of wall time), and while it works off a backlog faster
+        // than real time (the samples queued while start() set up the receivers, a recording): at least every second of signal
+        const double s0 = nSamp_;
+        while ((n = ring_.read(buf.data(), buf.size())) > 0) { ingest(buf.data(), n); if (std::chrono::steady_clock::now() > next + std::chrono::milliseconds(250) || nSamp_ - s0 >= rate_.load()) break; }
         next += std::chrono::milliseconds(33);
         watchRadio();
         checkDelivery();

@@ -15,7 +15,8 @@ using namespace dect2;
 static int fails = 0;
 #define CHECK(c, ...) do { if (!(c)) { std::printf("FAIL line %d: ", __LINE__); std::printf(__VA_ARGS__); std::printf("\n"); fails++; } } while (0)
 
-// a TCP server on 127.0.0.1 (any free port) that takes one source, answers `reply` and keeps what follows
+// a TCP server on 127.0.0.1 (any free port) that takes one source, answers `reply` and keeps what follows until the source hangs up;
+// done once 2000 bytes arrived (or the source is gone)
 struct FakeIcecast {
     sock_t ls = kBadSock;
     int port = 0;
@@ -38,12 +39,16 @@ struct FakeIcecast {
             const size_t e = request.find("\r\n\r\n");
             if (e != std::string::npos) { body = request.substr(e + 4); request.resize(e + 4); }
             sockSendAll(c, reply.data(), reply.size());
-            for (int i = 0; i < 100 && body.size() < 2000; i++) { const long long k = sockRecv(c, b, sizeof b); if (k <= 0) break; body.append(b, (size_t)k); }
+            // like Icecast, keep the source until it hangs up: closing here would break the client's stream while it still sends
+            if (body.size() >= 2000) done = true;
+            for (;;) { const long long k = sockRecv(c, b, sizeof b); if (k <= 0) break; body.append(b, (size_t)k); if (body.size() >= 2000) done = true; }
             done = true;
             sockClose(c);
         });
     }
-    ~FakeIcecast() { sockShutdown(ls); sockClose(ls); if (th.joinable()) th.join(); }
+    // waits until the source hung up (or never came), so request and body are complete
+    void finish() { sockShutdown(ls); if (th.joinable()) th.join(); }
+    ~FakeIcecast() { finish(); sockClose(ls); }
 };
 
 static bool hasMp3Frame(const std::string& b) {
@@ -98,6 +103,7 @@ static void streamChecks() {
         CHECK(S.start(c, err), "start: %s", err.c_str());
         for (int i = 0; i < 40 && !srv.done; i++) play(100);
         S.stop();
+        srv.finish();
         CHECK(srv.request.rfind("PUT /test HTTP/1.1\r\n", 0) == 0 && srv.request.find("Ice-Description: FM 93.900 MHz") != std::string::npos, "the server got the source request");
         CHECK(srv.body.size() > 500 && hasMp3Frame(srv.body), "MP3 frames arrived: %zu bytes", srv.body.size());
         const AudioStreamStats st = S.stats();
