@@ -77,7 +77,7 @@ int main() {
         std::vector<int16_t> pcm; const std::vector<uint8_t> p = packet(1, 100);
         CHECK(d.decode(p.data(), p.size(), pcm) == -1, "decode without a library");
     }
-    struct { const char* env; const char* want; } bad[] = {{FAKE_HDC_BADVER, "not one SaurCom knows"}, {FAKE_HDC_NOINIT, "NeAACDecInitHDC"}, {FAKE_HDC_BADLAYOUT, "layout"}};
+    struct { const char* env; const char* want; } bad[] = {{FAKE_HDC_BADVER, "not one Eye of SaurCom knows"}, {FAKE_HDC_NOINIT, "NeAACDecInitHDC"}, {FAKE_HDC_BADLAYOUT, "layout"}};
     for (const auto& b : bad) {
         setEnv("DECT2_FAAD_HDC_PATH", b.env);
         CHECK(!hdcRescan(), "refused library accepted: %s", b.env);

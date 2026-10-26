@@ -172,7 +172,8 @@ std::vector<LogEntry> DriveLog::entries() const {
 }
 
 std::string DriveLog::wigleCsv(double off) const {
-    std::string o = "WigleWifi-1.4,appRelease=0.2.9,model=EyeOfSaurCom,release=0.2.9,device=EyeOfSaurCom,display=,board=,brand=EyeOfSaurCom\n";
+    std::string o = std::string("WigleWifi-1.4,appRelease=") + SAURCOM_VERSION + ",model=EyeOfSaurCom,release=" + SAURCOM_VERSION +
+                    ",device=EyeOfSaurCom,display=,board=,brand=EyeOfSaurCom\n";
     o += "MAC,SSID,AuthMode,FirstSeen,Channel,RSSI,CurrentLatitude,CurrentLongitude,AltitudeMeters,AccuracyMeters,Type\n";
     char b[160];
     for (const LogEntry& e : entries()) {

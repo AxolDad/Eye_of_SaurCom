@@ -298,8 +298,8 @@ void refreshContext() {
     receiverLocation(lat, lon);
     if (lat != 0 || lon != 0) {
         const dect2::AirportDb& db = dect2::AirportDb::builtin();
-        const std::vector<dect2::AirportHit> near = db.nearby(lat, lon, 60, 6, true);
-        for (const dect2::AirportHit& h : near) {
+        const std::vector<dect2::AirportHit> around = db.nearby(lat, lon, 60, 6, true);
+        for (const dect2::AirportHit& h : around) {
             const dect2::Airport& ap = db.all()[h.index];
             if (!ap.name.empty()) terms.push_back({ap.name, 0.7f, nowMs});
             for (const dect2::Runway& rw : ap.runways) {

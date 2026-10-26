@@ -337,7 +337,7 @@ void managerPanel(App& a) {
     ImGui::SameLine();
     if (ImGui::Button(trw("Refresh"))) { P.mgr->scan(); registerModes(); }
     ImGui::SameLine();
-    if (ImGui::Button(trw("Community plugins"))) openPath("https://github.com/AxolDad/Eye_of_ZorCom/tree/main/sdk");
+    if (ImGui::Button(trw("Community plugins"))) openPath("https://github.com/AxolDad/Eye_of_SaurCom/tree/main/sdk");
     ImGui::SameLine();
     bool sm = plat::prefs().getB("pluginsSafeMode", false);
     if (ImGui::Checkbox(trw("Safe mode (no plugins)"), &sm)) { plat::prefs().setB("pluginsSafeMode", sm); plat::prefs().flush(); if (sm) P.mgr->forceSafeMode(true); else P.mgr->leaveSafeMode(); }

@@ -5,7 +5,7 @@
 // No AV1 or Opus encoder is built in, so a camera or a screen is not a source. The station ID is sent as a Text packet "KAVB de <callsign>" at the start and about
 // twice a second (the spec's beacon slice is not built; this is Eye of SaurCom's own stand-in that the receiver understands).
 // Options: opt "kavb.profile" (0 .. 3 = A .. D, default 0), "kavb.fec" (FEC group profile 0 .. 7, default 1 = 14 + 2), "kavb.seconds" (synthetic stream, 1 .. 600,
-// default 5). The callsign is up to 7 characters of A-Z 0-9 and "/" (lower case is raised); empty is SAURCOM.
+// default 5). The callsign is up to 7 characters of A-Z 0-9 and "/" (lower case is raised); empty is SAURCM.
 // The generator is finite: finished() is true after the last frame. Nothing about mode, frequency or power is limited here.
 #pragma once
 #include "dect2/tx/tx.h"

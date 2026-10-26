@@ -46,8 +46,8 @@ std::vector<Cmd> collect(App& a) {
     c.push_back({"Voice codecs", "Action", [](App& x) { x.voiceCodecsOpen = true; }});
     c.push_back({"Credits", "Action", [](App& x) { x.creditsOpen = true; x.creditsTab = 0; }});
     c.push_back({"Credits and licences", "Action", [](App& x) { x.creditsOpen = true; x.creditsTab = 1; }});
-    c.push_back({"Documentation", "Action", [](App&) { dect2::openUrl("https://github.com/AxolDad/Eye_of_ZorCom/tree/main/docs"); }});
-    c.push_back({"Troubleshooting", "Action", [](App&) { dect2::openUrl("https://github.com/AxolDad/Eye_of_ZorCom#troubleshooting"); }});
+    c.push_back({"Documentation", "Action", [](App&) { dect2::openUrl("https://github.com/AxolDad/Eye_of_SaurCom/tree/main/docs"); }});
+    c.push_back({"Troubleshooting", "Action", [](App&) { dect2::openUrl("https://github.com/AxolDad/Eye_of_SaurCom#troubleshooting"); }});
     return c;
 }
 

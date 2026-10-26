@@ -70,7 +70,7 @@ Section "Eye of SaurCom"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SaurCom" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKLM "${UNINST}" "Publisher" "Eye of SaurCom project"
   WriteRegStr HKLM "${UNINST}" "DisplayIcon" "$INSTDIR\SaurCom.exe"
-  WriteRegStr HKLM "${UNINST}" "URLInfoAbout" "https://github.com/AxolDad/Eye_of_ZorCom"
+  WriteRegStr HKLM "${UNINST}" "URLInfoAbout" "https://github.com/AxolDad/Eye_of_SaurCom"
   WriteRegDWORD HKLM "${UNINST}" "NoModify" 1
   WriteRegDWORD HKLM "${UNINST}" "NoRepair" 1
   SectionGetSize 0 $0

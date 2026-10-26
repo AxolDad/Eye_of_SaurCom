@@ -148,7 +148,7 @@ bool kawsFromRequest(const TxRequest& r, KawsTxPlan& plan, std::string& err) {
     std::string cs;
     for (char c : r.callsign) cs += (char)std::toupper((unsigned char)c);
     while (!cs.empty() && cs.back() == ' ') cs.pop_back();
-    if (cs.empty()) cs = "SAURCOM";
+    if (cs.empty()) cs = "SAURCM";
     if (!callsignValid(cs)) { err = "KAWS: the callsign is 1 to 9 characters of letters, digits, - / and ."; return false; }
     plan.callsign = cs;
     plan.profile = (int)std::lround(r.o("kaws.profile", 3));

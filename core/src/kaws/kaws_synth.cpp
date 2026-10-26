@@ -14,7 +14,7 @@ std::unique_ptr<ModeSynth> makeKawsSynth(const SynthConfig& s, double sampleRate
     auto synth = std::make_unique<TxLoopSynth>(rate, -kawsTuning().tuneOffsetHz + 30.0 + s.cfoHz, s.snrDb, 0.0, [rate, profile](int pass) -> std::unique_ptr<TxGenerator> {
     TxRequest r;
     r.modeId = "kaws";
-    r.callsign = "SAURCOM";
+    r.callsign = "SAURCM";
     r.grid = "KO24RM";
     r.dest = "CQ";
     r.text = "SaurCom KAWS test signal: chat from the real transmitter.";

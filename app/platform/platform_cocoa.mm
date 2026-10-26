@@ -154,7 +154,21 @@ static bool postImpl(const std::string& url, const std::string& json, const std:
     }
 }
 
-bool postRequest(const std::string& url, const std::string& body, const std::string& contentType, const std::vector<std::string>& headers, const std::string& userAgent) {
+// Puts the "Name: value" headers on a request (the values never reach a process list: NSURLSession runs in this process).
+static void addHeaders(NSMutableURLRequest* req, const std::vector<std::string>& headers) {
+    for (const std::string& h : headers) {
+        const size_t c = h.find(':');
+        if (c == std::string::npos || c == 0) continue;
+        size_t v = c + 1;
+        while (v < h.size() && h[v] == ' ') v++;
+        NSString* k = [NSString stringWithUTF8String:h.substr(0, c).c_str()];
+        NSString* val = [NSString stringWithUTF8String:h.substr(v).c_str()];
+        if (k && val) [req setValue:val forHTTPHeaderField:k];
+    }
+}
+
+static bool postHeaders(const std::string& url, const std::string& body, const std::string& contentType, const std::vector<std::string>& headers,
+                        const std::string& userAgent, std::string* reply) {
     @autoreleasepool {
         NSURL* u = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
         if (!u) return false;
@@ -163,24 +177,53 @@ bool postRequest(const std::string& url, const std::string& body, const std::str
         req.HTTPBody = [NSData dataWithBytes:body.data() length:body.size()];
         [req setValue:[NSString stringWithUTF8String:(contentType.empty() ? "application/json" : contentType.c_str())] forHTTPHeaderField:@"Content-Type"];
         [req setValue:[NSString stringWithUTF8String:userAgent.c_str()] forHTTPHeaderField:@"User-Agent"];
-        for (const std::string& h : headers) {
-            const size_t c = h.find(':');
-            if (c == std::string::npos || c == 0) continue;
-            size_t v = c + 1;
-            while (v < h.size() && h[v] == ' ') v++;
-            NSString* k = [NSString stringWithUTF8String:h.substr(0, c).c_str()];
-            NSString* val = [NSString stringWithUTF8String:h.substr(v).c_str()];
-            if (k && val) [req setValue:val forHTTPHeaderField:k];
-        }
+        addHeaders(req, headers);
         dispatch_semaphore_t sem = dispatch_semaphore_create(0);
         __block bool ok = false;
-        [[[NSURLSession sharedSession] dataTaskWithRequest:req completionHandler:^(NSData*, NSURLResponse* resp, NSError* err) {
+        __block std::string got;
+        [[[NSURLSession sharedSession] dataTaskWithRequest:req completionHandler:^(NSData* data, NSURLResponse* resp, NSError* err) {
             NSHTTPURLResponse* h = (NSHTTPURLResponse*)resp;
             ok = err == nil && h && h.statusCode >= 200 && h.statusCode < 300;
+            if (data) got.assign((const char*)data.bytes, std::min<size_t>(data.length, 65536));
             dispatch_semaphore_signal(sem);
         }] resume];
         if (dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, 13 * NSEC_PER_SEC)) != 0) return false;
+        if (ok && reply) *reply = got;
         return ok;
+    }
+}
+
+bool postRequest(const std::string& url, const std::string& body, const std::string& contentType, const std::vector<std::string>& headers, const std::string& userAgent) {
+    return postHeaders(url, body, contentType, headers, userAgent, nullptr);
+}
+
+bool postRequestReply(const std::string& url, const std::string& body, const std::string& contentType, const std::vector<std::string>& headers,
+                      const std::string& userAgent, std::string& reply) {
+    return postHeaders(url, body, contentType, headers, userAgent, &reply);
+}
+
+bool fetchUrlHeaders(const std::string& url, const std::string& file, const std::string& userAgent, const std::vector<std::string>& headers) {
+    for (const std::string& h : headers) if (h.find('\n') != std::string::npos || h.find('\r') != std::string::npos) return false;
+    @autoreleasepool {
+        NSURL* u = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
+        if (!u) return false;
+        NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:u cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:12];
+        [req setValue:[NSString stringWithUTF8String:userAgent.c_str()] forHTTPHeaderField:@"User-Agent"];
+        addHeaders(req, headers);
+        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+        __block bool ok = false;
+        __block NSData* got = nil;
+        [[[NSURLSession sharedSession] dataTaskWithRequest:req completionHandler:^(NSData* data, NSURLResponse* resp, NSError* err) {
+            NSHTTPURLResponse* h = (NSHTTPURLResponse*)resp;
+            ok = err == nil && h && h.statusCode >= 200 && h.statusCode < 300 && data;
+            if (ok) got = data;
+            dispatch_semaphore_signal(sem);
+        }] resume];
+        if (dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, 13 * NSEC_PER_SEC)) != 0 || !ok) return false;
+        FILE* f = fopen(file.c_str(), "wb");
+        if (!f) return false;
+        const bool wrote = fwrite(got.bytes, 1, got.length, f) == got.length;
+        return fclose(f) == 0 && wrote;
     }
 }
 

@@ -16,7 +16,7 @@
 
 namespace {
 
-constexpr const char* kDocUrl = "https://github.com/AxolDad/Eye_of_ZorCom/blob/main/docs/CODECS.md";
+constexpr const char* kDocUrl = "https://github.com/AxolDad/Eye_of_SaurCom/blob/main/docs/CODECS.md";
 
 // mbelib is built from source by the user (patented codec: Eye of SaurCom ships none). Plain steps; the full text is docs/CODECS.md.
 constexpr const char* kMbeMac =
@@ -111,18 +111,18 @@ Text textOf(CodecHelp c) {
                 "service you select. Whether you may use it depends on the patent and licence rules where you live: check them first.",
 #if defined(__APPLE__)
                 "Build the add-on yourself (full steps in docs/CODECS.md; the Eye of SaurCom source has tools/addons/dra):\n"
-                "  brew install cmake git python3\n  git clone https://github.com/AxolDad/Eye_of_ZorCom && cd Eye_of_ZorCom/tools/addons/dra\n"
+                "  brew install cmake git python3\n  git clone https://github.com/AxolDad/Eye_of_SaurCom && cd Eye_of_SaurCom/tools/addons/dra\n"
                 "  python3 extract_dra.py\n  cmake -S . -B build -DDRA_SRC=dra_src && cmake --build build\n"
                 "Copy libsaurcom_dra.dylib from the build folder into the codecs folder below.",
 #elif defined(_WIN32)
                 "Build the add-on yourself (full steps in docs/CODECS.md; the Eye of SaurCom source has tools/addons/dra). In MSYS2 MINGW64:\n"
                 "  pacman -S --needed git python mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake make\n"
-                "  git clone https://github.com/AxolDad/Eye_of_ZorCom && cd Eye_of_ZorCom/tools/addons/dra\n"
+                "  git clone https://github.com/AxolDad/Eye_of_SaurCom && cd Eye_of_SaurCom/tools/addons/dra\n"
                 "  python extract_dra.py\n  cmake -S . -B build -G \"MSYS Makefiles\" -DDRA_SRC=dra_src && cmake --build build\n"
                 "Copy saurcom_dra.dll into the codecs folder below. Use 64-bit if Eye of SaurCom is 64-bit.",
 #else
                 "Build the add-on yourself (full steps in docs/CODECS.md; the Eye of SaurCom source has tools/addons/dra):\n"
-                "  sudo apt install git python3 cmake build-essential\n  git clone https://github.com/AxolDad/Eye_of_ZorCom && cd Eye_of_ZorCom/tools/addons/dra\n"
+                "  sudo apt install git python3 cmake build-essential\n  git clone https://github.com/AxolDad/Eye_of_SaurCom && cd Eye_of_SaurCom/tools/addons/dra\n"
                 "  python3 extract_dra.py\n  cmake -S . -B build -DDRA_SRC=dra_src && cmake --build build\n"
                 "Copy libsaurcom_dra.so from the build folder into the codecs folder below.",
 #endif

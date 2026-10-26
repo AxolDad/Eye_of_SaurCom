@@ -198,7 +198,7 @@ void kaitPanel(TxUi& s, bool running) {
         s.kaitProfile = std::max(0, std::min(3, (int)p.getI("tx.kait.profile", 0)));
     }
     ImGui::TextWrapped("%s", "KAIT: a picture in a 10 s burst, 190 kHz wide. The picture is shrunk to fit 1920 x 1080 and coded in layers, the coarse picture in the most "
-                              "robust coding first. Empty file: a demo picture. Empty callsign: SAURCOM. Eye of SaurCom sets no limit on the frequency or the power.");
+                              "robust coding first. Empty file: a demo picture. Empty callsign: SAURCM. Eye of SaurCom sets no limit on the frequency or the power.");
     ImGui::BeginDisabled(running);
     ImGui::SetNextItemWidth(160 * gUi);
     if (ImGui::InputText("Callsign (9 characters at most)", s.callsign, sizeof s.callsign, ImGuiInputTextFlags_CharsUppercase)) clampText(s.callsign, 9);

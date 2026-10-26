@@ -13,7 +13,7 @@ std::unique_ptr<ModeSynth> makeKavbSynth(const SynthConfig& s, double sampleRate
     auto synth = std::make_unique<TxLoopSynth>(rate, 3000.0 + s.cfoHz, s.snrDb, 1.0, [rate, profile](int pass) -> std::unique_ptr<TxGenerator> {
     TxRequest r;
     r.modeId = "kavb";
-    r.callsign = "SAURCOM";
+    r.callsign = "SAURCM";
     r.opt["kavb.profile"] = profile;
     r.opt["kavb.seconds"] = 3;
     (void)pass;

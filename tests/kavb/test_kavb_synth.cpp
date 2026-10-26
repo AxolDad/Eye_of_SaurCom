@@ -47,7 +47,7 @@ static bool run(int opt, double maxSec) {
     CHECK(doneAt > 0, "no decode within %.0f s", maxSec);
     CHECK(k.framesGood > 10 && k.framesBad * 10 <= k.framesGood, "frames good %llu bad %llu", (unsigned long long)k.framesGood, (unsigned long long)k.framesBad);
     CHECK(k.packets >= 20 && k.packetsByType[0] > 0 && k.packetsByType[1] > 0, "packets %llu video %llu audio %llu", (unsigned long long)k.packets, (unsigned long long)k.packetsByType[0], (unsigned long long)k.packetsByType[1]);
-    CHECK(k.callsign == "SAURCOM", "station ID '%s'", k.callsign.c_str());
+    CHECK(k.callsign == "SAURCM", "station ID '%s'", k.callsign.c_str());
     CHECK(std::fabs(k.cfoHz - 3000.0) < 400.0, "carrier offset read %.0f Hz, sent 3000", k.cfoHz);
     CHECK(k.profile == 0, "profile %d", k.profile);
     CHECK(e.droppedSamples() == 0, "dropped %llu", (unsigned long long)e.droppedSamples());

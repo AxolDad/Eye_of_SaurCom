@@ -159,7 +159,7 @@ void kappPanel(TxUi& s, bool running) {
     }
     ImGui::TextWrapped("%s", "KAPP: packet data, 100 kHz wide. The message goes out as bursts of blocks, one-way: no acknowledgement is waited for, so the whole message is sent "
                               "several times (a receiver that missed a block gets it on the next pass; one that has the message ignores the repeat). "
-                              "Empty callsign sends the demo identity SAURCOM; an empty message sends a short demo text. Eye of SaurCom sets no limit on the frequency or the power.");
+                              "Empty callsign sends the demo identity SAURCM; an empty message sends a short demo text. Eye of SaurCom sets no limit on the frequency or the power.");
     ImGui::BeginDisabled(running);
     ImGui::SetNextItemWidth(160 * gUi);
     if (ImGui::InputText("Callsign (7 characters at most)", s.callsign, sizeof s.callsign, ImGuiInputTextFlags_CharsUppercase)) clampText(s.callsign, 7);

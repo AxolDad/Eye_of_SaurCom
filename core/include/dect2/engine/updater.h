@@ -21,7 +21,7 @@ struct ReleaseInfo {
     uint64_t size = 0;
 };
 
-inline constexpr const char* kUpdateRepo = "AxolDad/Eye_of_ZorCom";   // owner/name of the GitHub repository whose releases are the updates
+inline constexpr const char* kUpdateRepo = "AxolDad/Eye_of_SaurCom";   // owner/name of the GitHub repository whose releases are the updates
 
 // How this copy of the program was installed: decides what an update can do.
 enum class InstallKind {

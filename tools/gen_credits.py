@@ -130,7 +130,7 @@ write("THIRD_PARTY.md", "# Third-party code, data and credits\n\n" + INTRO + "\n
       "\n## Changing this list\n\nEdit `tools/credits_data.tsv`, then run `python3 tools/gen_credits.py`. It rewrites this file, `docs/credits-for-website.md` and the table shown in the program (`app/panels/credits_data.h`); people are in `tools/contributors.tsv`. `tests/app/test_credits.cpp` fails when a field is empty.\n")
 
 write("docs/credits-for-website.md", "# Credits and licences\n\nPaste this block into the website and the wiki. Last generated from tools/credits_data.tsv.\n\n" + INTRO +
-      "\nThe full notices and the open licence points are in [THIRD_PARTY.md](https://github.com/AxolDad/Eye_of_ZorCom/blob/main/THIRD_PARTY.md).\n\n" + table([0, 1, 2, 3, 4]) +
+      "\nThe full notices and the open licence points are in [THIRD_PARTY.md](https://github.com/AxolDad/Eye_of_SaurCom/blob/main/THIRD_PARTY.md).\n\n" + table([0, 1, 2, 3, 4]) +
       "\n\nLinks: " + "; ".join("[%s](%s)" % (r[0], r[5]) for r in rows) + "\n")
 
 # ---- contributors (tools/contributors.tsv) ----

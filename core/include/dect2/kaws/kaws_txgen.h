@@ -6,7 +6,7 @@
 // Options: opt "kaws.kind" (0 chat, 1 short beacon, 2 full beacon; default 0), "kaws.profile" (0 .. 5, default 3 = Chat), "kaws.repeat" (1 .. 9, default 2),
 // "kaws.eirp" (dBm announced in a beacon, default 30), "kaws.align" (1 wait for the next slot, default; 0 the first burst starts at once),
 // "kaws.msgid" (0 .. 15, default from the clock), "kaws.utc" (a test clock, seconds since the epoch; 0 = the system clock).
-// The callsign is 1 to 9 characters of A-Z 0-9 - / . (lower case is raised; empty is the demo identity SAURCOM); grid is 6 characters (empty: AA00AA);
+// The callsign is 1 to 9 characters of A-Z 0-9 - / . (lower case is raised; empty is the demo identity SAURCM); grid is 6 characters (empty: AA00AA);
 // text is the chat text (up to 100 characters), dest the recipient callsign (empty: CQ); lat / lon go into a full beacon.
 // The profiles 6 and 7 (voice) need a speech codec that the user installs: none is loaded, so they are refused with that sentence.
 // The generator is finite: finished() is true after the last burst. Nothing about mode, frequency or power is limited here.

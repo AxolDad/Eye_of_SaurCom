@@ -1,6 +1,6 @@
 # Licences of the libraries inside the Eye of SaurCom packages
 
-Eye of SaurCom is GPL-3.0-or-later (file LICENSE; source: https://github.com/AxolDad/Eye_of_ZorCom). The full list of third-party code, data and credits is THIRD_PARTY.md; the licence texts are in LICENSES/.
+Eye of SaurCom is GPL-3.0-or-later (file LICENSE; source: https://github.com/AxolDad/Eye_of_SaurCom). The full list of third-party code, data and credits is THIRD_PARTY.md; the licence texts are in LICENSES/.
 
 Eye of SaurCom is a fork of [OnAir](https://github.com/adswill/OnAir) by Kristijonas Adomaitis and its contributors (GPL-3.0-or-later); their copyright notices stay with their code.
 

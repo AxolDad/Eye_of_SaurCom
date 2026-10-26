@@ -1,4 +1,4 @@
-# Eye_of_ZorCom: Bug Hunt Report
+# Eye_of_SaurCom: Bug Hunt Report
 
 **Branch:** `claude/busy-curie-ef8t0e` (at `592665e`, same as fork `main`)
 **Scope:** first-party code (`core/`, `app/`, `rust/`, `tests/`, `tools/`, `web/`, `packaging/`, `sdk/`, `server/`, `cmake/`, `.github/`, `CMakeLists.txt`, `data/`). `third_party/` excluded. Translation files, golden `*.log` data, lock files, and binary assets excluded.

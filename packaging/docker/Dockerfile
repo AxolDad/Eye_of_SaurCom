@@ -18,7 +18,7 @@ RUN --mount=type=bind,source=.,target=/ctx set -eux; \
     arch="${TARGETARCH:-$(dpkg --print-architecture)}"; \
     if ls /ctx/debs/saurcom_*_"$arch".deb >/dev/null 2>&1; then cp /ctx/debs/saurcom_*_"$arch".deb /tmp/saurcom.deb; else \
     curl -fsSL --retry 8 --retry-all-errors --retry-delay 30 -o /tmp/saurcom.deb \
-      "https://github.com/AxolDad/Eye_of_ZorCom/releases/download/v${SAURCOM_VERSION}/saurcom_${SAURCOM_VERSION}_${arch}.deb"; fi; \
+      "https://github.com/AxolDad/Eye_of_SaurCom/releases/download/v${SAURCOM_VERSION}/saurcom_${SAURCOM_VERSION}_${arch}.deb"; fi; \
     apt-get install -y --no-install-recommends /tmp/saurcom.deb zenity soapysdr-module-all libfaad2 fonts-dejavu-core fonts-wqy-microhei; \
     # Docker Engine (the base image can run Docker inside), the compiler tool chain, every locale at once (the one LANG names is
     # made at the start instead, init-saurcom) and Noto CJK. Matched by name so that the same list works on x86-64 and arm64.
@@ -35,7 +35,7 @@ COPY --from=full / /
 
 LABEL org.opencontainers.image.title="Eye of SaurCom" \
       org.opencontainers.image.description="Eye of SaurCom software-defined radio receiver, its full GUI in the browser" \
-      org.opencontainers.image.source="https://github.com/AxolDad/Eye_of_ZorCom" \
+      org.opencontainers.image.source="https://github.com/AxolDad/Eye_of_SaurCom" \
       org.opencontainers.image.licenses="GPL-3.0-or-later"
 
 # The settings of the base image (docker image inspect ghcr.io/linuxserver/baseimage-selkies:ubuntunoble): a single-layer image does

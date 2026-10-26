@@ -95,7 +95,7 @@ struct Content {
     std::vector<int16_t> audio; int audioRate = 0;
     resexp::Table table;
 };
-inline const char* kRepoUrl = "https://github.com/AxolDad/Eye_of_ZorCom";
+inline const char* kRepoUrl = "https://github.com/AxolDad/Eye_of_SaurCom";
 std::string freqText(double hz);                                    // "1090 MHz", "93.9 MHz", "7.074 MHz", "145.8 kHz"
 std::string utcText(double t, bool seconds = false);                // "2026-10-17 14:32 UTC"
 std::string buildHtml(const Content& c);                           // one file, no scripts, no external requests

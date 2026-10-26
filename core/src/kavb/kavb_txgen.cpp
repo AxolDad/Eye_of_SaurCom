@@ -154,7 +154,7 @@ bool kavbFromRequest(const TxRequest& r, KavbTxPlan& plan, std::string& err) {
     plan = KavbTxPlan();
     for (char c : r.callsign) plan.callsign += (char)std::toupper((unsigned char)c);
     while (!plan.callsign.empty() && plan.callsign.back() == ' ') plan.callsign.pop_back();
-    if (plan.callsign.empty()) plan.callsign = "SAURCOM";
+    if (plan.callsign.empty()) plan.callsign = "SAURCM";
     if (plan.callsign.size() > 7) { err = "KAVB: the callsign is at most 7 characters"; return false; }
     for (char c : plan.callsign) {
         if (!(c == '/' || (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z'))) { err = "KAVB: the callsign may hold only letters, digits and /"; return false; }

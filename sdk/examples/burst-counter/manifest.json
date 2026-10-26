@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "author": "Eye of SaurCom contributors",
   "license": "CC0-1.0",
-  "homepage": "https://github.com/AxolDad/Eye_of_ZorCom",
+  "homepage": "https://github.com/AxolDad/Eye_of_SaurCom",
   "description": "Counts bursts of signal above a threshold over the noise floor, with start time, length and peak level. Emits the automation event plugin.burst for each one.",
   "kind": "mode",
   "abi_version": 1,

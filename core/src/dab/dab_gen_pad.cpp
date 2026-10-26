@@ -116,7 +116,7 @@ std::vector<std::vector<uint8_t>> slideDse(size_t nAu) {
         out[j] = {0x80, (uint8_t)d.size()};                                                      // data stream element, instance 0, count
         out[j].insert(out[j].end(), d.begin(), d.end());
     }
-    // the rest of the loop: the dynamic label, two segments (16 and 8 characters) sent over and over, each in one X-PAD with a type 2 indicator
+    // the rest of the loop: the dynamic label (up to 32 characters), two segments of up to 16 sent over and over, each in one X-PAD with a type 2 indicator
     const char* label = "SaurCom Melody - test tune";
     const size_t ll = std::strlen(label);
     for (size_t j = items.size(); j < nAu; j++) {
@@ -125,7 +125,7 @@ std::vector<std::vector<uint8_t>> slideDse(size_t nAu) {
         s.insert(s.end(), label + from, label + from + n);
         const std::vector<uint8_t> c = be16crc(s.data(), s.size());
         s.insert(s.end(), c.begin(), c.end());
-        const int idx = s.size() <= 24 && s.size() > 16 ? 5 : 3;                                  // subfield of 24 or 12 bytes
+        const int idx = s.size() > 12 ? 5 : 3;                                                    // subfield of 24 or 12 bytes, whichever holds the segment
         s.resize(idx == 5 ? 24 : 12, 0);
         std::vector<uint8_t> xp = {(uint8_t)((idx << 5) | 2), 0x00};
         xp.insert(xp.end(), s.begin(), s.end());

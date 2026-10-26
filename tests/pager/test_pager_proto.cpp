@@ -254,7 +254,7 @@ static void pocsagRoundTripTests() {
         CHECK(outMid.size() == 1 && outMid[0].type == kPagerAlpha && outMid[0].damaged, "%d baud: damaged page kept (%zu pages)", bauds[s], outMid.size());
         if (outMid.size() == 1) {
             // the characters after the lost word come back exactly; the lost word's 20 bits are a gap (characters 5 and 8 may be dropped)
-            CHECK(outMid[0].text.rfind("SaurCom", 0) == 0, "%d baud: text before the gap '%s'", bauds[s], outMid[0].text.c_str());
+            CHECK(outMid[0].text.rfind(std::string(texts[s]).substr(0, 5), 0) == 0, "%d baud: text before the gap '%s'", bauds[s], outMid[0].text.c_str());
             CHECK(outMid[0].text.find(std::string(texts[s]).substr(9)) != std::string::npos, "%d baud: text after the gap '%s'", bauds[s], outMid[0].text.c_str());
         }
         CHECK(mid.failed == 1, "%d baud: %d failed words", bauds[s], mid.failed);
