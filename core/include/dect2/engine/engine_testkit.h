@@ -11,8 +11,9 @@ namespace dect2 {
 namespace enginetest {
 
 // Speed of the synthetic source relative to a radio. Fast, but not unlimited: when the receiver is never idle the engine publishes a report only about
-// every 250 ms of wall time, which is pace x 0.25 s of signal. So the faster the source, the coarser the clock of the reports: a test that checks
-// "locked within N seconds" picks a pace for which that step is well below N.
+// every 250 ms of wall time, which is pace x 0.25 s of signal, or after a second of signal when the receiver is faster than that (a backlog, such as
+// the samples queued while start() set up the receivers). So a report steps at most a second of signal; a test that checks "locked within N seconds"
+// picks a pace for which pace x 0.25 s is well below N.
 constexpr double kFastPace = 4.0;
 
 // Seconds of signal the engine's analysis thread has processed since the engine was created (the engine's own diagnostics; the counter is not

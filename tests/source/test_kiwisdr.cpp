@@ -93,14 +93,15 @@ struct Fake {
         else { f += (char)127; for (int i = 7; i >= 0; i--) f += (char)((uint64_t)p.size() >> (8 * i) & 255); }
         sockSendAll(c, (f + p).data(), f.size() + p.size());
     }
-    bool rd(sock_t c, void* d, size_t n, bool idleOk) {
+    // n bytes; false when the client closed the connection (closed set), or when nothing came within the timeout and idleOk (nothing read)
+    bool rd(sock_t c, void* d, size_t n, bool idleOk, bool* closed = nullptr) {
         char* p = (char*)d;
         size_t got = 0;
         int idle = 0;
         while (got < n) {
             const long long k = sockRecv(c, p + got, n - got);
             if (k > 0) { got += (size_t)k; continue; }
-            if (k == 0) return false;
+            if (k == 0) { if (closed) *closed = true; return false; }
             if (got == 0 && idleOk) return false;
             if (++idle > 100) return false;
         }
@@ -145,7 +146,9 @@ struct Fake {
             { std::lock_guard<std::mutex> lk(mu); s = streaming; }
             if (s && (++tick % 3) == 0) wsSend(c, 2, sndFrame(seq++, 512, 16384, -8192, 0x08, 700));
             unsigned char h[2];
-            if (!rd(c, h, 2, true)) { if (!run) return; if (sockPeekClosed(c) == 0) return; continue; }
+            // (not sockPeekClosed(): it takes a byte, and a frame that arrives just after the timeout would lose its first byte and the stream its framing)
+            bool closed = false;
+            if (!rd(c, h, 2, true, &closed)) { if (!run || closed) return; continue; }
             const int op = h[0] & 15;
             size_t len = h[1] & 127;
             if (len == 126) { unsigned char x[2]; if (!rd(c, x, 2, false)) return; len = x[0] << 8 | x[1]; }
