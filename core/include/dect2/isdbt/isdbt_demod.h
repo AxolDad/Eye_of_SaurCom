@@ -27,6 +27,9 @@ public:
     // One symbol: Y has totalCarriers(mode) entries ordered by carrier number; symIdx is the symbol's place in the frame (0..203).
     // Decoding starts at the first symbol with symIdx == 0.
     void pushSymbol(const cf32* Y, int symIdx);
+    // Waits until every symbol pushed so far is decoded and its packets published (the layer decoders run on a worker thread of their own,
+    // so the packets otherwise come out some time after pushSymbol(): later on a busy machine)
+    void waitDecoded();
     // Packets decoded so far for a layer (188 bytes each; transport_error_indicator set on those Reed-Solomon could not repair)
     void takePackets(int layer, std::vector<uint8_t>& out);
     // Packets of all layers of the frames decoded since the last call, merged in the order of the model receiver (a packet is ready when its

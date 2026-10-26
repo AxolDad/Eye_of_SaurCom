@@ -100,8 +100,19 @@ bool connectAndAsk(WsClient& ws, const std::string& host, int port, int timeoutM
     return true;
 }
 
-void closeWs(WsClient& ws) {
-    if (ws.sock() != kBadSock) { ws.sendClose(); sockShutdown(ws.sock()); sockClose(ws.sock()); ws.attach(kBadSock); }
+// A graceful close: the close frame (unless closing already sent it) and our FIN, then whatever the server still sends read and dropped until its
+// FIN (at most 1 s). Shutting the read side or closing with unread data makes the TCP stack reset the connection instead, and on Windows that
+// happens at once (shutdown SD_RECEIVE with IQ still arriving) and a reset loses the commands just sent (iq_stop) at the server.
+void closeWs(WsClient& ws, bool closing = false) {
+    const sock_t s = ws.sock();
+    if (s == kBadSock) return;
+    if (!closing) { ws.sendClose(); sockShutdownWrite(s); }
+    sockRecvTimeout(s, 100);
+    char b[4096];
+    const auto end = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+    while (std::chrono::steady_clock::now() < end && sockRecv(s, b, sizeof b) > 0) {}
+    sockClose(s);
+    ws.attach(kBadSock);
 }
 
 } // namespace
@@ -202,8 +213,9 @@ protected:
         return true;
     }
     void closeDevice() override {
-        if (ws_.sock() != kBadSock) ws_.sendText("iq_stop:" + std::to_string(rx_) + ";");
-        closeWs(ws_);
+        if (ws_.sock() != kBadSock && !closing_) ws_.sendText("iq_stop:" + std::to_string(rx_) + ";");
+        closeWs(ws_, closing_);
+        closing_ = false;
     }
     bool restartForRate() const override { return false; }   // iq_samplerate is accepted while streaming
     void streamLoop() override {
@@ -253,7 +265,15 @@ protected:
             lostAt_ = std::chrono::steady_clock::now();
         }
     }
-    void interrupt() override {   /* read side only: closeDevice still has to send iq_stop */ if (ws_.sock() != kBadSock) sockShutdownRead(ws_.sock()); }
+    // iq_stop, the close frame and our FIN: the server answers by closing, which ends the blocking read in streamLoop() (as does its next block,
+    // run_ being false); closeDevice() then only waits for that close. Not a shutdown of the read side: see closeWs().
+    void interrupt() override {
+        if (ws_.sock() == kBadSock || closing_) return;
+        ws_.sendText("iq_stop:" + std::to_string(rx_) + ";");
+        ws_.sendClose();
+        sockShutdownWrite(ws_.sock());
+        closing_ = true;
+    }
 
 private:
     std::string addr_;
@@ -262,6 +282,7 @@ private:
     TciInfo info_;
     int rx_ = 0;
     long long sentFreq_ = -1, sentRate_ = -1;
+    bool closing_ = false;   // interrupt() sent iq_stop, the close frame and our FIN
     std::chrono::steady_clock::time_point lostAt_{};
 };
 

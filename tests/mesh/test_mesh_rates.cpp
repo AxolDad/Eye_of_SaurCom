@@ -5,12 +5,37 @@
 #include "../common/ci_slack.h"
 #include "dect2/mesh/mesh_rx.h"
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <ctime>
 #include <vector>
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 using namespace dect2;
 
 #include "../common/test_util.h"
+
+// CPU time of the calling thread (the receiver runs in it). Not std::clock(): on Windows that is wall time since the program started, so a runner
+// busy with other tests made the receiver look slower than it is.
+static double threadCpuSeconds() {
+#ifdef _WIN32
+    FILETIME c, e, k, u;   // 100 ns units
+    GetThreadTimes(GetCurrentThread(), &c, &e, &k, &u);
+    auto t = [](const FILETIME& f) { return (double)((uint64_t)f.dwHighDateTime << 32 | f.dwLowDateTime) * 1e-7; };
+    return t(k) + t(u);
+#else
+    timespec ts;
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+    return (double)ts.tv_sec + 1e-9 * (double)ts.tv_nsec;
+#endif
+}
 
 static void run(double rate, double secs, int region, size_t chunk) {
     SynthConfig cfg;
@@ -26,9 +51,9 @@ static void run(double rate, double secs, int region, size_t chunk) {
     for (size_t done = 0; done < (size_t)(secs * rate); done += chunk) {
         syn->generate(buf.data(), chunk);
         for (auto& v : buf) v = cf32(std::round(v.real() * 127.f) / 127.f, std::round(v.imag() * 127.f) / 127.f);
-        const std::clock_t a = std::clock();
+        const double a = threadCpuSeconds();
         rx.feed(buf.data(), chunk);
-        cpu += (double)(std::clock() - a) / CLOCKS_PER_SEC;
+        cpu += threadCpuSeconds() - a;
     }
     MeshTelemetry t;
     rx.telemetry(t, 0);

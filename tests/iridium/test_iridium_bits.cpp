@@ -118,12 +118,12 @@ int main() {
     }
     // live copy: a synthetic burst written with only the UDP stream open arrives as the same RAW line, newline-ended
     {
+        dect2::netInit();   // before the first socket call (WSAStartup on Windows)
         const dect2::sock_t rs = socket(AF_INET, SOCK_DGRAM, 0);
         sockaddr_in a{};
         a.sin_family = AF_INET; a.sin_addr.s_addr = htonl(INADDR_LOOPBACK); a.sin_port = 0;
-        dect2::netInit();
         CHECK(rs != dect2::kBadSock && bind(rs, (sockaddr*)&a, sizeof a) == 0, "udp bind");
-        #ifdef _WIN32
+#ifdef _WIN32
         int al = (int)sizeof a;
 #else
         socklen_t al = sizeof a;

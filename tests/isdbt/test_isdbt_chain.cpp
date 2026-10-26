@@ -44,6 +44,7 @@ static bool run(const Case& c) {
             for (int k = 0; k < K; k++) Y[(size_t)k] = sym[(size_t)(((k - kc) % N + N) % N)];
             dem.pushSymbol(Y.data(), s);
         }
+        dem.waitDecoded();   // the packets of this frame, not whatever the decoder thread has got to (on a slow machine still in the warm-up frames)
         for (int li = 0; li < 3; li++) {
             pk.clear();
             dem.takePackets(li, pk);

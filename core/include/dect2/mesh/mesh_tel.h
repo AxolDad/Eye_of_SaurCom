@@ -103,7 +103,7 @@ struct MeshNode {
     uint32_t posUnix = 0;        // the time sent with it (0 = none)
     double batteryPct = -1, voltage = -1;
     double channelUtilPct = -1, airUtilTxPct = -1;
-    long uptimeS = -1;
+    int64_t uptimeS = -1;
     bool hasEnv = false;
     double tempC = 0, humidity = 0, pressureHpa = 0;
     float lastSnrDb = 0;
@@ -126,7 +126,7 @@ struct MeshReading {
     int protocol = 1;
     std::string id;              // the node
     double batteryPct = -1, voltage = -1, channelUtilPct = -1, airUtilTxPct = -1;   // -1 = not in this report
-    long uptimeS = -1;
+    int64_t uptimeS = -1;
     bool hasEnv = false;
     double tempC = 0, humidity = 0, pressureHpa = 0;
     bool hasPosition = false;
