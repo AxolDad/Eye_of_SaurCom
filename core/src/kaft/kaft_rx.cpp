@@ -139,7 +139,33 @@ void FrameReceiver::extendDec(int w, bool final) {
     const size_t oldN = d.size();
     d.resize(oldN + (size_t)(m1 - m0));
     const float* tap = tap_[w].data();
-    for (int64_t m = m0; m < m1; m++) {
+    // Outputs m, m + up, m + 2 up, ... have the same filter phase: the same taps over inputs `down` apart. A group of kG of them is summed side by side,
+    // kG independent chains instead of one long chain of dependent additions (each output keeps its own order of terms: the result is the same).
+    constexpr int64_t kG = 4;
+    const float* xin = reinterpret_cast<const float*>(in_.data());
+    int64_t m = m0;
+    while (m + up * kG <= m1) {
+        const int64_t kFirst = floorDivI(m * down - H + up - 1, up), kLast = floorDivI((m + up * kG - 1) * down + H, up);
+        if (kFirst < (int64_t)base_ || kLast > endAbs - 1) break;   // the edges of the input: one at a time below
+        for (int64_t r = 0; r < up; r++) {
+            const int64_t mr = m + r, pos = mr * down;
+            const int64_t k0 = floorDivI(pos - H + up - 1, up), k1 = floorDivI(pos + H, up);
+            const float* tp = tap + (pos - k0 * up + H);
+            const float* xp = xin + 2 * (k0 - (int64_t)base_);
+            const int64_t xs = 2 * down;
+            float re[kG] = {}, im[kG] = {};
+            for (int64_t i = 0; i <= k1 - k0; i++) {
+                const float t = tp[-i * up];
+                for (int64_t g = 0; g < kG; g++) {
+                    re[g] += t * xp[g * xs + 2 * i];
+                    im[g] += t * xp[g * xs + 2 * i + 1];
+                }
+            }
+            for (int64_t g = 0; g < kG; g++) d[oldN + (size_t)(mr + g * up - m0)] = cf(re[g], im[g]);
+        }
+        m += up * kG;
+    }
+    for (; m < m1; m++) {
         const int64_t pos = m * down;
         int64_t k0 = floorDivI(pos - H + up - 1, up), k1 = floorDivI(pos + H, up);
         k0 = std::max<int64_t>(k0, (int64_t)base_);
@@ -166,30 +192,50 @@ void FrameReceiver::extendMf(int w, bool final) {
     if (n1 <= n0) return;
     mf.resize((size_t)n1);
     const float* x = reinterpret_cast<const float*>(d.data());
-    for (long n = n0; n < n1; n++) {
-        float re, im;
-        if (n >= c && n + c < N) {   // the filter is symmetric: one multiplication per pair of taps
-            re = h[(size_t)c] * x[2 * n];
-            im = h[(size_t)c] * x[2 * n + 1];
-            const float* hp = h.data() + c;
-            const float* xp = x + 2 * n;
-            const float* xm = x + 2 * n;
+    // The filter is symmetric: one multiplication per pair of taps. A block of outputs is summed tap by tap, across the block: the additions of one
+    // output no longer wait for each other, the block stays in registers and the compiler vectorises the loop over it (each output keeps its own
+    // order of terms: the result is the same as one output at a time, which the outputs left over get).
+    constexpr long kBlk = 16;
+    const float* hp = h.data() + c;
+    for (long n = n0; n < n1;) {
+        if (n >= c && n + kBlk <= n1 && n + kBlk - 1 + c < N) {
+            float acc[2 * kBlk] = {};
+            for (long j = 1; j <= c; j++) {
+                const float hj = hp[j];
+                const float* xp = x + 2 * (n + j);
+                const float* xm = x + 2 * (n - j);
+                for (long i = 0; i < 2 * kBlk; i++) acc[i] += hj * (xp[i] + xm[i]);
+            }
+            for (long i = 0; i < kBlk; i++) {
+                float re = h[(size_t)c] * x[2 * (n + i)], im = h[(size_t)c] * x[2 * (n + i) + 1];
+                re += acc[2 * i];
+                im += acc[2 * i + 1];
+                mf[(size_t)(n + i)] = cf(re, im);
+            }
+            n += kBlk;
+            continue;
+        }
+        if (n >= c && n + c < N) {
+            float re = h[(size_t)c] * x[2 * n], im = h[(size_t)c] * x[2 * n + 1];
             float r2 = 0.f, i2 = 0.f;
             for (long j = 1; j <= c; j++) {
-                r2 += hp[j] * (xp[2 * j] + xm[-2 * j]);
-                i2 += hp[j] * (xp[2 * j + 1] + xm[-2 * j + 1]);
+                r2 += hp[j] * (x[2 * (n + j)] + x[2 * (n - j)]);
+                i2 += hp[j] * (x[2 * (n + j) + 1] + x[2 * (n - j) + 1]);
             }
             re += r2;
             im += i2;
-        } else {
-            re = 0.f; im = 0.f;
-            const long k0 = std::max<long>(0, c - n), k1 = std::min<long>(T - 1, N - 1 - n + c);
-            for (long k = k0; k <= k1; k++) {
-                re += h[(size_t)k] * x[2 * (n + k - c)];
-                im += h[(size_t)k] * x[2 * (n + k - c) + 1];
-            }
+            mf[(size_t)n] = cf(re, im);
+            n++;
+            continue;
+        }
+        float re = 0.f, im = 0.f;
+        const long k0 = std::max<long>(0, c - n), k1 = std::min<long>(T - 1, N - 1 - n + c);
+        for (long k = k0; k <= k1; k++) {
+            re += h[(size_t)k] * x[2 * (n + k - c)];
+            im += h[(size_t)k] * x[2 * (n + k - c) + 1];
         }
         mf[(size_t)n] = cf(re, im);
+        n++;
     }
 }
 
@@ -233,9 +279,11 @@ void FrameReceiver::process(bool final) {
         off[w] = (double)decSt_[w] * inPerOwn - (double)base_;
         const size_t n = mf.size();
         if (n < kWin + kLag + 16) continue;
-        // lag-251 autocorrelation with running sums
-        std::vector<cd> cs(n - kLag + 1);
-        std::vector<double> e(n + 1);
+        // lag-251 autocorrelation with running sums (the buffers are kept from call to call: no fresh pages of memory to fault in each time)
+        std::vector<cd>& cs = cs_;
+        std::vector<double>& e = e_;
+        cs.resize(n - kLag + 1);
+        e.resize(n + 1);
         cs[0] = 0;
         for (size_t i = 0; i + kLag < n; i++)
             cs[i + 1] = cs[i] + cd(mf[i].real(), mf[i].imag()) * std::conj(cd(mf[i + kLag].real(), mf[i + kLag].imag()));
@@ -244,7 +292,7 @@ void FrameReceiver::process(bool final) {
         const size_t nS = n - kLag - kWin + 1;
         bool inRun = false;
         size_t best = 0, lastAbove = 0;
-        double bestM = 0;
+        double bestM = 0;   // squared
         cd bestP = 0;
         auto emit = [&]() {
             Cand c;
@@ -329,12 +377,14 @@ void FrameReceiver::process(bool final) {
         // Digital silence (exact zeros between frames, as in a recorded file made without noise): the differences of the running sums are then
         // rounding residue of both numerator and denominator, and their ratio would come out large. A window is only looked at when its energy is
         // a real share of the average.
+        // The metric is compared squared: no hypot() (std::abs of P) and no square root for each sample.
         const double eFloor = 1e-6 * (e[n] / (double)n) * (double)kWin;
+        const double thr2 = (double)cfg_.detectThreshold * (double)cfg_.detectThreshold;
         for (size_t s = 0; s < nS; s++) {
             const cd P = cs[s + kWin] - cs[s];
             const double e1 = e[s + kWin] - e[s], e2 = e[s + kLag + kWin] - e[s + kLag];
-            const double m = (e1 < eFloor || e2 < eFloor) ? 0.0 : std::abs(P) / std::sqrt(std::max(e1 * e2, 1e-30));
-            if (m > (double)cfg_.detectThreshold) {
+            const double m = (e1 < eFloor || e2 < eFloor) ? 0.0 : std::norm(P) / std::max(e1 * e2, 1e-30);
+            if (m > thr2) {
                 if (!inRun) { inRun = true; best = s; bestM = m; bestP = P; }
                 else if (m > bestM) { best = s; bestM = m; bestP = P; }
                 lastAbove = s;
