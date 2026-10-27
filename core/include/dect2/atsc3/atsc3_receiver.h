@@ -47,7 +47,7 @@ public:
 
     std::vector<SltService> services() const;                 // from the low level signaling received so far
     bool selectService(int serviceId);                        // false until the service is known; may be called before, it is remembered
-    int selectedService() const { return selected_; }
+    int selectedService() const;
     // When no service has been chosen, take the first visible linear video service (ROUTE) as soon as the service list arrives.
     void setAutoSelect(bool on) { autoSelect_ = on; }
     bool serviceReady() const;                                // the service's signaling (S-TSID) has arrived
@@ -68,7 +68,7 @@ private:
     bool sawTs_ = false, stopped_ = false;
     void onAlp(const AlpPacket& a);
     void onUdp(const UdpDatagram& d);
-    void startRoute();
+    void startRoute();                             // with routeMu_ held
     void onObject(const RouteComponent& c, const RouteObject& o);
 
     mutable std::mutex mu_;
@@ -79,6 +79,7 @@ private:
     int selected_ = -1;
     bool autoSelect_ = false;
     bool routeStarted_ = false;
+    mutable std::mutex routeMu_;                   // taken before mu_: route_ (the pointer and the service's state, which takes datagrams outside mu_)
     std::unique_ptr<RouteService> route_;
     std::map<std::string, int> remuxIds_;          // component key -> remux component id
     std::map<int, std::vector<uint8_t>> lastInit_;

@@ -54,6 +54,7 @@ private:
     std::condition_variable cv_, cvSpace_;
     std::deque<std::vector<cf32>> q_;
     size_t queued_ = 0;
+    uint64_t fed_ = 0;                                  // samples fed since start (with mu_)
     std::atomic<bool> stop_{true}, blocking_{false}, paced_{false};
     std::thread worker_, pump_;
     std::unique_ptr<atsc3::Atsc3Receiver> rx_;

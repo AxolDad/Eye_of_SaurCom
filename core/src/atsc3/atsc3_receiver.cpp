@@ -269,18 +269,15 @@ void Atsc3Receiver::onUdp(const UdpDatagram& d) {
                     if (sv.category == 1 && !sv.hidden && sv.slsProtocol == 1) { selected_ = sv.serviceId; start = true; break; }
             }
         }
-        if (start) startRoute();
+        if (start) { std::lock_guard<std::mutex> rl(routeMu_); startRoute(); }
         return;
     }
-    RouteService* r = nullptr;
-    {
-        std::lock_guard<std::mutex> lk(mu_);
-        r = route_.get();
-    }
-    if (r) r->push(d);
+    std::lock_guard<std::mutex> rl(routeMu_);   // a service chosen meanwhile (selectService) waits until the datagram is through
+    if (route_) route_->push(d);
 }
 
 bool Atsc3Receiver::selectService(int id) {
+    std::lock_guard<std::mutex> rl(routeMu_);
     {
         std::lock_guard<std::mutex> lk(mu_);
         selected_ = id;
@@ -336,9 +333,10 @@ void Atsc3Receiver::onObject(const RouteComponent& c, const RouteObject& o) {
 }
 
 std::vector<SltService> Atsc3Receiver::services() const { std::lock_guard<std::mutex> lk(mu_); return services_; }
-bool Atsc3Receiver::serviceReady() const { std::lock_guard<std::mutex> lk(mu_); return route_ && route_->ready(); }
-std::string Atsc3Receiver::mpd() const { std::lock_guard<std::mutex> lk(mu_); return route_ ? route_->mpd() : std::string(); }
-std::vector<RouteComponent> Atsc3Receiver::components() const { std::lock_guard<std::mutex> lk(mu_); return route_ ? route_->components() : std::vector<RouteComponent>(); }
+int Atsc3Receiver::selectedService() const { std::lock_guard<std::mutex> lk(mu_); return selected_; }
+bool Atsc3Receiver::serviceReady() const { std::lock_guard<std::mutex> rl(routeMu_); return route_ && route_->ready(); }
+std::string Atsc3Receiver::mpd() const { std::lock_guard<std::mutex> rl(routeMu_); return route_ ? route_->mpd() : std::string(); }
+std::vector<RouteComponent> Atsc3Receiver::components() const { std::lock_guard<std::mutex> rl(routeMu_); return route_ ? route_->components() : std::vector<RouteComponent>(); }
 FrameInfo Atsc3Receiver::frameInfo() const { std::lock_guard<std::mutex> lk(mu_); return info_; }
 ReceiverStats Atsc3Receiver::stats() const { std::lock_guard<std::mutex> lk(mu_); return st_; }
 
