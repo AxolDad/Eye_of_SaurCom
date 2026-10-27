@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Shell syntax
-        run: for f in tools/*.sh; do bash -n "$f" || exit 1; done
+        run: for f in tools/*.sh packaging/proxmox/*.sh; do bash -n "$f" || exit 1; done
       - name: Workflow YAML syntax
         run: python3 -c "import sys,yaml;[yaml.safe_load(open(f)) for f in sys.argv[1:]]" .github/workflows/*.yml
       - name: Python syntax
