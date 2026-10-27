@@ -13,10 +13,11 @@ int main() {
         FaxDecoder d;
         d.configure(o.rate);
         std::atomic<bool> done{false};
-        std::atomic<int> bad{0}, images{0};
+        std::atomic<int> bad{0}, images{0}, running{0};   // running: the reader's and the setter's first pass done
         std::thread reader([&] {
             uint64_t seq = 0;
             FaxImage im;
+            bool first = true;
             while (!done) {
                 if (d.latestImage(im, seq)) {
                     images++;
@@ -24,6 +25,7 @@ int main() {
                 }
                 const FaxStatus s = d.status();
                 if (s.state < 0 || s.state > 3 || s.lines < 0 || s.lines > 1500 || !(s.snrDb > -100 && s.snrDb < 100)) bad++;
+                if (first) { first = false; running++; }
             }
         });
         std::thread setter([&] {
@@ -32,9 +34,13 @@ int main() {
                 d.setSlantPpm((k++ % 7) - 3.0);
                 d.setAutoSlant((k & 8) != 0);
                 d.setMaxLines(1500);
+                if (k == 1) running++;
                 std::this_thread::sleep_for(std::chrono::microseconds(300));
             }
         });
+        // both threads running before the audio goes in: a busy runner (Windows CI, tests in parallel) may otherwise start the reader only
+        // after feeding is done, and it then sees no image while the decoder works
+        while (running < 2) std::this_thread::yield();
         feedAll(d, a, 1024);
         done = true;
         reader.join();
