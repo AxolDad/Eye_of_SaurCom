@@ -15,6 +15,7 @@ constexpr int kNone = INT_MIN / 2;
 constexpr double kQueueSec = 0.2;         // signal time that may wait for a receiver (a count of blocks was 9 ms at 60 Msps: any hiccup of a receiver lost samples)
 constexpr size_t kQueueMin = 1u << 19;    // samples, at least
 constexpr int kAbsentEvals = 8;           // evaluations (a quarter second each) without a signal before an idle receiver is dropped
+constexpr uint64_t kTelNs = 50000000;     // a T2 slot publishes its telemetry this often (and whenever its queue runs empty)
 inline uint64_t nowNs() { return (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
 }
 
@@ -42,6 +43,12 @@ struct MultiTv::Slot {
     bool stop = false, busy = false;
     std::thread th;
     std::atomic<uint64_t> busyNs{0}, dropped{0}, sigSamples{0};
+    // T2Receiver::telemetry() reads the receiver's working state, so only the thread that feeds it may call it: the slot's thread does,
+    // and poll() takes the copy from here
+    std::mutex telMu;
+    RxTelemetry telPending;
+    bool telFresh = false;
+    uint64_t telNs = 0;
     // polling (the owner's thread)
     uint64_t telSeq = 0;
     RxTelemetry tel;
@@ -99,6 +106,19 @@ struct MultiTv::Slot {
             o.clear();
             filter.process(b->data(), b->size(), o);
             if (!o.empty()) { if (dvbt) t->feed(o.data(), o.size()); else t2->feed(o.data(), o.size()); }
+            if (!dvbt) {
+                bool idle;
+                { std::lock_guard<std::mutex> lk(qMu); idle = q.empty(); }
+                const uint64_t now = nowNs();
+                if (idle || now - telNs >= kTelNs) {
+                    telNs = now;
+                    RxTelemetry tt;
+                    t2->telemetry(tt, 0);
+                    std::lock_guard<std::mutex> lk(telMu);
+                    telPending = std::move(tt);
+                    telFresh = true;
+                }
+            }
             busyNs += nowNs() - t0;
             { std::lock_guard<std::mutex> lk(qMu); busy = false; }
             qCv.notify_all();
@@ -281,7 +301,13 @@ bool MultiTv::poll(RxTelemetry& out) {
     for (auto& sp : live_) {
         Slot& s = *sp;
         RxTelemetry t;
-        if (s.dvbt ? s.t->telemetry(t, s.telSeq) : s.t2->telemetry(t, s.telSeq)) {
+        bool got = false;
+        if (s.dvbt) got = s.t->telemetry(t, s.telSeq);
+        else {
+            std::lock_guard<std::mutex> tk(s.telMu);
+            if (s.telFresh) { t = std::move(s.telPending); s.telFresh = false; got = true; }
+        }
+        if (got) {
             s.telSeq = t.seq; s.tel = std::move(t); s.haveTel = true;
             if (s.pos.index == sel) selNew = true;
         }
