@@ -145,6 +145,7 @@ void Engine::configureTvReceivers(const DeviceInfo& dev, const TuneSettings& tun
     rxDvbs_.setPacketCallback([this](const uint8_t* pk, size_t n, double secs) { rxDvbs_.feedTs(pk, n); onTsPackets(pk, n, secs); });   // runs on the receiver thread
     rxDvbs_.setLogCallback([this](const std::string& s) { log(s); });
     rxDtmb_.configure(rate_, tune.bandwidthMhz);
+    rxDtmb_.setBlocking(!src_->realtimeHardware());   // a recording or the test signal waits for the LDPC decoders: only a live radio drops codewords
     rxDtmb_.setPacketCallback([this](const uint8_t* pk, size_t n, double secs) { onTsPackets(pk, n, secs); });   // runs on the receiver thread
     rxDtmb_.setLogCallback([this](const std::string& s) { log(s); });
     rxAtv_.configure(rate_);

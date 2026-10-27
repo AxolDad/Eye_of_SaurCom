@@ -134,12 +134,13 @@ int main() {
         o.seconds = x.mode2 ? 2.0 : 1.5;
         const Result r = run(o);
         const double perSec = netBitrate(Header::Pn595, o.sc.tx.profile) / kTsBits;
-        printf("  %-40s first packet %.2f s, %llu good, %llu wrong, %llu missing; codewords ok %llu bad %llu; C=%d C/N %.1f MER %.1f\n", x.name, r.firstGoodSec, (unsigned long long)r.good,
-               (unsigned long long)r.wrong, (unsigned long long)r.missing, (unsigned long long)r.tel.blocksOk, (unsigned long long)r.tel.blocksBad, r.tel.carriers, r.tel.snrPnDb, r.tel.merDb);
+        printf("  %-40s first packet %.2f s, %llu good, %llu wrong, %llu missing; codewords ok %llu bad %llu dropped %llu; C=%d C/N %.1f MER %.1f\n", x.name, r.firstGoodSec, (unsigned long long)r.good,
+               (unsigned long long)r.wrong, (unsigned long long)r.missing, (unsigned long long)r.tel.blocksOk, (unsigned long long)r.tel.blocksBad, (unsigned long long)r.tel.cwDropped, r.tel.carriers, r.tel.snrPnDb, r.tel.merDb);
         CHECK(r.wrong == 0 && r.backwards == 0 && r.seqBack == 0, "%s: wrong or misordered packets", x.name);
         CHECK(r.tel.carriers == 1 && r.tel.siOk && r.tel.header == 1, "%s: carriers %d", x.name, r.tel.carriers);
         CHECK(r.tel.mapping == (int)x.m && r.tel.rate == (int)x.r && r.tel.interleaver == (x.mode2 ? 2 : 1), "%s: parameters from the system information", x.name);
         CHECK(r.firstGoodSec >= 0 && r.firstGoodSec < (x.mode2 ? 0.7 : 0.45), "%s: first packet at %.2f s", x.name, r.firstGoodSec);
+        CHECK(r.tel.cwDropped == 0, "%s: %llu codewords dropped (the receiver must wait for its decoders)", x.name, (unsigned long long)r.tel.cwDropped);
         CHECK(r.missing <= 3 * (uint64_t)packetsPerFrame(o.sc.tx.profile) + 8, "%s: %llu packets missing", x.name, (unsigned long long)r.missing);
         CHECK((double)r.good > 0.95 * perSec * (o.seconds - 0.6), "%s: %llu packets", x.name, (unsigned long long)r.good);
         CHECK(std::fabs(r.tel.cfoHz - x.cfo) < 40, "%s: carrier offset %.1f", x.name, r.tel.cfoHz);

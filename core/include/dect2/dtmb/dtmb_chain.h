@@ -38,6 +38,8 @@ public:
     // Where the LDPC decoding of the worker threads runs: 0 CPU, 1 GPU, 2 auto (the GPU when there is one and it is faster, measured while it runs).
     // The GPU takes several codewords at once. Without workers (tests) the decoding is always on the CPU. The decoded stream is the same on either.
     void setComputeMode(int mode);
+    // Recordings and tests: pushFrame waits for a worker when the queue is full instead of dropping the oldest codeword (a live radio cannot wait)
+    void setBlocking(bool b) { blocking_ = b; }
     static bool gpuUsable();    // the GPU has a kernel for these codes
     FecChain(const FecChain&) = delete;
     FecChain& operator=(const FecChain&) = delete;
@@ -95,12 +97,13 @@ private:
     int nWorkers_;
     std::vector<std::thread> threads_;
     mutable std::mutex mu_;
-    std::condition_variable cv_, doneCv_;
+    std::condition_variable cv_, doneCv_, spaceCv_;   // a job queued, a result done, a job taken from a full queue (blocking mode)
     std::deque<Job> queue_;
     std::map<uint64_t, Result> done_;
     uint64_t nextSeq_ = 0, nextOut_ = 0, generation_ = 0;
     int running_ = 0;
     bool stop_ = false;
+    std::atomic<bool> blocking_{false};
     ChainStats st_;
     double pendingSecs_ = 0;
     std::vector<uint8_t> out_;

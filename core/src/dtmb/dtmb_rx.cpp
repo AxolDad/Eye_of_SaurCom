@@ -154,6 +154,7 @@ struct DtmbReceiver::Impl {
     std::unique_ptr<FecChain> chain;
     std::atomic<int> decThreads{std::max(1, std::min(4, (int)std::thread::hardware_concurrency() / 2))};   // set from the interface thread
     std::atomic<int> computeMode{2};                      // 0 CPU, 1 GPU, 2 auto
+    std::atomic<bool> blocking{false};                    // wait for the decoder threads instead of dropping codewords
     uint64_t pktTotal = 0;
     ChainStats lastStats;
     long lastGoodAt = (std::numeric_limits<long>::min() / 2);
@@ -757,6 +758,7 @@ struct DtmbReceiver::Impl {
     void makeChain() {
         chain = std::make_unique<FecChain>(profile, hdr, decThreads.load(), symRate);
         chain->setComputeMode(computeMode.load());
+        chain->setBlocking(blocking.load());
         lastStats = ChainStats();
     }
 
@@ -802,6 +804,7 @@ struct DtmbReceiver::Impl {
     void pollChain() {
         if (!chain) return;
         chain->setComputeMode(computeMode.load());
+        chain->setBlocking(blocking.load());
         chain->poll([this](const uint8_t* p, size_t n, double secs) {
             pktTotal += n;
             lastGoodAt = produced();
@@ -949,6 +952,7 @@ void DtmbReceiver::setPacketCallback(std::function<void(const uint8_t*, size_t, 
 void DtmbReceiver::setComputeMode(int mode) {
     p_->computeMode = std::max(0, std::min(2, mode));   // the receiver thread hands it to the running chain at its next poll
 }
+void DtmbReceiver::setBlocking(bool b) { p_->blocking = b; }   // (handed to the running chain at its next poll)
 void DtmbReceiver::setDecoderThreads(int n) { p_->decThreads = std::max(0, std::min(16, n)); }
 
 void DtmbReceiver::flush() {

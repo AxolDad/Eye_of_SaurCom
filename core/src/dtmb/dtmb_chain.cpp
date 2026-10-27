@@ -57,6 +57,7 @@ FecChain::~FecChain() {   // (defined here: ComputeChoice is an internal type)
         stop_ = true;
     }
     cv_.notify_all();
+    spaceCv_.notify_all();
     for (auto& t : threads_) t.join();
 }
 
@@ -194,7 +195,8 @@ void FecChain::submit(Job&& j) {
         done_[j.seq] = std::move(r);
         return;
     }
-    std::lock_guard<std::mutex> lk(mu_);
+    std::unique_lock<std::mutex> lk(mu_);
+    if (blocking_.load()) spaceCv_.wait(lk, [this] { return queue_.size() < kQueueLimit || stop_; });   // a recording waits for the decoders
     j.seq = nextSeq_++;
     if (queue_.size() >= kQueueLimit) {
         // the decoders are behind: the oldest waiting word goes, the newest is the most useful
@@ -308,6 +310,7 @@ void FecChain::workerLoop() {
             gen = generation_;
             running_ += (int)take;
         }
+        spaceCv_.notify_one();
         const double t0 = nowSec();
         decodeBatch(batch, res, dec, gpu);
         {   // the time not spent in the LDPC iterations (BCH, descrambling, packets), shared over the words

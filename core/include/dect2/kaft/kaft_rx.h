@@ -12,6 +12,7 @@
 // there is no sample clock tracking inside a frame (frames are at most 32000 symbols, so a clock error of a few ppm is harmless).
 #pragma once
 #include "dect2/kaft/kaft_frame.h"
+#include <complex>
 #include <cstdint>
 #include <vector>
 
@@ -82,6 +83,8 @@ private:
     int64_t decSt_[kNumWidths] = {0, 0, 0};
     std::vector<float> tap_[kNumWidths];
     int tapH_[kNumWidths] = {0, 0, 0};
+    std::vector<std::complex<double>> cs_;   // scratch of process(): the running sums of the lag-251 products and of the energy
+    std::vector<double> e_;
 };
 
 // convenience: all frames of one recording
