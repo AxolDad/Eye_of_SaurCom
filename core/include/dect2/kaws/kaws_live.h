@@ -38,6 +38,10 @@ public:
 
     // UTC seconds since the epoch. The default is the computer's clock; a test gives its own.
     void setClock(std::function<double()> utcNow);
+    // How long (seconds) the samples just given to feed() waited before it, in the engine's queue (the receivers start after the radio). The slot clock is
+    // set once, from the first samples: the clock now minus this delay is when they came out of the radio (or the synthetic source), and from there on the
+    // stream's own samples count the time. The default is no delay.
+    void setInputDelay(std::function<double()> sec);
     // Waits until the slot searches that are queued have finished (tests, command line).
     void flush();
 

@@ -103,6 +103,7 @@ struct KawsLiveReceiver::Impl {
     int64_t nextSlot[kSlotted] = {};
     std::function<double()> clock;
     bool clockSet = false;
+    std::function<double()> inputDelay;      // seconds the samples of a feed() waited in the engine's queue
     std::function<void(const std::string&)> log;
     std::mutex pubMu;
     KawsTelemetry pub;
@@ -473,6 +474,12 @@ void KawsLiveReceiver::setClock(std::function<double()> utcNow) {
     m.clock = utcNow ? std::move(utcNow) : std::function<double()>(systemUtc);
 }
 
+void KawsLiveReceiver::setInputDelay(std::function<double()> sec) {
+    Impl& m = *p_;
+    std::lock_guard<std::mutex> lk(m.feedMu);
+    m.inputDelay = std::move(sec);
+}
+
 void KawsLiveReceiver::flush() {
     Impl& m = *p_;
     std::unique_lock<std::mutex> lk(m.jobMu);
@@ -490,9 +497,9 @@ void KawsLiveReceiver::feed(const cf32* x, size_t n) {
     m.chunk.clear();
     m.dec.process(m.base, m.chunk);
     if (!m.chunk.empty()) {
-        if (!m.anchored) {   // the first audio sample is as old as the chunk: stamp it with the clock now
+        if (!m.anchored) {   // the first audio sample is as old as the chunk plus the time it waited in the engine's queue
             m.anchored = true;
-            m.t0 = m.utc() - (double)m.chunk.size() / kAud;
+            m.t0 = m.utc() - (double)m.chunk.size() / kAud - (m.inputDelay ? std::max(0.0, m.inputDelay()) : 0.0);
             m.audioN = 0; m.ringBase = 0;
             for (int p = 0; p < kSlotted; p++) m.nextSlot[p] = kaws::SlotGrid(kaws::kProfiles[p].slotSec).nextIndex(m.t0 + kaws::kWindowBeforeSec);
         }
