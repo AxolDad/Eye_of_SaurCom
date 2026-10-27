@@ -1,5 +1,5 @@
 // DTMB receiver: DTMB / DTMB-A digital terrestrial television (China, Hong Kong), 8 MHz channel.
-// Written to the engine's contract: configure() once the sample rate is known, feed() from the analysis thread (never blocks),
+// Written to the engine's contract: configure() once the sample rate is known, feed() from the analysis thread (never blocks unless setBlocking),
 // telemetry() and the setters from the interface thread (they must be safe while feed() runs).
 #pragma once
 #include "dtmb_tel.h"
@@ -31,6 +31,8 @@ public:
     void setDecoderThreads(int n);
     // Where the LDPC decoder runs: 0 CPU, 1 GPU, 2 auto (default). The GPU decodes several codewords at once; the output is the same on either.
     void setComputeMode(int mode);
+    // Recordings and tests: feed() waits for the decoder threads instead of dropping codewords when they are behind (default off: a live radio drops)
+    void setBlocking(bool b);
 
 private:
     struct Impl;

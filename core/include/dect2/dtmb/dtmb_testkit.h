@@ -30,6 +30,7 @@ struct Scenario {
     double toneDb = -100, toneHz = 0;                        // a carrier wave at toneDb relative to the signal power, at toneHz from the centre
     double burstsPerSec = 0, burstUs = 20, burstDb = 10;     // impulse noise: bursts of Gaussian noise, burstDb above the signal power
     int threads = 2;             // decoder threads, 0 = decode inside feed() (no drops, deterministic)
+    bool blocking = true;        // feed() waits for the decoder threads instead of dropping codewords (a busy machine must not lose packets)
     uint32_t seed = 1;           // seed of the numbered packets
     uint64_t rngSeed = 12;
     double rxBwMhz = 0;          // the channel width the receiver is set to; 0 = the signal's (sc.symbolRate)
@@ -68,6 +69,7 @@ inline Result run(const Scenario& o, bool verbose = false) {
     DtmbReceiver rx;
     rx.configure(o.sc.rate, o.rxBwMhz > 0 ? o.rxBwMhz : (o.sc.symbolRate < 7e6 ? 6.0 : 8.0));
     rx.setDecoderThreads(o.threads);
+    rx.setBlocking(o.blocking);
     uint32_t expect = 0xFFFFFFFFu;
     double now = 0;
     bool afterReset = false;
