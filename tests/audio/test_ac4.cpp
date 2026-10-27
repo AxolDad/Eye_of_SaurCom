@@ -9,6 +9,7 @@
 //     any AC-4 bitstream decodes: that needs the patched FFmpeg and a real stream (not available here).
 #include "dect2/audio/ac4_dec.h"
 #include "dect2/atsc3/atsc3_remux.h"
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -129,11 +130,12 @@ static void relabel(std::vector<uint8_t>& init) {
 }
 
 static std::vector<uint8_t> runRemux(const std::vector<std::pair<std::vector<uint8_t>, std::vector<std::vector<uint8_t>>>>& comps, Atsc3Remux& rx) {
-    std::vector<uint8_t> ts;
+    std::vector<uint8_t> ts;                 // the reader thread's until it is joined
+    std::atomic<size_t> tsBytes{0};          // its progress, for the main thread
     for (size_t i = 0; i < comps.size(); i++) rx.addComponent((int)i + 1);
     std::thread reader([&] {
         uint8_t buf[8192];
-        for (;;) { int n = rx.read(buf, sizeof buf); if (n <= 0) break; ts.insert(ts.end(), buf, buf + n); }
+        for (;;) { int n = rx.read(buf, sizeof buf); if (n <= 0) break; ts.insert(ts.end(), buf, buf + n); tsBytes += (size_t)n; }
     });
     for (size_t i = 0; i < comps.size(); i++) rx.push((int)i + 1, comps[i].first);
     size_t n = 0;
@@ -142,7 +144,7 @@ static std::vector<uint8_t> runRemux(const std::vector<std::pair<std::vector<uin
         for (size_t k = 0; k < comps.size(); k++) if (i < comps[k].second.size()) rx.push((int)k + 1, comps[k].second[i]);
         std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
-    for (int i = 0; i < 100; i++) { std::this_thread::sleep_for(std::chrono::milliseconds(50)); size_t a = ts.size(); std::this_thread::sleep_for(std::chrono::milliseconds(50)); if (a == ts.size() && a > 0) break; }
+    for (int i = 0; i < 100; i++) { std::this_thread::sleep_for(std::chrono::milliseconds(50)); size_t a = tsBytes; std::this_thread::sleep_for(std::chrono::milliseconds(50)); if (a == tsBytes && a > 0) break; }
     rx.stop();
     reader.join();
     return ts;

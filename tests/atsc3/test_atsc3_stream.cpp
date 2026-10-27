@@ -4,6 +4,7 @@
 #include "atsc3_sim.h"
 #include "dect2/common/stable_random.h"
 #include "dect2/atsc3/atsc3_sync.h"
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -77,14 +78,15 @@ int main(int argc, char** argv) {
 
     Atsc3Receiver rx;
     rx.selectService(1001);
-    std::vector<uint8_t> ts;
-    std::thread reader([&] { uint8_t buf[8192]; for (;;) { int k = rx.readTs(buf, sizeof buf); if (k <= 0) break; ts.insert(ts.end(), buf, buf + k); } });
+    std::vector<uint8_t> ts;                 // the reader thread's until it is joined
+    std::atomic<size_t> tsBytes{0};          // its progress, for the main thread
+    std::thread reader([&] { uint8_t buf[8192]; for (;;) { int k = rx.readTs(buf, sizeof buf); if (k <= 0) break; ts.insert(ts.end(), buf, buf + k); tsBytes += (size_t)k; } });
     Atsc3Sync sync(radio, &rx);
     sync.setThreads(3);   // the frames are decoded on worker threads and must still arrive in order
     const size_t chunk = 65536 + 777;   // blocks of a size unrelated to the frame structure
     for (size_t i = 0; i < rxw.size(); i += chunk) sync.push(rxw.data() + i, std::min(chunk, rxw.size() - i));
     sync.flush();
-    for (int i = 0; i < 60; i++) { std::this_thread::sleep_for(std::chrono::milliseconds(50)); size_t a = ts.size(); std::this_thread::sleep_for(std::chrono::milliseconds(50)); if (a == ts.size() && a > 0) break; }
+    for (int i = 0; i < 60; i++) { std::this_thread::sleep_for(std::chrono::milliseconds(50)); size_t a = tsBytes; std::this_thread::sleep_for(std::chrono::milliseconds(50)); if (a == tsBytes && a > 0) break; }
     rx.stop();
     reader.join();
     auto ss = sync.stats();
