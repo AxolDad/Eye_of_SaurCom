@@ -2,6 +2,7 @@
 // back with libavformat: one HEVC and one AAC stream, with all frames, in step with each other.
 //   test_atsc3_remux <video.mp4> <audio.mp4>      (the fragmented files in tests/data)
 #include "dect2/atsc3/atsc3_remux.h"
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
@@ -64,10 +65,11 @@ int main(int argc, char** argv) {
     Atsc3Remux rx;
     rx.addComponent(1);
     rx.addComponent(2);
-    std::vector<uint8_t> ts;
+    std::vector<uint8_t> ts;                 // the reader thread's until it is joined
+    std::atomic<size_t> tsBytes{0};          // its progress, for the main thread
     std::thread reader([&] {
         uint8_t buf[8192];
-        for (;;) { int n = rx.read(buf, sizeof buf); if (n <= 0) break; ts.insert(ts.end(), buf, buf + n); }
+        for (;;) { int n = rx.read(buf, sizeof buf); if (n <= 0) break; ts.insert(ts.end(), buf, buf + n); tsBytes += (size_t)n; }
     });
     // deliver like a broadcast: init segments, then the fragments of both components interleaved
     rx.push(1, vinit);
@@ -79,7 +81,7 @@ int main(int argc, char** argv) {
         std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
     // wait until everything has come through, then stop
-    for (int i = 0; i < 100; i++) { std::this_thread::sleep_for(std::chrono::milliseconds(50)); size_t a = ts.size(); std::this_thread::sleep_for(std::chrono::milliseconds(50)); if (a == ts.size() && a > 0) break; }
+    for (int i = 0; i < 100; i++) { std::this_thread::sleep_for(std::chrono::milliseconds(50)); size_t a = tsBytes; std::this_thread::sleep_for(std::chrono::milliseconds(50)); if (a == tsBytes && a > 0) break; }
     rx.stop();
     reader.join();
     printf("  output: %zu bytes of transport stream, %d streams\n", ts.size(), rx.streamCount());

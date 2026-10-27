@@ -513,6 +513,7 @@ void Engine::configureDataReceivers(const DeviceInfo& dev, const TuneSettings& t
     rxKavb_.setLogCallback([this](const std::string& s) { log(s); });
     rxKaws_.configure(rate_);
     rxKaws_.setLogCallback([this](const std::string& s) { log(s); });
+    rxKaws_.setInputDelay([this] { return srcRate_ > 0 ? (double)ring_.available() / srcRate_ : 0.0; });   // the UTC slots: what queued while start() set up the receivers
     rxKapp_.configure(rate_);
     rxKapp_.setLogCallback([this](const std::string& s) { log(s); });
     rxKaft_.configure(rate_);

@@ -18,13 +18,18 @@ class TxLoopSynth : public ModeSynth {
 public:
     // makeGen(pass) returns the generator of pass number `pass` (0, 1, 2 ...) or nullptr when it cannot be made.
     using Factory = std::function<std::unique_ptr<TxGenerator>(int pass)>;
+    // The same with the stream time where the pass starts (seconds of samples since the loop's first sample): a mode on a clock (KAWS's UTC slots)
+    // counts its time from the samples, not from the computer's clock when the pass is built, which the source may build ahead of or behind real time.
+    using TimedFactory = std::function<std::unique_ptr<TxGenerator>(int pass, double streamSec)>;
 
     TxLoopSynth(double rate, double carrierHz, double snrDb, double gapSec, Factory f, uint64_t seed)
+        : TxLoopSynth(rate, carrierHz, snrDb, gapSec, TimedFactory([f = std::move(f)](int pass, double) { return f(pass); }), seed) {}
+    TxLoopSynth(double rate, double carrierHz, double snrDb, double gapSec, TimedFactory f, uint64_t seed)
         : rate_(rate), gapLeft_((uint64_t)(gapSec * rate)), gapSec_(gapSec), make_(std::move(f)), rng_(seed) {
         dph_ = 2 * 3.141592653589793 * carrierHz / rate;
         snrLin_ = std::pow(10.0, snrDb / 20.0);
         gapLeft_ = 0;
-        next();
+        next(0);
     }
     bool ok() const { return gen_ != nullptr; }
     double sampleRate() const override { return rate_; }
@@ -35,15 +40,16 @@ public:
                 const size_t k = (size_t)std::min<uint64_t>(gapLeft_, n - have);
                 std::fill(out + have, out + have + k, cf32(0.f, 0.f));
                 have += k; gapLeft_ -= k;
-                if (gapLeft_ == 0) next();
+                if (gapLeft_ == 0) next(have);
                 continue;
             }
             if (!gen_) { std::fill(out + have, out + n, cf32(0.f, 0.f)); break; }
             const size_t k = std::min<size_t>(n - have, 4096);
             gen_->generate(out + have, k);
             have += k;
-            if (gen_->finished()) { gapLeft_ = (uint64_t)(gapSec_ * rate_); if (gapLeft_ == 0) next(); }
+            if (gen_->finished()) { gapLeft_ = (uint64_t)(gapSec_ * rate_); if (gapLeft_ == 0) next(have); }
         }
+        pos_ += n;
         std::normal_distribution<float> g(0.f, 1.f);
         for (size_t i = 0; i < n; i++) {
             const float p = std::norm(out[i]);
@@ -55,16 +61,17 @@ public:
         }
     }
 private:
-    void next() {
-        gen_ = make_(pass_++);
+    void next(size_t have) {   // `have` samples of the current generate() call are out already
+        gen_ = make_(pass_++, (double)(pos_ + have) / rate_);
         if (gen_ && std::fabs(gen_->sampleRate() - rate_) > 1.0) gen_.reset();
     }
     double rate_;
     uint64_t gapLeft_;
     double gapSec_;
-    Factory make_;
+    TimedFactory make_;
     std::unique_ptr<TxGenerator> gen_;
     int pass_ = 0;
+    uint64_t pos_ = 0;   // samples out before the current generate() call
     double dph_ = 0, ph_ = 0, snrLin_ = 31.6, pow_ = 0.05;
     std::mt19937_64 rng_;
 };

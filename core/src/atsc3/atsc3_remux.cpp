@@ -179,9 +179,11 @@ struct Atsc3Remux::Impl {
         std::vector<AVBSFContext*> bsfs;
         std::map<int, std::unique_ptr<Ac4ToAc3>> xcodes;   // output stream index -> AC-4 to AC-3 converter
         std::vector<std::vector<AVStream*>> inStreams(cs.size());
+        // the stream maps are built here and published under pmu below: the demuxer threads read outStream (under pmu) while this runs
+        std::vector<std::vector<int>> maps(cs.size());
         for (size_t ci = 0; ci < cs.size(); ci++) {
             Comp* c = cs[ci];
-            c->outStream.assign(c->ic->nb_streams, -1);
+            maps[ci].assign(c->ic->nb_streams, -1);
             for (unsigned si = 0; si < c->ic->nb_streams; si++) {
                 AVStream* in = c->ic->streams[si];
                 const AVCodecParameters* cp = in->codecpar;
@@ -199,7 +201,7 @@ struct Atsc3Remux::Impl {
                         os->codecpar->bit_rate = xc->outBitRate();
                         av_channel_layout_default(&os->codecpar->ch_layout, xc->outChannels());
                         os->time_base = AVRational{1, 90000};
-                        c->outStream[si] = os->index;
+                        maps[ci][si] = os->index;
                         if ((int)bsfs.size() <= os->index) bsfs.resize(os->index + 1, nullptr);
                         xcodes[os->index] = std::move(xc);
                         inStreams[ci].push_back(in);
@@ -214,7 +216,7 @@ struct Atsc3Remux::Impl {
                 if (!os || avcodec_parameters_copy(os->codecpar, cp) < 0) continue;
                 os->codecpar->codec_tag = 0;
                 os->time_base = AVRational{1, 90000};
-                c->outStream[si] = os->index;
+                maps[ci][si] = os->index;
                 // Video: the parameter sets in front of every picture, so that a receiver that joins at any point can start decoding
                 // (MP4 keeps them in the header and a transport stream normally repeats them at every random access point only)
                 if ((int)bsfs.size() <= os->index) bsfs.resize(os->index + 1, nullptr);
@@ -230,6 +232,10 @@ struct Atsc3Remux::Impl {
                 }
                 inStreams[ci].push_back(in);
             }
+        }
+        {
+            std::lock_guard<std::mutex> lk(pmu);
+            for (size_t ci = 0; ci < cs.size(); ci++) cs[ci]->outStream.swap(maps[ci]);
         }
         // a component that has nothing to put in the output (timed metadata, captions) never delivers a packet: it must not be waited for
         cs.erase(std::remove_if(cs.begin(), cs.end(), [](Comp* c) { for (int o : c->outStream) if (o >= 0) return false; return true; }), cs.end());

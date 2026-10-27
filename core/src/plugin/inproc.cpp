@@ -231,7 +231,7 @@ public:
         if (!c) return;
         c->stopReq = true;
         c->cv.notify_all();
-        {
+        if (!c->abandoned.load()) {   // a plugin the watchdog already switched off is stuck: no point waiting for it
             std::unique_lock<std::mutex> lk(c->mu);
             c->doneCv.wait_for(lk, std::chrono::milliseconds((int)(c->o.watchdogSeconds * 1000) + 1000), [&] { return c->workerDone.load(); });
         }

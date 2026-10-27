@@ -4,6 +4,7 @@
 // The result is read back with libavformat. Needs the fragmented test files: test_atsc3_receiver <video.mp4> <audio.mp4>
 #include "atsc3_sim.h"
 #include "dect2/common/stable_random.h"
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -37,8 +38,9 @@ int main(int argc, char** argv) {
 
     Atsc3Receiver rx;
     CHECK(!rx.selectService(1001), "the service is not known yet");
-    std::vector<uint8_t> ts;
-    std::thread reader([&] { uint8_t buf[8192]; for (;;) { int k = rx.readTs(buf, sizeof buf); if (k <= 0) break; ts.insert(ts.end(), buf, buf + k); } });
+    std::vector<uint8_t> ts;                 // the reader thread's until it is joined
+    std::atomic<size_t> tsBytes{0};          // its progress, for the main thread
+    std::thread reader([&] { uint8_t buf[8192]; for (;;) { int k = rx.readTs(buf, sizeof buf); if (k <= 0) break; ts.insert(ts.end(), buf, buf + k); tsBytes += (size_t)k; } });
 
     std::mt19937 rng(5);
     dect2::normal_distribution<float> g(0.f, 1.f);
@@ -60,7 +62,7 @@ int main(int argc, char** argv) {
         decoded += rx.pushFrame(r.data(), r.size(), fs.bs);
         frames++;
     }
-    for (int i = 0; i < 60; i++) { std::this_thread::sleep_for(std::chrono::milliseconds(50)); size_t a = ts.size(); std::this_thread::sleep_for(std::chrono::milliseconds(50)); if (a == ts.size() && a > 0) break; }
+    for (int i = 0; i < 60; i++) { std::this_thread::sleep_for(std::chrono::milliseconds(50)); size_t a = tsBytes; std::this_thread::sleep_for(std::chrono::milliseconds(50)); if (a == tsBytes && a > 0) break; }
     rx.stop();
     reader.join();
 
