@@ -32,6 +32,7 @@ void Atsc3Rx::start() {
     if (want_ >= 0) rx_->selectService(want_); else rx_->setAutoSelect(true);
     stop_ = false;
     queued_ = 0;
+    fed_ = 0;
     q_.clear();
     busySec_ = 0; signalSec_ = 0; lastFrameWall_ = 0; lastFrames_ = 0; tsBytes_ = 0;
     { std::lock_guard<std::mutex> lk(tmu_); tel_ = Atsc3Telemetry(); }
@@ -69,6 +70,7 @@ void Atsc3Rx::feed(const cf32* x, size_t n) {
     }
     q_.emplace_back(x, x + n);
     queued_ += n;
+    fed_ += n;
     cv_.notify_one();
 }
 
@@ -87,36 +89,43 @@ void Atsc3Rx::autoSelect() {
 
 void Atsc3Rx::worker() {
     double lastTel = 0;
+    double sig = 0, frameSig = 0;   // seconds of signal taken from the queue (decoded or dropped), in all and up to the last frame
     while (!stop_) {
         std::vector<cf32> blk;
         {
             std::unique_lock<std::mutex> lk(mu_);
             cv_.wait_for(lk, std::chrono::milliseconds(100), [&] { return stop_ || !q_.empty(); });
             if (stop_) break;
-            if (q_.empty()) continue;
-            blk = std::move(q_.front());
-            q_.pop_front();
-            queued_ -= blk.size();
-            cvSpace_.notify_all();
+            if (!q_.empty()) {
+                blk = std::move(q_.front());
+                q_.pop_front();
+                queued_ -= blk.size();
+                cvSpace_.notify_all();
+            }
+            sig = (double)(fed_ - queued_) / rate_;
         }
-        const double t0 = wallNow();
-        sync_->push(blk.data(), blk.size());
+        if (!blk.empty()) {
+            const double t0 = wallNow();
+            sync_->push(blk.data(), blk.size());
+            const double dt = wallNow() - t0;
+            // the load over about the last ten seconds of signal
+            busySec_ = busySec_ + dt;
+            signalSec_ = signalSec_ + (double)blk.size() / rate_;
+            if (signalSec_ > 10.0) { busySec_ = busySec_ * 0.5; signalSec_ = signalSec_ * 0.5; }
+        }
         autoSelect();
-        const double dt = wallNow() - t0;
-        // the load over about the last ten seconds of signal
-        busySec_ = busySec_ + dt;
-        signalSec_ = signalSec_ + (double)blk.size() / rate_;
-        if (signalSec_ > 10.0) { busySec_ = busySec_ * 0.5; signalSec_ = signalSec_ * 0.5; }
+        // also when no samples come: the last frames are still decoded on the sync's threads after the last push (the end of a recording),
+        // and their packets, the service list and the signaling arrive only then
         const double now = wallNow();
         if (now - lastTel > 0.1) {
             lastTel = now;
             Atsc3Telemetry t;
             auto ss = sync_->stats();
             auto rs = rx_->stats();
-            t.locked = ss.frames > 0 && ss.frames > lastFrames_ ? true : tel_.locked;
-            if (ss.frames > lastFrames_) { lastFrames_ = ss.frames; lastFrameWall_ = now; }
+            if (ss.frames > lastFrames_) { lastFrames_ = ss.frames; lastFrameWall_ = now; frameSig = sig; }
             t.secSinceFrame = lastFrameWall_ > 0 ? now - lastFrameWall_ : 1e9;
-            t.locked = t.secSinceFrame < 1.5;
+            // the lock is lost when frames stop coming while there is signal; no samples at all (a recording that ended) say nothing about it
+            t.locked = lastFrameWall_ > 0 && (t.secSinceFrame < 1.5 || sig - frameSig < 1.5);
             t.cfoHz = ss.cfoHz; t.bootstraps = ss.bootstraps; t.frames = ss.frames; t.framesFailed = rs.framesFailed;
             t.bbPackets = rs.bbPackets; t.bbBad = rs.bbBad; t.alpPackets = rs.alpPackets; t.udp = rs.udp; t.llsTables = rs.llsTables; t.routeObjects = rs.routeObjects;
             t.services = rx_->services();
