@@ -16,3 +16,5 @@ void rtlSerialModal(App& a);
 void rtlSerialShutdown();
 // True while a write or restore runs: Rescan is off then.
 bool rtlSerialBusy();
+// Once per frame from the app: takes the result of a finished write whichever receiver is current, clears the busy state and says the result as a notice.
+void rtlSerialTick();

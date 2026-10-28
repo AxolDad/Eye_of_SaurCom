@@ -485,6 +485,9 @@ namespace dect2 {
 namespace {
 struct NativeEepromIo final : RtlEepromIo {
     native::RtlApi::rtlsdr_dev_t* dev = nullptr;
+    uint16_t vid = 0, pid = 0;
+    bool haveId = false;
+    bool liveUsbId(uint16_t& v, uint16_t& p) override { if (haveId) { v = vid; p = pid; } return haveId; }
     ~NativeEepromIo() override { if (dev) native::rtl().close(dev); }
     bool read(uint32_t off, uint8_t* buf, size_t len, std::string& err) override {
         if (off > 255 || len > 256 - off) { err = "EEPROM range out of bounds"; return false; }
@@ -504,6 +507,11 @@ struct NativeEepromIo final : RtlEepromIo {
 
 // librtlsdr opens a dongle by its position in the USB list, which moves when a dongle is plugged or unplugged. The EEPROM is rewritten, so the position
 // of the listing is only used when the dongle there still has the serial of d and (with a USB port known, or several dongles with that serial) the port.
+bool rtlKnownUsbId(uint16_t vid, uint16_t pid) {
+    for (const auto& id : native::kRtlUsbIds) if (id.first == vid && id.second == pid) return true;
+    return false;
+}
+
 std::unique_ptr<RtlEepromIo> openRtlEepromIo(const DeviceInfo& d, std::string& err) {
     using namespace native;
     auto& a = rtl();
@@ -540,6 +548,8 @@ std::unique_ptr<RtlEepromIo> openRtlEepromIo(const DeviceInfo& d, std::string& e
         const bool same = a.get_device_count() == n && a.get_device_usb_strings(idx, vendor, product, serial) == 0 && trimmed(serial, sizeof serial) == d.serial;
         const std::vector<std::string> again = usbPathsInOrder(usbEnumerateFresh(), kRtlUsbIds, n);
         const bool portSame = d.usbPath.empty() ? true : (again.size() == n && again[idx] == d.usbPath);
+        if (!d.usbPath.empty())
+            for (const auto& nd : usbEnumerateFresh()) if (nd.path == d.usbPath) { io->vid = nd.vid; io->pid = nd.pid; io->haveId = true; break; }
         if (!same || !portSame || (sameSerial > 1 && d.usbPath.empty())) { err = stale; return nullptr; }   // (io closes the dongle)
     }
     return io;

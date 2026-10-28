@@ -117,7 +117,15 @@ bool writeBackup(const std::string& dir, const std::string& path, const std::vec
         ok = f.good();
     }
 #endif
-    if (ok) { fs::rename(u8file(tmp), u8file(path), ec); ok = !ec; }
+    if (ok) {   // put it under its final name without ever replacing a file: a hard link fails when the name exists (atomic), the temp name is then dropped
+        fs::create_hard_link(u8file(tmp), u8file(path), ec);
+        if (ec == std::errc::file_exists) { fs::remove(u8file(tmp), ec); err = "The backup file " + path + " already exists. Try again. Nothing was written to the dongle."; return false; }
+        if (ec) {   // a file system without hard links: check, then rename
+            if (fs::exists(u8file(path))) { fs::remove(u8file(tmp), ec); err = "The backup file " + path + " already exists. Try again. Nothing was written to the dongle."; return false; }
+            fs::rename(u8file(tmp), u8file(path), ec);
+        } else fs::remove(u8file(tmp), ec), ec.clear();
+        ok = !ec;
+    }
     if (!ok) { fs::remove(u8file(tmp), ec); err = "Cannot write the backup file " + path + ". Nothing was written to the dongle."; return false; }
 #ifndef _WIN32
     fs::permissions(u8file(path), fs::perms::owner_read | fs::perms::owner_write, fs::perm_options::replace, ec);
@@ -269,18 +277,36 @@ bool rtlReadStable(RtlEepromIo& io, std::vector<uint8_t>& img, std::string& err)
 
 bool rtlReadBackupFile(const std::string& path, std::vector<uint8_t>& out, std::string& err) {
     out.clear();
+    const std::string notEeprom = "The backup " + path + " is not 256 bytes: it is not an EEPROM backup.";
+    const std::string notRegular = "The backup " + path + " is not a regular file.";
+#ifndef _WIN32
+    // open without blocking (a FIFO would otherwise wait for a writer), then judge the open descriptor, not the path
+    const int fd = ::open(u8file(path).c_str(), O_RDONLY | O_NONBLOCK | O_CLOEXEC);
+    if (fd < 0) { err = "Cannot read the backup file " + path + "."; return false; }
+    struct stat st{};
+    if (::fstat(fd, &st) != 0 || !S_ISREG(st.st_mode)) { ::close(fd); err = notRegular; return false; }
+    if (st.st_size != (off_t)kRtlEepromSize) { ::close(fd); err = notEeprom; return false; }
+    out.resize(kRtlEepromSize + 1);   // one byte more than expected: a file that grew is caught
+    size_t got = 0;
+    while (got < out.size()) {
+        const ssize_t r = ::read(fd, out.data() + got, out.size() - got);
+        if (r <= 0) break;
+        got += (size_t)r;
+    }
+    ::close(fd);
+    out.resize(got);
+#else
     std::error_code ec;
     const fs::path p = u8file(path);
-    const fs::file_status st = fs::status(p, ec);
-    if (ec || !fs::is_regular_file(st)) { err = "The backup " + path + " is not a regular file."; return false; }
-    const auto size = fs::file_size(p, ec);
-    if (ec || size != kRtlEepromSize) { err = "The backup " + path + " is not 256 bytes: it is not an EEPROM backup."; return false; }
+    if (ec || !fs::is_regular_file(fs::status(p, ec))) { err = notRegular; return false; }
+    if (fs::file_size(p, ec) != kRtlEepromSize || ec) { err = notEeprom; return false; }
     std::ifstream f(p, std::ios::binary);
     if (!f) { err = "Cannot read the backup file " + path + "."; return false; }
     out.resize(kRtlEepromSize + 1);
-    f.read(reinterpret_cast<char*>(out.data()), (std::streamsize)out.size());   // one byte more than expected: a file that grew is caught
+    f.read(reinterpret_cast<char*>(out.data()), (std::streamsize)out.size());
     out.resize((size_t)f.gcount());
-    if (out.size() != kRtlEepromSize) { out.clear(); err = "The backup " + path + " is not 256 bytes: it is not an EEPROM backup."; return false; }
+#endif
+    if (out.size() != kRtlEepromSize) { out.clear(); err = notEeprom; return false; }
     return true;
 }
 
@@ -323,9 +349,20 @@ bool rtlRestoreEepromIo(RtlEepromIo& io, const std::string& backupFile, const st
     if (!rtlReadStable(io, cur, err)) return false;
     RtlEepromInfo ci;
     const bool curParses = rtlEepromParse(cur, ci, rerr);
-    if (cur[0] == 0x28 && cur[1] == 0x32 && (cur[2] != bk[2] || cur[3] != bk[3] || cur[4] != bk[4] || cur[5] != bk[5])) {
-        err = "The backup is from a different kind of dongle (its USB ID differs from this dongle's). Nothing was written.";
-        return false;
+    if (cur[0] == 0x28 && cur[1] == 0x32) {
+        if (cur[2] != bk[2] || cur[3] != bk[3] || cur[4] != bk[4] || cur[5] != bk[5]) {
+            err = "The backup is from a different kind of dongle (its USB ID differs from this dongle's). Nothing was written.";
+            return false;
+        }
+    } else {   // blank or foreign EEPROM: the dongle shows its chip ids, so the file's id must be one librtlsdr takes, and the dongle's live id when known
+        uint16_t lv = 0, lp = 0;
+        const bool live = io.liveUsbId(lv, lp);
+        if (!rtlKnownUsbId(bi.vid, bi.pid) || (live && (lv != bi.vid || lp != bi.pid))) {
+            char b[160];
+            snprintf(b, sizeof b, "This backup is for a different USB ID (%04x:%04x); restoring it could hide the dongle. Nothing was written.", bi.vid, bi.pid);
+            err = b;
+            return false;
+        }
     }
     if (sameBytes(cur, bk)) return true;
     std::error_code ec;

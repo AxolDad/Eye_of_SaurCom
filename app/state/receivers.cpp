@@ -366,6 +366,7 @@ void receiversFrame(App& first, ImVec2 disp) {
     drawWarning(first);
     acarslog::tick(first);
     tx::tick(first);
+    rtlSerialTick();
     radioWatchTick(first);       // plugged-in radios: the New radio notice and Find this radio (a poll on a worker thread, results picked up here)
     noticesDraw(h);
 }

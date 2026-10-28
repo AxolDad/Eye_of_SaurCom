@@ -3,6 +3,7 @@
 #include "../platform/platform.h"
 #include "../state/radio_names.h"
 #include "../state/radio_watch.h"
+#include "notices.h"
 #include "dect2/engine/device_claims.h"
 #include "dect2/source/rtl_serial.h"
 #include <atomic>
@@ -76,6 +77,10 @@ void collect() {
             if (!e.empty()) S.doneNote = e;
         }
     } else S.phase = Phase::Failed;
+    // whichever receiver is showing now: the window may belong to a receiver that has gone, so the result is also said as a notice
+    if (S.phase == Phase::Done) noticePush(gJob.restore ? tr("Done. The backup is back on the dongle. Unplug the dongle and plug it back in.")
+                                                       : tr("Done. Unplug the dongle and plug it back in to use its new serial."));
+    else noticePush(std::string(gJob.restore ? tr("The restore did not finish. ") : tr("The serial was not written. ")) + S.err);
 }
 
 void collectTaken(const App& a) {
@@ -130,6 +135,8 @@ void rtlSerialRequest(App& a, int idx) { open(a, idx, false); }
 void rtlSerialRestoreRequest(App& a, int idx) { open(a, idx, true); }
 
 bool rtlSerialBusy() { return S.phase == Phase::Working || S.phase == Phase::Restoring; }
+
+void rtlSerialTick() { collect(); }   // the busy state belongs to the worker, not to a receiver
 
 void rtlSerialShutdown() {
     if (gTh.joinable()) gTh.join();

@@ -45,7 +45,11 @@ struct RtlEepromIo {
     virtual ~RtlEepromIo() = default;
     virtual bool read(uint32_t offset, uint8_t* buf, size_t len, std::string& err) = 0;
     virtual bool write(uint32_t offset, const uint8_t* buf, size_t len, std::string& err) = 0;
+    // The USB vendor / product id the dongle enumerated with (from the USB walk), when known.
+    virtual bool liveUsbId(uint16_t& vid, uint16_t& pid) { (void)vid; (void)pid; return false; }
 };
+// True when librtlsdr takes this VID/PID (its table): a dongle with another id is invisible to the app and to rtl_eeprom.
+bool rtlKnownUsbId(uint16_t vid, uint16_t pid);
 // Opens the dongle of d for the EEPROM (source_rtlsdr.cpp: by librtlsdr's index, checked against the serial and USB port). nullptr with err on failure.
 std::unique_ptr<RtlEepromIo> openRtlEepromIo(const DeviceInfo& d, std::string& err);
 
@@ -77,7 +81,8 @@ bool rtlWriteSerialIo(RtlEepromIo& io, const std::string& expectedSerial, const 
                       std::string& backupPath, std::string& err);
 // Puts a backup file back. The file is read safely (rtlReadBackupFile), must parse as an RTL-SDR EEPROM and have the VID/PID the dongle has now.
 // The dongle's current contents are read twice and saved (a new backup in backupDir, its path in safetyBackup) before anything is written; then
-// what differs is written, and the dongle is read back and compared.
+// what differs is written, and the dongle is read back and compared. When the dongle has no valid header, the backup's VID/PID must be a known RTL-SDR
+// id and equal the dongle's live USB id when that is known.
 bool rtlRestoreEepromIo(RtlEepromIo& io, const std::string& backupFile, const std::string& backupDir, time_t now, std::string& safetyBackup, std::string& err);
 
 // The same on a real radio (it claims the dongle under kEepromClaimOwner, device_claims.h; the key is the one receivers use for that DeviceInfo), in order:

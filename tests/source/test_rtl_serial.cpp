@@ -40,6 +40,8 @@ struct SimIo : RtlEepromIo {
     int failAfterBytes = -1;     // a write stops (with an error) once this many bytes have been written in all
     bool dropWrites = false;     // writes report success but change nothing (a dongle that does not take them)
     bool failRead = false;
+    bool haveLive = false; uint16_t liveVid = 0, livePid = 0;
+    bool liveUsbId(uint16_t& v, uint16_t& p) override { v = liveVid; p = livePid; return haveLive; }
     bool unstable = false;       // every second full read differs in one byte
     int fullReads = 0;
     int writeCalls = 0;
@@ -324,6 +326,35 @@ int main() {
         SimIo io5(before);
         safety.clear();
         CHECK(!rtlRestoreEepromIo(io5, put("good.bin", good), (blocked / "sub").string(), 1700000300, safety, err) && io5.writeCalls == 0 && io5.mem == before, "no safety copy, no restore");
+        fs::remove_all(dir);
+    }
+    // ---- restore onto a dongle with no header: the file's USB id must be a known one, and the live one when known
+    {
+        const fs::path dir = tmpDir("blank"); fs::create_directories(dir);
+        auto put = [&](const char* n, const Img& d) { const std::string p = (dir / n).string(); std::ofstream f(p, std::ios::binary); f.write((const char*)d.data(), (std::streamsize)d.size()); return p; };
+        const fs::path safeDir = dir / "safe";
+        std::string err, safety;
+        auto R = [&](SimIo& d, const std::string& f) { safety.clear(); return rtlRestoreEepromIo(d, f, safeDir.string(), 1700000400, safety, err); };
+        Img unknown = realImage(); unknown[4] = 0x34; unknown[5] = 0x12;   // 0bda:1234 is not in librtlsdr's table
+        SimIo blank(Img(256, 0xFF));
+        CHECK(!R(blank, put("unknown.bin", unknown)) && blank.writeCalls == 0 && has(err, "0bda:1234") && has(err, "could hide the dongle"), "unknown id refused: %s", err.c_str());
+        CHECK(R(blank, put("known.bin", realImage())) && blank.mem == realImage(), "a known id restores onto a blank EEPROM: %s", err.c_str());
+        SimIo live(Img(256, 0xFF)); live.haveLive = true; live.liveVid = 0x0bda; live.livePid = 0x2832;
+        CHECK(!R(live, put("known.bin", realImage())) && live.writeCalls == 0 && has(err, "0bda:2838"), "differs from the live id: %s", err.c_str());
+        Img same = realImage(); same[4] = 0x32; same[5] = 0x28 ^ 0x00; same[4] = 0x32; same[5] = 0x28;   // pid 0x2832
+        same[4] = 0x32; same[5] = 0x28;
+        CHECK(R(live, put("same.bin", same)) && live.mem == same, "equal to the live id restores: %s", err.c_str());
+        fs::remove_all(dir);
+    }
+    // ---- an existing backup file is never replaced
+    {
+        const fs::path dir = tmpDir("noreplace"); fs::create_directories(dir);
+        const std::string planned = (dir / "eeprom-backup-x.bin").string();
+        { std::ofstream f(planned, std::ios::binary); f << "precious"; }
+        SimIo io(realImage()); std::string bp = planned, err;
+        CHECK(!rtlWriteSerialIo(io, "00000001", "48213907", dir.string(), 1700000000, bp, err) && io.writeCalls == 0, "refused");
+        std::ifstream f(planned, std::ios::binary); std::string c((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        CHECK(c == "precious", "the existing file is untouched");
         fs::remove_all(dir);
     }
     // ---- reads that disagree, a dongle that is not the expected one, bytes 78..255, the IR configuration
