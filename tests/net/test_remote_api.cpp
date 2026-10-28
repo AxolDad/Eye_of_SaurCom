@@ -5,6 +5,7 @@
 #include "dect2/net/event_ring.h"
 #include "dect2/net/remote_api.h"
 #include "dect2/results/rx_json.h"
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -34,12 +35,23 @@ struct FakeHost : RemoteApiHost {
     int evMode = 0;                          // 1: three events on the first call; 2: a gap of 5 on the first call
     int evCalls = 0;
     uint64_t evFirstCursor = 0;
-    std::atomic<EventRing*> ring{nullptr};   // when set, events come from this real ring
+    std::mutex ringMu;                       // ring and the two maxima; held through every call into the ring, so setRing(nullptr) waits for one under way
+    EventRing* ring = nullptr;               // when set, events come from this real ring
+    size_t maxAsked = 0, maxGiven = 0;       // the largest `max` the server passed, the most lines one call returned
+    void setRing(EventRing* r) { std::lock_guard<std::mutex> lk(ringMu); ring = r; maxAsked = maxGiven = 0; }
     uint64_t evHead = ~0ull >> 1;            // what the stub reports as the ring head
-    uint64_t eventHead() override { EventRing* r = ring; return r ? r->head() : evHead; }
+    uint64_t eventHead() override { std::lock_guard<std::mutex> lk(ringMu); return ring ? ring->head() : evHead; }
     size_t eventLines(uint64_t& cursor, std::vector<std::string>& lines, size_t max, uint64_t& missed) override {
         missed = 0;
-        if (EventRing* r = ring) return r->since(cursor, lines, max, missed);
+        {
+            std::lock_guard<std::mutex> lk(ringMu);
+            if (ring) {
+                const size_t n = ring->since(cursor, lines, max, missed);
+                maxAsked = std::max(maxAsked, max);
+                maxGiven = std::max(maxGiven, n);
+                return n;
+            }
+        }
         if (evMode == 0) return 0;
         if (evCalls++ == 0) {
             evFirstCursor = cursor;
@@ -488,7 +500,7 @@ static void testWsEventRing(FakeHost& h, int port) {
     {   // a fresh subscriber does not see what was pushed before it subscribed
         EventRing ring(64);
         pushN(ring, 10);
-        h.ring = &ring;
+        h.setRing(&ring);
         sock_t s = wsOpen(port, buf);
         subscribeEv(s, "{\"telemetry\":false,\"events\":true}");
         std::vector<std::string> oth;
@@ -497,13 +509,12 @@ static void testWsEventRing(FakeHost& h, int port) {
         const auto got = readEvents(s, buf, 1, nullptr, nullptr);
         CHECK(got.size() == 1 && got[0] == 11, "the first new event has seq 11 (got %zu: %llu)", got.size(), got.empty() ? 0ull : (unsigned long long)got[0]);
         sockClose(s);
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
-        h.ring = nullptr;
+        h.setRing(nullptr);   // under the host's lock: no server thread is inside the ring when it goes
     }
     {   // 250 events: at most 200 per tick, contiguous, and since:N continues at N+1
         EventRing ring(512);
         pushN(ring, 250);
-        h.ring = &ring;
+        h.setRing(&ring);
         sock_t s = wsOpen(port, buf);
         subscribeEv(s, "{\"telemetry\":false,\"events\":true,\"since\":0}");
         std::vector<std::chrono::steady_clock::time_point> at;
@@ -511,9 +522,11 @@ static void testWsEventRing(FakeHost& h, int port) {
         bool contiguous = got.size() == 250;
         for (size_t i = 0; contiguous && i < got.size(); i++) contiguous = got[i] == i + 1;
         CHECK(contiguous, "250 events, seq 1..250 in order with no duplicates (got %zu)", got.size());
-        if (got.size() == 250) {
-            const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(at[200] - at[199]).count();
-            CHECK(ms >= 50, "events 201+ wait for the next tick (%lld ms after the 200th)", (long long)ms);
+        {   // the 200 cap, deterministically: what the server asked for and what one call gave, never the timing of the frames
+            std::lock_guard<std::mutex> lk(h.ringMu);
+            CHECK(h.maxAsked > 0 && h.maxAsked <= 200, "the server asks for at most 200 events per call (%zu)", h.maxAsked);
+            CHECK(h.maxGiven > 0 && h.maxGiven <= 200, "one call gives at most 200 events (%zu)", h.maxGiven);
+            CHECK(got.size() < 250 || h.maxGiven == 200, "the backlog of 250 came in a full 200 first (%zu)", h.maxGiven);
         }
         sockClose(s);
         std::string b2;
@@ -522,13 +535,12 @@ static void testWsEventRing(FakeHost& h, int port) {
         const auto g2 = readEvents(s2, b2, 1, nullptr, nullptr);
         CHECK(!g2.empty() && g2[0] == 101, "since:100 starts at 101 (got %llu)", g2.empty() ? 0ull : (unsigned long long)g2[0]);
         sockClose(s2);
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
-        h.ring = nullptr;
+        h.setRing(nullptr);   // under the host's lock: no server thread is inside the ring when it goes
     }
     {   // the ring overwrote what the client had not read: a gap frame with the count, then the events that are left
         EventRing ring(64);
         pushN(ring, 100);
-        h.ring = &ring;
+        h.setRing(&ring);
         sock_t s = wsOpen(port, buf);
         subscribeEv(s, "{\"telemetry\":false,\"events\":true,\"since\":0}");
         std::vector<std::string> oth;
@@ -538,13 +550,12 @@ static void testWsEventRing(FakeHost& h, int port) {
         CHECK(gap, "gap frame with missed 36");
         CHECK(got.size() == 64 && got.front() == 37 && got.back() == 100, "events 37..100 follow the gap (%zu)", got.size());
         sockClose(s);
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
-        h.ring = nullptr;
+        h.setRing(nullptr);   // under the host's lock: no server thread is inside the ring when it goes
     }
     {   // since beyond the head (the station restarted): one reset frame with the head, then new events from there
         EventRing ring(64);
         pushN(ring, 5);
-        h.ring = &ring;
+        h.setRing(&ring);
         sock_t s = wsOpen(port, buf);
         subscribeEv(s, "{\"telemetry\":false,\"events\":true,\"since\":1000}");
         std::vector<std::string> oth;
@@ -556,8 +567,7 @@ static void testWsEventRing(FakeHost& h, int port) {
         const auto got = readEvents(s, buf, 1, nullptr, nullptr);
         CHECK(got.size() == 1 && got[0] == 6, "continues at the head: seq 6");
         sockClose(s);
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
-        h.ring = nullptr;
+        h.setRing(nullptr);   // under the host's lock: no server thread is inside the ring when it goes
     }
     (void)op; (void)pl;
 }
