@@ -52,6 +52,7 @@ public:
     int audioOpen(int rateHz) override;
     bool audioRead(int id, std::string& pcm) override;
     void audioClose(int id) override;
+    size_t eventLines(uint64_t& cursor, std::vector<std::string>& lines, uint64_t& missed) override;
     int handleExtra(const std::string& method, const std::string& path, const std::map<std::string, dect2::JsonVal>& body, std::string& json) override;
 
     // Resolves a mode id or number text ("fm", "dvbs", "ft8", "7") to a mode entry; nullptr when it is none.
@@ -84,6 +85,7 @@ private:
 
     // audio hub
     struct Listener { int rate = 16000, step = 3, cnt = 0; double acc = 0; std::string pcm; };
+    int evListener_ = 0;   // feeds dect2::globalEventRing()
     std::mutex aMu_;
     std::map<int, Listener> listeners_;
     int nextListener_ = 1;

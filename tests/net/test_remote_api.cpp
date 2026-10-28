@@ -30,6 +30,21 @@ struct FakeHost : RemoteApiHost {
     bool failGain = false;
     bool withPage = false;                   // the optional parts of the host interface (headless server)
     std::atomic<int> audioOpened{0}, audioClosed{0}, audioReads{0};
+    int evMode = 0;                          // 1: three events on the first call; 2: a gap of 5 on the first call
+    int evCalls = 0;
+    uint64_t evFirstCursor = 0;
+    size_t eventLines(uint64_t& cursor, std::vector<std::string>& lines, uint64_t& missed) override {
+        missed = 0;
+        if (evMode == 0) return 0;
+        if (evCalls++ == 0) {
+            evFirstCursor = cursor;
+            if (evMode == 2) { missed = 5; return 0; }
+            for (int i = 0; i < 3; i++) lines.push_back("{\"type\":\"t" + std::to_string(i) + "\",\"f\":{}}");
+            cursor = 3;
+            return 3;
+        }
+        return 0;
+    }
     std::string indexHtml() override { return withPage ? "<!doctype html><title>fake</title>" : std::string(); }
     bool spectrumBinary(int bins, uint64_t& seq, std::string& f) override {
         if (!withPage) return false;
@@ -399,6 +414,52 @@ static void testServerParts(FakeHost& h, int port) {
     r = http("127.0.0.1", port, withPort(get("/"), port)); CHECK(r.status == 404, "no page without a host page: %d", r.status);
 }
 
+static void testWsEvents(FakeHost& h, int port) {
+    std::string buf, pl;
+    int op = 0;
+    sock_t s = wsOpen(port, buf);
+    h.evMode = 1; h.evCalls = 0;
+    std::string sub = cframe(1, "{\"telemetry\":false,\"events\":true}");
+    sockSendAll(s, sub.data(), sub.size());
+    int seqs[3] = {0, 0, 0}, n = 0;
+    bool subscribed = false;
+    for (int i = 0; i < 8 && n < 3; i++) {
+        if (!sframe(s, buf, op, pl)) break;
+        if (pl.find("\"type\":\"subscribed\"") != std::string::npos) subscribed = pl.find("\"events\":true") != std::string::npos;
+        const size_t q = pl.find("\"type\":\"event\",\"seq\":");
+        if (q != std::string::npos) {
+            seqs[n] = atoi(pl.c_str() + q + 21);
+            CHECK(pl.find("\"ev\":{\"type\":\"t" + std::to_string(n) + "\"") != std::string::npos, "event %d payload: %s", n, pl.c_str());
+            n++;
+        }
+    }
+    CHECK(subscribed, "subscribed frame reports events");
+    CHECK(n == 3 && seqs[0] == 1 && seqs[1] == 2 && seqs[2] == 3, "three event frames in order, seq 1..3 (got %d: %d %d %d)", n, seqs[0], seqs[1], seqs[2]);
+    CHECK(h.evFirstCursor == ~0ull, "a new subscriber starts at the ring head");
+    CHECK(!sframe(s, buf, op, pl, 400), "no more event frames: %s", pl.c_str());
+    // since given: that is the first cursor; a gap is reported once
+    h.evMode = 2; h.evCalls = 0;
+    sub = cframe(1, "{\"events\":true,\"since\":2}");
+    sockSendAll(s, sub.data(), sub.size());
+    bool gap = false;
+    for (int i = 0; i < 6 && !gap; i++) {
+        if (!sframe(s, buf, op, pl)) break;
+        gap = pl.find("{\"type\":\"gap\",\"missed\":5}") != std::string::npos;
+    }
+    CHECK(gap, "gap frame with missed 5");
+    CHECK(h.evFirstCursor == 2, "since is the first cursor (%llu)", (unsigned long long)h.evFirstCursor);
+    CHECK(!sframe(s, buf, op, pl, 400) || pl.find("\"gap\"") == std::string::npos, "the gap is sent once");
+    // events off
+    sub = cframe(1, "{\"events\":false}");
+    sockSendAll(s, sub.data(), sub.size());
+    h.evMode = 1; h.evCalls = 0;
+    bool ev = false;
+    for (int i = 0; i < 6; i++) { if (!sframe(s, buf, op, pl, 400)) break; if (pl.find("\"type\":\"event\"") != std::string::npos) ev = true; }
+    CHECK(!ev && h.evCalls == 0, "no events once switched off");
+    h.evMode = 0;
+    sockClose(s);
+}
+
 static void testWsSlowClient(FakeHost& h, int port) {
     // a client that never reads: the server must not stall other connections or grow without bound
     h.withPage = true;
@@ -586,6 +647,7 @@ int main(int argc, char** argv) {
         testWs(h, port);
         testServerParts(h, port);
         testWsSlowClient(h, port);
+        testWsEvents(h, port);
         const RemoteApiStatus st = srv.status();
         printf("server counters: %llu requests, %llu refused\n", (unsigned long long)st.requests, (unsigned long long)st.rejected);
         CHECK(srv.configure(RemoteApiConfig()) && !srv.status().listening, "switching it off");

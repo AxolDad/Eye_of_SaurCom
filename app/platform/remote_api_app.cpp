@@ -2,6 +2,8 @@
 // published telemetry, the preferences and the settings panel (in View > Data feeds). Off by default; RX 1 only.
 #include "../app.h"
 #include "../ui/typography.h"
+#include "dect2/automation/engine.h"
+#include "dect2/net/event_ring.h"
 #include "dect2/net/remote_api.h"
 #include "dect2/results/rx_json.h"
 #include <chrono>
@@ -30,6 +32,10 @@ const char* kindName(DeviceInfo::Kind k) {
 }
 
 struct Host : RemoteApiHost {
+    int evListener = 0;   // feeds dect2::globalEventRing()
+    Host() { evListener = automation::global().addListener([](const automation::Event& e) { globalEventRing().push(e); }, (1u << automation::kFamilies) - 1); }
+    ~Host() override { if (evListener > 0) automation::global().removeListener(evListener); }
+    size_t eventLines(uint64_t& cursor, std::vector<std::string>& lines, uint64_t& missed) override { return globalEventRing().since(cursor, lines, 200, missed); }
     // ---- main-thread hand-over: the server's threads queue a job, tick() (every frame) runs it
     struct Job {
         std::function<bool(App&, std::string&)> fn;
