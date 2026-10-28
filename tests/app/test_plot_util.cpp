@@ -81,6 +81,25 @@ int main() {
         check(a.update(lv.data(), W, H, wr, R, have, lut, 1, 1000, 1200, 1000, 2, full, dirty) && full && a.cols == 200, "view zoomed in: no more columns than the source");
         check(a.update(lv.data(), W, H, wr, R, have, lut, 2, 1000, 1200, 1000, 2, full, dirty) && full, "view: a new colour table rebuilds");
     }
+    // the full-FFT history of a zoomed-in waterfall (Waterfall::lvFine): 65536 columns, a narrow range of them shows every column, a
+    // one-bin line stays one column, and switching between the two histories rebuilds the picture
+    {
+        const int FW = 65536, H = 512, CW = 8192;
+        std::vector<uint8_t> fineLv((size_t)FW * H, 10), coarse((size_t)CW * H, 10);
+        uint32_t lut[256]; for (int i = 0; i < 256; i++) lut[i] = 0xFF000000u | (uint32_t)i;
+        for (int r = 0; r < H; r++) { fineLv[(size_t)r * FW + 30001] = 200; coarse[(size_t)r * CW + 30001 / 8] = 200; }
+        const long long R = 1000; const int wr = 7, have = H;
+        plt::WfView v; bool full = false; std::vector<int> dirty;
+        // a 10 kHz view of 2.4 Msps is 273 bins: all of them across a 1000-pixel plot (the 8192 columns would give 34)
+        const int c0 = 30001 - 136, c1 = c0 + 273;
+        check(v.update(fineLv.data(), FW, H, wr, R, have, lut, 1, c0, c1, 1000, 1, full, dirty) && full && v.cols == c1 - c0 && v.srcW == FW, "fine view: every bin in view is a column");
+        int lit = 0; for (int x = 0; x < v.cols; x++) if ((v.px[(size_t)v.rowOf(R) * v.stride + x] & 255) == 200) lit++;
+        check(lit == 1, "fine view: a one-bin line is one column");
+        check(v.stride <= CW, "fine view: fits the texture");
+        const int cc0 = c0 / 8, cc1 = (c1 + 7) / 8;
+        check(v.update(coarse.data(), CW, H, wr, R, have, lut, 1, cc0, cc1, 1000, 1, full, dirty) && full && v.cols == cc1 - cc0 && v.srcW == CW, "back to the W columns: rebuilt");
+        check(v.update(fineLv.data(), FW, H, wr, R, have, lut, 1, cc0, cc1, 1000, 1, full, dirty) && full, "same columns, other history: rebuilt");
+    }
     if (!fails) printf("plot_util ok\n");
     return fails ? 1 : 0;
 }

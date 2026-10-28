@@ -18,6 +18,7 @@ struct WfView {
     int stride = 0, rowsAlloc = 0;
     long long newest = -1, lastR = -1;               // the newest group built, and the newest row it had
     int lutGen = -1;
+    const uint8_t* src = nullptr; int srcW = 0, srcH = 0;   // the history it was built from (the W-column one or the full-FFT one)
     std::vector<uint32_t> px;   // rowsAlloc rows of stride colours; group g in row rowOf(g) (newer groups above, wrapping, as the history)
     std::vector<uint8_t> acc;
 
@@ -42,9 +43,9 @@ struct WfView {
         if (nc1 <= nc0 || ncols < 1 || R < 0) return false;
         ncols = std::min(ncols, nc1 - nc0);
         const long long gN = R / nk;
-        const bool same = nc0 == c0 && nc1 == c1 && ncols == cols && nk == k && gen == lutGen && newest >= 0;
+        const bool same = nc0 == c0 && nc1 == c1 && ncols == cols && nk == k && gen == lutGen && newest >= 0 && lv == src && W == srcW && H == srcH;
         if (!same || gN - newest >= ring) {
-            c0 = nc0; c1 = nc1; cols = ncols; k = nk; ring = ringFor(k, H); lutGen = gen;
+            c0 = nc0; c1 = nc1; cols = ncols; k = nk; ring = ringFor(k, H); lutGen = gen; src = lv; srcW = W; srcH = H;
             stride = cols + (cols < W ? 1 : 0); rowsAlloc = ring + (ring < H ? 1 : 0);
             px.assign((size_t)rowsAlloc * stride, 0xFF000000u);
             for (long long g = std::max(0LL, gN - ring + 1); g <= gN; g++) build(lv, W, H, wr, R, have, lut, g);

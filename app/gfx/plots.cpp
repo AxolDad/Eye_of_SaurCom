@@ -32,42 +32,47 @@ static void identifyPlotInput(App& a, int plotId) {
     }
 }
 
-// Ctrl (or Alt) held over the spectrum or the waterfall: the zoom tool of the Span bar. A drag across a range zooms to it on release (the
-// range is drawn while dragging); a double-click fits the view to the signal under the mouse. Shift+drag stays the Identify selection.
+// The Span bar's zoom selection on the spectrum or the waterfall: with its "Zoom to selection" toggle on (it turns itself off after one
+// zoom), or Ctrl held as the shortcut (Cmd on a Mac), a drag across a range zooms to it on release, the range drawn while dragging;
+// Ctrl+double-click fits the view to the signal under the mouse. Shift+drag stays the Identify selection. The wheel keeps zooming.
+static int gSpanDragPlot = -1;
+static double gSpanX0 = 0;
 static bool spanModifier() {
     const ImGuiIO& io = ImGui::GetIO();
-    return (io.KeyCtrl || io.KeyAlt) && !io.KeyShift;
+    return io.KeyCtrl && !io.KeyShift;
+}
+static bool spanSelecting(const App& a) {   // a drag belongs to the zoom selection (and does not pan)
+    return gSpanDragPlot >= 0 || (!a.identifyTool && !ImGui::GetIO().KeyShift && (spanModifier() || spanZoomToolOn()));
 }
 static void spanSelectInput(App& a, int plotId) {
-    static int dragPlot = -1;
-    static double x0 = 0;
     const bool hov = plt::IsPlotHovered();
-    if (hov && spanModifier() && !a.identifyTool) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-    if (hov && spanModifier() && !a.identifyTool && ImGui::IsMouseDoubleClicked(0)) {
-        dragPlot = -1;
+    const bool armed = !a.identifyTool && !ImGui::GetIO().KeyShift && (spanModifier() || spanZoomToolOn());
+    if (hov && (armed || gSpanDragPlot == plotId)) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+    if (hov && armed && spanModifier() && ImGui::IsMouseDoubleClicked(0)) {
+        gSpanDragPlot = -1;
         const plt::Rect lim = plt::GetPlotLimits();
         spanFitSignal(a, plt::GetPlotMousePos().x, (lim.X.Max - lim.X.Min) / std::max(1.f, plt::GetPlotSize().x));
         return;
     }
-    if (hov && spanModifier() && !a.identifyTool && ImGui::IsMouseClicked(0)) { dragPlot = plotId; x0 = plt::GetPlotMousePos().x; }
-    if (dragPlot != plotId) return;
-    const double x1 = plt::GetPlotMousePos().x;
+    if (hov && armed && ImGui::IsMouseClicked(0)) { gSpanDragPlot = plotId; gSpanX0 = plt::GetPlotMousePos().x; }
+    if (gSpanDragPlot != plotId) return;
+    const double x0 = gSpanX0, x1 = plt::GetPlotMousePos().x;
     if (ImGui::IsMouseDown(0)) {
         plt::Spec bs; bs.FillColor = ImVec4(0.95f, 0.80f, 0.30f, 0.20f);
         plt::PlotVBand("##spansel", std::min(x0, x1), std::max(x0, x1), bs);
         const double ex[2] = {std::min(x0, x1), std::max(x0, x1)};
         plt::Spec es; es.LineColor = ImVec4(0.95f, 0.80f, 0.30f, 0.8f); es.LineWeight = 1.f;
         plt::PlotInfLines("##spanseledges", ex, 2, es);
-        if (plotId == 0) {
-            const std::string w = formatSpan(std::fabs(x1 - x0) * 1e6);
-            ImGui::SetTooltip("%s", (std::string(tr("Zoom to")) + " " + w).c_str());
-        }
+        ImGui::SetTooltip("%s", (std::string(tr("Zoom to")) + " " + formatSpan(std::fabs(x1 - x0) * 1e6)).c_str());
         return;
     }
-    dragPlot = -1;
+    gSpanDragPlot = -1;
+    if (!ImGui::IsMouseReleased(0)) return;   // the button went up while this plot was not drawn: drop the selection
     const plt::Rect lim = plt::GetPlotLimits();
     const double perPx = (lim.X.Max - lim.X.Min) / std::max(1.f, plt::GetPlotSize().x);
-    if (std::fabs(x1 - x0) >= 4 * perPx) spanSetSpan(a, std::fabs(x1 - x0) * 1e6, (x0 + x1) / 2);   // a click without a drag does nothing
+    if (std::fabs(x1 - x0) < 4 * perPx) return;   // a click without a drag does nothing (the toggle stays on)
+    spanSetSpan(a, std::fabs(x1 - x0) * 1e6, (x0 + x1) / 2);
+    spanZoomToolOn() = false;   // one zoom, then back to the usual drag
 }
 
 // the "Identify" toggle in the corner of the spectrum, beside the other buttons
@@ -97,7 +102,7 @@ static float identifyButton(App& a, ImVec2 plotMin, ImVec2 plotSize, float right
 
 static void clickToTune(App& a, int plotId) {
     if (autoLabelsHovered()) return;   // the mouse is on a name: it tunes (autolabel.cpp)
-    if (spanModifier() && !a.identifyTool) return;   // Ctrl / Alt: the Span bar's zoom tool (spanSelectInput)
+    if (spanSelecting(a)) return;   // Ctrl or the "Zoom to selection" toggle: the Span bar's zoom selection (spanSelectInput)
     if (a.family == 55) { generalPlotMouse(a, plotId); return; }   // the general receiver: its channel marker, without retuning the radio
     if (!plt::IsPlotHovered() || a.fmScan.running) return;
     if (a.identifyTool || ImGui::GetIO().KeyShift) return;   // the Identify tool and Shift+drag select a signal instead of tuning (identifyPlotInput)
@@ -910,7 +915,7 @@ static void dragRetune(App& a) {
     static bool dragSaved = true;
     const bool held = ImGui::IsMouseDown(0);
     if (plt::IsPlotHeld() && ImGui::IsMouseDragging(0, 4)) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);   // grabbing
-    else if (plt::IsPlotHovered() && !held && !a.identifyTool && !ImGui::GetIO().KeyShift && !spanModifier()) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    else if (plt::IsPlotHovered() && !held && !a.identifyTool && !ImGui::GetIO().KeyShift && !spanSelecting(a)) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
     if (!held) { pacer.pending = 0; if (!dragSaved) { dragSaved = true; savePrefs(a); } return; }
     if (a.touchUi || ov == 0 || !a.engine.running() || a.second.drawing) return;
     const bool file = !a.devices.empty() && a.devIdx >= 0 && a.devIdx < (int)a.devices.size() && (a.devices[a.devIdx].kind == DeviceInfo::File || a.devices[a.devIdx].isAudio());
@@ -940,7 +945,7 @@ static void spectrumPlot(App& a, ImVec2 size, int extraFlags) {
     bool drawn = false, openCtx = false;
     double visLo = 0, visHi = 0;
     static double ctxMhz = 0;
-    if (plt::BeginPlot("##spec", size, plt::Flags_NoLegend | plt::Flags_NoTitle | plt::Flags_Overlay | plt::Flags_SmoothZoom | extraFlags | (a.family == 55 && generalDragging(0) ? plt::Flags_NoPan : 0) | (a.identifyTool || ImGui::GetIO().KeyShift || spanModifier() ? plt::Flags_NoPan : 0))) {
+    if (plt::BeginPlot("##spec", size, plt::Flags_NoLegend | plt::Flags_NoTitle | plt::Flags_Overlay | plt::Flags_SmoothZoom | extraFlags | (a.family == 55 && generalDragging(0) ? plt::Flags_NoPan : 0) | (a.identifyTool || ImGui::GetIO().KeyShift || spanSelecting(a) ? plt::Flags_NoDragPan : 0))) {
         drawn = true;
         plt::SetupAxes(nullptr, kYLabel, (a.specGrid ? 0 : plt::AxisFlags_NoGridLines), plt::AxisFlags_Inside | (a.specGrid ? 0 : plt::AxisFlags_NoGridLines));   // the frequencies along the bottom edge, inside, as in SDR++
         setupFreqAxis(a);
@@ -1116,7 +1121,7 @@ static void waterfallPlot(App& a, ImVec2 size, int extraFlags) {
     }
     ImVec2 plotMin, plotSize;
     bool drawn = false;
-    if (plt::BeginPlot("##wf", size, plt::Flags_NoLegend | plt::Flags_NoTitle | plt::Flags_Overlay | plt::Flags_SmoothZoom | extraFlags | (a.family == 55 && generalDragging(1) ? plt::Flags_NoPan : 0) | (a.identifyTool || ImGui::GetIO().KeyShift || spanModifier() ? plt::Flags_NoPan : 0))) {
+    if (plt::BeginPlot("##wf", size, plt::Flags_NoLegend | plt::Flags_NoTitle | plt::Flags_Overlay | plt::Flags_SmoothZoom | extraFlags | (a.family == 55 && generalDragging(1) ? plt::Flags_NoPan : 0) | (a.identifyTool || ImGui::GetIO().KeyShift || spanSelecting(a) ? plt::Flags_NoDragPan : 0))) {
         drawn = true;
         plt::SetupAxes(nullptr, tr("seconds ago"), plt::AxisFlags_NoTickLabels | (a.specGrid ? 0 : plt::AxisFlags_NoGridLines), plt::AxisFlags_Inside | (a.specGrid ? 0 : plt::AxisFlags_NoGridLines));   // the spectrum above shows the frequencies
         double fs = (a.engine.sampleRate() > 0 ? a.engine.sampleRate() : a.tune.sampleRate) / 1e6;
@@ -1137,21 +1142,28 @@ static void waterfallPlot(App& a, ImVec2 size, int extraFlags) {
         const ImVec2 psz = plt::GetPlotSize();   // first: it finishes the setup, after which the limits are this frame's
         const plt::Rect vis = plt::GetPlotLimits();
         const ImVec2 fbs = ImGui::GetIO().DisplayFramebufferScale;
-        const int W = Waterfall::W;
-        const int c0 = (int)std::floor((vis.X.Min - x0) / (x1 - x0) * W), c1 = (int)std::ceil((vis.X.Max - x0) / (x1 - x0) * W);
-        const int k = plt::WfView::groupRows(vis.Y.Max - vis.Y.Min, psz.y * std::max(1.f, fbs.y), H);
+        const int W = Waterfall::W;   // the texture's width, and the columns of the usual history
+        a.wf.keepFine = true;   // this is the main waterfall: keep the full-FFT history for a narrow view
+        const int pxW = std::max(1, std::min(W - 1, (int)(psz.x * std::max(1.f, fbs.x))));
+        int c0 = (int)std::floor((vis.X.Min - x0) / (x1 - x0) * W), c1 = (int)std::ceil((vis.X.Max - x0) / (x1 - x0) * W);
+        // zoomed in past what the W columns resolve (fewer of them in view than the plot has pixels) and the FFT is wider: the full-FFT
+        // history, so a narrow view is sharper, not only magnified. A wide view stays on the W columns (the same cost as before).
+        const bool fine = a.wf.fineW > W && a.wf.fineFilled > 0 && c1 - c0 < pxW;
+        const int LW = fine ? a.wf.fineW : W, LH = fine ? a.wf.fineH : H;
+        if (fine) { c0 = (int)std::floor((vis.X.Min - x0) / (x1 - x0) * LW); c1 = (int)std::ceil((vis.X.Max - x0) / (x1 - x0) * LW); }
+        const int k = plt::WfView::groupRows(vis.Y.Max - vis.Y.Min, psz.y * std::max(1.f, fbs.y), LH);
         if (!a.wf.viewImg && gGfx) a.wf.viewImg = gGfx->createImage(W, H, 0xFF000000u);
         bool full = false;
         static std::vector<int> dirty;
         plt::WfView& v = a.wf.view;
-        if (a.wf.viewImg && a.wf.view.update(a.wf.lv.data(), W, H, a.wf.writeRow, a.wf.rows - 1, a.wf.filled, a.wf.lut, a.wf.lutGen,
-                                              c0, c1, std::max(1, (int)(psz.x * std::max(1.f, fbs.x))), k, full, dirty)) {
+        if (a.wf.viewImg && a.wf.view.update(fine ? a.wf.lvFine.data() : a.wf.lv.data(), LW, LH, fine ? a.wf.fineWr : a.wf.writeRow, a.wf.rows - 1,
+                                              fine ? a.wf.fineFilled : a.wf.filled, a.wf.lut, a.wf.lutGen, c0, c1, pxW, k, full, dirty)) {
             if (full) a.wf.viewImg->update(0, 0, v.stride, v.rowsAlloc, v.px.data());
             else for (int r : dirty) a.wf.viewImg->update(0, r, v.stride, 1, v.px.data() + (size_t)r * v.stride);
         }
         if (a.wf.viewImg && v.cols > 0 && a.wf.rows > 0) {
             ImTextureID tex = a.wf.viewImg->texture();
-            const double vx0 = x0 + (x1 - x0) * v.c0 / W, vx1 = x0 + (x1 - x0) * v.c1 / W;
+            const double vx0 = x0 + (x1 - x0) * v.c0 / v.srcW, vx1 = x0 + (x1 - x0) * v.c1 / v.srcW;
             const float u1 = (float)v.cols / W;
             const long long R = a.wf.rows - 1, gN = R / v.k;
             const int w = v.rowOf(gN);

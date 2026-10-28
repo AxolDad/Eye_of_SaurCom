@@ -88,6 +88,13 @@ struct Waterfall {
     bool accEmpty = true;
     int writeRow = 0; // newest row; older rows follow at writeRow+1 ... wrapping
     int filled = 0;
+    // The history at the full FFT width, for a view zoomed in further than the W columns resolve (the main waterfall only: keepFine).
+    // fineW bins a row (0: none, the FFT is not wider than W), fineH rows (H, fewer if fineW x H would pass kFineBytes); written with lv,
+    // newest at fineWr. Seeded from lv when the FFT size changes, so the picture goes on (old rows blocky, new ones sharp).
+    static constexpr size_t kFineBytes = 32u << 20;
+    bool keepFine = false;
+    std::vector<uint8_t> lvFine;
+    int fineW = 0, fineH = 0, fineWr = 0, fineFilled = 0;
     double pushT = 0; // when the newest row came in (glfwGetTime)
     double rowDt = 1.0 / 30; // steady seconds per row, for the time labels and the scrolling
     double stamps[128] = {};
@@ -144,9 +151,32 @@ struct Waterfall {
         writeFrom(d, dbfs.size());
         return true;
     }
-    // the bins of the frame onto the 4096 columns (the highest of those that share a column), the levels onto the colour table: one row uploaded
+    // a new FFT width for the fine history: rows from lv by nearest column (lv's row writeRow + age is the fine row age, fineWr = 0)
+    void reseedFine(int n) {
+        if (!keepFine || n <= W) { lvFine.clear(); lvFine.shrink_to_fit(); fineW = fineH = fineWr = fineFilled = 0; return; }
+        fineW = n;
+        fineH = (int)std::max<size_t>(1, std::min<size_t>(H, kFineBytes / (size_t)n));
+        lvFine.assign((size_t)fineW * fineH, 0);
+        fineWr = 0;
+        fineFilled = std::min(filled, fineH);
+        for (int age = 0; age < fineFilled; age++) {
+            const uint8_t* s = lv.data() + (size_t)((writeRow + age) % H) * W;
+            uint8_t* o = lvFine.data() + (size_t)age * fineW;
+            for (int i = 0; i < fineW; i++) o[i] = s[(size_t)i * W / fineW];
+        }
+    }
+    void writeFine(const float* d, size_t n, float inv) {
+        if ((int)n != fineW) reseedFine((int)n);   // (before this row goes into lv, so the seed is the rows before it)
+        if (fineW <= 0) return;
+        fineWr = (fineWr + fineH - 1) % fineH;
+        uint8_t* o = lvFine.data() + (size_t)fineWr * fineW;
+        for (size_t i = 0; i < n; i++) { const float v = (d[i] - minDb) * inv; o[i] = (uint8_t)(v <= 0.f ? 0 : v >= 255.f ? 255 : (int)v); }
+        fineFilled = std::min(fineH, fineFilled + 1);
+    }
+    // the bins of the frame onto the W columns (the highest of those that share a column), the levels onto the colour table: one row uploaded
     void writeFrom(const float* d, size_t n) {
         const float inv = 255.f / std::max(1.f, maxDb - minDb);
+        if (keepFine && (n > (size_t)W || fineW > 0)) writeFine(d, n, inv);
         uint32_t* r = row.data();
         writeRow = (writeRow + H - 1) % H;
         uint8_t* l = lv.data() + (size_t)writeRow * W;
@@ -1047,6 +1077,8 @@ void spanStep(App& a, bool wider);                          // x2 / /2 about the
 void spanShowWholeBand(App& a);
 void spanFitSignal(App& a, double mhz, double mhzPerPx);    // fit the view to the signal at mhz (mhzPerPx: the plot's scale, 0 = unknown)
 void spanContextItems(App& a, double mhz);                  // "Fit to this signal", "Show the whole band", "Wider x2", "Narrower x2"
+void spanTick(App& a);                                      // every frame (drawUI): the automatic FFT size and a wider view waiting for the radio
+bool& spanZoomToolOn();                                     // the bar's "Zoom to selection" toggle: a plain drag on the spectrum selects a range
 void specFreqViewWheel(App& a, float mouseNorm, float wheel, double& loMhz, double& hiMhz);
 bool specDbRangeKeys(App& a);                                              // Ctrl+arrows dB range (3D view has no spectrum plot hover)
 float specPlotBwBtnW();                                                    // plots.cpp: layout of corner controls (same frame)

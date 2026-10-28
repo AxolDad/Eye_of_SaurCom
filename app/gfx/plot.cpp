@@ -233,7 +233,7 @@ void finishSetup() {
             if (C.st->hasTgt[a] && (std::fabs(C.st->lim[a][0] - C.st->last[a][0]) > 1e-12 || std::fabs(C.st->lim[a][1] - C.st->last[a][1]) > 1e-12)) C.st->hasTgt[a] = false;
         gPanOverflowX = 0;
         double intendedLo = 0; bool draggedX = false;
-        if (held && (io.MouseDelta.x != 0 || io.MouseDelta.y != 0)) {
+        if (held && !(C.flags & Flags_NoDragPan) && (io.MouseDelta.x != 0 || io.MouseDelta.y != 0)) {
             if (movable[0] && C.ax[0].scale == Scale_Linear) { const double d = -io.MouseDelta.x / C.plot.GetWidth() * (C.hi[0] - C.lo[0]); C.st->lim[0][0] += d; C.st->lim[0][1] += d; intendedLo = C.st->lim[0][0]; draggedX = true; }
             if (movable[1] && C.ax[1].scale == Scale_Linear) { const double d = io.MouseDelta.y / C.plot.GetHeight() * (C.hi[1] - C.lo[1]); C.st->lim[1][0] += d; C.st->lim[1][1] += d; }
         }
