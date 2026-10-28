@@ -170,11 +170,22 @@ void refreshDevices(App& a, const std::vector<DeviceInfo>* radios, const std::st
         a.devIdx = idx >= 0 ? idx : 0;   // the test signal, never a different radio by surprise
     }
     size_t nHack = 0, nAudio = 0;
-    for (const auto& d : a.devices) { if (d.kind == DeviceInfo::HackRF) nHack++; if (d.isAudio()) nAudio++; }
+    std::vector<std::string> radioNames;
+    for (size_t i = 0; i < a.devices.size(); i++) {
+        const auto& d = a.devices[i];
+        if (d.kind == DeviceInfo::HackRF) nHack++;
+        if (d.isAudio()) nAudio++;
+        if (i >= 2 && d.isRadio()) radioNames.push_back(radioShortName(a, (int)i, true));
+    }
+    // the line people see: the radios by name ("Found 3 radios: HackRF One, RTL-SDR (SN 00000001), NESDR SMArt v5 · 3 sound cards")
+    dect2::ScanWords w;
+    w.none = tr("No radios found"); w.one = tr("Found 1 radio: %s"); w.many = tr("Found %d radios: %s");
+    w.card = tr("1 sound card"); w.cards = tr("%d sound cards");
+    const std::string shown = dect2::radioScanSummary(radioNames, nAudio, w) + (soapySupported() ? "" : tr(" (built without SoapySDR)"));
+    a.engine.log(shown);
+    // the log file (saurcom.log on Windows) keeps the counts and every radio with any error: what a user can send when a radio does not show up
     const std::string line = "device scan: " + std::to_string(nHack) + " HackRF, " + std::to_string(nAudio) + " sound card(s), " +
         std::to_string(a.devices.size() - 2 - nHack - nAudio) + " other radio(s)" + (soapySupported() ? "" : " (built without SoapySDR)");
-    a.engine.log(line);
-    // also in the log file (saurcom.log on Windows), with every radio and any error: what a user can send when a radio does not show up
     fprintf(stderr, "%s\n", line.c_str());
     for (size_t i = 2; i < a.devices.size(); i++) {   // the user's name next to the internal one, so a log tells look-alikes apart (text, never a format)
         const std::string shown = radioShownName(a, (int)i);

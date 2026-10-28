@@ -305,5 +305,38 @@ int main() {
         CHECK(findRadioRow(m, "", nullptr, mine.name, 1) == 1, "a unique name still finds it");
         CHECK(findRadioRow(m, "", nullptr, "Test signal", 1) == -1, "rows before first are skipped");
     }
+    // short names: the model without driver notes and serials, the user's label first, look-alikes numbered
+    {
+        DeviceInfo hk; hk.kind = DeviceInfo::HackRF; hk.board = "HackRF One"; hk.serial = "0000000000000000a06063c82d6b63c3"; hk.name = "HackRF One (2d6b63c3)"; hk.usbPath = "1-1";
+        DeviceInfo r1 = rtl("00000001", "1-2", "RTL2838UHIDIR 00000001 (native, experimental)");
+        DeviceInfo r2 = rtl("00000001", "1-3", "NESDR SMArt v5 00000001 (native, experimental)");
+        CHECK(radioModelName(hk) == "HackRF One", "hackrf model: %s", radioModelName(hk).c_str());
+        CHECK(radioModelName(r1) == "RTL-SDR", "generic realtek: %s", radioModelName(r1).c_str());
+        CHECK(radioModelName(r2) == "NESDR SMArt v5", "nesdr: %s", radioModelName(r2).c_str());
+        CHECK(radioModelName(rtl("00000001", "", "Generic RTL2832U OEM :: 00000001")) == "RTL-SDR", "soapy label");
+        DeviceInfo net; net.kind = DeviceInfo::Native; net.board = "rtltcp"; net.name = "rtl_tcp 10.0.0.5:1234 (network)";
+        CHECK(radioModelName(net) == "rtl_tcp 10.0.0.5:1234 (network)", "a network radio keeps its address");
+        DeviceInfo odd; odd.kind = DeviceInfo::Native; odd.name = "(native, experimental)";
+        CHECK(!radioModelName(odd).empty(), "never empty");
+        DeviceInfo syn; syn.kind = DeviceInfo::Synthetic; syn.name = "Test signal";
+        RadioLabels L;
+        auto rows = identifySources({syn, hk, r1, r2}, L);
+        auto n = radioShortNames(rows);
+        CHECK(n.size() == 4 && n[0] == "Test signal" && n[1] == "HackRF One" && n[2] == "RTL-SDR" && n[3] == "NESDR SMArt v5", "short names: %s | %s | %s", n[1].c_str(), n[2].c_str(), n[3].c_str());
+        auto ns = radioShortNames(rows, true);
+        CHECK(ns[1] == "HackRF One (SN 2d6b63c3)" && ns[2] == "RTL-SDR (SN 00000001)", "with serial: %s, %s", ns[1].c_str(), ns[2].c_str());
+        auto twins = radioShortNames(identifySources({syn, rtl("00000001", "1-2", "RTL2838UHIDIR"), rtl("00000001", "1-3", "RTL2838UHIDIR")}, L));
+        CHECK(twins[1] == "RTL-SDR #1" && twins[2] == "RTL-SDR #2", "twins numbered: %s, %s", twins[1].c_str(), twins[2].c_str());
+        rows[3].label = "Trunk control";
+        CHECK(radioShortNames(rows)[3] == "Trunk control", "label wins");
+        CHECK(radioScanSummary({"HackRF One", "RTL-SDR (SN 00000001)", "NESDR SMArt v5"}, 3) ==
+              "Found 3 radios: HackRF One, RTL-SDR (SN 00000001), NESDR SMArt v5 \xC2\xB7 3 sound cards", "summary: %s",
+              radioScanSummary({"HackRF One", "RTL-SDR (SN 00000001)", "NESDR SMArt v5"}, 3).c_str());
+        CHECK(radioScanSummary({"HackRF One"}, 1) == "Found 1 radio: HackRF One \xC2\xB7 1 sound card", "one");
+        CHECK(radioScanSummary({}, 0) == "No radios found", "none");
+        CHECK(radioScanSummary({"100%s %d"}, 0) == "Found 1 radio: 100%s %d", "a name is not a format");
+        ScanWords w; w.many = "%s (%d)";
+        CHECK(radioScanSummary({"a", "b"}, 0, w) == "a, b (2)", "own words, any order");
+    }
     return testSummary("radio_id");
 }

@@ -94,6 +94,12 @@ std::string radioShownName(const App& a, int idx) {
     return r->key.empty() ? r->dev.name : dect2::radioDisplayName(*r);
 }
 
+std::string radioShortName(const App& a, int idx, bool withSerial) {
+    if (!radioRow(a, idx)) return std::string();   // builds the rows
+    const std::vector<std::string> v = dect2::radioShortNames(a.radioRows, withSerial);
+    return (size_t)idx < v.size() ? v[(size_t)idx] : std::string();
+}
+
 std::string radioShownName(const App& a, const dect2::DeviceInfo& d) {
     for (int i = 0; i < (int)a.devices.size(); i++)
         if (&a.devices[(size_t)i] == &d) return radioShownName(a, i);
