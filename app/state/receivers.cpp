@@ -7,12 +7,14 @@
 #include "adsb/adsb_acars.h"
 #include "transcribe/transcribe_app.h"
 #include "dect2/engine/device_claims.h"
+#include <cmath>
 #include <memory>
 #ifndef _WIN32
 #include <sys/resource.h>
 #endif
 
 float gCpuPct = 0;
+constexpr float kCpuWarnPct = 150.f;   // + asks first only above this CPU load
 
 namespace {
 std::unique_ptr<App> gExtra[kMaxReceivers - 1];   // RX 2 ... ; a closed receiver leaves its place empty (the numbers stay)
@@ -34,6 +36,13 @@ int openMask() {
 }
 void saveOpen() { plat::prefs().setI("rxOpen", openMask()); }
 
+// the radio part of a chip's title: the short name of its radio ("NESDR SMArt v5", the user's name if set)
+std::string chipRadio(const App& r) {
+    if (r.devIdx == 0) return tr("Test signal");
+    if (r.devIdx == 1) return tr("IQ file");
+    return radioShortName(r, r.devIdx);
+}
+
 const char* modeName(const App& a) {
     const SubMode* sm = curSub(a);
     for (int i = 0; i < kNumModes; i++) {
@@ -41,6 +50,25 @@ const char* modeName(const App& a) {
         if (sm ? (kModes[i].subId && !strcmp(kModes[i].subId, sm->id)) : !kModes[i].subId) return kModes[i].name;
     }
     return "";
+}
+
+// The mode of a new receiver that has none saved: the General receiver (listen anywhere), else FM broadcast, else the spectrum
+// analyser when another receiver already has that mode open (two receivers cannot run one mode yet, receiverModeBusy), on a
+// frequency inside its radio's range.
+void freshMode(App& a) {
+    struct Cand { int family, sub; };
+    static const Cand kCands[] = {{55, 0}, {5, 0}, {42, 0}};
+    Cand pick = kCands[0];
+    for (const Cand& c : kCands) {
+        bool taken = false;
+        for (App* o : receiversAll()) taken |= o != &a && o->family == c.family && (c.family != 55 || !curSub(*o));
+        if (!taken) { pick = c; break; }
+    }
+    setMode(a, pick.family, pick.sub);
+    const ModeTuning* mt = pick.family >= 6 ? modeTuning(pick.family + 2) : nullptr;
+    const double def = mt ? mt->defMhz : pick.family == 5 ? 100.0 : a.freqMhz;
+    const DeviceInfo* d = a.devIdx >= 0 && a.devIdx < (int)a.devices.size() ? &a.devices[(size_t)a.devIdx] : nullptr;
+    a.freqMhz = d ? rxbar::tuneInRange(def, d->minFreqHz / 1e6, d->maxFreqHz / 1e6) : def;
 }
 
 void sampleCpu() {
@@ -67,8 +95,18 @@ App* create(int id) {
     a.wf.init(gGfx);
     a.tune.synth.demoTv = true;
     a.engine.player().setHardwareDecode(plat::prefs().getB("hwVideo", true));
+    bool fresh = false;   // no mode saved for this receiver: it opens in freshMode() once its radio is known
     {
         PrefScope ps(id);
+        auto& p = plat::prefs();
+        fresh = !p.has("family");
+        // Before the fix of app.h's default (family 0 had become 68), a new receiver opened in DJI drones on 522 MHz and saved that.
+        // That exact pair, met once per receiver, counts as never chosen.
+        const long checked = p.getI("rxModeFix68", 0);
+        if (!(checked & (1L << id))) {
+            if (!fresh && p.getI("family", 0) == 68 && std::fabs(p.getD("freqMhz", 0) - 522.0) < 1e-6) fresh = true;
+            p.setI("rxModeFix68", checked | (1L << id));
+        }
         loadPrefs(a);
     }
     a.newUi = first.newUi; a.lightUi = first.lightUi; a.highContrast = first.highContrast; a.uiTheme = first.uiTheme; a.uiVariant = first.uiVariant; a.touchUi = first.touchUi; a.touchScale = first.touchScale;   // one look for the whole window
@@ -82,10 +120,16 @@ App* create(int id) {
         const std::string name = plat::prefs().getS("devName", ""), key = plat::prefs().getS("devKey", "");
         const int saved = findRadio(a, key, name);   // by key first, then by the internal name
         if (saved >= 2 && !deviceHolder(a.devices[saved])) pick = saved;
-        for (int i = 2; i < (int)a.devices.size() && pick == 0; i++)
-            if (a.devices[i].isRadio() && !deviceHolder(a.devices[i])) pick = i;
+        bool anyRadio = false;
+        for (int i = 2; i < (int)a.devices.size(); i++) {
+            if (!a.devices[i].isRadio()) continue;
+            anyRadio = true;
+            if (pick == 0 && !deviceHolder(a.devices[i])) pick = i;
+        }
         a.devIdx = pick;
+        a.rxNoRadio = pick != 0 ? 0 : anyRadio ? 1 : 2;   // the test signal: say why (statusBar), never silently
     }
+    if (fresh) freshMode(a);
     gExtra[id - 2] = std::move(up);
     return gExtra[id - 2].get();
 }
@@ -153,19 +197,19 @@ void strip(App& first, ImVec2 disp, float h) {
     const float cpuW = compact ? 0.f : ImGui::CalcTextSize(cpu).x + 14 * gUi;
     const float viewR = ImGui::GetWindowPos().x + disp.x - cpuW - plusW - 10 * gUi;   // chips are clipped here
     const float viewW = std::max(40.f, viewR - x0);
-    const float maxChip = (compact ? 190.f : 330.f) * gUi, minChip = 96 * gUi;
+    const float maxChip = (compact ? 220.f : 460.f) * gUi, minChip = 96 * gUi;
     const ImVec4 grey = pal::grey();
     // layout pass: widths
-    struct Chip { App* r; std::string txt; float x, w; };
+    struct Chip { App* r; std::string radio, mode; float x, w; };
     static std::vector<Chip> chips;   // reused: no per-frame allocation once warm
     chips.clear();
     float x = 0;
     for (App* r : all) {
-        const char* mn = modeName(*r);
-        std::string t = rxbar::label(r->rxId, mn, r->freqMhz);
-        const float tw = ImGui::CalcTextSize(t.c_str()).x;
+        std::string radio = chipRadio(*r);
+        std::string mn = modeName(*r);
+        const float tw = ImGui::CalcTextSize(rxbar::label(r->rxId, radio, mn, r->freqMhz).c_str()).x;
         const float w = rxbar::chipWidth(tw, 12 * gUi + 14 * gUi + btn * (r->rxId > 1 ? 2.f : 1.f), minChip, maxChip);
-        chips.push_back({r, std::move(t), x, w});
+        chips.push_back({r, std::move(radio), std::move(mn), x, w});
         x += w + 4 * gUi;
     }
     // mouse wheel over the strip scrolls; the selected chip is kept in view
@@ -198,17 +242,9 @@ void strip(App& first, ImVec2 disp, float h) {
         } else dl->AddRect(a, b, ImGui::GetColorU32(ImVec4(0.2f, 0.21f, 0.22f, 1)), rad);
         const ImVec4 dot = run ? pal::okGreen() : ImVec4(0.42f, 0.44f, 0.46f, 1);
         dl->AddCircleFilled(ImVec2(a.x + 10 * gUi, a.y + chipH * 0.5f), 3.5f * gUi, ImGui::GetColorU32(dot));
-        // text: shorten the mode name first so the frequency stays readable
+        // text: the radio name gives way first, then the mode, so the number and the frequency stay readable
         const float room = c.w - 12 * gUi - 14 * gUi - btn * (r->rxId > 1 ? 2.f : 1.f);
-        std::string t = c.txt;
-        if (ImGui::CalcTextSize(t.c_str()).x > room) {
-            const std::string fq = rxbar::label(r->rxId, "", r->freqMhz);
-            t = std::string(c.txt);
-            int n = (int)t.size();
-            while (n > 4 && ImGui::CalcTextSize(rxbar::ellipsize(t, n).c_str()).x > room) n--;
-            t = rxbar::ellipsize(t, n);
-            (void)fq;
-        }
+        const std::string t = rxbar::fitLabel(r->rxId, c.radio, c.mode, r->freqMhz, room, [](const std::string& s) { return ImGui::CalcTextSize(s.c_str()).x; });
         dl->AddText(ImVec2(a.x + 18 * gUi, a.y + (chipH - ImGui::GetTextLineHeight()) * 0.5f), ImGui::GetColorU32(sel ? ImVec4(0.93f, 0.94f, 0.95f, 1) : ImVec4(0.72f, 0.74f, 0.76f, 1)), t.c_str());
         // speaker: lit when this receiver is the audible one
         const ImVec2 sc(sa.x + btn * 0.5f, a.y + chipH * 0.5f);
@@ -232,7 +268,8 @@ void strip(App& first, ImVec2 disp, float h) {
                 ImGui::BeginTooltip();
                 ImGui::Text("RX %d: %s, %.3f MHz", r->rxId, modeName(*r), r->freqMhz);
                 ImGui::TextColored(run ? pal::okGreen() : grey, "%s", run ? tr("Receiving") : tr("Stopped"));
-                if (di) ImGui::Text(tr("Radio: %s"), radioShownName(*r, r->devIdx).c_str());
+                if (di) ImGui::Text(tr("Radio: %s"), radioShownName(*r, r->devIdx).c_str());   // the full identity: name, serial, USB port
+                if (r->rxNoRadio && r->devIdx == 0) ImGui::TextColored(pal::warnAmber(), "%s", r->rxNoRadio == 1 ? tr("Every radio is in use by another receiver") : tr("No radio is connected"));
                 ImGui::EndTooltip();
             }
         }
@@ -260,7 +297,8 @@ void strip(App& first, ImVec2 disp, float h) {
         dl->AddLine(ImVec2(c.x - 4.5f * gUi, c.y), ImVec2(c.x + 4.5f * gUi, c.y), pc, 1.6f * gUi);
         dl->AddLine(ImVec2(c.x, c.y - 4.5f * gUi), ImVec2(c.x, c.y + 4.5f * gUi), pc, 1.6f * gUi);
         if (room && hv && ImGui::IsMouseReleased(0)) {
-            if (plat::prefs().getB("rxWarnDone", false)) addReceiver(); else gWarnAsk = true;
+            // the warning only when the computer is already busy (150 % = one and a half cores); otherwise the receiver just opens
+            if (plat::prefs().getB("rxWarnDone", false) || gCpuPct <= kCpuWarnPct) addReceiver(); else gWarnAsk = true;
         }
         if (hv) ImGui::SetTooltip("%s", room ? tr("Add a receiver: another radio with its own mode") : tr("The most receivers are open"));
     }

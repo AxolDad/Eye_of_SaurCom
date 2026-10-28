@@ -184,6 +184,14 @@ static void statusNotes(App& a, bool run, AdcStatus adc) {
 }
 
 void statusBar(App& a) {
+    if (a.rxNoRadio && a.devIdx == 0) {   // a receiver opened with + and no radio left for it: say so, one click to pick one
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextColored(pal::warnAmber(), "%s", a.rxNoRadio == 1
+            ? tr("All your radios are in use \xE2\x80\x94 this receiver is showing the test signal. Plug in another radio or stop a receiver to free one.")
+            : tr("No radio is connected \xE2\x80\x94 this receiver is showing the test signal. Plug in a radio, then choose it here."));
+        ImGui::SameLine();
+        if (ImGui::SmallButton(tr("Choose a radio\xE2\x80\xA6"))) a.openSourcePicker = true;
+    } else if (a.rxNoRadio && a.devIdx != 0) a.rxNoRadio = 0;   // a source was chosen: the banner has done its job
     {   // live transcripts are on: always visible
         std::string t;
         if (tx::indicator(t)) { ImGui::TextColored(pal::badRed(), "\xE2\x97\x8F"); ImGui::SameLine(0, 4 * gUi); ImGui::TextColored(pal::warnAmber(), "%s", t.c_str()); }

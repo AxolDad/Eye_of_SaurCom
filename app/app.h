@@ -533,6 +533,8 @@ struct App {
     ImFont* ui = nullptr;
     std::string hackrfErr;
     bool hackrfErrHidden = false;       // the user dismissed the listing error; a new listing shows it again
+    int rxNoRadio = 0;             // a receiver opened with + got no radio of its own: 1 every radio is in use, 2 none is connected (a banner in statusBar until a radio is chosen)
+    bool openSourcePicker = false; // the banner's button: open the source dropdown (toolbar.cpp) the next time it is drawn
     std::string startErr, startErrKey;  // last failed start/retune of the radio (from the engine log); key = the log line it came from, so a dismissed one stays away
     std::vector<std::string> usbHints;  // why a plugged-in radio is not listed (Linux), refreshed with the radio list
     double diagCopiedAt = -10, diagPollAt = -10;
