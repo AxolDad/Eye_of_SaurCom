@@ -487,15 +487,18 @@ int main() {
         CHECK(rtlEepromTargetOk(x, {sound, x, y, z}, 3, {"1-2", "1-3", "1-4"}, err), "look-alikes told apart by the port: %s", err.c_str());
         CHECK(rtlEepromTargetOk(y, {x, y, z}, 3, {"1-2", "1-3", "1-4"}, err), "the second look-alike");
         CHECK(!rtlEepromTargetOk(x, {x, y, z}, 3, {"1-3", "1-2", "1-4"}, err) && has(err, "rescan"), "another dongle at the index: %s", err.c_str());
-        CHECK(!rtlEepromTargetOk(x, {x, y, z}, 3, {}, err) && has(err, "apart"), "look-alikes and no walk: refused: %s", err.c_str());
+        CHECK(!rtlEepromTargetOk(x, {x, y, z}, 3, {}, err) && has(err, "Unplug the other RTL-SDR dongles first"), "look-alikes and no walk: refused: %s", err.c_str());
         DeviceInfo xn = x; xn.usbPath.clear(); DeviceInfo yn = y; yn.usbPath.clear();
         CHECK(!rtlEepromTargetOk(xn, {xn, yn, z}, 3, {"1-2", "1-3", "1-4"}, err) && has(err, "apart"), "look-alikes and no port: refused");
-        CHECK(rtlEepromTargetOk(z, {x, y, z}, 3, {}, err), "unique serial, no walk: by index and serial: %s", err.c_str());
-        CHECK(!rtlEepromTargetOk(z, {x, y, z}, 4, {}, err) && has(err, "rescan"), "a dongle more than listed, no walk: refused");
+        CHECK(!rtlEepromTargetOk(z, {x, y, z}, 3, {}, err) && has(err, "can't tell them apart"), "unique serial but no ports: only a lone dongle: %s", err.c_str());
+        DeviceInfo lone = mk("777", "", "0");
+        CHECK(rtlEepromTargetOk(lone, {sound, lone}, 1, {}, err), "one dongle attached, no ports: by index and serial: %s", err.c_str());
+        CHECK(!rtlEepromTargetOk(lone, {lone}, 2, {}, err) && has(err, "Unplug"), "a second dongle plugged in since the listing: refused");
+        CHECK(!rtlEepromTargetOk(lone, {}, 1, {}, err) && has(err, "rescan"), "the listing does not have it: refused");
         CHECK(!rtlEepromTargetOk(z, {x, y, z}, 2, {}, err), "index past the count");
         DeviceInfo bad = z; bad.nativeArgs = "2x";
         CHECK(!rtlEepromTargetOk(bad, {x, y, bad}, 3, {}, err), "an index that is not a number");
-        CHECK(rtlEepromTargetOk(z, {x, y, z, z}, 3, {}, err), "the same dongle listed twice (in use by another tab) counts once");
+        CHECK(rtlEepromTargetOk(lone, {lone, lone}, 1, {}, err), "the same dongle listed twice (in use by another tab) counts once");
     }
     return testSummary("rtl_serial");
 }

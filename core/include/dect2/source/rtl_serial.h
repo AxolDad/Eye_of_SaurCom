@@ -53,7 +53,7 @@ bool rtlKnownUsbId(uint16_t vid, uint16_t pid);
 // Whether librtlsdr's index of d (d.nativeArgs) can be trusted to be d's dongle, worked out without opening any dongle: n is librtlsdr's count now,
 // paths the fresh USB walk in librtlsdr's order (usbPathsInOrder: one per dongle, or empty when it cannot be mapped), listed the radio list the
 // tool was opened from (its look-alikes, the RTL-SDRs with d's serial, are counted there). With d's port known and the walk mapped, the port at the
-// index must be d's; otherwise look-alikes are refused ("can't tell apart") and the list must still have n dongles. False with err when not.
+// index must be d's; otherwise exactly one RTL dongle may be attached (n == 1), and the list must still have it. False with err when not.
 bool rtlEepromTargetOk(const DeviceInfo& d, const std::vector<DeviceInfo>& listed, uint32_t n, const std::vector<std::string>& paths, std::string& err);
 // Opens the dongle of d for the EEPROM (source_rtlsdr.cpp: by librtlsdr's index, checked with rtlEepromTargetOk, then the serial of that one
 // dongle, which the caller has claimed; no other dongle is opened). After opening, the count, the serial and the port at the index are checked

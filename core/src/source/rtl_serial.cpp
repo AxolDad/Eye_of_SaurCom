@@ -411,7 +411,9 @@ bool rtlEepromTargetOk(const DeviceInfo& d, const std::vector<DeviceInfo>& liste
         if (paths[idx] != d.usbPath) { err = stale; return false; }
         return true;
     }
-    // no port to check: the listing must still be the dongles there are now, with no look-alike of d among them
+    // no port to check: a twin swapped in at the index would pass the serial checks, so only a lone dongle is written (n is librtlsdr's count,
+    // which opens nothing; the caller checks it again after the open). The listing must still be that one dongle.
+    if (n != 1) { err = "Unplug the other RTL-SDR dongles first: this system can't tell them apart."; return false; }
     std::vector<std::string> lookAlike, indices;
     for (const DeviceInfo& x : listed) {
         if (!rtlIsRtl2832(x)) continue;
