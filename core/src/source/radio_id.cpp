@@ -48,7 +48,7 @@ bool RadioLabels::load(const std::string& path, std::string& err) {
     const aj::Value* labels = root.type == aj::Value::Obj ? root.get("labels") : nullptr;
     if (!labels || labels->type != aj::Value::Obj) { err = "radio names file is damaged (no labels)"; return false; }
     for (const auto& [k, v] : labels->o)
-        if (v.type == aj::Value::Str) set(k, v.s);   // anything else is skipped
+        if (v.type == aj::Value::Str) set(k, cleanRadioName(v.s));   // anything else is skipped; a hand-edited name loses its control characters
     return true;
 }
 
@@ -185,6 +185,25 @@ bool migrateLabels(std::vector<RadioRow>& rows, RadioLabels& labels) {
         changed = true;
     }
     return changed;
+}
+
+int findRadioRow(const std::vector<RadioRow>& rows, const std::string& key, const DeviceInfo* was, const std::string& name, size_t first) {
+    if (!key.empty())
+        for (size_t i = first; i < rows.size(); i++) if (rows[i].key == key) return static_cast<int>(i);
+    if (was && !was->usbPath.empty())
+        for (size_t i = first; i < rows.size(); i++) {
+            const DeviceInfo& d = rows[i].dev;
+            if (!rows[i].key.empty() && d.kind == was->kind && d.board == was->board && d.serial == was->serial && d.usbPath == was->usbPath) return static_cast<int>(i);
+        }
+    if (name.empty()) return -1;
+    int found = -1;
+    for (size_t i = first; i < rows.size(); i++) {
+        if (rows[i].dev.name != name) continue;
+        if (was && (rows[i].dev.kind != was->kind || rows[i].dev.serial != was->serial)) continue;   // a name says less than the serial it had
+        if (found >= 0) return kRadioAmbiguous;
+        found = static_cast<int>(i);
+    }
+    return found;
 }
 
 std::vector<RadioRow> identifySources(const std::vector<DeviceInfo>& devs, RadioLabels& labels, bool* migrated) {

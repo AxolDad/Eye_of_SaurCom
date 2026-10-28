@@ -4,6 +4,7 @@
 #include "../state/radio_names.h"
 #include "../state/radio_watch.h"
 #include "notices.h"
+#include "radio_name_ui.h"
 #include "dect2/engine/device_claims.h"
 #include "dect2/source/rtl_serial.h"
 #include <atomic>
@@ -23,6 +24,7 @@ struct State {
     std::string shown;                   // its name for the window
     std::string dir;                     // <data>/radios
     std::vector<std::string> taken;      // serials of every attached radio
+    std::vector<dect2::DeviceInfo> listed;   // the radio list the window was opened from (the tool tells look-alikes apart with it)
     char serial[16] = {0};
     std::string planned;                 // the backup file this write would make
     std::string backup;                  // the backup that exists
@@ -36,7 +38,9 @@ struct State {
 
 struct Job {
     dect2::DeviceInfo dev;
+    std::vector<dect2::DeviceInfo> listed;
     std::string serial, dir, restoreFile, backup, err;
+    std::string restored;                // the serial a restore put back ("" when unknown or turned off)
     bool restore = false, ok = false;
 } gJob;
 std::thread gTh;
@@ -52,14 +56,24 @@ std::string backupDir() { return plat::dataDir() + "/radios"; }
 void startJob() {
     if (gTh.joinable()) gTh.join();
     gJob.dev = S.row.dev;
+    gJob.listed = S.listed;
+    gJob.restored.clear();
     gJob.dir = backupDir();
     gFinished = false;
     radioWatchEepromBusy(true);   // no listing meanwhile (the claim inside the worker also keeps one from starting)
     gTh = std::thread([] {
-        if (gJob.restore) gJob.ok = dect2::rtlRestoreEeprom(gJob.dev, gJob.restoreFile, gJob.dir, gJob.backup, gJob.err);
-        else gJob.ok = dect2::rtlWriteSerial(gJob.dev, gJob.serial, gJob.dir, gJob.backup, gJob.err);
+        if (gJob.restore) gJob.ok = dect2::rtlRestoreEeprom(gJob.dev, gJob.listed, gJob.restoreFile, gJob.dir, gJob.backup, gJob.err, &gJob.restored);
+        else gJob.ok = dect2::rtlWriteSerial(gJob.dev, gJob.listed, gJob.serial, gJob.dir, gJob.backup, gJob.err);
         gFinished = true;
     });
+}
+
+// a finished write or restore: the dongle's name follows the serial it has now (a write: to the new serial; a restore: back to the old one)
+void carryName() {
+    std::string e;
+    if (!gJob.restore) radionames::carryLabel(S.row, gJob.serial, e);
+    else if (!gJob.restored.empty()) radionames::carryLabelBack(S.row, S.listed, gJob.restored, e);
+    if (!e.empty()) S.doneNote = e;
 }
 
 // the worker has finished: take the result on the UI thread
@@ -71,11 +85,7 @@ void collect() {
     if (!gJob.backup.empty()) S.backup = gJob.backup;
     if (gJob.ok) {
         S.phase = Phase::Done;
-        if (!gJob.restore) {
-            std::string e;
-            radionames::carryLabel(S.row, gJob.serial, e);   // its name follows the new serial
-            if (!e.empty()) S.doneNote = e;
-        }
+        carryName();
     } else S.phase = Phase::Failed;
     // whichever receiver is showing now: the window may belong to a receiver that has gone, so the result is also said as a notice
     if (S.phase == Phase::Done) noticePush(gJob.restore ? tr("Done. The backup is back on the dongle. Unplug the dongle and plug it back in.")
@@ -94,6 +104,7 @@ void open(App& a, int idx, bool restore) {
     S.rx = a.rxId;
     S.row = *radioRow(a, idx);
     S.shown = radioShownName(a, idx);
+    S.listed = a.devices;
     S.dir = backupDir();
     collectTaken(a);
     const uint32_t seed = (uint32_t)time(nullptr) ^ (uint32_t)std::hash<std::string>()(S.row.key);
@@ -139,7 +150,10 @@ bool rtlSerialBusy() { return S.phase == Phase::Working || S.phase == Phase::Res
 void rtlSerialTick() { collect(); }   // the busy state belongs to the worker, not to a receiver
 
 void rtlSerialShutdown() {
-    if (gTh.joinable()) gTh.join();
+    if (gTh.joinable()) {   // a write that finishes now still moves the name (and saves it), as collect() would have
+        gTh.join();
+        if (gFinished.load() && gJob.ok) carryName();
+    }
     radioWatchEepromBusy(false);
 }
 
@@ -286,8 +300,8 @@ void rtlSerialModal(App& a) {
         ImGui::Spacing();
         if (S.backups.empty() && S.picked.empty()) ImGui::TextDisabled("%s", tr("No backups in the radios folder. Choose a backup file."));
         for (int i = 0; i < (int)S.backups.size() && i < 12; i++) {
-            const std::string nm = fileName(S.backups[(size_t)i]) + "##bk" + std::to_string(i);
-            if (ImGui::Selectable(nm.c_str(), S.pick == i && S.picked.empty())) { S.pick = i; S.picked.clear(); }
+            const std::string id = "##bk" + std::to_string(i);
+            if (textSelectable(id.c_str(), fileName(S.backups[(size_t)i]), S.pick == i && S.picked.empty())) { S.pick = i; S.picked.clear(); }
         }
         if (ImGui::SmallButton(tr("Choose a file…"))) {
             const std::string f = openFileDialog();

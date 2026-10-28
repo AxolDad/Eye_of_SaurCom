@@ -61,6 +61,13 @@ std::string cleanRadioName(const std::string& s);
 // are radios get a key, a number and a label; the rest keep their own name. Runs migrateLabels (labels change; *migrated says whether).
 std::vector<RadioRow> identifySources(const std::vector<DeviceInfo>& devs, RadioLabels& labels, bool* migrated = nullptr);
 
+// Where a radio a receiver was bound to is in a new list, so it keeps that exact radio: the row with its key; else (its key can flip between
+// "sn:" and "usb:" when a look-alike comes or goes) the row with its kind, board, serial and USB port (only when `was` has a port); else the row
+// with its internal name (and was's kind and serial, when given), but only when exactly one row has that name. Rows before `first` are skipped. -1 when none; kRadioAmbiguous when the
+// name matches several rows (a look-alike is never picked by its name: the caller keeps or flags the choice). was may be nullptr.
+constexpr int kRadioAmbiguous = -2;
+int findRadioRow(const std::vector<RadioRow>& rows, const std::string& key, const DeviceInfo* was, const std::string& name, size_t first = 0);
+
 struct RadioDiff { std::vector<DeviceInfo> added, removed; };
 // Radios are matched by their key as identifyRadios() gives it (so identical-serial radios on different ports differ).
 RadioDiff diffRadios(const std::vector<DeviceInfo>& before, const std::vector<DeviceInfo>& after);

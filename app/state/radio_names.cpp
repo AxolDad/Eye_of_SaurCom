@@ -56,6 +56,12 @@ bool carryLabel(const dect2::RadioRow& row, const std::string& newSerial, std::s
     return gLabels.save(path(), err);
 }
 
+bool carryLabelBack(const dect2::RadioRow& row, const std::vector<dect2::DeviceInfo>& attached, const std::string& restoredSerial, std::string& err) {
+    if (!dect2::rtlCarryLabelBack(gLabels, row, attached, restoredSerial)) return true;
+    gGen++;
+    return gLabels.save(path(), err);
+}
+
 std::vector<dect2::RadioRow> rowsFor(const std::vector<dect2::DeviceInfo>& devices) {
     bool moved = false;
     std::vector<dect2::RadioRow> out = dect2::identifySources(devices, gLabels, &moved);
@@ -99,15 +105,17 @@ std::string radioKeyAt(const App& a, int idx) {
     return r ? r->key : std::string();
 }
 
-int findRadio(const App& a, const std::string& key, const std::string& name) {
-    if (!key.empty())
-        for (int i = 2; i < (int)a.devices.size(); i++) {
-            const dect2::RadioRow* r = radioRow(a, i);
-            if (r && r->key == key) return i;
-        }
-    if (!name.empty())
-        for (int i = 2; i < (int)a.devices.size(); i++) if (a.devices[i].name == name) return i;
-    return -1;
+int findRadio(const App& a, const std::string& key, const std::string& name, const dect2::DeviceInfo* was) {
+    if (!radioRow(a, 0)) return -1;   // builds the rows
+    return dect2::findRadioRow(a.radioRows, key, was, name, 2);
+}
+
+void logRadioStart(App& a, int idx) {
+    if (idx < 2 || idx >= (int)a.devices.size() || !a.devices[(size_t)idx].isRadio()) return;
+    const std::string& name = a.devices[(size_t)idx].name;
+    const std::string shown = radioShownName(a, idx);
+    // plain text: the user's name is never a format string, and the engine log takes the line as it is
+    a.engine.log(shown != name ? "starting \"" + shown + "\" (" + name + ")" : "starting " + name);
 }
 
 std::string sharedSerialWarning(const App& a) {

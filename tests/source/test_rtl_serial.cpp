@@ -228,7 +228,9 @@ int main() {
             CHECK(has(err, "Restore from backup") && has(err, bp.c_str()), "restore hint with the path (n=%d): %s", n, err.c_str());
             io.failAfterBytes = -1;
             std::string rerr, safety;
-            CHECK(rtlRestoreEepromIo(io, bp, dir.string(), 1700000200, safety, rerr), "restore: %s", rerr.c_str());
+            std::string back;
+            CHECK(rtlRestoreEepromIo(io, bp, dir.string(), 1700000200, safety, rerr, &back), "restore: %s", rerr.c_str());
+            CHECK(back == "00000001", "the restored serial is the backup's: %s", back.c_str());
             CHECK(io.mem == orig, "restored to the original (n=%d)", n);
             fs::remove_all(dir);
         }
@@ -243,7 +245,9 @@ int main() {
         CHECK(!rtlWriteSerialIo(io, "00000001", "48213907", dir.string(), 1700000000, bp, err) && io.mem[6] == 0x00 && has(err, "Restore from backup"), "flag is written last: %s", err.c_str());
         io.failAfterBytes = -1;
         std::string safety;
-        CHECK(rtlRestoreEepromIo(io, bp, dir.string(), 1700000200, safety, err) && io.mem == orig, "restored: %s", err.c_str());
+        std::string back = "x";
+        CHECK(rtlRestoreEepromIo(io, bp, dir.string(), 1700000200, safety, err, &back) && io.mem == orig, "restored: %s", err.c_str());
+        CHECK(back.empty(), "a backup with the serial turned off restores no serial: '%s'", back.c_str());
         fs::remove_all(dir);
     }
     // ---- a dongle that accepts the write but does not keep it: "did not verify"
@@ -402,14 +406,14 @@ int main() {
     {
         std::string bp, err;
         DeviceInfo hackrf; hackrf.kind = DeviceInfo::HackRF; hackrf.board = "HackRF One"; hackrf.serial = "0123";
-        CHECK(!rtlIsRtl2832(hackrf) && !rtlWriteSerial(hackrf, "48213907", "/nonexistent", bp, err) && has(err, "RTL2832U"), "not an RTL2832U: %s", err.c_str());
+        CHECK(!rtlIsRtl2832(hackrf) && !rtlWriteSerial(hackrf, {}, "48213907", "/nonexistent", bp, err) && has(err, "RTL2832U"), "not an RTL2832U: %s", err.c_str());
         DeviceInfo soapy; soapy.kind = DeviceInfo::Soapy; soapy.board = "rtlsdr";
-        CHECK(!rtlIsRtl2832(soapy) && !rtlRestoreEeprom(soapy, "/nonexistent", "/nonexistent", bp, err), "soapy refused");
+        CHECK(!rtlIsRtl2832(soapy) && !rtlRestoreEeprom(soapy, {}, "/nonexistent", "/nonexistent", bp, err), "soapy refused");
         DeviceInfo rtl; rtl.kind = DeviceInfo::Native; rtl.board = "rtlsdr"; rtl.serial = "00000001"; rtl.nativeArgs = "0"; rtl.usbPath = "1-2";
         CHECK(rtlIsRtl2832(rtl), "native rtlsdr");
         CHECK(claimDevice(rtl, 2), "claimed by RX 2");
-        CHECK(!rtlWriteSerial(rtl, "48213907", "/nonexistent", bp, err) && has(err, "in use by RX 2"), "claimed: %s", err.c_str());
-        CHECK(!rtlRestoreEeprom(rtl, "/nonexistent", "/nonexistent", bp, err) && has(err, "in use by RX 2"), "restore claimed: %s", err.c_str());
+        CHECK(!rtlWriteSerial(rtl, {rtl}, "48213907", "/nonexistent", bp, err) && has(err, "in use by RX 2"), "claimed: %s", err.c_str());
+        CHECK(!rtlRestoreEeprom(rtl, {rtl}, "/nonexistent", "/nonexistent", bp, err) && has(err, "in use by RX 2"), "restore claimed: %s", err.c_str());
         releaseDevice(2);
         CHECK(!anyDeviceClaimed(), "the tool's claim does not linger after a refusal");
     }
@@ -437,6 +441,61 @@ int main() {
         l4.set(r4[0].key, "Old"); l4.set(newKey, "Already");
         rtlCarryLabel(l4, r4[0], "48213907");
         CHECK(l4.get(newKey) == "Already", "existing label kept");
+    }
+    // ---- the name goes back with a restored serial (the write's move, in reverse)
+    {
+        DeviceInfo a; a.kind = DeviceInfo::Native; a.board = "rtlsdr"; a.serial = "48213907"; a.usbPath = "1-2"; a.nativeArgs = "0";
+        DeviceInfo b = a; b.serial = "00000001"; b.usbPath = "1-3"; b.nativeArgs = "1";
+        DeviceInfo c = a; c.serial = "5550001"; c.usbPath = "1-4"; c.nativeArgs = "2";
+        // restoring a factory serial: back to the usb: key of its port; the tool's unique serial no longer has a name
+        RadioLabels L; auto rows = identifyRadios({a, b}, L);
+        L.set(rows[0].key, "Kitchen window");
+        CHECK(rtlCarryLabelBack(L, rows[0], {a, b}, "00000001"), "moved back");
+        const std::string usbKey = std::to_string((int)DeviceInfo::Native) + ":rtlsdr:usb:1-2";
+        CHECK(L.get(usbKey) == "Kitchen window" && L.get(rows[0].key).empty(), "under the port's key again: %s", L.get(usbKey).c_str());
+        // restoring a serial that another attached dongle has: its usb: key, not the sn: key both would share
+        DeviceInfo c2 = c; c2.usbPath = "1-5"; c2.nativeArgs = "3";
+        RadioLabels L2; auto r2 = identifyRadios({a, c2}, L2);
+        L2.set(r2[0].key, "Shack");
+        CHECK(rtlKeyWithSerial({a, c2}, a, "5550001") == std::to_string((int)DeviceInfo::Native) + ":rtlsdr:usb:1-2", "shared again: usb key");
+        CHECK(rtlCarryLabelBack(L2, r2[0], {a, c2}, "5550001") && L2.get(std::to_string((int)DeviceInfo::Native) + ":rtlsdr:usb:1-2") == "Shack", "name on the port");
+        // a unique old serial: its sn: key
+        RadioLabels L3; auto r3 = identifyRadios({a}, L3);
+        L3.set(r3[0].key, "Attic");
+        CHECK(rtlKeyWithSerial({a}, a, "5550001") == rtlKeyWithSerial(a, "5550001"), "alone: sn key");
+        CHECK(rtlCarryLabelBack(L3, r3[0], {a}, "5550001") && L3.get(rtlKeyWithSerial(a, "5550001")) == "Attic", "sn: name back");
+        // a write then a restore lands where it started
+        RadioLabels L4; auto before = identifyRadios({b, c}, L4);
+        L4.set(before[0].key, "Loft");
+        CHECK(rtlCarryLabel(L4, before[0], "48213907"), "write moves it");
+        DeviceInfo written = b; written.serial = "48213907";
+        auto after = identifyRadios({written, c}, L4);
+        CHECK(after[0].label == "Loft", "after the replug");
+        CHECK(rtlCarryLabelBack(L4, after[0], {written, c}, "00000001"), "restore moves it back");
+        CHECK(identifyRadios({b, c}, L4)[0].label == "Loft" && L4.get(after[0].key).empty(), "the old key has it again, the unique one not");
+        RadioLabels L5; auto r5 = identifyRadios({a}, L5);
+        CHECK(!rtlCarryLabelBack(L5, r5[0], {a}, "5550001"), "no name: nothing");
+    }
+    // ---- which dongle librtlsdr's index is, without opening any (rtlEepromTargetOk)
+    {
+        auto mk = [](const char* sn, const char* path, const char* idx) {
+            DeviceInfo d; d.kind = DeviceInfo::Native; d.board = "rtlsdr"; d.serial = sn; d.usbPath = path; d.nativeArgs = idx; return d;
+        };
+        DeviceInfo sound; sound.kind = DeviceInfo::Audio; sound.name = "USB Audio";
+        const DeviceInfo x = mk("00000001", "1-2", "0"), y = mk("00000001", "1-3", "1"), z = mk("777", "1-4", "2");
+        std::string err;
+        CHECK(rtlEepromTargetOk(x, {sound, x, y, z}, 3, {"1-2", "1-3", "1-4"}, err), "look-alikes told apart by the port: %s", err.c_str());
+        CHECK(rtlEepromTargetOk(y, {x, y, z}, 3, {"1-2", "1-3", "1-4"}, err), "the second look-alike");
+        CHECK(!rtlEepromTargetOk(x, {x, y, z}, 3, {"1-3", "1-2", "1-4"}, err) && has(err, "rescan"), "another dongle at the index: %s", err.c_str());
+        CHECK(!rtlEepromTargetOk(x, {x, y, z}, 3, {}, err) && has(err, "apart"), "look-alikes and no walk: refused: %s", err.c_str());
+        DeviceInfo xn = x; xn.usbPath.clear(); DeviceInfo yn = y; yn.usbPath.clear();
+        CHECK(!rtlEepromTargetOk(xn, {xn, yn, z}, 3, {"1-2", "1-3", "1-4"}, err) && has(err, "apart"), "look-alikes and no port: refused");
+        CHECK(rtlEepromTargetOk(z, {x, y, z}, 3, {}, err), "unique serial, no walk: by index and serial: %s", err.c_str());
+        CHECK(!rtlEepromTargetOk(z, {x, y, z}, 4, {}, err) && has(err, "rescan"), "a dongle more than listed, no walk: refused");
+        CHECK(!rtlEepromTargetOk(z, {x, y, z}, 2, {}, err), "index past the count");
+        DeviceInfo bad = z; bad.nativeArgs = "2x";
+        CHECK(!rtlEepromTargetOk(bad, {x, y, bad}, 3, {}, err), "an index that is not a number");
+        CHECK(rtlEepromTargetOk(z, {x, y, z, z}, 3, {}, err), "the same dongle listed twice (in use by another tab) counts once");
     }
     return testSummary("rtl_serial");
 }

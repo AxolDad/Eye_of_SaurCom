@@ -79,6 +79,7 @@ void startReceiver(App& a) {
     else {
         if (a.devices[a.devIdx].isAudio() || a.devices[a.devIdx].kind == DeviceInfo::Hamlib) applyAudioSettings(a);
         a.engine.setComputeMode(a.computeMode); a.engine.setStandard(engineStd(a));
+        logRadioStart(a, a.devIdx);
         a.engine.start(a.devices[a.devIdx], a.tune, a.file);
         savePrefs(a);
         a.smooth.clear(); a.peak.clear(); a.lastSeq = 0;

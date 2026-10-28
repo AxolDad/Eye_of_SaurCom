@@ -22,6 +22,8 @@ bool setName(const std::string& key, const std::string& name, std::string& err);
 
 // After a dongle got a new serial: its name (under row.key) moves to the key of the new serial, and the file is saved. False and err on a write error.
 bool carryLabel(const dect2::RadioRow& row, const std::string& newSerial, std::string& err);
+// After a backup put an old serial back: the name moves back to the key that serial gives among the attached radios (rtlCarryLabelBack).
+bool carryLabelBack(const dect2::RadioRow& row, const std::vector<dect2::DeviceInfo>& attached, const std::string& restoredSerial, std::string& err);
 
 // One row per entry of devices (same order). Only radios get a key; other sources have an empty key and are shown by their own name.
 // Looks at the labels, moves a label from the "sn:" to the "usb:" key when a serial has become shared, and saves when it did.
@@ -37,7 +39,11 @@ std::string radioShownName(const App& a, int idx);
 std::string radioShownName(const App& a, const dect2::DeviceInfo& d);
 // The key to save with a receiver or workspace ("" for a source that is not a radio).
 std::string radioKeyAt(const App& a, int idx);
-// The entry of a.devices for a saved radio: by key first, then by the internal name. -1 when none; the first two entries (synthetic, file) are skipped.
-int findRadio(const App& a, const std::string& key, const std::string& name);
+// The entry of a.devices for a saved radio (dect2::findRadioRow): by key first, then by kind, serial and USB port of `was` (the entry as it was,
+// when known), then by the internal name when only one entry has it. -1 when none, dect2::kRadioAmbiguous when several look-alikes share
+// the name (never one of them by surprise); the first two entries (synthetic, file) are skipped.
+int findRadio(const App& a, const std::string& key, const std::string& name, const dect2::DeviceInfo* was = nullptr);
+// Logs that the receiver starts a.devices[idx], with the user's name when it differs from the internal one: starting "Attic RTL" (RTL-SDR ...).
+void logRadioStart(App& a, int idx);
 // True when two or more radios here share a serial; fills a warning for the radio settings / list.
 std::string sharedSerialWarning(const App& a);

@@ -125,6 +125,8 @@ void refreshDevices(App& a, const std::vector<DeviceInfo>* radios, const std::st
     const bool hadRadio = a.devIdx >= 2 && a.devIdx < (int)a.devices.size();
     const std::string keep = hadRadio ? a.devices[a.devIdx].name : "";
     const std::string keepKey = hadRadio ? radioKeyAt(a, a.devIdx) : std::string();   // found again by its key first (two radios can share a name), then by name
+    const DeviceInfo wasDev = hadRadio ? a.devices[a.devIdx] : DeviceInfo();   // then by its port and serial: the key flips when a look-alike comes or goes
+    const std::string keepShown = hadRadio ? radioShownName(a, a.devIdx) : std::string();
     // A radio that is open (the receiver or a channel scan has it) may be missing from a new list: some drivers cannot look at a radio in
     // use (WinUSB on Windows, the SDRplay service), and the list would then drop the radio being received and move the choice to another
     // entry. It stays in the list as it was.
@@ -156,11 +158,13 @@ void refreshDevices(App& a, const std::vector<DeviceInfo>* radios, const std::st
     for (auto& h : sdrplayApiHints()) a.usbHints.push_back(h);
     if (hadRadio) {
         int idx = -1;
-        idx = findRadio(a, keepKey, keep);
+        idx = findRadio(a, keepKey, keep, &wasDev);
+        const bool ambiguous = idx == dect2::kRadioAmbiguous;
         if (idx < 0 && inUse) { a.devices.push_back(keepDev); idx = (int)a.devices.size() - 1; }
-        if (idx < 0) {   // it is gone: another radio must not inherit its antenna power, and Start must not open whatever now sits at its place
+        if (idx < 0) {   // it is gone (or a look-alike could be it): another radio must not inherit its antenna power, and Start must not open whatever now sits at its place
             a.tune.biasTee = false;
-            a.startErr = "The radio \"" + keep + "\" is no longer connected. Plug it in and press Refresh, or choose another source.";
+            a.startErr = ambiguous ? "Several radios now look like \"" + keepShown + "\": choose which one to use."
+                                   : "The radio \"" + keepShown + "\" is no longer connected. Plug it in and press Refresh, or choose another source.";
             a.startErrKey.clear();
         }
         a.devIdx = idx >= 0 ? idx : 0;   // the test signal, never a different radio by surprise
@@ -172,7 +176,11 @@ void refreshDevices(App& a, const std::vector<DeviceInfo>* radios, const std::st
     a.engine.log(line);
     // also in the log file (saurcom.log on Windows), with every radio and any error: what a user can send when a radio does not show up
     fprintf(stderr, "%s\n", line.c_str());
-    for (size_t i = 2; i < a.devices.size(); i++) fprintf(stderr, "  %s\n", a.devices[i].name.c_str());
+    for (size_t i = 2; i < a.devices.size(); i++) {   // the user's name next to the internal one, so a log tells look-alikes apart (text, never a format)
+        const std::string shown = radioShownName(a, (int)i);
+        if (shown != a.devices[i].name) fprintf(stderr, "  %s  \"%s\"\n", a.devices[i].name.c_str(), shown.c_str());
+        else fprintf(stderr, "  %s\n", a.devices[i].name.c_str());
+    }
     if (!err.empty()) fprintf(stderr, "  error: %s\n", err.c_str());
     fflush(stderr);
 }
@@ -585,6 +593,7 @@ void tuneToChannel(App& a, const SavedChannel& c) {
         if (a.engine.running()) a.engine.stop();
         a.devIdx = hw;
         a.engine.setComputeMode(a.computeMode); a.engine.setStandard(engineStd(a));
+        logRadioStart(a, hw);
         a.engine.start(a.devices[hw], a.tune, a.file);
     }
     a.smooth.clear(); a.peak.clear(); a.lastSeq = 0;
@@ -610,6 +619,7 @@ void followBandwidth(App& a) {
         a.engine.log(a.tune.sampleRate > oldRate ? "restarting at 10 Msps" : "restarting at 8 Msps");
         a.engine.stop();
         a.engine.setComputeMode(a.computeMode); a.engine.setStandard(engineStd(a));
+        logRadioStart(a, a.devIdx);
         a.engine.start(a.devices[a.devIdx], a.tune, a.file);
         a.smooth.clear(); a.peak.clear(); a.lastSeq = 0;
         a.mpd.reset(); a.quality.reset();

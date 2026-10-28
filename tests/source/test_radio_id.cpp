@@ -283,5 +283,27 @@ int main() {
         CHECK(rows[3].dupIndex == 2 && rows[4].dupIndex == 1 && rows[4].label == "Roof" && moved, "radios numbered and the label moved");
         CHECK(rows[0].dev.name == "Test signal" && rows[4].dev.usbPath == "1-1", "rows keep their devices in order");
     }
+    // findRadioRow: a receiver keeps its exact radio when a look-alike comes or goes (its key flips sn: <-> usb:)
+    {
+        RadioLabels L;
+        DeviceInfo syn; syn.kind = DeviceInfo::Synthetic; syn.name = "Test signal";
+        const DeviceInfo mine = rtl("A1B2C3", "1-4"), twin = rtl("A1B2C3", "1-2");
+        const std::string aloneKey = identifyRadios({mine}, L)[0].key;
+        auto two = identifySources({syn, twin, mine}, L);
+        CHECK(two[2].key != aloneKey, "the key flipped");
+        CHECK(findRadioRow(two, aloneKey, &mine, mine.name, 1) == 2, "found by port and serial, not the first look-alike");
+        CHECK(findRadioRow(two, aloneKey, nullptr, mine.name, 1) == kRadioAmbiguous, "by name alone: ambiguous, none picked");
+        CHECK(findRadioRow(two, two[2].key, nullptr, "", 1) == 2, "by key");
+        auto back = identifySources({syn, mine}, L);   // the look-alike unplugged: usb: -> sn:
+        CHECK(findRadioRow(back, two[2].key, &mine, mine.name, 1) == 1, "back to sn: found by port");
+        DeviceInfo other = rtl("ZZ9", "1-4");   // another radio in that port is not it
+        auto o = identifySources({syn, other}, L);
+        CHECK(findRadioRow(o, aloneKey, &mine, mine.name, 1) == -1, "a different serial in the port: not found");
+        DeviceInfo moved = mine; moved.usbPath = "2-1";
+        auto m = identifySources({syn, moved}, L);
+        CHECK(findRadioRow(m, aloneKey, &mine, mine.name, 1) == 1, "moved port, alone: by key");
+        CHECK(findRadioRow(m, "", nullptr, mine.name, 1) == 1, "a unique name still finds it");
+        CHECK(findRadioRow(m, "", nullptr, "Test signal", 1) == -1, "rows before first are skipped");
+    }
     return testSummary("radio_id");
 }

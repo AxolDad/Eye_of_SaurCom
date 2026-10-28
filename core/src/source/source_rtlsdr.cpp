@@ -512,32 +512,23 @@ bool rtlKnownUsbId(uint16_t vid, uint16_t pid) {
     return false;
 }
 
-std::unique_ptr<RtlEepromIo> openRtlEepromIo(const DeviceInfo& d, std::string& err) {
+std::unique_ptr<RtlEepromIo> openRtlEepromIo(const DeviceInfo& d, const std::vector<DeviceInfo>& listed, std::string& err) {
     using namespace native;
     auto& a = rtl();
     if (!a.ok) { err = "The RTL-SDR library (librtlsdr) is not available."; return nullptr; }
     if (!a.read_eeprom || !a.write_eeprom) { err = "This librtlsdr cannot read or write the EEPROM."; return nullptr; }
     const char* stale = "The radio list changed; rescan and try again.";
     const uint32_t n = a.get_device_count();
-    const uint32_t idx = (uint32_t)strtoul(d.nativeArgs.c_str(), nullptr, 10);
-    if (idx >= n || idx >= 16) { err = stale; return nullptr; }
-    int sameSerial = 0;
-    for (uint32_t i = 0; i < n && i < 16; i++) {
-        char vendor[256] = {0}, product[256] = {0}, serial[256] = {0};
-        if (a.get_device_usb_strings(i, vendor, product, serial) != 0) {
-            if (i == idx) { err = "The dongle's USB strings cannot be read."; return nullptr; }
-            continue;
-        }
-        const std::string sn = trimmed(serial, sizeof serial);
-        if (sn == d.serial) sameSerial++;
-        if (i == idx && sn != d.serial) { err = stale; return nullptr; }
-    }
+    // which dongle the index is, from the listing and a descriptor-only USB walk: the other dongles may be streaming in other tabs, and reading
+    // their USB strings would open them. Only the target, which the caller has claimed, is opened (for its strings, then for the EEPROM).
     const std::vector<std::string> paths = usbPathsInOrder(usbEnumerateFresh(), kRtlUsbIds, n);
-    if (sameSerial > 1 && (d.usbPath.empty() || paths.size() != n)) {
-        err = "Can't tell these dongles apart here; unplug the others first.";
-        return nullptr;
+    if (!rtlEepromTargetOk(d, listed, n, paths, err)) return nullptr;
+    const uint32_t idx = (uint32_t)strtoul(d.nativeArgs.c_str(), nullptr, 10);
+    {
+        char vendor[256] = {0}, product[256] = {0}, serial[256] = {0};
+        if (a.get_device_usb_strings(idx, vendor, product, serial) != 0) { err = "The dongle's USB strings cannot be read."; return nullptr; }
+        if (trimmed(serial, sizeof serial) != d.serial) { err = stale; return nullptr; }
     }
-    if (!d.usbPath.empty() && paths.size() == n && paths[idx] != d.usbPath) { err = stale; return nullptr; }
     auto io = std::make_unique<NativeEepromIo>();
     const int r = a.open(&io->dev, idx);
     if (r != 0 || !io->dev) { io->dev = nullptr; err = "RTL-SDR: cannot open the radio: " + native::usbErrorText(r); return nullptr; }
@@ -550,7 +541,8 @@ std::unique_ptr<RtlEepromIo> openRtlEepromIo(const DeviceInfo& d, std::string& e
         const bool portSame = d.usbPath.empty() ? true : (again.size() == n && again[idx] == d.usbPath);
         if (!d.usbPath.empty())
             for (const auto& nd : usbEnumerateFresh()) if (nd.path == d.usbPath) { io->vid = nd.vid; io->pid = nd.pid; io->haveId = true; break; }
-        if (!same || !portSame || (sameSerial > 1 && d.usbPath.empty())) { err = stale; return nullptr; }   // (io closes the dongle)
+        std::string why;
+        if (!same || !portSame || !rtlEepromTargetOk(d, listed, n, again, why)) { err = stale; return nullptr; }   // (io closes the dongle)
     }
     return io;
 }

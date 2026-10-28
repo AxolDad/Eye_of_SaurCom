@@ -28,13 +28,13 @@ Names are saved in `radios/names.json` inside the data folder:
 
 If the environment variable `DECT2_DATA_DIR` is set, that folder is used instead.
 
-**What a name follows.** A name follows the radio's serial, so it stays with the radio when you move it to another USB port. When two radios share a serial, that cannot work, so the name follows the USB port instead. If you named a radio while it was alone and then plug in a second one with the same serial, the name moves once, to the radio in the lower-numbered port (the `#1` one). Giving each radio its own serial (below) ends this.
+**What a name follows.** A name follows the radio's serial, so it stays with the radio when you move it to another USB port. When two radios share a serial, that cannot work, so the name follows the USB port instead. If you named a radio while it was alone and then plug in a second one with the same serial, the name moves once, to the `#1` radio (the one whose USB port name sorts first). Giving each radio its own serial (below) ends this.
 
 **A damaged names file.** If `names.json` cannot be read, it is not overwritten. It is kept as `names.json.bad-<time>` next to the original, the program starts with no names, and a line in the log says so.
 
 ## Find this radio
 
-Click the magnifier next to **Rescan**. Unplug the radio you want, wait for the message, then plug it back in. When it returns it is selected in the list. The window waits 60 seconds. It offers **Name it** once the radio is found.
+Click the magnifier next to **Rescan**. Unplug the radio you want, wait for the message, then plug it back in. When it returns it is selected in the list, unless that receiver is running or another receiver tab is using the radio: the window then names the radio and says to stop the receiver first. The window waits 60 seconds. It offers **Name it** once the radio is found.
 
 Limits:
 
@@ -43,7 +43,7 @@ Limits:
 
 ## New-radio notice
 
-When you plug in a radio while the program runs, a notice appears with three choices: **Name it**, **Use in new receiver tab**, or **Dismiss**. Radios that were already plugged in when the program started do not trigger it, and nothing appears in the first 5 seconds after start.
+When you plug in a radio while the program runs, a notice appears with three choices: **Name it**, **Use in new receiver tab**, or **Dismiss**. While radios are in use, or when the new radio cannot be matched to one entry of the list, the notice offers only **Dismiss** and says what to do instead (for example, stop the receivers and press **Rescan**). Radios that were already plugged in when the program started do not trigger it, and nothing appears in the first 5 seconds after start.
 
 ## A unique serial for an RTL-SDR
 

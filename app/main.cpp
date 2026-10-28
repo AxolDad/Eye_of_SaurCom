@@ -164,6 +164,7 @@ static void devAutomation(App& app, DevOpts& o) {
         if (found) {
             app.tune.centerHz = app.freqMhz * 1e6; applyBandwidth(app);
             app.engine.setComputeMode(app.computeMode); app.engine.setStandard(engineStd(app));
+            logRadioStart(app, app.devIdx);
             app.engine.start(app.devices[app.devIdx], app.tune, app.file);
         }
     }

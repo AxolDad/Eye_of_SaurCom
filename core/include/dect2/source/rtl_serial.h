@@ -50,8 +50,15 @@ struct RtlEepromIo {
 };
 // True when librtlsdr takes this VID/PID (its table): a dongle with another id is invisible to the app and to rtl_eeprom.
 bool rtlKnownUsbId(uint16_t vid, uint16_t pid);
-// Opens the dongle of d for the EEPROM (source_rtlsdr.cpp: by librtlsdr's index, checked against the serial and USB port). nullptr with err on failure.
-std::unique_ptr<RtlEepromIo> openRtlEepromIo(const DeviceInfo& d, std::string& err);
+// Whether librtlsdr's index of d (d.nativeArgs) can be trusted to be d's dongle, worked out without opening any dongle: n is librtlsdr's count now,
+// paths the fresh USB walk in librtlsdr's order (usbPathsInOrder: one per dongle, or empty when it cannot be mapped), listed the radio list the
+// tool was opened from (its look-alikes, the RTL-SDRs with d's serial, are counted there). With d's port known and the walk mapped, the port at the
+// index must be d's; otherwise look-alikes are refused ("can't tell apart") and the list must still have n dongles. False with err when not.
+bool rtlEepromTargetOk(const DeviceInfo& d, const std::vector<DeviceInfo>& listed, uint32_t n, const std::vector<std::string>& paths, std::string& err);
+// Opens the dongle of d for the EEPROM (source_rtlsdr.cpp: by librtlsdr's index, checked with rtlEepromTargetOk, then the serial of that one
+// dongle, which the caller has claimed; no other dongle is opened). After opening, the count, the serial and the port at the index are checked
+// again. nullptr with err on failure. listed: the radio list the tool was opened from.
+std::unique_ptr<RtlEepromIo> openRtlEepromIo(const DeviceInfo& d, const std::vector<DeviceInfo>& listed, std::string& err);
 
 // An RTL2832U dongle that this tool may touch: a Native "rtlsdr" radio (not a Soapy, HackRF or other radio).
 bool rtlIsRtl2832(const DeviceInfo& d);
@@ -79,21 +86,34 @@ bool rtlReadBackupFile(const std::string& path, std::vector<uint8_t>& out, std::
 // After step 4 every failure says where the original is and to use "Restore from backup…".
 bool rtlWriteSerialIo(RtlEepromIo& io, const std::string& expectedSerial, const std::string& newSerial, const std::string& backupDir, time_t now,
                       std::string& backupPath, std::string& err);
-// Puts a backup file back. The file is read safely (rtlReadBackupFile), must parse as an RTL-SDR EEPROM and have the VID/PID the dongle has now.
+// Puts a backup file back. restoredSerial (when given) is set on success to the serial the dongle reports from now on: the backup's serial string,
+// or "" when the backup has the serial turned off. The file is read safely (rtlReadBackupFile), must parse as an RTL-SDR EEPROM and have the VID/PID the dongle has now.
 // The dongle's current contents are read twice and saved (a new backup in backupDir, its path in safetyBackup) before anything is written; then
 // what differs is written, and the dongle is read back and compared. When the dongle has no valid header, the backup's VID/PID must be a known RTL-SDR
 // id and equal the dongle's live USB id when that is known.
-bool rtlRestoreEepromIo(RtlEepromIo& io, const std::string& backupFile, const std::string& backupDir, time_t now, std::string& safetyBackup, std::string& err);
+bool rtlRestoreEepromIo(RtlEepromIo& io, const std::string& backupFile, const std::string& backupDir, time_t now, std::string& safetyBackup, std::string& err,
+                        std::string* restoredSerial = nullptr);
 
 // The same on a real radio (it claims the dongle under kEepromClaimOwner, device_claims.h; the key is the one receivers use for that DeviceInfo), in order:
-// refuse unless RTL2832U, claim it (refused with "in use by RX n"), open (openRtlEepromIo), rtlWriteSerialIo, release.
-bool rtlWriteSerial(const DeviceInfo& d, const std::string& newSerial, const std::string& backupDir, std::string& backupPath, std::string& err);
-bool rtlRestoreEeprom(const DeviceInfo& d, const std::string& backupFile, const std::string& backupDir, std::string& safetyBackup, std::string& err);
+// refuse unless RTL2832U, claim it (refused with "in use by RX n"), open (openRtlEepromIo), rtlWriteSerialIo, release. listed: the radio list the
+// tool was opened from (for the look-alikes; see rtlEepromTargetOk).
+bool rtlWriteSerial(const DeviceInfo& d, const std::vector<DeviceInfo>& listed, const std::string& newSerial, const std::string& backupDir, std::string& backupPath,
+                    std::string& err);
+bool rtlRestoreEeprom(const DeviceInfo& d, const std::vector<DeviceInfo>& listed, const std::string& backupFile, const std::string& backupDir, std::string& safetyBackup,
+                      std::string& err, std::string* restoredSerial = nullptr);
 
 // After the dongle has its new serial: its name follows it. The label under row.key (a "usb:" key, or the "sn:" key of the old serial) is moved to
 // the "sn:" key of the new serial (unless that key already has a label); an old "sn:" label shared with another dongle stays where it is.
 // Returns true when labels changed (the caller saves the file). `newKey` is what radioKey gives the dongle with the new serial.
 std::string rtlKeyWithSerial(const DeviceInfo& d, const std::string& newSerial);
 bool rtlCarryLabel(RadioLabels& labels, const RadioRow& row, const std::string& newSerial);
+// The key d gets with that serial among the other radios attached (identifyRadios over `attached` with d's entry given the serial): an "sn:" key,
+// or its "usb:" key when the serial is a factory default or another attached radio of its kind has it. d's own entry in attached (same kind, board,
+// serial, usbPath and nativeArgs) is the one changed; when it is not there, it is added.
+std::string rtlKeyWithSerial(const std::vector<DeviceInfo>& attached, const DeviceInfo& d, const std::string& newSerial);
+// After a restore put the old serial back: the same move as rtlCarryLabel, to the key rtlKeyWithSerial(attached, row.dev, restoredSerial) gives
+// (a "usb:" key when that serial is shared again). The name under row.key is removed when that key was a "usb:" one or the serial was this
+// dongle's alone (it no longer has it). Returns true when labels changed.
+bool rtlCarryLabelBack(RadioLabels& labels, const RadioRow& row, const std::vector<DeviceInfo>& attached, const std::string& restoredSerial);
 
 }  // namespace dect2

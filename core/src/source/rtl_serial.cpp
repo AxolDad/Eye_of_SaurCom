@@ -337,9 +337,11 @@ bool rtlWriteSerialIo(RtlEepromIo& io, const std::string& expectedSerial, const 
     return writeAndVerify(io, want, cur, 6, bp, "Writing to the dongle failed", "The write did not verify.", err);
 }
 
-bool rtlRestoreEepromIo(RtlEepromIo& io, const std::string& backupFile, const std::string& backupDir, time_t now, std::string& safetyBackup, std::string& err) {
+bool rtlRestoreEepromIo(RtlEepromIo& io, const std::string& backupFile, const std::string& backupDir, time_t now, std::string& safetyBackup, std::string& err,
+                        std::string* restoredSerial) {
     err.clear();
     safetyBackup.clear();
+    if (restoredSerial) restoredSerial->clear();
     std::vector<uint8_t> bk;
     if (!rtlReadBackupFile(backupFile, bk, err)) return false;
     RtlEepromInfo bi;
@@ -364,34 +366,63 @@ bool rtlRestoreEepromIo(RtlEepromIo& io, const std::string& backupFile, const st
             return false;
         }
     }
-    if (sameBytes(cur, bk)) return true;
+    const std::string serialNow = bi.haveSerial ? bi.serial : std::string();
+    if (sameBytes(cur, bk)) { if (restoredSerial) *restoredSerial = serialNow; return true; }
     std::error_code ec;
     const std::string sp = rtlBackupPath(backupDir, curParses ? ci.serial : std::string("unknown"), now);
     if (!writeBackup(backupDir, sp, cur, err)) return false;
     safetyBackup = sp;
-    return writeAndVerify(io, bk, cur, 6, sp, "Restoring failed", "The restore did not verify.", err);
+    if (!writeAndVerify(io, bk, cur, 6, sp, "Restoring failed", "The restore did not verify.", err)) return false;
+    if (restoredSerial) *restoredSerial = serialNow;
+    return true;
 }
 
-bool rtlWriteSerial(const DeviceInfo& d, const std::string& newSerial, const std::string& backupDir, std::string& backupPath, std::string& err) {
+bool rtlWriteSerial(const DeviceInfo& d, const std::vector<DeviceInfo>& listed, const std::string& newSerial, const std::string& backupDir, std::string& backupPath,
+                    std::string& err) {
     const std::string planned = backupPath;
     backupPath.clear();
     if (!rtlIsRtl2832(d)) { err = "Only an RTL2832U dongle (RTL-SDR) can be given a serial here."; return false; }
     ClaimScope claim(d);
     if (!claim.ok) { err = claim.err; return false; }
-    auto io = openRtlEepromIo(d, err);
+    auto io = openRtlEepromIo(d, listed, err);
     if (!io) return false;
     backupPath = planned;
     return rtlWriteSerialIo(*io, d.serial, newSerial, backupDir, time(nullptr), backupPath, err);
 }
 
-bool rtlRestoreEeprom(const DeviceInfo& d, const std::string& backupFile, const std::string& backupDir, std::string& safetyBackup, std::string& err) {
+bool rtlRestoreEeprom(const DeviceInfo& d, const std::vector<DeviceInfo>& listed, const std::string& backupFile, const std::string& backupDir, std::string& safetyBackup,
+                      std::string& err, std::string* restoredSerial) {
     safetyBackup.clear();
     if (!rtlIsRtl2832(d)) { err = "Only an RTL2832U dongle (RTL-SDR) can be restored here."; return false; }
     ClaimScope claim(d);
     if (!claim.ok) { err = claim.err; return false; }
-    auto io = openRtlEepromIo(d, err);
+    auto io = openRtlEepromIo(d, listed, err);
     if (!io) return false;
-    return rtlRestoreEepromIo(*io, backupFile, backupDir, time(nullptr), safetyBackup, err);
+    return rtlRestoreEepromIo(*io, backupFile, backupDir, time(nullptr), safetyBackup, err, restoredSerial);
+}
+
+bool rtlEepromTargetOk(const DeviceInfo& d, const std::vector<DeviceInfo>& listed, uint32_t n, const std::vector<std::string>& paths, std::string& err) {
+    const char* stale = "The radio list changed; rescan and try again.";
+    const std::string& a = d.nativeArgs;
+    if (a.empty() || a.size() > 2 || a.find_first_not_of("0123456789") != std::string::npos) { err = stale; return false; }
+    const uint32_t idx = (uint32_t)strtoul(a.c_str(), nullptr, 10);
+    if (idx >= n || idx >= 16) { err = stale; return false; }
+    if (!d.usbPath.empty() && paths.size() == n) {   // the walk says which port the index is: it must be d's (look-alikes are told apart by it)
+        if (paths[idx] != d.usbPath) { err = stale; return false; }
+        return true;
+    }
+    // no port to check: the listing must still be the dongles there are now, with no look-alike of d among them
+    std::vector<std::string> lookAlike, indices;
+    for (const DeviceInfo& x : listed) {
+        if (!rtlIsRtl2832(x)) continue;
+        if (std::find(indices.begin(), indices.end(), x.nativeArgs) == indices.end()) indices.push_back(x.nativeArgs);
+        if (x.serial != d.serial) continue;
+        const std::string who = x.usbPath.empty() ? "#" + x.nativeArgs : x.usbPath;
+        if (std::find(lookAlike.begin(), lookAlike.end(), who) == lookAlike.end()) lookAlike.push_back(who);
+    }
+    if (lookAlike.size() > 1) { err = "Can't tell these dongles apart here; unplug the others first."; return false; }
+    if (indices.size() != std::min<uint32_t>(n, 16)) { err = stale; return false; }
+    return true;
 }
 
 // ---- the name follows the dongle ----
@@ -402,15 +433,43 @@ std::string rtlKeyWithSerial(const DeviceInfo& d, const std::string& newSerial) 
     return radioKey(n);
 }
 
-bool rtlCarryLabel(RadioLabels& labels, const RadioRow& row, const std::string& newSerial) {
-    const std::string newKey = rtlKeyWithSerial(row.dev, newSerial);
+namespace {
+// the name under row.key goes to newKey (unless that has one). A name tied to the USB port belonged to the dongle in it, which no longer needs it;
+// an "sn:" name stays unless dropSoleSerial and the serial was this dongle's alone: another dongle with that serial may use it.
+bool moveLabel(RadioLabels& labels, const RadioRow& row, const std::string& newKey, bool dropSoleSerial) {
     if (newKey == row.key) return false;
     const std::string name = labels.get(row.key);
     if (name.empty()) return false;
     if (labels.get(newKey).empty()) labels.set(newKey, name);
-    // a name tied to the USB port belonged to the dongle in it, which no longer needs it; an "sn:" name stays: another dongle with that serial may use it
-    if (row.key.find(":usb:") != std::string::npos) labels.remove(row.key);
+    if (row.key.find(":usb:") != std::string::npos || (dropSoleSerial && !row.sharedSerial)) labels.remove(row.key);
     return true;
+}
+}  // namespace
+
+bool rtlCarryLabel(RadioLabels& labels, const RadioRow& row, const std::string& newSerial) {
+    return moveLabel(labels, row, rtlKeyWithSerial(row.dev, newSerial), false);
+}
+
+std::string rtlKeyWithSerial(const std::vector<DeviceInfo>& attached, const DeviceInfo& d, const std::string& newSerial) {
+    std::vector<DeviceInfo> v = attached;
+    size_t at = v.size();
+    for (size_t i = 0; i < v.size() && at == v.size(); i++)
+        if (v[i].kind == d.kind && v[i].board == d.board && v[i].serial == d.serial && v[i].usbPath == d.usbPath && v[i].nativeArgs == d.nativeArgs) at = i;
+    if (at == v.size()) v.push_back(d);
+    v[at].serial = newSerial;
+    std::vector<DeviceInfo> radios;
+    size_t mine = 0;
+    for (size_t i = 0; i < v.size(); i++) {
+        if (!v[i].isRadio()) continue;
+        if (i == at) mine = radios.size();
+        radios.push_back(v[i]);
+    }
+    if (!v[at].isRadio()) return rtlKeyWithSerial(d, newSerial);
+    return identifyRadios(radios, RadioLabels())[mine].key;
+}
+
+bool rtlCarryLabelBack(RadioLabels& labels, const RadioRow& row, const std::vector<DeviceInfo>& attached, const std::string& restoredSerial) {
+    return moveLabel(labels, row, rtlKeyWithSerial(attached, row.dev, restoredSerial), true);   // the serial it had was the tool's unique one
 }
 
 }  // namespace dect2

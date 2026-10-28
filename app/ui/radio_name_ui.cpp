@@ -3,6 +3,7 @@
 #include "../state/radio_names.h"
 #include "rtl_serial_ui.h"
 #include <cstring>
+#include "imgui_internal.h"
 
 namespace {
 int gReq = -1;               // an entry to open the window for
@@ -81,4 +82,34 @@ void radioNameField(App& a, bool vertical) {
     const std::string sw = sharedSerialWarning(a);
     if (!sw.empty()) { ImGui::PushTextWrapPos(vertical ? 0.0f : 380 * gUi); ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.25f, 1), "%s", sw.c_str()); ImGui::PopTextWrapPos(); rtlSerialWarningButton(a, true); }
     rtlSerialButtons(a);
+}
+
+bool textSelectable(const char* id, const std::string& text, bool selected) {
+    const ImVec2 sz = ImGui::CalcTextSize(text.c_str(), nullptr, false);   // false: "##" is text here
+    const bool hit = ImGui::Selectable(id, selected, ImGuiSelectableFlags_SpanAvailWidth, ImVec2(sz.x, 0));
+    const ImVec2 mn = ImGui::GetItemRectMin(), mx = ImGui::GetItemRectMax();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    dl->PushClipRect(mn, mx, true);
+    dl->AddText(ImVec2(mn.x, mn.y + (mx.y - mn.y - sz.y) * 0.5f), ImGui::GetColorU32(ImGuiCol_Text), text.c_str());   // drawn, not parsed: no ID, no format
+    dl->PopClipRect();
+    return hit;
+}
+
+bool textRadioButton(const char* id, const std::string& text, bool active) {
+    bool hit = ImGui::RadioButton(id, active);
+    ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(text.c_str());
+    hit |= ImGui::IsItemClicked();
+    return hit;
+}
+
+bool textBeginCombo(const char* id) { return ImGui::BeginCombo(id, "", ImGuiComboFlags_CustomPreview); }
+
+void textComboPreview(const std::string& text) {
+    if (!ImGui::BeginComboPreview()) return;
+    const ImGuiLastItemData combo = GImGui->LastItemData;   // a hover test after this still sees the combo, not the text
+    ImGui::TextUnformatted(text.c_str());
+    ImGui::EndComboPreview();
+    GImGui->LastItemData = combo;
 }

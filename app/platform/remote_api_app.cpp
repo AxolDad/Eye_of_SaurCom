@@ -116,14 +116,15 @@ struct Host : RemoteApiHost {
     // ---- the API
     std::string statusJson() override {
         return query([](App& a) {
-            const DeviceInfo& d = a.devices[(size_t)std::max(0, std::min(a.devIdx, (int)a.devices.size() - 1))];
+            const int di = std::max(0, std::min(a.devIdx, (int)a.devices.size() - 1));
+            const DeviceInfo& d = a.devices[(size_t)di];
             const bool run = a.engine.running();
             std::string mode = "";
             for (int i = 0; i < kNumModes; i++) if (kModes[i].family == a.family && (!kModes[i].subId || subIndexOf(kModes[i].subId) == a.sub)) { mode = kModes[i].name; break; }
             const double gain = d.isGeneric() ? a.tune.gainDb : (double)(a.tune.lnaDb + a.tune.vgaDb + (a.tune.ampOn ? 14 : 0));
             char b[256];
             std::string o = std::string("{\"running\":") + (run ? "true" : "false") + ",\"receiver\":" + std::to_string(a.rxId) + ",\"deviceIndex\":" + std::to_string(a.devIdx) +
-                            ",\"device\":\"" + jsonEscape(d.name) + "\",\"deviceKind\":\"" + kindName(d.kind) + "\",\"family\":" + std::to_string(a.family) + ",\"mode\":\"" + jsonEscape(mode) + "\"";
+                            ",\"device\":\"" + jsonEscape(d.name) + "\",\"deviceDisplay\":\"" + jsonEscape(radioShownName(a, di)) + "\",\"deviceKind\":\"" + kindName(d.kind) + "\",\"family\":" + std::to_string(a.family) + ",\"mode\":\"" + jsonEscape(mode) + "\"";
             snprintf(b, sizeof b, ",\"frequencyHz\":%.0f,\"sampleRateHz\":%.0f,\"gainDb\":%s,\"agc\":%s,\"gainMinDb\":%s,\"gainMaxDb\":%s}", a.freqMhz * 1e6,
                      run ? a.engine.radioRate() : a.tune.sampleRate, jsonNum(gain).c_str(), a.agcOn ? "true" : "false",
                      jsonNum(d.isGeneric() ? d.gainMinDb : 0).c_str(), jsonNum(d.isGeneric() ? d.gainMaxDb : (d.kind == DeviceInfo::HackRF ? 116 : 0)).c_str());
