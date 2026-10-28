@@ -167,6 +167,7 @@ public:
             Rx888UsbDevice u;
             u.vid = d.idVendor; u.pid = d.idProduct;
             u.bus = libusb_get_bus_number(devs[i]); u.address = libusb_get_device_address(devs[i]);
+            u.usbPath = usbPathOf(devs[i]);
             if (!u.bootloader()) {
                 // 04b4:00f1 is also what a LimeSDR-USB shows (LimeSuite's): the strings say which it is. Read once per device: a radio that is
                 // open (Windows: one handle at a time) could not be asked again. A failed or empty read is not cached: the name often appears
@@ -939,6 +940,7 @@ void listRx888(std::vector<DeviceInfo>& out) {
         d.kind = DeviceInfo::Native;
         d.board = "rx888";
         d.serial = u.serial;
+        d.usbPath = u.usbPath;
         d.nativeArgs = std::to_string(u.bus) + ":" + std::to_string(u.address);
         const std::string tail = u.serial.size() > 8 ? u.serial.substr(u.serial.size() - 8) : u.serial;
         d.name = "RX888 MkII" + (tail.empty() ? std::string() : " " + tail);

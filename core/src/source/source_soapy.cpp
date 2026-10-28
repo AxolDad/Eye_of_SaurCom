@@ -3,6 +3,7 @@
 #include "dect2/common/thread_name.h"
 #include "dect2/engine/rate_choice.h"
 #include "dect2/source/source.h"
+#include "dect2/source/usb_path.h"
 #include "dect2/net/netradio.h"
 #include "dect2/common/ring.h"
 #include <SoapySDR/Device.hpp>
@@ -711,6 +712,13 @@ std::vector<DeviceInfo> listSoapyDevices(std::string& err) {
             d.soapyArgs = SoapySDR::KwargsToString(kw);
             std::string label = get("label");
             d.serial = get("serial");
+            {   // a "usb" or "path" key of the sysfs shape, or "bus" with "address"; the USB tree is walked only when the driver gave a bus
+                std::vector<UsbNode> nodes;
+                if (!get("bus").empty()) nodes = usbEnumerate();
+                d.usbPath = usbPathFromKeys(nodes, get);
+                int b = 0, a = 0;
+                if (d.usbPath.empty() && usbParseIioUri(get("uri"), b, a)) d.usbPath = usbPathByBusAddress(usbEnumerate(), b, a);   // SoapyPlutoSDR
+            }
             d.name = label;
             // an ESP32 board (ESP-SDR): named, and given the ranges its driver's documentation states, since the driver itself says nothing
             // before the radio has been opened (esp_sdr.h). Run again below, once the ranges a started radio reported are in.

@@ -1,6 +1,8 @@
 // Radio identity: keys, duplicate numbering, user names (label file) and diffing two radio lists.
 #include "../common/test_util.h"
 #include "dect2/source/radio_id.h"
+#include "dect2/source/usb_path.h"
+#include <map>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
@@ -169,6 +171,36 @@ int main() {
         // identical default-serial radios on different ports are told apart by port
         RadioDiff f = diffRadios({rtl("00000001", "1-1")}, {rtl("00000001", "1-2")});
         CHECK(f.added.size() == 1 && f.removed.size() == 1, "move to another port");
+    }
+    // USB port paths: formatting, order matching, key lookup (no hardware)
+    {
+        const uint8_t p1[] = {2, 3}, p0[] = {1};
+        CHECK(usbPathFormat(1, p1, 2) == "1-2.3", "path 1-2.3: %s", usbPathFormat(1, p1, 2).c_str());
+        CHECK(usbPathFormat(12, p0, 1) == "12-1", "path 12-1");
+        CHECK(usbPathFormat(0, p0, 1).empty() && usbPathFormat(1, p0, 0).empty() && usbPathFormat(1, nullptr, 1).empty(), "no bus or ports: empty");
+        CHECK(usbPathLooksValid("1-2.3.4") && usbPathLooksValid("3-1") && !usbPathLooksValid("1-") && !usbPathLooksValid("1-2.") &&
+              !usbPathLooksValid("/dev/ttyUSB0") && !usbPathLooksValid("") && !usbPathLooksValid("usb:1.2"), "path shape");
+
+        std::vector<UsbNode> nodes = {{0x1d6b, 0x0002, 1, 1, ""}, {0x0bda, 0x2838, 1, 7, "1-2"}, {0x1d50, 0x60a1, 1, 8, "1-3"}, {0x0bda, 0x2838, 2, 4, "2-1.4"}};
+        const std::vector<std::pair<uint16_t, uint16_t>> rtlIds = {{0x0bda, 0x2832}, {0x0bda, 0x2838}};
+        auto v = usbPathsInOrder(nodes, rtlIds, 2);
+        CHECK(v.size() == 2 && v[0] == "1-2" && v[1] == "2-1.4", "two dongles in libusb order");
+        CHECK(usbPathsInOrder(nodes, rtlIds, 3).empty() && usbPathsInOrder(nodes, rtlIds, 1).empty(), "a count that disagrees gives no path");
+        CHECK(usbPathsInOrder(nodes, {{0x1d50, 0x60a1}}, 1).at(0) == "1-3", "one airspy");
+        CHECK(usbPathByBusAddress(nodes, 2, 4) == "2-1.4" && usbPathByBusAddress(nodes, 2, 5).empty(), "bus and address lookup");
+
+        int b = 0, a = 0;
+        CHECK(usbParseIioUri("usb:1.7.5", b, a) && b == 1 && a == 7 && usbParseIioUri("usb:2.4", b, a) && b == 2 && a == 4, "iio uri");
+        CHECK(!usbParseIioUri("ip:192.168.2.1", b, a) && !usbParseIioUri("usb:", b, a) && !usbParseIioUri("usb:x.1", b, a), "iio uri rejects");
+
+        auto kv = [](std::map<std::string, std::string> m) { return [m](const char* k) { auto it = m.find(k); return it == m.end() ? std::string() : it->second; }; };
+        CHECK(usbPathFromKeys(nodes, kv({{"usb", "1-2.3"}})) == "1-2.3", "usb key");
+        CHECK(usbPathFromKeys(nodes, kv({{"path", "/dev/x"}})).empty(), "a path key that is no USB path");
+        CHECK(usbPathFromKeys(nodes, kv({{"bus", "2"}, {"address", "4"}})) == "2-1.4", "bus + address keys");
+        CHECK(usbPathFromKeys(nodes, kv({{"bus", "2"}, {"addr", "4"}})) == "2-1.4", "bus + addr keys");
+        CHECK(usbPathFromKeys(nodes, kv({{"bus", "2"}})).empty() && usbPathFromKeys(nodes, kv({})).empty(), "nothing to go on");
+        // enumeration never throws, and each path it gives has the shape (or is empty)
+        for (const auto& n : usbEnumerate()) CHECK(n.path.empty() || usbPathLooksValid(n.path), "live path shape: %s", n.path.c_str());
     }
     return testSummary("radio_id");
 }

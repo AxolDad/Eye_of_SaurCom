@@ -409,9 +409,22 @@ private:
     double lo_ = 0, hi_ = 0;
 };
 
+// The VID/PID pairs librtlsdr takes for a dongle (known_devices[] in librtlsdr.c)
+static const std::vector<std::pair<uint16_t, uint16_t>> kRtlUsbIds = {
+    {0x0bda, 0x2832}, {0x0bda, 0x2838}, {0x0413, 0x6680}, {0x0413, 0x6f0f}, {0x0458, 0x707f}, {0x0ccd, 0x00a9}, {0x0ccd, 0x00b3},
+    {0x0ccd, 0x00b4}, {0x0ccd, 0x00b5}, {0x0ccd, 0x00b7}, {0x0ccd, 0x00b8}, {0x0ccd, 0x00b9}, {0x0ccd, 0x00c0}, {0x0ccd, 0x00c6},
+    {0x0ccd, 0x00d3}, {0x0ccd, 0x00d7}, {0x0ccd, 0x00e0}, {0x1554, 0x5020}, {0x15f4, 0x0131}, {0x15f4, 0x0133}, {0x185b, 0x0620},
+    {0x185b, 0x0650}, {0x185b, 0x0680}, {0x1b80, 0xd393}, {0x1b80, 0xd394}, {0x1b80, 0xd395}, {0x1b80, 0xd397}, {0x1b80, 0xd398},
+    {0x1b80, 0xd39d}, {0x1b80, 0xd3a4}, {0x1b80, 0xd3a8}, {0x1b80, 0xd3af}, {0x1b80, 0xd3b0}, {0x1d19, 0x1101}, {0x1d19, 0x1102},
+    {0x1d19, 0x1103}, {0x1d19, 0x1104}, {0x1f4d, 0xa803}, {0x1f4d, 0xb803}, {0x1f4d, 0xc803}, {0x1f4d, 0xd286}, {0x1f4d, 0xd803}};
+
 void listRtl(std::vector<DeviceInfo>& out) {
     if (!rtl().ok) return;
     const uint32_t n = rtl().get_device_count();
+    // librtlsdr numbers its dongles in libusb's order (rtlsdr_get_device_count walks libusb_get_device_list), but hides the libusb device and
+    // the serial is not read without opening it: the i-th dongle is the i-th libusb device with a VID/PID from its table, and only when the
+    // two counts agree (see usbPathsInOrder). Identical dongles with the same serial are told apart by this.
+    const std::vector<std::string> paths = n ? usbPathsInOrder(usbEnumerate(), kRtlUsbIds, n) : std::vector<std::string>();
     for (uint32_t i = 0; i < n && i < 16; i++) {
         char vendor[256] = {0}, product[256] = {0}, serial[256] = {0};
         rtl().get_device_usb_strings(i, vendor, product, serial);
@@ -419,6 +432,7 @@ void listRtl(std::vector<DeviceInfo>& out) {
         d.kind = DeviceInfo::Native;
         d.board = "rtlsdr";
         d.nativeArgs = std::to_string(i);
+        if (i < paths.size()) d.usbPath = paths[i];
         d.serial = trimmed(serial, sizeof serial);
         std::string label = trimmed(product, sizeof product);
         const RtlModel model = rtlModel(i);

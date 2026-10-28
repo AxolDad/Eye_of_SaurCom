@@ -345,6 +345,8 @@ void listAirspyHf(std::vector<DeviceInfo>& out) {
     const int n = std::min(airspyhf().list_devices(sn, 16), 16);
     std::set<uint64_t> listed;
     for (int i = 0; i < n; i++) listed.insert(sn[i]);
+    // the library lists its radios in libusb's order (03eb:800c): the i-th one is the i-th such device, when the counts agree
+    const std::vector<std::string> paths = n > 0 ? usbPathsInOrder(usbEnumerate(), {{0x03eb, 0x800c}}, (size_t)n) : std::vector<std::string>();
     for (uint64_t s : gHfOpen) {   // a radio streaming here may be missing from the library's list (Windows): it is still there
         if (!listed.count(s) && gHfKnown.count(s)) out.push_back(gHfKnown[s]);
     }
@@ -353,6 +355,7 @@ void listAirspyHf(std::vector<DeviceInfo>& out) {
         DeviceInfo d;
         d.kind = DeviceInfo::Native;
         d.board = "airspyhf";
+        if ((size_t)i < paths.size()) d.usbPath = paths[(size_t)i];
         char b[32];
         snprintf(b, sizeof b, "%016llX", (unsigned long long)sn[i]);
         d.serial = b;

@@ -9,6 +9,7 @@
 #include "dect2/common/thread_name.h"
 #include "dect2/source/source.h"
 #include "dect2/common/platform.h"
+#include "dect2/source/usb_path.h"
 #include "native_common.h"   // the plain-words USB error texts
 #include <libusb.h>
 #include <algorithm>
@@ -550,6 +551,7 @@ std::vector<DeviceInfo> listUsbHackrfDevices(std::string& err) {
         DeviceInfo info;
         info.kind = DeviceInfo::HackRF;
         info.board = "HackRF";
+        info.usbPath = usbPathOf(list[i]);   // from the enumeration; the radio is opened below only for its serial, as before
         libusb_device_handle* h = nullptr;
         const int r = libusb_open(list[i], &h);
         if (r == 0) {

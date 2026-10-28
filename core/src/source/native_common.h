@@ -3,6 +3,7 @@
 #pragma once
 #include "dect2/common/thread_name.h"
 #include "dect2/source/source.h"
+#include "dect2/source/usb_path.h"
 #include "dect2/common/ring.h"
 #include <algorithm>
 #include <atomic>

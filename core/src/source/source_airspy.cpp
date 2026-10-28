@@ -315,9 +315,14 @@ void listAirspy(std::vector<DeviceInfo>& out) {
     // in the log file as well: when a radio does not show up this says whether the library saw it (a negative number is a library error)
     fprintf(stderr, "Airspy: the library lists %d radio(s)%s\n", found, found < 0 ? " (an error)" : "");
     fflush(stderr);
+    // libairspy lists its radios in libusb's order and hides the libusb device: the i-th one is the i-th 1d50:60a1 on the bus, when the counts agree
+    const std::vector<std::string> paths = serials.empty() ? std::vector<std::string>() : usbPathsInOrder(usbEnumerate(), {{0x1d50, 0x60a1}}, serials.size());
     std::vector<DeviceInfo> list;
+    size_t sIdx = 0;
     for (uint64_t sn : serials) {
         DeviceInfo d;
+        if (sIdx < paths.size()) d.usbPath = paths[sIdx];
+        sIdx++;
         d.kind = DeviceInfo::Native;
         d.board = "airspy";
         char b[32];
