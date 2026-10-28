@@ -36,7 +36,7 @@ void loadState() {
     if (S.loaded) return;
     S.loaded = true;
     plat::Prefs& d = plat::prefs();
-    if (d.has("adsbLat") && d.has("adsbLon")) { S.lat = d.getD("adsbLat", S.lat); S.lon = d.getD("adsbLon", S.lon); S.haveRef = true; }
+    if (receiverLocationSet()) { receiverLocation(S.lat, S.lon); S.haveRef = true; }
     S.map.zoom = (int)d.getI("flarmZoom", 10);
     S.map.lat = S.lat; S.map.lon = S.lon;
     snprintf(S.posText, sizeof S.posText, "%.5f, %.5f", S.lat, S.lon);
@@ -67,7 +67,7 @@ ImU32 typeColour(int t) {
 void setPosition(App& a, double lat, double lon) {
     S.lat = std::max(-90.0, std::min(90.0, lat)); S.lon = std::max(-180.0, std::min(180.0, lon));
     S.haveRef = true;
-    plat::prefs().setD("adsbLat", S.lat); plat::prefs().setD("adsbLon", S.lon);
+    setReceiverLocation(a, S.lat, S.lon, "typed");   // the one station position (state/station_loc.cpp), saved there
     S.map.lat = S.lat; S.map.lon = S.lon;
     snprintf(S.posText, sizeof S.posText, "%.5f, %.5f", S.lat, S.lon);
     savePrefs(a);

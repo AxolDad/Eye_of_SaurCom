@@ -1,5 +1,6 @@
 // The setup wizard (language, radio, location, goals).
 #include "../app.h"
+#include "station_ui.h"
 #include "radio_name_ui.h"
 #include "../panels/fixit.h"
 #include "dect2/geo/maidenhead.h"
@@ -76,12 +77,6 @@ std::string goalModeName(int goal, const Region& r) {
     return id;
 }
 
-bool parseLoc(const char* text, double& lat, double& lon) {
-    const std::string s = text;
-    if (s.empty()) return false;
-    return dect2::fromMaidenhead(s, lat, lon) || dect2::parseCoordinates(s, lat, lon);
-}
-
 }
 
 void setupWizardOpen(App& a) {
@@ -103,9 +98,14 @@ static void setupFinish(App& a, bool apply) {
     plat::prefs().setB("setupDone", true);
     plat::prefs().setI("setupRegion", a.setupRegion);
     plat::prefs().setI("setupGoals", (long)a.setupGoals);
+    const bool locChanged = plat::prefs().getS("setupLoc", "") != a.setupLoc;   // text left over from an earlier run must not move a station set since
     plat::prefs().setS("setupLoc", a.setupLoc);
-    double lat, lon;
-    if (parseLoc(a.setupLoc, lat, lon)) { plat::prefs().setD("adsbLat", lat); plat::prefs().setD("adsbLon", lon); }
+    dect2::geo::StationPos sp;
+    std::string perr;
+    if (locChanged && a.setupLoc[0] && dect2::geo::parseLocationText(a.setupLoc, sp, perr)) {   // same reading as the My station page; the one saved position
+        if (sp.source != "locator") sp.source = "pasted";
+        setStationPos(a, sp);
+    }
     savePrefs(a);
     plat::prefs().flush();
     if (!plat::prefs().getB(tour::prefKey(), false)) tourStart(a);   // first run: the tour comes next
@@ -190,14 +190,12 @@ void setupWizard(App& a, ImVec2 disp) {
             ImGui::EndCombo();
         }
         ImGui::Spacing();
-        ImGui::TextUnformatted(tr("Optional: your position, as a Maidenhead locator (KO24pq) or coordinates (54.68, 25.28). It is kept on this computer and used for maps and satellite passes."));
-        ImGui::SetNextItemWidth(260 * u);
-        ImGui::InputText("##loc", a.setupLoc, sizeof a.setupLoc);
-        double lat, lon;
-        if (a.setupLoc[0]) {
-            if (parseLoc(a.setupLoc, lat, lon)) ImGui::TextDisabled("%.3f, %.3f  (%s)", lat, lon, dect2::toMaidenhead(lat, lon, 6).c_str());
-            else ImGui::TextColored(pal::warnAmber(), "%s", tr("Not a locator or coordinates"));
-        }
+        ImGui::PushTextWrapPos(0);
+        ImGui::TextUnformatted(tr("Optional: your position, as coordinates (54.68, 25.28), a Maidenhead locator (KO24pq) or a Google / OpenStreetMap link. It is kept on this computer and used for maps and satellite passes. You can change it any time in Tools > My station."));
+        ImGui::PopTextWrapPos();
+        ImGui::SetNextItemWidth(-1);
+        ImGui::InputTextWithHint("##loc", tr("Paste coordinates, a locator (IO91wm) or a Google / OpenStreetMap link"), a.setupLoc, sizeof a.setupLoc);
+        stationPreview(a.setupLoc, nullptr);
         break;
     }
     case 3: {

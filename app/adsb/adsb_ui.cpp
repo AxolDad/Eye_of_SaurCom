@@ -2,6 +2,7 @@
 // list, receiver, panels, status, summary, tuner, decoder, synth, meters). The table views are in adsb_table_ui.cpp, the
 // radar and map in adsb_map_ui.cpp.
 #include "adsb_internal.h"
+#include "../ui/station_ui.h"
 void vdl2NoteAdsb(const dect2::AdsbTelemetry& t);   // vdl2_ui.cpp: VDL2 links its aircraft to what ADS-B heard
 
 using namespace adsbui;
@@ -38,13 +39,23 @@ std::string typeOf(const AdsbAircraft& ac) {
 
 std::string sourceName(const dect2::AdsbTelemetry& t, int id) { return id >= 0 && id < (int)t.sources.size() ? (id == 0 ? "local" : t.sources[id].name) : "?"; }
 
+// The position lives in state/station_loc.cpp; S.refLat / refLon / refAltM are a copy that every screen of this mode reads. It is taken again
+// whenever the station position changed (its generation), and the decoder is told on the next tick (pushedLat reset).
+static void syncStation() {
+    const unsigned g = stationGeneration();
+    if (g == S.stGen) return;
+    S.stGen = g;
+    receiverLocation(S.refLat, S.refLon);
+    S.refAltM = receiverAltitudeM();
+    S.map.lat = S.refLat; S.map.lon = S.refLon;
+    S.pushedLat = S.pushedLon = 1e9;   // force syncAdsbReference to push on the next frame
+}
+
 void loadState() {
+    syncStation();
     if (S.loaded) return;
     S.loaded = true;
     plat::Prefs& d = plat::prefs();
-    if (d.has("adsbLat")) S.refLat = d.getD("adsbLat", S.refLat);
-    if (d.has("adsbLon")) S.refLon = d.getD("adsbLon", S.refLon);
-    S.refAltM = d.getD("rxAltM", 0);
     S.map.zoom = (int)d.getI("adsbZoom", 7);
     S.winds = d.getB("adsbWinds", false);
     S.jamLayer = d.getB("adsbGpsJam", false);
@@ -62,17 +73,32 @@ void loadState() {
 
 std::string icaoText(uint32_t i) { char b[16]; snprintf(b, sizeof b, "%06X", i & 0xFFFFFF); return b; }
 
-void setReference(App& a, double lat, double lon) {
-    S.refLat = std::max(-90.0, std::min(90.0, lat)); S.refLon = std::max(-180.0, std::min(180.0, lon));
-    plat::prefs().setD("adsbLat", S.refLat); plat::prefs().setD("adsbLon", S.refLon);
-    S.map.lat = S.refLat; S.map.lon = S.refLon;
-    savePrefs(a);
-    S.pushedLat = 1e9; S.pushedLon = 1e9;   // force syncAdsbReference to push on the next frame
-    if (a.engine.running() && live(a) && receiverLocationSet()) a.engine.adsb().setReference(S.refLat, S.refLon);
+// the station moved (setStationPos): take the new position and push it to the decoder now, if this mode is receiving
+void onStationChanged(App& a) {
+    syncStation();
+    if (a.engine.running() && live(a) && receiverLocationSet()) {
+        a.engine.adsb().setReference(S.refLat, S.refLon);
+        S.pushedLat = S.refLat; S.pushedLon = S.refLon;
+    }
 }
 
-// the antenna position as two numbers and the Locate button: in the Tuner section and in the map's "position" menu
+void setReference(App& a, double lat, double lon, const char* source) {
+    dect2::geo::StationPos p;
+    p.lat = std::max(-90.0, std::min(90.0, lat)); p.lon = std::max(-180.0, std::min(180.0, lon));
+    p.source = source;
+    setStationPos(a, p);   // not saved when it is no position (0,0, NaN): the old position stays
+}
+
+// the antenna position as two numbers, its height, the paste box and the Locate button: in the Tuner section and in the map's "position" menu.
+// The position itself is the station's (state/station_loc.cpp); the My station page has the rest (GPS, antenna height above ground).
 void positionFields(App& a) {
+    static char paste[256] = "";
+    if (!receiverLocationSet()) {
+        ImGui::PushTextWrapPos(0);
+        ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.4f, 1), "%s", tr("Set your location: ranges and the map need it."));
+        ImGui::PopTextWrapPos();
+    }
+    stationPasteBox(a, paste, sizeof paste, "##adsbpaste", std::max(80.f * gUi, ImGui::GetContentRegionAvail().x));
     ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));   // no wider than the side panel
     double la = S.refLat, lo = S.refLon;
     bool ch = ImGui::InputDouble("##alat", &la, 0, 0, "%.4f N");
@@ -83,13 +109,19 @@ void positionFields(App& a) {
     ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));
     double al = S.refAltM;
     if (ImGui::InputDouble("##aalt", &al, 0, 0, "%.0f m")) {
-        S.refAltM = std::max(-500.0, std::min(9000.0, al));
-        plat::prefs().setD("rxAltM", S.refAltM); savePrefs(a);
+        dect2::geo::StationPos p = stationPos();
+        if (p.valid()) { p.altM = std::max(-500.0, std::min(9000.0, al)); setStationPos(a, p); }
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Height of the antenna above sea level, metres (the pass planner's look angles and Doppler)");
     ImGui::SameLine(0, 4 * gUi);
     if (ImGui::Button(S.locBusy ? "Locating..." : "Locate (Wi-Fi)") && !S.locBusy) { plat::locateStart(); S.locBusy = 1; S.locMsg = "asking the location service..."; }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Ask the system for this computer's position (Wi-Fi positioning). macOS asks for permission the first time.");
+    if (receiverLocationSet()) {
+        ImGui::TextDisabled("%s: %s", tr("Source"), stationSourceLabel(stationSource()).c_str());
+        ImGui::SameLine(0, 8 * gUi);
+    }
+    if (ImGui::SmallButton(tr("Change...##station"))) stationOpenPage(a);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Open My station: the position with its source, the antenna height, a GPS"));
     if (!S.locMsg.empty()) { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("%s", S.locMsg.c_str()); ImGui::PopTextWrapPos(); }
 }
 
@@ -97,7 +129,7 @@ void pollLocate(App& a) {
     if (S.locBusy) {   // the location request of the Locate button
         double la = 0, lo = 0, acc = 0; std::string msg;
         const int st = plat::locateState(la, lo, acc, msg);
-        if (st == 2) { setReference(a, la, lo); char b[96]; snprintf(b, sizeof b, "position found (about %.0f m)", acc); S.locMsg = b; S.locBusy = 0; }
+        if (st == 2) { setReference(a, la, lo, "wifi"); char b[96]; snprintf(b, sizeof b, "position found (about %.0f m)", acc); S.locMsg = b; S.locBusy = 0; }
         else if (st == 3) { S.locMsg = msg; S.locBusy = 0; }
     }
 }
@@ -307,7 +339,7 @@ void tuner(App& a, bool& retune) {
         ImGui::PushTextWrapPos(0);
         ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.4f, 1), "Every aircraft is over %.0f nm away: this position is probably not yours.", nearest);
         ImGui::PopTextWrapPos();
-        if (ImGui::Button("Use the aircraft's area##ref")) setReference(a, areaLat, areaLon);
+        if (ImGui::Button("Use the aircraft's area##ref")) setReference(a, areaLat, areaLon, "map");
     }
 }
 
@@ -380,12 +412,6 @@ void syncAdsbReference(App& a) {
     S.pushedLat = S.refLat; S.pushedLon = S.refLon;
 }
 
-void receiverLocation(double& lat, double& lon) { loadState(); lat = S.refLat; lon = S.refLon; }
-
-bool receiverLocationSet() { return plat::prefs().has("adsbLat") && plat::prefs().has("adsbLon"); }
-
-double receiverAltitudeM() { loadState(); return S.refAltM; }
-
-void setReceiverLocation(App& a, double lat, double lon) { loadState(); setReference(a, lat, lon); }
+// (receiverLocation, receiverLocationSet, receiverAltitudeM and setReceiverLocation are in state/station_loc.cpp)
 
 void receiverPositionFields(App& a) { loadState(); pollLocate(a); positionFields(a); }

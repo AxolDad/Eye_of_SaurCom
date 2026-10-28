@@ -470,4 +470,31 @@ void GpsdClient::run(std::string host, int port) {
     }
 }
 
+
+// ---------------------------------------------------------------------------------------------------------------------- helpers
+double distanceM(double lat1, double lon1, double lat2, double lon2) {
+    const double r = 6371008.8, d2r = 3.14159265358979323846 / 180.0;
+    const double p1 = lat1 * d2r, p2 = lat2 * d2r, dp = (lat2 - lat1) * d2r, dl = (lon2 - lon1) * d2r;
+    const double h = std::sin(dp / 2) * std::sin(dp / 2) + std::cos(p1) * std::cos(p2) * std::sin(dl / 2) * std::sin(dl / 2);
+    return 2 * r * std::asin(std::min(1.0, std::sqrt(h)));
+}
+
+bool followShouldMove(bool haveCurrent, double curLat, double curLon, double lat, double lon, double nowSec, double lastApplySec) {
+    if (!validPos(lat, lon)) return false;
+    if (lastApplySec >= 0 && nowSec - lastApplySec < 10.0) return false;
+    if (haveCurrent && validPos(curLat, curLon) && distanceM(curLat, curLon, lat, lon) <= 20.0) return false;
+    return true;
+}
+
+StationPos stationFromStored(const StoredStation& s) {
+    StationPos p;
+    if (!s.hasLat || !s.hasLon || !validPos(s.lat, s.lon)) return p;
+    p.lat = s.lat; p.lon = s.lon;
+    if (s.hasAlt) { if (validAlt(s.altM)) p.altM = s.altM; }   // a stored but out-of-range value means "not known"
+    else if (s.hasOldAlt && validAlt(s.oldAltM)) p.altM = s.oldAltM;
+    if (s.hasAnt && validAlt(s.antM) && s.antM >= 0) p.antM = s.antM;
+    p.source = s.source.empty() ? "legacy" : s.source;
+    return p;
+}
+
 }

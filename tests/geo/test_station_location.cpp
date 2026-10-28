@@ -378,6 +378,42 @@ static void testClient() {
     }
 }
 
+
+void testHelpers() {
+    CHECK(std::fabs(distanceM(52.0, -1.0, 52.0, -1.0)) < 1e-6, "zero distance");
+    const double d = distanceM(52.0, -1.0, 52.0, -1.0 + 0.0003);   // about 20.5 m east at 52 N
+    CHECK(d > 19 && d < 22, "20 m east is %.2f", d);
+    CHECK(std::fabs(distanceM(0, 0, 0, 1) - 111195) < 200, "one degree of longitude on the equator");
+    // follow the GPS: 10 s between updates, more than 20 m of movement, a valid position
+    CHECK(followShouldMove(false, 0, 0, 52.1, -1.3, 5, -1), "first fix is applied");
+    CHECK(!followShouldMove(true, 52.1, -1.3, 52.1, -1.3, 100, 0), "did not move");
+    CHECK(!followShouldMove(true, 52.1, -1.3, 52.1, -1.3 + 0.0002, 100, 0), "moved about 13 m");
+    CHECK(followShouldMove(true, 52.1, -1.3, 52.1, -1.3 + 0.0004, 100, 0), "moved about 27 m");
+    CHECK(!followShouldMove(true, 52.1, -1.3, 52.2, -1.3, 109.9, 100), "moved far but only 9.9 s since the last update");
+    CHECK(followShouldMove(true, 52.1, -1.3, 52.2, -1.3, 110.0, 100), "10 s have passed");
+    CHECK(!followShouldMove(false, 0, 0, NAN, 1, 100, -1), "NaN is never applied");
+    CHECK(!followShouldMove(false, 0, 0, 91, 1, 100, -1) && !followShouldMove(false, 0, 0, 0, 0, 100, -1), "out of range or 0,0 is never applied");
+    // saved settings: the old keys keep their meaning
+    StoredStation s;
+    CHECK(!stationFromStored(s).valid(), "nothing stored");
+    s.hasLat = true; s.lat = 51.5;
+    CHECK(!stationFromStored(s).valid(), "latitude alone is not a position");
+    s.hasLon = true; s.lon = -0.12;
+    StationPos p = stationFromStored(s);
+    CHECK(p.valid() && p.lat == 51.5 && p.lon == -0.12 && p.source == "legacy" && std::isnan(p.altM) && std::isnan(p.antM), "legacy position");
+    s.hasOldAlt = true; s.oldAltM = 35;
+    p = stationFromStored(s);
+    CHECK(p.altM == 35, "the old rxAltM is carried over (%.1f)", p.altM);
+    s.hasAlt = true; s.altM = 120; s.hasAnt = true; s.antM = 8; s.source = "map";
+    p = stationFromStored(s);
+    CHECK(p.altM == 120 && p.antM == 8 && p.source == "map", "new keys win");
+    s.altM = 99999; s.antM = -3;
+    p = stationFromStored(s);
+    CHECK(std::isnan(p.altM) && std::isnan(p.antM), "a stored out-of-range stationAltM means unknown (not the old rxAltM), a negative antenna height is dropped");
+    s.lat = 95;
+    CHECK(!stationFromStored(s).valid(), "bad stored latitude is not a position");
+}
+
 int main() {
     testParse();
     testValid();
@@ -385,6 +421,7 @@ int main() {
     testGpsd();
     testEnv();
     testClient();
+    testHelpers();
     if (fails) { printf("%d failures\n", fails); return 1; }
     printf("station_location: all tests passed\n");
     return 0;

@@ -165,8 +165,9 @@ void dabTransmittersTab(App& a) {
     if (!S.loaded) load();
     // the antenna position: the one the map modes share (set in the ADS-B tuner, or below)
     if (!S.haveRef) {
-        S.refLat = plat::prefs().getD("adsbLat", 0); S.refLon = plat::prefs().getD("adsbLon", 0);
-        S.haveRef = S.refLat != 0 || S.refLon != 0;
+        S.refLat = 0; S.refLon = 0;
+        S.haveRef = receiverLocationSet();
+        if (S.haveRef) receiverLocation(S.refLat, S.refLon);
     }
     dabTiiCollect(a);
     const DabTelemetry& d = a.rx.dab;

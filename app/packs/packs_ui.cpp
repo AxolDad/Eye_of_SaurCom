@@ -99,8 +99,8 @@ void load() {
         }
         return true;
     });
-    u.lat = plat::prefs().getD("adsbLat", 0);
-    u.lon = plat::prefs().getD("adsbLon", 0);
+    u.lat = 0; u.lon = 0;
+    if (receiverLocationSet()) receiverLocation(u.lat, u.lon);
     u.radiusKm = plat::prefs().getD("packsRadiusKm", 50);
     u.maxZ = (int)plat::prefs().getI("packsMaxZoom", 12);
     u.areaInit = receiverLocationSet();

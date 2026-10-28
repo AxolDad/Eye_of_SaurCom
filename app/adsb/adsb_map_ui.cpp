@@ -302,7 +302,7 @@ static void mapCorner(App& a, ImVec2 p0, ImVec2 size, bool wrongRef, double area
         ImGui::PushTextWrapPos(0);
         ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.4f, 1), "The antenna position (%.2f, %.2f) is %.0f nm from the nearest aircraft: it is probably not set, so ranges are wrong.", S.refLat, S.refLon, nearest);
         ImGui::PopTextWrapPos();
-        if (ImGui::Button("Use the aircraft's area")) setReference(a, areaLat, areaLon);
+        if (ImGui::Button("Use the aircraft's area")) setReference(a, areaLat, areaLon, "map");
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Puts the antenna in the middle of the aircraft received (within about 100 nm). For exact ranges type your position in the Tuner section.");
         ImGui::EndChild();
         ImGui::PopStyleColor();
@@ -315,7 +315,7 @@ static void mapCorner(App& a, ImVec2 p0, ImVec2 size, bool wrongRef, double area
     }
     if (ImGui::BeginPopup("##adsbmapctx")) {
         ImGui::TextDisabled("%.4f  %.4f", S.ctxLat, S.ctxLon);
-        if (ImGui::MenuItem("Put the antenna here")) { setReference(a, S.ctxLat, S.ctxLon); S.mapHome = true; S.locMsg.clear(); }
+        if (ImGui::MenuItem("Put the antenna here")) { setReference(a, S.ctxLat, S.ctxLon, "map"); S.mapHome = true; S.locMsg.clear(); }
         if (ImGui::MenuItem("Centre the map here")) { S.map.lat = S.ctxLat; S.map.lon = S.ctxLon; S.mapHome = false; }
         ImGui::EndPopup();
     }

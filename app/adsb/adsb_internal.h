@@ -26,6 +26,7 @@ struct State {
     double refLat = 25.25, refLon = 55.36;      // where the antenna is: ranges and local decoding; the default is only a placeholder
     double refAltM = 0;                         // its height above sea level (metres): the pass planner's look angles
     double pushedLat = 1e9, pushedLon = 1e9;
+    unsigned stGen = 0;                         // state/station_loc.cpp generation these refLat / refLon / refAltM were taken from
     uint32_t sel = 0xFFFFFFFFu;                 // the selected aircraft (ICAO address)
     int correction = 1;
     std::deque<float> rate, snr;                // good messages per second and SNR, a point per report
@@ -68,7 +69,7 @@ std::string operatorOf(uint32_t icao);
 std::string typeOf(const AdsbAircraft& ac);
 std::string sourceName(const dect2::AdsbTelemetry& t, int id);
 std::string icaoText(uint32_t i);
-void setReference(App& a, double lat, double lon);
+void setReference(App& a, double lat, double lon, const char* source = "typed");   // moves the one station position (state/station_loc.cpp)
 void positionFields(App& a);
 
 // adsb_table_ui.cpp

@@ -226,6 +226,7 @@ void sidebar(App& a) {
             if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr(tipText));
         };
         tool("The Eye", a.eyeOpen, N_("Everything this station decodes, from every mode, on one scope and one timeline (Ctrl+E)"));
+        tool("My station", a.myStationOpen, N_("Where this station is: paste coordinates, a locator or a map link, or use a GPS"));
         tool("Stations", a.stationsOpen, N_("Other installs of this program whose decoded events join the Eye"));
         tool("Passes", a.passesOpen, "Satellite passes and automatic tuning");
         tool("Direction finder", a.dfOpen, N_("Bearing and position of a transmitter from an antenna array such as the KrakenSDR"));
@@ -413,6 +414,8 @@ static void viewMenu(App& a) {
     }
     if (ImGui::BeginMenu(tr("Tools"))) {
         ImGui::MenuItem(tr("The Eye"), "Ctrl+E", &a.eyeOpen);
+        ImGui::MenuItem(tr("My station..."), nullptr, &a.myStationOpen);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Where this station is: paste coordinates, a locator or a map link, or use a GPS"));
         ImGui::MenuItem(tr("Stations..."), nullptr, &a.stationsOpen);
         ImGui::Separator();
         if (ImGui::MenuItem(tr("Transcripts..."), nullptr, tx::windowOpen())) tx::windowOpen() = !tx::windowOpen();

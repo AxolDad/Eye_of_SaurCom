@@ -336,7 +336,7 @@ struct App {
     bool setupOpen = false;             // the setup wizard (language, radio, location, goals); Help > Setup wizard
     int setupStep = 0, setupRegion = 0;
     unsigned setupGoals = 0;            // bit per goal in wizard.cpp
-    char setupLoc[48] = "";             // a Maidenhead locator or coordinates
+    char setupLoc[256] = "";             // a Maidenhead locator or coordinates
     double wizStepT = 0;
     float wizX = -1;
     ImVec2 tgMin[8], tgMax[8];   // screen rectangles of the parts of the window the tour points at
@@ -446,6 +446,7 @@ struct App {
     bool eyeOpen = false;        // Tools > The Eye (eye_ui.cpp): everything decoded, across modes, on one scope and timeline
     bool notamOpen = false;      // Tools > NOTAMs and TFRs (adsb/notam_app.cpp)
     bool radioToolsOpen = false; // Tools > Radio tools (radio_tools_ui.cpp)
+    bool myStationOpen = false;  // Tools > My station (ui/station_ui.cpp): the one position of this station, paste box, GPS
     bool wifiSenseOpen = false;  // View > WiFi sensing (wifisense_ui.cpp)
     bool watchlistOpen = false;    // View > Watchlists: alerts when listed aircraft, ships, call signs, frequencies or words are heard (watchlist_ui.cpp)
     bool msgdbOpen = false;        // View > Messages: the decoded-message database (msgdb_ui.cpp)
@@ -726,11 +727,9 @@ extern bool gTightTabs;   // the tabs of mainTabs() get less padding (a narrow p
 void toggleFullscreen();
 void handleFullscreenHotkeys();          // F11 and Alt+Enter; ignored while a text field has the keyboard
 bool adsbFullMap(App& a, ImVec2 disp);           // adsb_ui.cpp: the ADS-B map or radar over the whole window when it is popped out
-void receiverLocation(double& lat, double& lon);  // adsb_ui.cpp: the one receiver position (the ADS-B antenna position)
-bool receiverLocationSet();                        // the user has set it (else it is a placeholder)
-void receiverPositionFields(App& a);               // its fields (latitude, longitude, altitude) and the Locate button
-double receiverAltitudeM();                         // its height above sea level, metres (0 until set)
-void setReceiverLocation(App& a, double lat, double lon);   // move it (saved), e.g. Tools > Map's "Use as my location"
+// the one station position (state/station_loc.cpp): receiverLocation, receiverLocationSet, receiverAltitudeM, setReceiverLocation,
+// receiverPositionFields, and stationPos / setStationPos
+#include "state/station_loc.h"
 void syncAdsbReference(App& a);                              // push antenna position into the ADS-B tracker while that mode is running
 struct MapSatRef { std::string name; int norad = 0; const dect2::Sgp4* sgp = nullptr; };
 void passesMapSatellites(std::vector<MapSatRef>& out);   // passes_ui.cpp: the listed satellites with a TLE (for the live map)
@@ -906,6 +905,8 @@ void stationsInit(App& a);         // stations_ui.cpp: reads sites.json and star
 void stationsWindow(App& a);       // stations_ui.cpp: Tools > Stations
 void eyeWindow(App& a);            // eye_ui.cpp: Tools > The Eye (Ctrl+E)
 void dsnDevOpen(App& a);           // dsn_ui.cpp: --dsn
+void myStationWindow(App& a);      // ui/station_ui.cpp: Tools > My station (a.myStationOpen); also follows the GPS every frame
+void stationChip(App& a);          // ui/station_ui.cpp: the toolbar chip with the position; a click opens My station
 void radioToolsWindow(App& a);     // radio_tools_ui.cpp: Tools > Radio tools (a.radioToolsOpen); also feeds the drive log, every frame
 void radioToolsDevOpen(App& a, int tab);   // radio_tools_ui.cpp: --radiotools [tab]
 void wifiSenseWindow(App& a);      // wifisense_ui.cpp: presence and vital signs from ESP32 CSI nodes (View > WiFi sensing)
