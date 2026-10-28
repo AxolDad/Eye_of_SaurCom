@@ -52,7 +52,21 @@ bool fromMaidenhead(const std::string& in, double& latDeg, double& lonDeg, doubl
     return true;
 }
 
-bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg, bool checkRange) {
+bool parseCoordinates(const std::string& textIn, double& latDeg, double& lonDeg, bool checkRange) {
+    // typeset minus signs (U+2212, figure dash, en dash, em dash) are minus signs; a sign may be followed by spaces ("- 1.3")
+    std::string text;
+    for (size_t i = 0; i < textIn.size(); i++) {
+        const unsigned char a = (unsigned char)textIn[i];
+        if (a == 0xE2 && i + 2 < textIn.size() + 0 && (unsigned char)textIn[i + 1] == 0x88 && (unsigned char)textIn[i + 2] == 0x92) { text += '-'; i += 2; }
+        else if (a == 0xE2 && i + 2 < textIn.size() + 0 && (unsigned char)textIn[i + 1] == 0x80 && (unsigned char)textIn[i + 2] >= 0x92 && (unsigned char)textIn[i + 2] <= 0x94) { text += '-'; i += 2; }
+        else text += (char)a;
+    }
+    for (size_t i = 0; i + 1 < text.size(); i++)
+        if (text[i] == '-' || text[i] == '+') {
+            size_t j = i + 1;
+            while (j < text.size() && (text[j] == ' ' || text[j] == '\t')) j++;
+            if (j > i + 1 && j < text.size() && (std::isdigit((unsigned char)text[j]) || text[j] == '.')) text.erase(i + 1, j - i - 1);
+        }
     struct Group { std::vector<double> n; char hemi = 0; bool neg = false; };
     std::vector<Group> g(1);
     auto close = [&] { if (!g.back().n.empty()) g.emplace_back(); };
@@ -75,7 +89,7 @@ bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg, b
             if (!g.back().n.empty() && !g.back().hemi) { g.back().hemi = u; close(); }   // 54.7N
             else { close(); if (g.back().hemi) return false; g.back().hemi = u; }        // N54.7
         } else if (c == ',' || c == ';') close();
-        else if (std::isalpha(c)) return false;
+        else if (std::isalpha(c) || c == '-' || c == '+') return false;   // a stray sign is not skipped: it would flip a hemisphere
         i++;   // spaces, degree, minute and second signs (any byte of a UTF-8 sign) separate numbers
     }
     if (g.back().n.empty() && !g.back().hemi) g.pop_back();

@@ -82,6 +82,11 @@ bool linkCoords(const std::string& raw, Found& f) {
         if (v.size() < 2 || v.size() > 3) return false;
         f.lat = v[0]; f.lon = v[1];
         if (v.size() == 3) { f.alt = v[2]; f.hasAlt = true; }
+        if (f.lat == 0 && f.lon == 0 && cut != std::string::npos) {   // Android: geo:0,0?q=lat,lon(label)
+            const std::string q = lower(s.substr(4 + cut));
+            for (size_t p = q.find("q="); p != std::string::npos; p = q.find("q=", p + 1))
+                if (pairAt(s, 4 + cut + p + 2, ',', f.lat, f.lon)) { f.hasAlt = false; return true; }
+        }
         return true;
     }
     // OpenStreetMap mlat=..&mlon=..
@@ -94,10 +99,8 @@ bool linkCoords(const std::string& raw, Found& f) {
         size_t j = q + 5;
         if (number(s, j, lo)) { f.lat = la; f.lon = lo; return true; }
     }
-    // Google: /@lat,lon,zoom
-    for (size_t p = s.find('@'); p != std::string::npos; p = s.find('@', p + 1))
-        if (pairAt(s, p + 1, ',', f.lat, f.lon)) return true;
-    // Google data parameters !3dlat!4dlon
+    // Google, most specific first: the place's own !3dlat!4dlon, then the searched ?q= / query=, then ?ll=, and only then the map centre
+    // /@lat,lon,zoom (which is where the view is, not the pin)
     for (size_t p = findAt(s, "!3d"); p != std::string::npos; p = findAt(s, "!3d", p + 1)) {
         size_t i = p + 3;
         double la, lo;
@@ -105,14 +108,15 @@ bool linkCoords(const std::string& raw, Found& f) {
         i += 3;
         if (number(s, i, lo)) { f.lat = la; f.lon = lo; return true; }
     }
-    // ?ll=lat,lon  ?q=lat,lon  query= center=
-    for (const char* key : {"ll=", "q=", "query=", "center="}) {
+    for (const char* key : {"q=", "query=", "ll=", "center="}) {
         const size_t kl = std::strlen(key);
         for (size_t p = findAt(l, key); p != std::string::npos; p = findAt(l, key, p + 1)) {
-            if (std::strlen(key) == 2 && (p == 0 || !std::strchr("?&#;", s[p - 1]))) continue;   // "q=" only as a parameter
+            if (p == 0 || !std::strchr("?&#;", s[p - 1])) continue;   // only as a parameter: "sll=" is not "ll="
             if (pairAt(s, p + kl, ',', f.lat, f.lon)) return true;
         }
     }
+    for (size_t p = s.find('@'); p != std::string::npos; p = s.find('@', p + 1))
+        if (pairAt(s, p + 1, ',', f.lat, f.lon)) return true;
     // OpenStreetMap #map=zoom/lat/lon
     for (size_t p = findAt(l, "map="); p != std::string::npos; p = findAt(l, "map=", p + 1)) {
         size_t i = p + 4;
@@ -281,7 +285,8 @@ bool gpsFromNmea(const std::string& lineIn, GpsFix& io) {
         if (quality <= 0) { io.fix = false; io.sats = sats; return false; }
         if (!nmeaAngle(f[2], f[3], 2, "N", "S", lat) || !nmeaAngle(f[4], f[5], 3, "E", "W", lon) || !validPos(lat, lon)) return false;
         char* e = nullptr;
-        const double a = f[9].empty() ? NAN : std::strtod(f[9].c_str(), &e);
+        double a = f[9].empty() ? NAN : std::strtod(f[9].c_str(), &e);
+        if (!f[9].empty() && *e) a = NAN;   // not a number: unknown, not 0
         io.fix = true; io.lat = lat; io.lon = lon; io.sats = sats;
         io.altM = validAlt(a) ? a : NAN;
         io.mode = std::isnan(io.altM) ? 2 : 3;
@@ -380,7 +385,7 @@ void GpsdClient::stop() {
 
 bool GpsdClient::latest(GpsFix& out) const {
     std::lock_guard<std::mutex> g(m_);
-    if (!fix_.fix) return false;
+    if (!fix_.fix || std::chrono::steady_clock::now() - fixAt_ > std::chrono::seconds(10)) return false;   // gpsd repeats TPV about once a second
     out = fix_;
     return true;
 }
@@ -417,6 +422,7 @@ void GpsdClient::run(std::string host, int port) {
             sock_ = (long long)s;
             status_ = "connected, no fix yet";
             fix_ = GpsFix();
+            fixAt_ = std::chrono::steady_clock::now();
         }
         static const char kWatch[] = "?WATCH={\"enable\":true,\"json\":true}\n";
         bool gotData = false;
@@ -443,6 +449,7 @@ void GpsdClient::run(std::string host, int port) {
                     gpsFromGpsdJson(ln, cur);
                     std::lock_guard<std::mutex> g(m_);
                     fix_ = cur;
+                    if (cur.fix) fixAt_ = std::chrono::steady_clock::now();
                     status_ = cur.fix ? fixText(cur) : "connected, no fix yet";
                 }
                 if (buf.size() > 65536) buf.clear();   // a line that never ends

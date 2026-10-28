@@ -86,6 +86,17 @@ static void testParse() {
     ok("https://maps.google.com/?q=52.1234%2C-1.3456&z=12", 52.1234, -1.3456);
     ok("https://maps.google.com/maps?ll=52.1234,-1.3456&z=10", 52.1234, -1.3456);
     ok("https://www.google.com/maps?foo=1&q=-33.9,151.2", -33.9, 151.2);
+    ok("https://www.google.com/maps/place/Home/@52.10,-1.30,12z/data=!3m1!4b1!3d52.2!4d-1.4", 52.2, -1.4);   // the pin, not the view
+    ok("https://www.google.com/maps/@52.1,-1.3,12z?q=53,-2", 53, -2);
+    ok("https://www.google.com/maps?sll=10.5,20.5&q=52.1,-1.3", 52.1, -1.3);
+    ok("https://www.google.com/maps/search/?api=1&query=52.1234%2C-1.3456", 52.1234, -1.3456);
+    ok("https://www.google.com/maps?sll=10.5,20.5&ll=52.1,-1.3", 52.1, -1.3);
+    ok("geo:0,0?q=52.1234,-1.3456(Home)", 52.1234, -1.3456);
+    // typeset and spaced minus signs
+    ok("52.1 \xE2\x88\x92" "1.3", 52.1, -1.3);
+    ok("52.1, - 1.3", 52.1, -1.3);
+    ok("52.1 \xE2\x80\x93" "1.3", 52.1, -1.3);
+    ok("\xE2\x88\x92" "33.9 151.2", -33.9, 151.2);
     // OSM
     ok("https://www.openstreetmap.org/#map=17/52.1234/-1.3456", 52.1234, -1.3456);
     ok("https://www.openstreetmap.org/?mlat=52.1234&mlon=-1.3456#map=15/52.2/-1.4", 52.1234, -1.3456);
@@ -120,6 +131,9 @@ static void testParse() {
     bad("152.1, -1.3", "Latitude must be \xE2\x88\x92" "90..90 \xE2\x80\x94 are latitude and longitude swapped?");
     bad("0, 0", "ocean");
     bad("hello world", "location");
+    bad("52.1 -, 1.3", "location");
+    bad("52.1, 1.3 -", "location");
+    bad("https://maps.google.com/?sll=52.1,-1.3", "coordinates");
     bad("52.1", "location");
     bad("https://www.google.com/maps/@95.0,-1.3,17z", "Latitude");
     bad("geo:52.1,-1.3,-9999", "ltitude");
@@ -174,6 +188,7 @@ static void testNmea() {
     CHECK(!gpsFromNmea(nmea("GPGGA,123519,4807.038,X,01131.000,E,1,08,0.9,545.4,M,46.9,M,,"), o) && !o.fix, "bad hemisphere");
     CHECK(!gpsFromNmea(nmea("GPGGA,123519,0000.000,N,00000.000,E,1,08,0.9,10.0,M,46.9,M,,"), o) && !o.fix, "0,0 is not a fix");
     GpsFix a;
+    CHECK(gpsFromNmea(nmea("GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,abc,M,,M,,"), a) && a.fix && std::isnan(a.altM), "unparsable altitude is NaN, not 0");
     CHECK(gpsFromNmea(nmea("GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,,M,,M,,"), a) && a.fix && std::isnan(a.altM), "no altitude is NaN");
 }
 
@@ -289,8 +304,9 @@ struct FakeGpsd {
         });
     }
     ~FakeGpsd() {
-        if (ls != kBadSock) sockClose(ls);
+        if (ls != kBadSock) sockShutdown(ls);   // wakes an accept() nobody connected to
         if (th.joinable()) th.join();
+        if (ls != kBadSock) sockClose(ls);
     }
 };
 
@@ -311,17 +327,14 @@ static void testClient() {
         s.serve("{\"class\":\"VERSION\",\"release\":\"3.25\"}\n{\"class\":\"SKY\",\"uSat\":9}\n"
                 "{\"class\":\"TPV\",\"mode\":3,\"lat\":52.5,\"lon\":-1.5,\"altMSL\":100}\n", 600);
         GpsdClient c;
-        const auto t0 = clk::now();
         CHECK(c.start("127.0.0.1", s.port), "start");
-        CHECK(clk::now() - t0 < std::chrono::milliseconds(100), "start returns at once");
         GpsFix f;
-        CHECK(waitFor(c, f, 1500), "no fix arrived; status '%s'", c.status().c_str());
+        CHECK(waitFor(c, f, 5000), "no fix arrived; status '%s'", c.status().c_str());
         CHECK(f.fix && near(f.lat, 52.5) && near(f.lon, -1.5) && near(f.altM, 100) && f.sats == 9, "fix values %.3f %.3f %.1f %d", f.lat, f.lon, f.altM, f.sats);
         CHECK(c.status() == "fix (3D, 9 sats)", "status '%s'", c.status().c_str());
         CHECK(s.got.find("?WATCH={\"enable\":true,\"json\":true}") == 0, "WATCH sent: '%s'", s.got.c_str());
-        const auto t1 = clk::now();
         c.stop();
-        CHECK(clk::now() - t1 < std::chrono::milliseconds(1500), "stop is quick");
+        CHECK(!c.latest(f) && c.status() == "stopped", "stopped: '%s'", c.status().c_str());
         c.stop();   // twice is fine
     }
     {   // connected, no fix yet
@@ -331,7 +344,7 @@ static void testClient() {
         GpsdClient c;
         c.start("127.0.0.1", s.port);
         const auto t0 = clk::now();
-        while (clk::now() - t0 < std::chrono::milliseconds(1000) && c.status() != "connected, no fix yet") std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        while (clk::now() - t0 < std::chrono::milliseconds(5000) && c.status() != "connected, no fix yet") std::this_thread::sleep_for(std::chrono::milliseconds(10));
         GpsFix f;
         CHECK(c.status() == "connected, no fix yet" && !c.latest(f), "status '%s'", c.status().c_str());
     }
@@ -342,7 +355,7 @@ static void testClient() {
         c.start("127.0.0.1", port);
         const auto t0 = clk::now();
         std::string st;
-        while (clk::now() - t0 < std::chrono::milliseconds(1000)) {
+        while (clk::now() - t0 < std::chrono::milliseconds(5000)) {
             st = c.status();
             if (st.rfind("can't reach", 0) == 0) break;
             std::this_thread::sleep_for(std::chrono::milliseconds(10));

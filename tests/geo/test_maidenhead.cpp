@@ -65,6 +65,10 @@ int main() {
     CHECK(parseCoordinates("54 41 13 25 16 48", la, lo) && nearBy(la, 54 + 41 / 60.0 + 13 / 3600.0) && nearBy(lo, 25.28), "DMS without letters");
     CHECK(parseCoordinates("N54 41.2 E25 16.8", la, lo) && nearBy(la, 54 + 41.2 / 60) && nearBy(lo, 25.28), "degrees and decimal minutes");
     CHECK(parseCoordinates("48\xC2\xB0" "08\xE2\x80\xB2" "45.6\xE2\x80\xB3" "S 11\xC2\xB0" "36\xE2\x80\xB2" "28.8\xE2\x80\xB3" "W", la, lo) && nearBy(la, -(48 + 8 / 60.0 + 45.6 / 3600)) && nearBy(lo, -(11 + 36 / 60.0 + 28.8 / 3600)), "prime signs");
+    CHECK(parseCoordinates("52.1 -1.3", la, lo) && nearBy(la, 52.1) && nearBy(lo, -1.3), "minus after a lone number");
+    CHECK(parseCoordinates("52.1 \xE2\x88\x92" "1.3", la, lo) && nearBy(lo, -1.3), "U+2212 is a minus");
+    CHECK(parseCoordinates("52.1, - 1.3", la, lo) && nearBy(lo, -1.3), "spaced minus is a sign");
+    CHECK(!parseCoordinates("52.1 -, 1.3", la, lo) && !parseCoordinates("52.1 1.3 -", la, lo), "a stray minus is refused, not skipped");
     CHECK(!parseCoordinates("91 10", la, lo), "latitude over 90 refused");
     CHECK(!parseCoordinates("10 181", la, lo), "longitude over 180 refused");
     CHECK(!parseCoordinates("54 61 0 25 0 0", la, lo), "61 minutes refused");

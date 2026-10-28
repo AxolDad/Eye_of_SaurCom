@@ -3,6 +3,7 @@
 // Nothing here looks a position up on the internet: the only network traffic is the connection to the gpsd host the user names.
 #pragma once
 #include <atomic>
+#include <chrono>
 #include <cmath>
 #include <condition_variable>
 #include <mutex>
@@ -54,7 +55,7 @@ public:
     GpsdClient& operator=(const GpsdClient&) = delete;
     bool start(const std::string& host = "127.0.0.1", int port = 2947);   // false for an empty host or a port outside 1..65535
     void stop();
-    bool latest(GpsFix& out) const;   // true with a current fix
+    bool latest(GpsFix& out) const;   // true with a current fix (none after a mode < 2 report, a disconnect, or 10 s of silence)
     std::string status() const;       // "connecting", "connected, no fix yet", "fix (3D, 9 sats)", "can't reach 127.0.0.1:2947: <reason>"
 private:
     void run(std::string host, int port);
@@ -63,6 +64,7 @@ private:
     std::thread th_;
     bool stop_ = false;
     GpsFix fix_;
+    std::chrono::steady_clock::time_point fixAt_{};   // when fix_ was last refreshed; a fix older than 10 s is not reported
     std::string status_;
     long long sock_ = -1;   // the open connection, so stop() can wake a blocked read
 };
