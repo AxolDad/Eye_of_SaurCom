@@ -9,6 +9,8 @@ void receiversInit(App& first);                   // RX 1 is `first`; also resto
 App* receiverById(int id);                        // nullptr when closed
 App* receiverHeard();                             // the receiver whose sound plays (Hear this receiver); never null while RX 1 is open
 std::vector<App*> receiversAll();                 // open receivers, RX 1 first
+App* receiverSelected();                          // the receiver whose tab is drawn
+App* addReceiverWithRadio(const std::string& key, const std::string& name, std::string* why = nullptr);   // a new receiver on that radio (found by key, then name); nullptr and why when it cannot
 App* addReceiver();                               // a new receiver (nullptr: no more room); it becomes the selected tab
 void closeReceiver(int id);                       // stops it and lets go of its radio (done at the start of the next frame)
 void receiversFrame(App& first, ImVec2 disp);     // every frame: ticks all receivers, draws the selected one and the tab strip

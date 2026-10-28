@@ -807,7 +807,8 @@ const dect2::SubMode* curSub(const App& a);    // the protocol entry selected, n
 int subIndexOf(const char* id);                // 1 .. kNumSubModes, 0 when not one
 int modeSlot(const App& a);                    // index of famFreq / famGain for the current entry
 int engineStd(const App& a);
-void refreshDevices(App& a);
+// radios/listErr: a radio listing already made (the background watch, app/state/radio_watch.cpp) used in place of listing again.
+void refreshDevices(App& a, const std::vector<DeviceInfo>* radios = nullptr, const std::string* listErr = nullptr);
 void kiwiFindWindow(App& a);    // the "Find KiwiSDR" window (toolbar_rig.cpp)
 void netRadioWindow(App& a);   // the "Add network radio" window (toolbar_rig.cpp)
 void hamlibRigWindow(App& a);  // the "Add Hamlib rig" window (toolbar_rig.cpp)

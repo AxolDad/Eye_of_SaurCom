@@ -1,6 +1,8 @@
 // Several receivers at once: see receivers.h and docs/multi-sdr.md.
 #include "receivers.h"
 #include "rxbar.h"
+#include "radio_watch.h"
+#include "../ui/notices.h"
 #include "adsb/adsb_acars.h"
 #include "transcribe/transcribe_app.h"
 #include "dect2/engine/device_claims.h"
@@ -295,6 +297,22 @@ App* addReceiver() {
     return nullptr;
 }
 
+App* receiverSelected() { return receiverById(gSel); }
+
+App* addReceiverWithRadio(const std::string& key, const std::string& name, std::string* why) {
+    App* n = addReceiver();
+    if (!n) { if (why) *why = tr("The most receivers are open."); return nullptr; }
+    const int idx = findRadio(*n, key, name);
+    if (idx < 2) { if (why) *why = tr("That radio is no longer in the list."); return n; }
+    if (const int held = deviceHolder(n->devices[idx])) {
+        if (why) *why = std::string(tr("That radio is in use by ")) + deviceHolderText(held) + ".";
+        return n;
+    }
+    n->devIdx = idx;
+    n->tune.biasTee = false;
+    return n;
+}
+
 void closeReceiver(int id) {
     if (id >= 2) gCloseQ.push_back(id);
 }
@@ -347,6 +365,8 @@ void receiversFrame(App& first, ImVec2 disp) {
     drawWarning(first);
     acarslog::tick(first);
     tx::tick(first);
+    radioWatchTick(first);       // plugged-in radios: the New radio notice and Find this radio (a poll on a worker thread, results picked up here)
+    noticesDraw(h);
 }
 
 void receiversShutdown(App& first) {

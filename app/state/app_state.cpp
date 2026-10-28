@@ -120,7 +120,7 @@ void setMode(App& a, int f, int sub) {
 // what to tell the engine: 0 auto, 1 DVB-T2, 2 DVB-T, 3 ATSC, 4 DAB, 5 ATSC 3.0, 6 ISDB-T, 7 FM, 8 DVB-S/S2, 9 DTMB, 10 analog TV, 11 DMR, 12 DRM, 13 ADS-B, 14 GNSS, 15 radiosonde, 16 AIS, 17 marine, 18 ACARS, 19 Inmarsat-C, 20 Inmarsat Aero, 21 Iridium, 22 mesh, 23 HD Radio, 24 CDR, 25 pagers, 26 APRS / packet, 27 HF digital, 28 airband, 29 VDL Mode 2, 30 ISM sensors, 32 VOR / ILS, 33 M17, 35 D-STAR, 36 CW, 37 HFDL, 38 PSK31, 39 JS8Call, 44 spectrum analyser, 40 NXDN, 42 DVB-C, 47 dPMR, 46 Orbcomm, 45 Mode S uplink, 48 TETRA, 51 HF ALE, 49 MAC, 50 radio astronomy, 52 P25, 53 Bluetooth LE, 54 ionospheric sounders, 55 QO-100, 56 Wi-Fi networks, 57 general receiver, 63 CubeSat telemetry, 69 HF beacons (Engine::start maps these to activeStandard())
 int engineStd(const App& a) { return a.family >= 6 ? a.family + 2 : a.family == 1 ? 3 : a.family == 2 ? 4 : a.family == 3 ? 5 : a.family == 4 ? 6 : a.family == 5 ? 7 : a.stdMode; }
 
-void refreshDevices(App& a) {
+void refreshDevices(App& a, const std::vector<DeviceInfo>* radios, const std::string* listErr) {
     // the radio chosen before stays chosen when it is found again (a radio unplugged or added moves the others in the list)
     const bool hadRadio = a.devIdx >= 2 && a.devIdx < (int)a.devices.size();
     const std::string keep = hadRadio ? a.devices[a.devIdx].name : "";
@@ -138,7 +138,8 @@ void refreshDevices(App& a) {
     setNetworkRadios(a.netRadios);   // the ones the user added by address come after the ones found
     setHamlibRigs(a.hamlibRigs);
     // HackRF, the radios with a native driver (RTL-SDR, Airspy, BladeRF, LimeSDR, PlutoSDR, USRP) and the rest through SoapySDR
-    for (auto& d : listRadios(err)) a.devices.push_back(d);
+    if (radios) { for (auto& d : *radios) a.devices.push_back(d); if (listErr) err = *listErr; }
+    else for (auto& d : listRadios(err)) a.devices.push_back(d);
     for (App* o : receiversAll()) {   // a radio another receiver has open may be missing from the list (drivers cannot look at a radio in use): it stays, as "in use by RX n"
         if (o == &a || !o->engine.running() || o->devIdx < 2 || o->devIdx >= (int)o->devices.size() ||
             !(o->devices[o->devIdx].isRadio() || o->devices[o->devIdx].isAudio())) continue;

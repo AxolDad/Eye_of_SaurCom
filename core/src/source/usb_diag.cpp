@@ -119,6 +119,8 @@ std::vector<std::string> hintsUnder(const std::string& root) {
 
 } // namespace
 
+bool usbIsKnownRadio(uint16_t vid, uint16_t pid) { return radioOf(vid, pid) != nullptr; }
+
 std::vector<std::string> usbRadioHints() {
     const char* root = getenv("DECT2_SYSFS_ROOT");   // tests: a fake tree; on Linux the real one otherwise
 #ifdef __linux__

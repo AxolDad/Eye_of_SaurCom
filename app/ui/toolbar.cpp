@@ -4,6 +4,8 @@
 #include "../app.h"
 #include "touch.h"
 #include "radio_name_ui.h"
+#include "radio_find_ui.h"
+#include "../state/radio_watch.h"
 #include "../state/radio_names.h"
 #include "dect2/engine/rate_choice.h"
 #include "dect2/engine/click_tune.h"
@@ -30,6 +32,7 @@ static void toolbarSource(App& a, bool vertical, bool running) {
     ImGui::SetNextItemWidth(srcW);
     ImGui::BeginDisabled(running);
     if (ImGui::BeginCombo("##src", srcName.c_str())) {
+        radioWatchDropdownOpen();   // no polling while the list is open
         for (int i = 0; i < (int)a.devices.size(); i++)
         {
             const int held = deviceHolder(a.devices[i]);   // a radio another receiver has open cannot be picked here
@@ -37,6 +40,10 @@ static void toolbarSource(App& a, bool vertical, bool running) {
             // shown as text only; the ##id keeps two radios with the same text apart and a name cannot inject its own ID
             const std::string nm = radioShownName(a, i) + (other ? " (in use by " + deviceHolderText(held) + ")" : std::string()) + "##srcitem" + std::to_string(i);
             ImGui::BeginDisabled(other);
+            if (const dect2::RadioRow* fr = radioRow(a, i); fr && radioFlashing(fr->key)) {   // the radio "Find this radio" just found: a coloured flash for about 3 s
+                const ImVec2 p0 = ImGui::GetCursorScreenPos();
+                ImGui::GetWindowDrawList()->AddRectFilled(p0, ImVec2(p0.x + ImGui::GetContentRegionAvail().x, p0.y + ImGui::GetTextLineHeightWithSpacing()), IM_COL32(60, 190, 90, (int)(90 + 60 * sinf((float)ImGui::GetTime() * 8.f))));
+            }
             if (ImGui::Selectable(nm.c_str(), i == a.devIdx) && i != a.devIdx) {
                 a.devIdx = i;
                 a.tune.biasTee = false;   // antenna power set for another radio (and its antenna) is never carried over
@@ -105,7 +112,10 @@ static void toolbarSource(App& a, bool vertical, bool running) {
     if (iconFlat(Ic::Refresh, tr("Rescan for devices"))) refreshDevices(a), a.devIdx = std::min(a.devIdx, (int)a.devices.size() - 1);
     ImGui::EndDisabled();
     ImGui::EndDisabled();
+    ImGui::SameLine(0, 2 * gUi);
+    if (iconFlat(Ic::Search, tr("Find this radio: unplug it and plug it back in, and it is chosen in the list"))) radioFindStart(a);   // allowed while receiving: only the USB ports are looked at
     radioNameModal(a);
+    radioFindModal(a);
     radioMessagesUi(a, vertical);
     {   // two radios with one serial: names follow the USB port
         const std::string sw = sharedSerialWarning(a);

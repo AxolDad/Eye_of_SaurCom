@@ -552,6 +552,7 @@ std::vector<DeviceInfo> listUsbHackrfDevices(std::string& err) {
         info.kind = DeviceInfo::HackRF;
         info.board = "HackRF";
         info.usbPath = usbPathOf(list[i]);   // from the enumeration; the radio is opened below only for its serial, as before
+        if (const DeviceInfo* open = radioListingKnown(DeviceInfo::HackRF, info.usbPath)) { out.push_back(*open); continue; }   // streaming (a background listing): not touched
         libusb_device_handle* h = nullptr;
         const int r = libusb_open(list[i], &h);
         if (r == 0) {
