@@ -71,7 +71,7 @@ public:
 
     // true when some enabled rule or script wants events of this family (a lock-free read for the decoders)
     bool wants(int family) const { return family >= 0 && family < kFamilies && ((mask_.load(std::memory_order_relaxed) | tapMask_.load(std::memory_order_relaxed) | observeMask_.load(std::memory_order_relaxed) | watchMask_.load(std::memory_order_relaxed) |
-                                                                     eyeMask_.load(std::memory_order_relaxed)) >> family & 1); }
+                                                                     eyeMask_.load(std::memory_order_relaxed) | listenMask_.load(std::memory_order_relaxed)) >> family & 1); }
     // A tap sees every submitted event of the given families (bit = 1 << Family), on the decoder's thread, whether or not a rule wants it. It must not block
     // (the message database only queues). Pass an empty function to remove it.
     void setTap(std::function<void(const Event&)> f, uint32_t familyMask);
@@ -82,6 +82,10 @@ public:
     void setWatcher(std::function<void(const Event&)> f, uint32_t familyMask);
     // A fourth such hook, for the Eye overview (core/include/dect2/eye/eye.h); same rules: on the decoder's thread, must not block.
     void setOverview(std::function<void(const Event&)> f, uint32_t familyMask);
+    // Listeners fan out: any number can be added beside the four fixed hooks (the event exporter uses one). Each sees every submitted event of its
+    // families (bit = 1 << Family); same rules as a tap: on the decoder's thread, must not block, never called with a lock held. Returns an id > 0.
+    int addListener(std::function<void(const Event&)> f, uint32_t familyMask);
+    void removeListener(int id);
     void submit(Event&& ev);                             // queue; never blocks
     uint64_t dropped() const { return dropped_.load(); }
 
@@ -107,6 +111,11 @@ private:
     std::atomic<uint32_t> observeMask_{0};
     std::atomic<uint32_t> watchMask_{0};
     std::atomic<uint32_t> eyeMask_{0};
+    struct Listener { int id; uint32_t mask; std::function<void(const Event&)> fn; };
+    std::atomic<uint32_t> listenMask_{0};
+    std::mutex listenMu_;
+    std::vector<Listener> listeners_;
+    int nextListenerId_ = 1;
     std::mutex eyeMu_;
     std::function<void(const Event&)> eye_;
     std::mutex watchMu_;

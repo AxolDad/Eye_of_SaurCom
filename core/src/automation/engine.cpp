@@ -387,6 +387,25 @@ void Engine::setOverview(std::function<void(const Event&)> f, uint32_t familyMas
     eyeMask_.store(eye_ ? familyMask : 0);
 }
 
+int Engine::addListener(std::function<void(const Event&)> f, uint32_t familyMask) {
+    if (!f) return 0;
+    std::lock_guard<std::mutex> lk(listenMu_);
+    const int id = nextListenerId_++;
+    listeners_.push_back({id, familyMask, std::move(f)});
+    listenMask_.store(listenMask_.load() | familyMask);
+    return id;
+}
+
+void Engine::removeListener(int id) {
+    std::lock_guard<std::mutex> lk(listenMu_);
+    uint32_t m = 0;
+    for (auto it = listeners_.begin(); it != listeners_.end();) {
+        if (it->id == id) it = listeners_.erase(it);
+        else { m |= it->mask; ++it; }
+    }
+    listenMask_.store(m);
+}
+
 void Engine::submit(Event&& ev) {
     const int fam = familyOf(ev.type);
     if (fam >= 0 && (tapMask_.load(std::memory_order_relaxed) >> fam & 1)) {
@@ -408,6 +427,14 @@ void Engine::submit(Event&& ev) {
         std::function<void(const Event&)> t;
         { std::lock_guard<std::mutex> lk(eyeMu_); t = eye_; }
         if (t) t(ev);
+    }
+    if (fam >= 0 && (listenMask_.load(std::memory_order_relaxed) >> fam & 1)) {
+        std::vector<std::function<void(const Event&)>> fns;
+        {
+            std::lock_guard<std::mutex> lk(listenMu_);
+            for (const Listener& l : listeners_) if (l.mask >> fam & 1) fns.push_back(l.fn);
+        }
+        for (const auto& fn : fns) fn(ev);
     }
     if (!(fam >= 0 && (mask_.load(std::memory_order_relaxed) >> fam & 1))) return;
     {

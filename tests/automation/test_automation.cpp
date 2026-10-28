@@ -779,6 +779,31 @@ void testScripts() {
         CHECK(r2.eng.stats("loop").errors == 1 && !r2.eng.firings().empty() && !r2.eng.firings().back().ok, "its error is logged");
     }
 }
+
+void testListeners() {
+    Engine eng;
+    int adsb = 0, ais = 0;
+    const int a = eng.addListener([&](const Event& e) { if (e.type.rfind("adsb.", 0) == 0) adsb++; else adsb += 100; }, 1u << FAdsb);
+    const int b = eng.addListener([&](const Event& e) { if (e.type == "ais.vessel") ais++; else ais += 100; }, 1u << FAis);
+    CHECK(a > 0 && b > 0 && a != b, "listener ids are positive and distinct: %d %d", a, b);
+    CHECK(eng.wants(FAdsb) && eng.wants(FAis) && !eng.wants(FAprs), "wants() includes the listener masks");
+    eng.submit(aircraft("A", 1));
+    Event v("ais.vessel");
+    v.at(kT0, "AIS", 162e6);
+    v.str("mmsi", "123456789");
+    eng.submit(std::move(v));
+    eng.drain();
+    CHECK(adsb == 1 && ais == 1, "each listener saw exactly its family: adsb=%d ais=%d", adsb, ais);
+    eng.removeListener(b);
+    CHECK(!eng.wants(FAis) && eng.wants(FAdsb), "removing a listener drops its mask");
+    Event v2("ais.vessel");
+    v2.at(kT0, "AIS", 162e6);
+    eng.submit(std::move(v2));
+    CHECK(ais == 1, "a removed listener sees nothing more: %d", ais);
+    eng.removeListener(a);
+    eng.removeListener(999);
+    CHECK(!eng.wants(FAdsb), "no listeners left");
+}
 }  // namespace
 
 int main() {
@@ -791,5 +816,6 @@ int main() {
     testConditionRows();
     testEngine();
     testScripts();
+    testListeners();
     return testSummary("automation");
 }
