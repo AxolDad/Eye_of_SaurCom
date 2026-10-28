@@ -124,6 +124,7 @@ struct DeviceInfo {
     std::string name;   // display name
     std::string serial; // HackRF serial / file path
     std::string board;  // "HackRF One", "HackRF Pro", "airspy", "sdrplay", ...
+    std::string usbPath; // "bus-port.port", empty when unknown
     // generic radios (SoapySDR)
     std::string soapyArgs;     // device arguments, e.g. "driver=airspy,serial=..."
     std::string nativeArgs;    // what the radio's own library wants to open it (index, serial, URI, ...)
