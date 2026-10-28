@@ -6,7 +6,9 @@
 #include "../platform/platform.h"
 #include "dect2/net/station_link.h"
 #include <algorithm>
+#include <cctype>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <string>

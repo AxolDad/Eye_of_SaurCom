@@ -32,9 +32,15 @@ const char* kindName(DeviceInfo::Kind k) {
 }
 
 struct Host : RemoteApiHost {
-    int evListener = 0;   // feeds dect2::globalEventRing()
-    Host() { evListener = automation::global().addListener([](const automation::Event& e) { globalEventRing().push(e); }, (1u << automation::kFamilies) - 1); }
-    ~Host() override { if (evListener > 0) automation::global().removeListener(evListener); }
+    int evListener = 0;   // feeds dect2::globalEventRing() while the API is on (UI thread only)
+    // the ring is made here, before this Host is complete: so it is destroyed after the State that holds the server, whose client threads read it
+    Host() { (void)globalEventRing(); }
+    ~Host() override { setExport(false); }
+    // Events are serialised into the ring only while the API is on: an all-families listener makes every decoder build and write every event
+    void setExport(bool on) {
+        if (on && evListener <= 0) evListener = automation::global().addListener([](const automation::Event& e) { globalEventRing().push(e); }, (1u << automation::kFamilies) - 1);
+        else if (!on && evListener > 0) { automation::global().removeListener(evListener); evListener = 0; }
+    }
     size_t eventLines(uint64_t& cursor, std::vector<std::string>& lines, size_t max, uint64_t& missed) override { return globalEventRing().since(cursor, lines, max, missed); }
     uint64_t eventHead() override { return globalEventRing().head(); }
     // ---- main-thread hand-over: the server's threads queue a job, tick() (every frame) runs it
@@ -249,6 +255,12 @@ struct State {
 };
 State& st() { static State s; return s; }
 
+// the server and the event export follow the config together
+void applyConfig(State& s) {
+    s.srv.configure(s.cfg);
+    s.host.setExport(s.cfg.on);
+}
+
 } // namespace
 
 void remoteApiLoadPrefs(App& a) {
@@ -256,7 +268,14 @@ void remoteApiLoadPrefs(App& a) {
     plat::Prefs& d = plat::prefs();
     RemoteApiConfig& c = st().cfg;
     c.on = d.getB("apiOn", false); c.port = (int)d.getI("apiPort", c.port); c.lan = d.getI("apiLan", 0) != 0; c.token = d.getS("apiToken", "");
-    if (c.on) st().srv.configure(c);
+    if (c.on) applyConfig(st());
+}
+
+void remoteApiShutdown() {
+    State& s = st();
+    s.host.abort();                        // client threads waiting for the main thread are released first
+    s.srv.configure(RemoteApiConfig());    // off: the listener and every connection thread are stopped and joined
+    s.host.setExport(false);
 }
 
 void remoteApiSavePrefs(const App& a) {
@@ -310,5 +329,5 @@ void remoteApiSection(App& a) {
                                  "sets mode, frequency, sample rate and gain, and gives the telemetry and the spectrum as JSON, also as a WebSocket stream. Endpoints: see README.md."));
     ImGui::PopTextWrapPos();
     ImGui::Unindent();
-    if (ch) { s.srv.configure(c); remoteApiSavePrefs(a); savePrefs(a); }
+    if (ch) { applyConfig(s); remoteApiSavePrefs(a); savePrefs(a); }
 }

@@ -262,7 +262,7 @@ void update(App& a) {
     if (step(hz, rfCamEnabled() ? 4096 : 2048)) {
         S.avg.add(S.res.bearingDeg, std::max(0.05, S.res.confidence));
         S.hist.push_back({now, S.res.bearingDeg, S.res.confidence});
-        emitBearing(hz, S.res.bearingDeg, S.res.confidence);
+        if (S.src != SrcSim) emitBearing(hz, S.res.bearingDeg, S.res.confidence);   // a simulated bearing is not a measurement: never exported or cross-fixed
     }
     while (!S.hist.empty() && now - S.hist.front().t > 60) S.hist.erase(S.hist.begin());
 }

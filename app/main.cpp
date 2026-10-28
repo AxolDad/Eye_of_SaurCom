@@ -219,6 +219,7 @@ static void shotReport(App& app) {
 // orderly shutdown: transmitter quiet, receivers stopped, results saved, windows and back end closed
 static void shutdownApp(App& app, gfx::Backend* gfxBackend, GLFWwindow* window) {
     layoutSaveNow();
+    remoteApiShutdown();   // no API client acts on the app, or reads the event ring, while it is torn down
     dect2::globalLinks().stop();   // the station links end before the automation engine they emit into goes away (may wait out one connect timeout)
     workspaceSessionEnd(app);   // the last-session file is marked clean first: the state is the one at exit
     delete gDiscord;   // clears the status and joins its thread
