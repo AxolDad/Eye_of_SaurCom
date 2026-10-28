@@ -13,6 +13,7 @@
 #include "dect2/source/gain.h"
 #include "dect2/source/iq_file.h"
 #include "dect2/source/radio_id.h"
+#include "dect2/common/data_dir.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -45,18 +46,10 @@ static int demodFromName(const std::string& s) {
 }
 
 namespace {
-// <data folder>/radios/names.json, the folder the desktop app uses (plat::dataDir(): DECT2_DATA_DIR, %LOCALAPPDATA%\SaurCom, $XDG_DATA_HOME/saurcom or ~/.local/share/saurcom)
+// <data folder>/radios/names.json, in the folder the desktop app uses (dect2::defaultDataDir() = plat::dataDir())
 std::string radioNamesPath() {
-    std::string d;
-    if (const char* o = getenv("DECT2_DATA_DIR"); o && *o) d = o;
-#ifdef _WIN32
-    else if (const char* la = getenv("LOCALAPPDATA")) d = std::string(la) + "\\SaurCom";
-#else
-    else if (const char* x = getenv("XDG_DATA_HOME"); x && *x) d = std::string(x) + "/saurcom";
-    else if (const char* h = getenv("HOME")) d = std::string(h) + "/.local/share/saurcom";
-    else d = "/tmp/saurcom";
-#endif
-    return d + "/radios/names.json";
+    const std::string d = defaultDataDir();
+    return (d.empty() ? std::string() : d + "/") + "radios/names.json";
 }
 }  // namespace
 
@@ -378,7 +371,13 @@ std::string ServerHost::statusJson() {
 std::string ServerHost::devicesJson() {
     std::lock_guard<std::mutex> lk(mu_);
     refreshDevices(false);
-    { std::string lerr; labels_.load(radioNamesPath(), lerr); }   // missing or damaged: no names (the desktop app is the one that writes the file)
+    {   // missing or damaged: no names (the desktop app is the one that writes and repairs the file); a damaged one is logged, once per change
+        std::string lerr;
+        if (!labels_.load(radioNamesPath(), lerr) && lerr.rfind("cannot read", 0) != 0 && lerr != lastNamesErr_) {
+            lastNamesErr_ = lerr;
+            fprintf(stderr, "radio names: %s (the file is not changed by the server)\n", lerr.c_str());
+        }
+    }
     const std::vector<RadioRow> rows = identifySources(devices_, labels_);   // the labels are only read here; this server never writes names.json
     std::string o = "[";
     for (size_t i = 0; i < devices_.size(); i++) {

@@ -65,6 +65,7 @@ private:
     dect2::Engine e_;
     mutable std::mutex mu_;                 // the chosen settings and the engine calls
     std::vector<dect2::DeviceInfo> devices_;
+    std::string lastNamesErr_;
     dect2::RadioLabels labels_;             // the user's radio names, read from <data>/radios/names.json before each device listing; never written here
     double devicesAt_ = -1e9;
     std::vector<ModeEntry> modes_;

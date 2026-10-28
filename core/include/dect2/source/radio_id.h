@@ -47,8 +47,9 @@ std::string radioDisplayName(const RadioRow& r);
 
 // A radio's key flips from "sn:<serial>" to "usb:<path>" when a second radio with that serial appears. For rows that have a usb: key and no
 // label, while a label exists under the "sn:" key of the same kind, board and serial, that label is copied to the usb: key of one radio (the
-// lowest dupIndex, then the lowest USB path), saved in labels (the caller saves the file) and set on the row. The sn: label is kept, so the
-// name is back when the second radio goes. A group where any radio already has a label is left alone, so this does nothing the second time.
+// lowest dupIndex, then the lowest USB path), saved in labels (the caller saves the file) and set on the row. The sn: label is removed (moved, not copied), so this happens at most once:
+// a name cleared afterwards stays cleared, and a single radio with that serial later starts with no name. A group where any radio already has
+// a label is left alone.
 // Returns true when it changed anything.
 bool migrateLabels(std::vector<RadioRow>& rows, RadioLabels& labels);
 

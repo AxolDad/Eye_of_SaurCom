@@ -248,12 +248,18 @@ int main() {
         CHECK(named == 1, "exactly one radio got the label: %d", named);
         CHECK(two[1].label == "Roof", "the lowest USB path (#1) gets it");
         CHECK(L.get(two[1].key) == "Roof" && L.get(two[0].key).empty(), "stored under the usb key");
-        CHECK(L.get(snKey) == "Roof", "the old sn: label stays for when the second radio goes");
+        CHECK(L.get(snKey).empty(), "the old sn: label was moved, not copied");
         // second call and a rebuilt list: no change, the other radio is not named too
         CHECK(!migrateLabels(two, L), "idempotent");
         auto again = identifyRadios({rtl("A1B2C3", "1-2"), rtl("A1B2C3", "1-1")}, L);
         CHECK(!migrateLabels(again, L), "rebuilt list: no change");
         CHECK(again[0].label.empty() && again[1].label == "Roof", "still one name");
+        // the user clears the migrated name: it does not come back, on this list or a rebuilt one, however the radios move
+        L.remove(two[1].key);
+        auto cleared = identifyRadios({rtl("A1B2C3", "1-2"), rtl("A1B2C3", "1-1")}, L);
+        CHECK(!migrateLabels(cleared, L) && cleared[0].label.empty() && cleared[1].label.empty(), "cleared name stays cleared");
+        auto moved = identifyRadios({rtl("A1B2C3", "1-5"), rtl("A1B2C3", "1-1")}, L);
+        CHECK(!migrateLabels(moved, L) && moved[0].label.empty() && moved[1].label.empty(), "a port change does not bring it back");
         // a radio that already has its own label is not touched; other kinds/boards/serials do not borrow
         RadioLabels M;
         M.set(radioKey(rtl("ZZ", "1-1")), "Other");

@@ -180,6 +180,7 @@ bool migrateLabels(std::vector<RadioRow>& rows, RadioLabels& labels) {
             if (std::make_pair(a.dupIndex, a.dev.usbPath) < std::make_pair(b.dupIndex, b.dev.usbPath)) best = i;
         }
         labels.set(rows[best].key, name);
+        labels.remove(snKey);   // moved, not copied: the migration happens once, so clearing the new name stays cleared
         rows[best].label = labels.get(rows[best].key);
         changed = true;
     }

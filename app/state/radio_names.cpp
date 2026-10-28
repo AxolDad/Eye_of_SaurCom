@@ -5,6 +5,9 @@
 #include <map>
 #include <mutex>
 #include <tuple>
+#include <ctime>
+#include <filesystem>
+#include "dect2/common/u8file.h"
 
 namespace radionames {
 namespace {
@@ -19,11 +22,21 @@ unsigned generation() { return gGen.load(); }
 
 void load() {
     std::string err;
+    gLoadErr.clear();
     if (!gLabels.load(path(), err)) {
-        // a missing file is the normal first start; anything else is worth a note
-        gLoadErr = err.rfind("cannot read", 0) == 0 ? std::string() : err;
-        if (!gLoadErr.empty()) fprintf(stderr, "radio names: %s (starting with no names)\n", gLoadErr.c_str());
-    } else gLoadErr.clear();
+        std::error_code ec;
+        if (std::filesystem::exists(dect2::u8file(path()), ec)) {
+            // a damaged file must not be replaced by the next save without a trace: keep it as names.json.bad-<time>, then start empty
+            char t[32];
+            const time_t now = time(nullptr);
+            strftime(t, sizeof t, "%Y%m%d-%H%M%S", localtime(&now));
+            const std::string bad = path() + ".bad-" + t;
+            std::filesystem::rename(dect2::u8file(path()), dect2::u8file(bad), ec);
+            gLoadErr = std::string(tr("Radio names file was unreadable")) + " (" + err + "); " +
+                       (ec ? std::string(tr("could not keep a copy")) : std::string(tr("saved a copy as ")) + bad) + ". " + tr("Started with no names.");
+            fprintf(stderr, "radio names: %s\n", gLoadErr.c_str());
+        }   // a missing file is the normal first start
+    }
     gGen++;
 }
 
