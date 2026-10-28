@@ -5,10 +5,13 @@
 #include "dect2/net/event_ring.h"
 #include "tcp_client.h"
 #include "ws_client.h"
+#include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
+#include <thread>
 
 namespace dect2 {
 
@@ -40,8 +43,13 @@ struct Link {
     std::mutex waitMu;                // for the backoff wait
     std::condition_variable cv;
     std::atomic<bool> stopFlag{false};
-    std::atomic<sock_t> sock{kBadSock};
+    std::mutex sockMu;                // sock: the owner closes under it, wake() shuts down under it, so a reused descriptor is never hit
+    sock_t sock = kBadSock;
+    std::atomic<bool> done{false};    // the thread has finished (set last)
     std::thread th;
+
+    void setSock(sock_t s) { std::lock_guard<std::mutex> lk(sockMu); sock = s; }
+    void closeSock(sock_t s) { std::lock_guard<std::mutex> lk(sockMu); sock = kBadSock; sockClose(s); }
 
     void setState(int s, const std::string& err = {}, bool keepErr = false) {
         std::lock_guard<std::mutex> lk(mu);
@@ -50,8 +58,7 @@ struct Link {
     }
     // Closes the socket under way so that a blocked read returns now
     void wake() {
-        sock_t s = sock.load();
-        if (s != kBadSock) sockShutdown(s);
+        { std::lock_guard<std::mutex> lk(sockMu); if (sock != kBadSock) sockShutdown(sock); }
         std::lock_guard<std::mutex> lk(waitMu);
         cv.notify_all();
     }
@@ -65,8 +72,8 @@ struct Link {
         std::string err;
         sock_t s = tcpConnect(cfg.host, cfg.port, kConnectMs, err);
         if (s == kBadSock) return;
-        sock.store(s);   // so that stop() can cut it short
-        if (stopFlag) { sock.store(kBadSock); sockClose(s); return; }
+        setSock(s);   // so that stop() can cut it short
+        if (stopFlag) { closeSock(s); return; }
         sockRecvTimeout(s, kReadMs * 2);
         const std::string hp = (cfg.host.find(':') != std::string::npos ? "[" + cfg.host + "]" : cfg.host) + ":" + std::to_string(cfg.port);
         std::string path = "/api/v1/status";
@@ -81,8 +88,7 @@ struct Link {
                 resp.append(b, (size_t)k);
             }
         }
-        sock.store(kBadSock);
-        sockClose(s);
+        closeSock(s);
         const size_t e = resp.find("\r\n\r\n");
         if (resp.compare(0, 9, "HTTP/1.1 ") != 0 || resp.compare(9, 3, "200") != 0 || e == std::string::npos) return;
         aj::Value v; std::string perr;
@@ -116,8 +122,8 @@ struct Link {
         std::string err;
         sock_t s = tcpConnect(cfg.host, cfg.port, kConnectMs, err);
         if (s == kBadSock) return err;
-        sock.store(s);
-        struct Closer { Link& l; sock_t s; ~Closer() { l.sock.store(kBadSock); sockClose(s); } } closer{*this, s};
+        setSock(s);
+        struct Closer { Link& l; sock_t s; ~Closer() { l.closeSock(s); } } closer{*this, s};
         if (stopFlag) return "stopped";
         sockRecvTimeout(s, kReadMs);
         WsClient ws;
@@ -133,7 +139,7 @@ struct Link {
         setState(2);
         live = true;
         readPosition();
-        sock.store(s);   // readPosition cleared it
+        setSock(s);   // readPosition cleared it
         std::vector<unsigned char> msg;
         for (;;) {
             if (stopFlag) return "stopped";
@@ -179,6 +185,7 @@ struct Link {
             backoff = std::min(backoff * 2, kMaxBackoffSec);
         }
     }
+    void runThread() { run(); done = true; }   // nothing of the owner is touched after this
 };
 
 }  // namespace
@@ -187,6 +194,13 @@ struct StationLinks::Impl {
     std::mutex cfgMu;        // one configure() / stop() at a time
     mutable std::mutex mu;   // links
     std::vector<std::shared_ptr<Link>> links;
+    std::vector<std::shared_ptr<Link>> retiring;   // stopped links whose threads may still be in connect / name lookup; joined in stop()
+    void reap() {   // joins the finished ones (instant), keeps the rest; never blocks
+        for (auto it = retiring.begin(); it != retiring.end();) {
+            if ((*it)->done) { if ((*it)->th.joinable()) (*it)->th.join(); it = retiring.erase(it); }
+            else ++it;
+        }
+    }
 };
 
 StationLinks::StationLinks() : p_(new Impl) {}
@@ -216,7 +230,7 @@ void StationLinks::configure(const std::vector<SiteConfig>& sites) {
         if (sc.on) {
             Link* raw = l.get();
             l->st.state = 1;
-            l->th = namedThread("saurcom-link", [raw] { raw->run(); });
+            l->th = namedThread("saurcom-link", [raw] { raw->runThread(); });
         }
         next.push_back(l);
     }
@@ -227,7 +241,9 @@ void StationLinks::configure(const std::vector<SiteConfig>& sites) {
         if (!u) drop.push_back(o);
     }
     { std::lock_guard<std::mutex> lk(p_->mu); p_->links = std::move(next); }
-    haltAll(drop);
+    // never join here: a thread inside connect() or getaddrinfo() cannot be woken. Signal, park it, reap what has finished.
+    for (auto& d : drop) { d->stopFlag = true; d->wake(); p_->retiring.push_back(d); }
+    p_->reap();
 }
 
 std::vector<std::pair<SiteConfig, SiteStatus>> StationLinks::status() const {
@@ -244,6 +260,8 @@ void StationLinks::stop() {
     std::lock_guard<std::mutex> cl(p_->cfgMu);
     std::vector<std::shared_ptr<Link>> old;
     { std::lock_guard<std::mutex> lk(p_->mu); old.swap(p_->links); }
+    old.insert(old.end(), p_->retiring.begin(), p_->retiring.end());
+    p_->retiring.clear();
     haltAll(old);
 }
 

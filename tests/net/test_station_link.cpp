@@ -151,6 +151,20 @@ int main() {
         CHECK(links.status().empty() || links.status()[0].second.state == 0, "state 0 after stop");
     }
 
+    // configure() never waits for a thread stuck in connect(): a non-routable address hangs until the connect timeout
+    {
+        StationLinks l3;
+        SiteConfig hang; hang.name = "hang"; hang.host = "10.255.255.1"; hang.port = 9;
+        l3.configure({hang});
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        const auto t0 = Clock::now();
+        l3.configure({});
+        const long ms = (long)std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - t0).count();
+        CHECK(ms < 200, "configure({}) of a hanging site returned in %ld ms", ms);
+        CHECK(l3.status().empty(), "the removed site is gone from the status");
+        l3.stop();   // joins the parked thread
+    }
+
     // a wrong token: a non-loopback peer is judged by the token, so go through this computer's own LAN address with the server on lan
     {
         const std::string lan = lanAddress();

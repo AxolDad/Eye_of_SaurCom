@@ -35,12 +35,14 @@ public:
     ~StationLinks();
     StationLinks(const StationLinks&) = delete;
     StationLinks& operator=(const StationLinks&) = delete;
-    // Makes the running links match the list: unchanged sites keep running, changed or removed ones are stopped (their socket is closed, which wakes the
-    // thread at once), new ones are started. Sites with an empty name or host are ignored; a later site with a name already used is ignored.
+    // Makes the running links match the list: unchanged sites keep running, changed or removed ones are told to stop (their socket is shut down, which
+    // wakes a reading thread at once) and left to finish on their own: configure() never joins, so it is safe to call from the UI thread), new ones are started. Sites with an empty name or host are ignored; a later site with a name already used is ignored.
     void configure(const std::vector<SiteConfig>& sites);
     // Config and status of every site, in the order configured
     std::vector<std::pair<SiteConfig, SiteStatus>> status() const;
-    void stop();   // stops every link and forgets the sites
+    // Stops every link, forgets the sites and joins all threads. May block for one connect or name-lookup timeout (a thread inside connect() or
+    // getaddrinfo() cannot be woken); call it from shutdown, not from the UI.
+    void stop();
 private:
     struct Impl;
     std::unique_ptr<Impl> p_;
