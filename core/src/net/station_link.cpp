@@ -24,6 +24,7 @@ namespace aj = automation::json;
 namespace {
 
 constexpr int kConnectMs = 3000, kReadMs = 1000, kMaxBackoffSec = 60, kHealthySec = 30;
+constexpr double kCatchUpSec = 10;   // skew sampling: the first 10 s after a subscription may bring a backlog; its events more than 10 s old are skipped
 constexpr size_t kMaxMessage = 1u << 20;   // json::parse takes at most 1 MiB
 
 bool sameConfig(const SiteConfig& a, const SiteConfig& b) {
@@ -42,8 +43,11 @@ std::string urlEncode(const std::string& s) {
 
 struct Link {
     SiteConfig cfg;
+    LinkTiming timing;
     SiteStatus st;
-    mutable std::mutex mu;            // st
+    bool haveSkew = false;            // st.clockSkewSec holds a sample (under mu)
+    std::chrono::steady_clock::time_point liveSince;   // when the current subscription was sent (link thread only)
+    mutable std::mutex mu;            // st, haveSkew
     std::mutex waitMu;                // for the backoff wait
     std::condition_variable cv;
     std::atomic<bool> stopFlag{false};
@@ -109,13 +113,20 @@ struct Link {
         if (!eventFromJson(line, ev, err)) return;
         ev.f["site"] = automation::Value::string(cfg.name);
         const double now = automation::wallNow();
+        const bool catchingUp = std::chrono::steady_clock::now() - liveSince < std::chrono::duration<double>(kCatchUpSec);
         {
             std::lock_guard<std::mutex> lk(mu);
             st.events++;
             st.lastEventAt = now;
             if (ev.time != 0) {
                 const double d = now - ev.time;
-                st.clockSkewSec = st.events == 1 || st.clockSkewSec == 0 ? d : st.clockSkewSec + 0.1 * (d - st.clockSkewSec);
+                // a reconnect resends what was missed: those events are old because they waited, not because the clock is off. Measured against the
+                // current estimate, so a station whose clock lags by a steady 40 s still counts (and after the catch-up window everything counts).
+                const bool backlog = catchingUp && d - (haveSkew ? st.clockSkewSec : 0.0) > kCatchUpSec;
+                if (!backlog) {
+                    st.clockSkewSec = haveSkew ? st.clockSkewSec + 0.1 * (d - st.clockSkewSec) : d;
+                    haveSkew = true;
+                }
             }
         }
         automation::emit(std::move(ev));
@@ -129,7 +140,9 @@ struct Link {
         setSock(s);
         struct Closer { Link& l; sock_t s; ~Closer() { l.closeSock(s); } } closer{*this, s};
         if (stopFlag) return "stopped";
-        sockRecvTimeout(s, kReadMs);
+        // short reads, so that the keepalive is looked at often enough for a short (test) idle limit too
+        const int readMs = std::max(50, std::min(kReadMs, std::min(timing.pingMs, timing.idleMs) / 4));
+        sockRecvTimeout(s, readMs);
         WsClient ws;
         ws.attach(s);
         std::string path = "/api/v1/ws";
@@ -145,12 +158,23 @@ struct Link {
         readPosition();
         setSock(s);   // readPosition cleared it
         std::vector<unsigned char> msg;
+        const auto pingEvery = std::chrono::milliseconds(std::max(1, timing.pingMs)), idleMax = std::chrono::milliseconds(std::max(1, timing.idleMs));
+        const std::string idleWhy = "no data from the station for " + std::to_string((std::max(1, timing.idleMs) + 500) / 1000) + " s";
+        auto lastPing = std::chrono::steady_clock::now();
+        liveSince = lastPing;   // the backlog is read from here on (readPosition() came first)
         for (;;) {
             if (stopFlag) return "stopped";
             const WsClient::Kind k = ws.readMessage(msg, kMaxMessage);
-            if (k == WsClient::Kind::Timeout) continue;
             if (k == WsClient::Kind::Closed) return stopFlag ? "stopped" : "the station closed the connection";
             if (k == WsClient::Kind::Bad) return "the station sent something that is not a valid WebSocket message";
+            // the keepalive: a half-open connection (the station lost power or its network) sends nothing and fails no read, so it is timed
+            const auto now = std::chrono::steady_clock::now();
+            if (now - ws.lastFrameAt() >= idleMax) return idleWhy;
+            if (now - lastPing >= pingEvery) {
+                lastPing = now;
+                if (!ws.sendPing()) return stopFlag ? "stopped" : "the connection dropped";
+            }
+            if (k == WsClient::Kind::Timeout) continue;
             if (k != WsClient::Kind::Text) continue;
             aj::Value v; std::string perr;
             if (!aj::parse(std::string(msg.begin(), msg.end()), v, perr)) continue;
@@ -195,6 +219,7 @@ struct Link {
 }  // namespace
 
 struct StationLinks::Impl {
+    LinkTiming timing;
     std::mutex cfgMu;        // one configure() / stop() at a time
     mutable std::mutex mu;   // links
     std::vector<std::shared_ptr<Link>> links;
@@ -207,7 +232,7 @@ struct StationLinks::Impl {
     }
 };
 
-StationLinks::StationLinks() : p_(new Impl) {}
+StationLinks::StationLinks(LinkTiming t) : p_(new Impl) { p_->timing = t; }
 StationLinks::~StationLinks() { stop(); }
 
 // Stops all of them: every socket is closed first so the threads wake together, then they are joined
@@ -231,6 +256,7 @@ void StationLinks::configure(const std::vector<SiteConfig>& sites) {
         if (keep) { next.push_back(keep); used.push_back(keep); continue; }
         auto l = std::make_shared<Link>();
         l->cfg = sc;
+        l->timing = p_->timing;
         if (sc.on) {
             Link* raw = l.get();
             l->st.state = 1;

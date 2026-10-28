@@ -3,6 +3,8 @@
 // bus (automation::emit), from where the Eye, the message database and the watchlists pick it up. One thread per site; a lost connection is retried
 // after 2, 4, 8 ... 60 s (back to 2 s once a connection has lived 30 s). A reconnect sends since = the last seq seen, so nothing is read twice.
 // The remote station's position is read from GET /api/v1/status ("lat" / "lon", NaN when it does not send them) once per connect.
+// Keepalive: the link sends a WebSocket ping every LinkTiming::pingMs (15 s) and drops the connection (then retries as above) when nothing at all,
+// not even a pong, has come for LinkTiming::idleMs (45 s): a station that lost power or its network is noticed instead of staying "live".
 #pragma once
 #include <cmath>
 #include <cstdint>
@@ -25,13 +27,20 @@ struct SiteStatus {
     std::string lastError;
     uint64_t events = 0, missed = 0;
     double lastEventAt = 0;       // Unix seconds (local clock) when the last event came
-    double clockSkewSec = 0;      // smoothed (receive time - event time): the remote clock's lag, EWMA 0.1; events with time 0 are ignored
+    double clockSkewSec = 0;      // smoothed (receive time - event time): the remote clock's lag, EWMA 0.1; events with time 0 are ignored, and so is
+                                  // the catch-up after a (re)subscription: in its first 10 s, events more than 10 s older than the current estimate
     double lat = NAN, lon = NAN;
+};
+
+// The keepalive of every link (the defaults are the real ones; tests use short ones)
+struct LinkTiming {
+    int pingMs = 15000;   // a ping this often
+    int idleMs = 45000;   // nothing received for this long: the connection is closed and retried ("no data from the station for 45 s")
 };
 
 class StationLinks {
 public:
-    StationLinks();
+    explicit StationLinks(LinkTiming t = LinkTiming());
     ~StationLinks();
     StationLinks(const StationLinks&) = delete;
     StationLinks& operator=(const StationLinks&) = delete;

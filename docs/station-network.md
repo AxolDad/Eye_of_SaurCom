@@ -7,6 +7,7 @@ Run Eye of SaurCom on more than one computer, and see what all of them hear in o
 - Every station you add is read over its remote control API (a WebSocket). The events it decodes (aircraft, ships, APRS, pagers and so on) arrive here and are treated like local ones: the Eye, the message database and the watchlists see them.
 - In the Eye, a row of chips appears once an event from another station has been heard: **All**, **This station**, and one chip per station. A chip shows only that station's contacts and timeline lines. Rows from another station carry its name in brackets. A contact heard by several stations lists all of them in its tooltip.
 - If the link drops, it is retried after 2, 4, 8 seconds and so on, up to 60 s. After a reconnect the station sends what it decoded in the meantime, and nothing is shown twice.
+- A station that goes away without closing the link (power cut, network gone) is noticed too: the link pings it every 15 seconds and, when nothing at all has come back for 45 seconds, it shows Retrying with *no data from the station for 45 s*.
 
 ## What crosses the link
 
@@ -26,7 +27,7 @@ The sites, with their tokens, are kept in `stations/sites.json` in your data fol
 
 ## Clock skew
 
-The table shows the clock skew of each station: how far its clock is behind or ahead of this one, judged from the time of its events. Over 30 seconds the value turns red with the hint *this station's clock is off*.
+The table shows the clock skew of each station: how far its clock is behind or ahead of this one, judged from the time of its events. Over 30 seconds the value turns red with the hint *this station's clock is off*. The events a station resends after a reconnect are left out of this estimate, since they are late because they waited, not because of the clock. An event whose time is more than a day away from this computer's clock is kept, but its time is treated as unknown (the time it arrived).
 
 This matters for locating. Bearings from stations whose clocks differ by more than a few seconds do not combine into a fix, because they are not bearings of the same moment. Keep every station on NTP (or another time sync) when you want fixes.
 
@@ -39,4 +40,5 @@ The **Located** chip in the Eye holds signals that were placed on the map from b
 - **No encryption yet.** The link is plain HTTP and WebSocket, and the token travels in clear. Use it on your own network or a VPN. Do not put the port on the internet.
 - **No TDOA.** Fixes are crossed bearings only; arrival time differences between stations are not used.
 - A bearing without the station's position (no location set there) is ignored.
+- Bearings from the Direction finder's simulator are not sent to other stations: only real measurements are.
 - Text from another station is shown as plain text and never interpreted, but you still choose whom to trust: a station you add can put any contact on your Eye.
