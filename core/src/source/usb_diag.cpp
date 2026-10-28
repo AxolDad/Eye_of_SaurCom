@@ -45,6 +45,8 @@ const UsbId kRadios[] = {
     {0x2500, 0x0020, "USRP B2xx"}, {0x2500, 0x0021, "USRP B2xx"}, {0x2500, 0x0022, "USRP B2xx"},
     {0x3923, 0x7813, "USRP B2xx"}, {0x3923, 0x7814, "USRP B2xx"},
     {0x1df7, 0, "SDRplay RSP"},
+    {0x16d0, 0x132e, "Fobos SDR"},                      // libfobos udev rules
+    {0x04b4, 0x00f1, "RX888"}, {0x04b4, 0x00f3, "RX888"},   // rx888_usb.h: the FX3 firmware running, and its boot loader
 };
 
 const char* radioOf(uint16_t vid, uint16_t pid) {
@@ -120,6 +122,7 @@ std::vector<std::string> hintsUnder(const std::string& root) {
 } // namespace
 
 bool usbIsKnownRadio(uint16_t vid, uint16_t pid) { return radioOf(vid, pid) != nullptr; }
+const char* usbRadioName(uint16_t vid, uint16_t pid) { return radioOf(vid, pid); }
 
 std::vector<std::string> usbRadioHints() {
     const char* root = getenv("DECT2_SYSFS_ROOT");   // tests: a fake tree; on Linux the real one otherwise

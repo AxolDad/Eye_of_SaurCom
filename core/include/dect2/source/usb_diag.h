@@ -15,5 +15,6 @@ std::vector<std::string> sdrplayApiHints();
 
 // True for a USB id of a radio Eye of SaurCom drives (the table behind the hints above). Looks at ids only.
 bool usbIsKnownRadio(uint16_t vid, uint16_t pid);
+const char* usbRadioName(uint16_t vid, uint16_t pid);   // "RTL-SDR", "HackRF", ...; nullptr when not a radio id
 
 } // namespace dect2

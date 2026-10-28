@@ -12,6 +12,12 @@ bool claimDevice(const DeviceInfo& d, int owner, int* holder = nullptr);
 void releaseDevice(int owner);                          // everything the receiver holds
 int deviceHolder(const DeviceInfo& d);                  // 0 = free, else the receiver number
 constexpr int kTxClaimOwner = 1000;                     // the transmitter (tx.h) holds its radio under this number; receivers are 1 to 99
+bool anyDeviceClaimed();                                // some receiver or the transmitter has a radio (or sound card) open
+// The background radio watch lists radios only while nothing is claimed (listing opens radios). begin... returns false when anything is claimed;
+// otherwise it marks a listing as running, and claimDevice() waits (a few seconds at most) until endBackgroundListing(), so a radio is never
+// opened for streaming while it is being listed. Always pair with end... when begin... returned true.
+bool beginBackgroundListing();
+void endBackgroundListing();
 std::string deviceHolderText(int holder);               // "RX 2" or "the transmitter", for messages
 
 }

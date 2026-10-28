@@ -23,7 +23,7 @@ void radioFindModal(App& a) {
     case RadioFind::WaitUnplug:
         ImGui::TextUnformatted(tr("Unplug the radio you want to find…"));
         ImGui::Spacing();
-        ImGui::TextDisabled("%s", tr("Eye of SaurCom is watching the USB ports. The radios stay as they are."));
+        ImGui::TextDisabled("%s", tr("Eye of SaurCom is watching the USB ports. The radios stay as they are. Wait for the next message before you plug it back in."));
         break;
     case RadioFind::WaitReplug:
         ImGui::TextUnformatted(tr("…now plug it back in"));
@@ -53,7 +53,7 @@ void radioFindModal(App& a) {
     ImGui::PopTextWrapPos();
     ImGui::Spacing();
     if (f.active()) {
-        ImGui::TextDisabled(tr("%d s left"), (int)(f.remaining(now) + 0.5));
+        ImGui::TextDisabled("%s", (std::to_string((int)(f.remaining(now) + 0.5)) + tr(" s left")).c_str());
         ImGui::SameLine();
         if (ImGui::Button(tr("Cancel"))) { radioFindCancel(); close = true; }
     } else if (f.state() == RadioFind::Found) {

@@ -50,6 +50,22 @@ std::string radioUsbSignature(const std::vector<UsbNode>& nodes) {
     return s;
 }
 
+std::vector<DeviceInfo> usbRadioDevices(const std::vector<UsbNode>& nodes) {
+    std::vector<DeviceInfo> out;
+    for (const auto& n : nodes) {
+        const char* nm = usbRadioName(n.vid, n.pid);
+        if (!nm) continue;
+        DeviceInfo d;
+        d.kind = (n.vid == 0x1d50 && (n.pid == 0x6089 || n.pid == 0xcc15 || n.pid == 0x604b)) ? DeviceInfo::HackRF : DeviceInfo::Native;
+        d.board = nm;
+        d.name = nm;
+        d.usbPath = n.path;
+        out.push_back(d);
+    }
+    std::sort(out.begin(), out.end(), [](const DeviceInfo& a, const DeviceInfo& b) { return a.usbPath < b.usbPath; });
+    return out;
+}
+
 // ---- RadioFind
 
 void RadioFind::start(const std::vector<DeviceInfo>& current, double now) {

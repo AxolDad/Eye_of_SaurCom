@@ -370,6 +370,7 @@ void receiversFrame(App& first, ImVec2 disp) {
 }
 
 void receiversShutdown(App& first) {
+    radioWatchShutdown();   // before the engines and the radio libraries go
     tx::shutdown();
     for (int id = 2; id <= kMaxReceivers; id++) if (App* r = gExtra[id - 2].get()) {
         { PrefScope ps(id); savePrefs(*r); }

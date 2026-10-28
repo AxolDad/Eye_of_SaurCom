@@ -21,6 +21,15 @@ RadioDiff diffRadiosSettled(const std::vector<DeviceInfo>& before, const std::ve
 // Built from a USB walk (usbEnumerate), which opens nothing; the app compares two of them before it lists the radios at all.
 std::string radioUsbSignature(const std::vector<UsbNode>& nodes);
 
+// One DeviceInfo per known radio on the USB bus, made from the descriptor walk alone (nothing opened): the kind from the id (HackRF, else Native),
+// board and name from the id table, the USB path. No serial: its key is "<kind>:<board>:usb:<path>". Find and the new-radio notice are fed with these,
+// so both sides of every comparison come from one source and a streaming radio is never touched.
+std::vector<DeviceInfo> usbRadioDevices(const std::vector<UsbNode>& nodes);
+
+// May the background watch run the radio listing (which opens radios)? Not while a radio is claimed (a receiver or the transmitter has it) and not
+// while the EEPROM tool is working on a dongle.
+inline bool backgroundListingAllowed(bool anyClaimed, bool eepromBusy) { return !anyClaimed && !eepromBusy; }
+
 // "Find this radio": the user unplugs the radio they want to identify and plugs it back in; the radio that went away and came back is it.
 class RadioFind {
 public:

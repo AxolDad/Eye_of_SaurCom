@@ -14,8 +14,10 @@ using namespace dect2;
 namespace {
 
 struct Poll {
-    bool listed = false;       // the radios were listed (the USB set changed)
-    std::string sig;           // the USB signature seen
+    std::vector<UsbNode> nodes;   // the USB walk (descriptors only)
+    std::string sig;              // its radio signature
+    bool listed = false;          // the radios were listed too (only when nothing was claimed)
+    bool deferred = false;        // a listing was wanted but a radio got claimed first: nothing was opened
     std::vector<DeviceInfo> radios;
     std::string err;
 };
@@ -27,11 +29,15 @@ double nowS() {
 
 std::future<Poll> gFut;
 bool gInFlight = false;
+bool gStop = false;                      // after radioWatchShutdown(): no more polls
 double gLastLaunch = -1e9;
 std::string gLastSig;
 bool gHaveSig = false;
-std::vector<DeviceInfo> gLastRadios;   // the watchable radios of the last listing
+std::vector<DeviceInfo> gLastWalk;       // the radios on the bus at the last walk, made from ids and ports (usbRadioDevices)
 bool gInit = false;
+double gT0 = 0;                          // the first tick: the new-radio grace counts from here
+bool gListPending = false;               // the bus changed and the radios have not been listed since
+std::vector<DeviceInfo> gPendingNew;     // new radios (from the walk) waiting for the listing to say what they are
 int gOpenFrame = -100;
 bool gEepromBusy = false;
 
@@ -40,42 +46,35 @@ NewRadioDetector gDet;
 int gFindRx = 1;
 bool gFindHandled = false;
 bool gFindOpenReq = false;
+bool gFindNeedBase = false;              // Find was started before the first walk: its baseline is that walk
+bool gLeftCaptured = false;
 RadioFindView gView;
 std::string gFlashKey;
 double gFlashUntil = 0;
 
-bool samePlace(const DeviceInfo& a, const DeviceInfo& b) {
-    return a.kind == b.kind && a.board == b.board && a.serial == b.serial && a.usbPath == b.usbPath && a.name == b.name;
-}
-int indexOf(const App& a, const DeviceInfo& d) {
-    for (int i = 2; i < (int)a.devices.size(); i++) if (samePlace(a.devices[i], d)) return i;
+// the entry of a receiver's radio list at this USB port (radios only; -1 when none or the port is unknown)
+int indexByPath(const App& a, const std::string& path) {
+    if (path.empty()) return -1;
+    for (int i = 2; i < (int)a.devices.size(); i++) if (a.devices[i].isRadio() && a.devices[i].usbPath == path) return i;
     return -1;
 }
+std::string atPort(const DeviceInfo& d) { return d.name + " \xC2\xB7 USB " + (d.usbPath.empty() ? std::string("?") : d.usbPath); }
 
 bool dropdownOpen() { return ImGui::GetFrameCount() - gOpenFrame <= 1; }
 
-// The radios that are open right now (a receiver or a scan has them): a background listing leaves them alone.
-std::vector<DeviceInfo> streamingRadios() {
-    std::vector<DeviceInfo> v;
-    for (App* r : receiversAll()) {
-        if (r->devIdx < 2 || r->devIdx >= (int)r->devices.size()) continue;
-        if (!(r->engine.running() || r->scanner.progress().running)) continue;
-        if (r->devices[r->devIdx].isRadio()) v.push_back(r->devices[r->devIdx]);
-    }
-    return v;
-}
+// May radios be listed (opened) now? The single answer: the device claims, which the transmitter uses too.
+bool listingAllowed() { return backgroundListingAllowed(anyDeviceClaimed(), gEepromBusy); }
 
-void launch() {
-    const std::string lastSig = gLastSig;
-    const bool haveSig = gHaveSig;
-    std::vector<DeviceInfo> known = streamingRadios();
+void launch(bool wantList) {
     gInFlight = true;
-    gFut = std::async(std::launch::async, [lastSig, haveSig, known]() {
+    gFut = std::async(std::launch::async, [wantList]() {
         Poll p;
-        p.sig = radioUsbSignature(usbEnumerateFresh());   // descriptors only: nothing is opened
-        if (!haveSig || p.sig == lastSig) return p;       // the first walk is the baseline; no change, no listing
-        RadioListingKnown streaming(known);
-        p.radios = listRadios(p.err);
+        p.nodes = usbEnumerateFresh();                    // descriptors only: nothing is opened
+        p.sig = radioUsbSignature(p.nodes);
+        if (!wantList) return p;
+        if (!beginBackgroundListing()) { p.deferred = true; return p; }   // checked again here, atomically: a radio is claimed, so nothing is opened
+        p.radios = listRadios(p.err);                      // a Start now waits in claimDevice() until this ends
+        endBackgroundListing();
         p.listed = true;
         return p;
     });
@@ -83,13 +82,17 @@ void launch() {
 
 App* findApp() { return receiverById(gFindRx); }
 
-void pushNewRadioNotice(const DeviceInfo& d) {
-    App* sel = receiverSelected();
-    if (!sel) return;
-    const int idx = indexOf(*sel, d);
-    const std::string shown = idx >= 2 ? radioShownName(*sel, idx) : d.name;
-    const std::string key = idx >= 2 ? radioKeyAt(*sel, idx) : radioKey(d);
-    const std::string devName = d.name;
+void pushNewRadioNotice(const DeviceInfo& walkDev, int idx, const App& sel, bool claimed) {
+    if (idx < 2) {   // the radios could not be listed (claimed) or the drivers did not list it: say what is known
+        std::string t = std::string(tr("New radio: ")) + atPort(walkDev);
+        t += claimed ? std::string(". ") + tr("Stop the receivers and press Rescan to see its serial and name it.")
+                     : std::string(". ") + tr("It is not in the radio list.");
+        noticePush(t, {{tr("Dismiss"), nullptr, true}});
+        return;
+    }
+    const std::string shown = radioShownName(sel, idx);
+    const std::string key = radioKeyAt(sel, idx);
+    const std::string devName = sel.devices[idx].name;
     std::vector<NoticeButton> b;
     b.push_back({tr("Name it"), [key, devName]() {
         if (App* s = receiverSelected()) { const int i = findRadio(*s, key, devName); if (i >= 2) radioNameRequest(i); }
@@ -97,28 +100,29 @@ void pushNewRadioNotice(const DeviceInfo& d) {
     b.push_back({tr("Use in new receiver tab"), [key, devName]() {
         std::string why;
         App* n = addReceiverWithRadio(key, devName, &why);
-        if (!n) noticePush(why, {}, 6);
-        else if (!why.empty()) noticePush(why, {}, 6);
+        if (!n || !why.empty()) noticePush(why, {}, 6);
     }, true});
     b.push_back({tr("Dismiss"), nullptr, true});
     noticePush(std::string(tr("New radio: ")) + shown, std::move(b));
 }
 
-void selectFound(const RadioFind& f) {
+// The radio that came back is known by its USB port; its entry in the receiver's list has the same port.
+void handleFound(const RadioFind& f, int idx) {
     gFindHandled = true;
+    const std::string left = gView.left;
     gView = RadioFindView();
+    gView.left = left;
     App* a = findApp();
     const DeviceInfo& back = f.returned();
     if (!a) return;
-    const int idx = indexOf(*a, back);
     gView.devIdx = idx;
-    gView.back = idx >= 2 ? radioShownName(*a, idx) : back.name;
-    {
-        const std::string lk = radioKey(f.left());
-        RadioRow lr{f.left(), lk, radionames::labelFor(lk), 0, false};
-        gView.left = radioDisplayName(lr);
+    if (idx < 2) {
+        gView.back = atPort(back);
+        gView.note = std::string(tr("Found it at USB ")) + (back.usbPath.empty() ? "?" : back.usbPath) + ". " +
+                     tr("Press Rescan after stopping receivers to see its serial.");
+        return;
     }
-    if (idx < 2) { gView.note = tr("It is not in this receiver's radio list yet. Press Rescan."); return; }
+    gView.back = radioShownName(*a, idx);
     const int held = deviceHolder(a->devices[idx]);
     if (a->engine.running()) { gView.note = tr("This receiver is running; stop it to choose the radio."); }
     else if (held && held != a->rxId) { gView.note = std::string(tr("In use by ")) + deviceHolderText(held) + "."; }
@@ -130,19 +134,47 @@ void selectFound(const RadioFind& f) {
     gFlashUntil = nowS() + 3.0;
 }
 
+// What the radio list can say now about the Found radio and the new ones. fresh: the radios were just listed.
+void flush(bool fresh) {
+    const bool noListing = !listingAllowed();   // claimed (or the EEPROM tool is busy): no listing is coming
+    const bool waiting = gListPending && !fresh && !noListing;   // a listing is on its way: it will say what the radio is
+    if (gFind.state() == RadioFind::Found && !gFindHandled) {
+        const App* a = findApp();
+        const int idx = a ? indexByPath(*a, gFind.returned().usbPath) : -1;
+        if (idx >= 2 || !waiting || !a) handleFound(gFind, idx);
+    }
+    App* sel = receiverSelected();
+    if (!sel) return;
+    for (size_t i = 0; i < gPendingNew.size();) {
+        const int idx = indexByPath(*sel, gPendingNew[i].usbPath);
+        if (idx >= 2 || !waiting) { pushNewRadioNotice(gPendingNew[i], idx, *sel, noListing && !fresh); gPendingNew.erase(gPendingNew.begin() + (long)i); }
+        else i++;
+    }
+}
+
 void apply(App& first, Poll& p, double now) {
+    const std::vector<DeviceInfo> walk = usbRadioDevices(p.nodes);
+    const bool changed = gHaveSig && p.sig != gLastSig;
+    if (!gHaveSig) gDet.start(walk, gT0);   // what is plugged in at the first walk is not news
+    else for (const DeviceInfo& n : gDet.feed(walk, now)) gPendingNew.push_back(n);
+    if (gFindNeedBase) { gFind.start(walk, now); gFindNeedBase = false; }
+    else if (gFind.active()) gFind.feed(walk, now);
+    if (gFind.state() == RadioFind::WaitReplug && !gLeftCaptured) {   // name the unplugged radio now, before a listing drops it from the list
+        gLeftCaptured = true;
+        const App* a = findApp();
+        const int i = a ? indexByPath(*a, gFind.left().usbPath) : -1;
+        gView.left = i >= 2 ? radioShownName(*a, i) : atPort(gFind.left());
+    }
     gLastSig = p.sig;
     gHaveSig = true;
-    if (!p.listed) return;
-    const std::vector<DeviceInfo> prev = gLastRadios;
-    gLastRadios = watchableRadios(p.radios);
-    const RadioDiff d = diffRadiosSettled(prev, gLastRadios);
-    if (!d.added.empty() || !d.removed.empty()) {
+    gLastWalk = walk;
+    if (changed) gListPending = true;
+    if (p.listed) {
+        gListPending = false;
         // the same update as Rescan, from this listing; each receiver keeps its radio by key, and a radio a receiver has open stays listed
         for (App* r : receiversAll()) refreshDevices(*r, &p.radios, &p.err);
     }
-    if (gFind.active()) gFind.feed(p.radios, now);
-    for (const DeviceInfo& n : gDet.feed(p.radios, now)) pushNewRadioNotice(n);
+    flush(p.listed);
     (void)first;
 }
 
@@ -163,33 +195,40 @@ bool radioFindOpenRequested(int rxId) {
 bool radioFlashing(const std::string& key) { return !key.empty() && key == gFlashKey && nowS() < gFlashUntil; }
 
 void radioFindStart(App& a) {
-    if (!gInit) { gLastRadios = watchableRadios(a.devices); gDet.start(gLastRadios, nowS()); gInit = true; }
     gFindRx = a.rxId;
-    gLastRadios = watchableRadios(a.devices);   // what the list shows now (a Rescan may have changed it since the last poll)
     gView = RadioFindView();
     gFindHandled = false;
+    gLeftCaptured = false;
     gFindOpenReq = true;
-    gFind.start(gLastRadios, nowS());
-    gLastLaunch = -1e9;   // look now
+    gFindNeedBase = !gHaveSig;           // before the first walk: the baseline is that walk
+    gFind.start(gLastWalk, nowS());
+    gLastLaunch = -1e9;                  // look now
+}
+
+void radioWatchShutdown() {
+    gStop = true;
+    if (gFut.valid()) gFut.wait();       // a worker inside the listing must finish before the radio libraries are torn down
+    gFut = std::future<Poll>();
+    gInFlight = false;
 }
 
 void radioWatchTick(App& first) {
+    if (gStop) return;
     const double now = nowS();
-    if (!gInit) { gLastRadios = watchableRadios(first.devices); gDet.start(gLastRadios, now); gInit = true; }
+    if (!gInit) { gInit = true; gT0 = now; }
     if (gFind.active()) gFind.tick(now);
-    if (gFind.state() == RadioFind::Found && !gFindHandled) selectFound(gFind);
     if (gInFlight) {
         // a result that arrives while the dropdown is open waits: the list must not move under the user's mouse
         if (gFut.valid() && gFut.wait_for(std::chrono::seconds(0)) == std::future_status::ready && !dropdownOpen()) {
             Poll p = gFut.get();
             gInFlight = false;
             apply(first, p, now);
-            if (gFind.state() == RadioFind::Found && !gFindHandled) selectFound(gFind);
         }
         return;
     }
-    if (dropdownOpen() || gEepromBusy) return;
+    if (gEepromBusy) return;   // the EEPROM tool has a dongle: not even a walk
+    if (dropdownOpen()) return;
     if (now - gLastLaunch < (gFind.active() ? 1.0 : 2.0)) return;
     gLastLaunch = now;
-    launch();
+    launch(gListPending && listingAllowed());
 }

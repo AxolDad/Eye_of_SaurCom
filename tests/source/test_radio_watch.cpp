@@ -1,6 +1,10 @@
 // Find-this-radio state machine and the new-radio detector: fed with lists and a clock, no devices.
 #include "../common/test_util.h"
 #include "dect2/source/radio_watch.h"
+#include "dect2/engine/device_claims.h"
+#include <atomic>
+#include <chrono>
+#include <thread>
 
 using namespace dect2;
 
@@ -203,6 +207,47 @@ int main() {
         std::vector<UsbNode> m = {node(0x0bda, 0x2838, "1-4"), node(0x1d50, 0x6089, "1-2")};
         CHECK(radioUsbSignature(b) != radioUsbSignature(m), "another port");
         CHECK(radioUsbSignature({}) == radioUsbSignature({node(0x046d, 0xc077, "1-5")}), "no radios either way");
+    }
+    {   // Fobos and RX888 are on the bus table
+        auto node = [](uint16_t vid, uint16_t pid, const char* path) { UsbNode n; n.vid = vid; n.pid = pid; n.path = path; return n; };
+        CHECK(radioUsbSignature({node(0x16d0, 0x132e, "1-1")}) != radioUsbSignature({}), "Fobos in the signature");
+        CHECK(radioUsbSignature({node(0x04b4, 0x00f1, "1-1")}) != radioUsbSignature({}), "RX888 in the signature");
+    }
+    {   // devices made from the walk: keyed by kind, board and port; identical radios stay apart; the same walk twice is no change
+        auto node = [](uint16_t vid, uint16_t pid, const char* path) { UsbNode n; n.vid = vid; n.pid = pid; n.path = path; return n; };
+        const auto a = usbRadioDevices({node(0x0bda, 0x2838, "1-2"), node(0x0bda, 0x2838, "1-1"), node(0x046d, 0xc077, "1-5"), node(0x1d50, 0x6089, "1-3")});
+        CHECK(a.size() == 3 && a[0].usbPath == "1-1" && a[2].kind == DeviceInfo::HackRF && a[0].kind == DeviceInfo::Native, "walk devices: %zu", a.size());
+        CHECK(radioKey(a[0]) != radioKey(a[1]), "two identical dongles have two keys");
+        CHECK(diffRadiosSettled(a, a).added.empty() && diffRadiosSettled(a, a).removed.empty(), "same walk: no change");
+        RadioFind f;   // Find on walk devices: unplug and replug in the same port is the same radio; another port is flagged
+        f.start(a, 0);
+        const auto b = usbRadioDevices({node(0x0bda, 0x2838, "1-2"), node(0x1d50, 0x6089, "1-3")});
+        f.feed(b, 1);
+        CHECK(f.state() == RadioFind::WaitReplug && f.left().usbPath == "1-1", "unplug seen on the walk");
+        f.feed(a, 2);
+        CHECK(f.state() == RadioFind::Found && !f.wrongRadio() && f.returned().usbPath == "1-1", "same port: right radio");
+        RadioFind g;
+        g.start(a, 0); g.feed(b, 1);
+        g.feed(usbRadioDevices({node(0x0bda, 0x2838, "1-2"), node(0x1d50, 0x6089, "1-3"), node(0x0bda, 0x2838, "1-4")}), 2);
+        CHECK(g.state() == RadioFind::Found && g.wrongRadio(), "another port: flagged");
+    }
+    {   // a claim blocks the background listing
+        CHECK(backgroundListingAllowed(false, false) && !backgroundListingAllowed(true, false) && !backgroundListingAllowed(false, true), "decision");
+        DeviceInfo d; d.kind = DeviceInfo::Native; d.board = "rtlsdr"; d.serial = "CLAIMTEST"; d.nativeArgs = "0";
+        CHECK(!anyDeviceClaimed(), "nothing claimed");
+        CHECK(claimDevice(d, 7), "claim");
+        CHECK(anyDeviceClaimed() && !beginBackgroundListing(), "claimed: the listing may not begin");
+        releaseDevice(7);
+        CHECK(!anyDeviceClaimed() && beginBackgroundListing(), "free: it may begin");
+        CHECK(!beginBackgroundListing(), "one listing at a time");
+        std::atomic<bool> got{false};
+        std::thread t([&] { got = claimDevice(d, 8); });   // a Start during the listing waits for it
+        std::this_thread::sleep_for(std::chrono::milliseconds(150));
+        CHECK(!got, "a claim waits while the listing runs");
+        endBackgroundListing();
+        t.join();
+        CHECK(got && anyDeviceClaimed(), "and goes through when it ends");
+        releaseDevice(8);
     }
     return testSummary("radio_watch");
 }
