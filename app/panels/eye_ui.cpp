@@ -5,11 +5,13 @@
 // changed, so a busy ADS-B receiver does not make it stutter or hold up the decoders.
 #include "../app.h"
 #include "dect2/automation/engine.h"
+#include "dect2/df/xfix.h"
 #include "dect2/eye/eye.h"
 #include "dect2/track/track_geo.h"
 #include <algorithm>
 #include <cmath>
 #include <ctime>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -23,6 +25,10 @@ struct State {
     int window = 1;               // index into kWindows
     int range = 0;                // index into kRanges (0 = automatic)
     char filter[96] = "";
+    std::string site;             // station network: only this site's contacts and rows ("" = all)
+    bool siteThis = false;        // the chip "This station" (site "" means all, so this one has its own flag)
+    std::set<std::string> seenSites;   // names of the other stations an event has come from; the chips show once there is one
+    std::string builtSite; bool builtThis = false;
     bool paused = false;
     double pausedAt = 0;          // the timeline shows nothing newer than this while paused
     std::string selected;         // group|ident of the contact picked on the scope or in the timeline
@@ -56,6 +62,7 @@ ImU32 groupColour(int g, int alpha = 255) {
         {255, 107, 107},  // pagers: red
         {106, 156, 255},  // Bluetooth: blue
         {247, 140, 108},  // drones: coral
+        {255, 255, 255},  // located (cross-site fixes): white
     };
     const int i = g >= 0 && g < ey::kGroups ? g : 0;
     return IM_COL32(c[i][0], c[i][1], c[i][2], alpha);
@@ -125,14 +132,20 @@ void rebuild(double now) {
     ey::Overview& o = ey::global();
     const uint64_t v = o.version();
     const double t = ImGui::GetTime();
-    const bool settings = S.mask != S.builtMask || S.window != S.builtWindow || S.builtFilter != S.filter;
+    const bool settings = S.mask != S.builtMask || S.window != S.builtWindow || S.builtFilter != S.filter || S.builtSite != S.site || S.builtThis != S.siteThis;
     if (!settings && (t - S.builtAt < 0.25 || (v == S.version && t - S.builtAt < 1.0))) return;   // once a second regardless: ages and fading move
-    S.version = v; S.builtAt = t; S.builtMask = S.mask; S.builtWindow = S.window; S.builtFilter = S.filter;
+    S.version = v; S.builtAt = t; S.builtMask = S.mask; S.builtWindow = S.window; S.builtFilter = S.filter; S.builtSite = S.site; S.builtThis = S.siteThis;
     const double win = kWindows[S.window];
     S.stats = o.stats(now, win);
-    S.contacts = o.contacts(now, win, S.mask, S.filter);
+    // "This station" is the empty site, which the model reads as "all": fetch everything and keep the contacts and rows that are this station's
+    const std::string siteArg = S.siteThis ? std::string() : S.site;
+    S.contacts = o.contacts(now, win, S.mask, S.filter, siteArg);
+    if (S.siteThis) S.contacts.erase(std::remove_if(S.contacts.begin(), S.contacts.end(), [](const ey::Contact& c) { return !std::binary_search(c.sites.begin(), c.sites.end(), std::string()); }), S.contacts.end());
+    for (const auto& c : S.contacts) for (const auto& n : c.sites) if (!n.empty()) S.seenSites.insert(n);
     if (S.paused && !settings) return;   // paused: the rows being read stay, however much arrives meanwhile
-    S.rows = o.timeline(1000, S.mask, S.filter);
+    S.rows = o.timeline(1000, S.mask, S.filter, siteArg);
+    if (S.siteThis) S.rows.erase(std::remove_if(S.rows.begin(), S.rows.end(), [](const ey::Row& r) { return !r.site.empty(); }), S.rows.end());
+    for (const auto& r : S.rows) if (!r.site.empty()) S.seenSites.insert(r.site);
     if (S.paused) S.rows.erase(std::remove_if(S.rows.begin(), S.rows.end(), [](const ey::Row& r) { return r.time > S.pausedAt; }), S.rows.end());
 }
 
@@ -152,6 +165,31 @@ void contactActions(App& a, int group, const std::string& ident, bool hasPos, do
     if (buttons) ImGui::SameLine();
     if (item(tr("Copy identity"))) ImGui::SetClipboardText(ident.c_str());
     (void)group;
+}
+
+// the stations a contact was heard by, for a tooltip: "This station, Roof" (names come from other installs: shown as plain text only)
+std::string sitesText(const ey::Contact& k) {
+    std::string t;
+    for (const auto& n : k.sites) t += (t.empty() ? "" : ", ") + (n.empty() ? std::string(tr("This station")) : n);
+    return t;
+}
+
+// the site chips: shown once an event from another station has been seen. All / This station / each station by name
+void siteChips() {
+    if (S.seenSites.empty()) return;
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextDisabled("%s", tr("Station"));
+    auto chip = [](const char* label, const char* id, bool on) {
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Button, on ? IM_COL32(255, 179, 71, 90) : IM_COL32(60, 60, 60, 60));
+        const bool hit = ImGui::Button((std::string(label) + "###site" + id).c_str());
+        ImGui::PopStyleColor();
+        return hit;
+    };
+    if (chip(tr("All"), "all", S.site.empty() && !S.siteThis)) { S.site.clear(); S.siteThis = false; }
+    if (chip(tr("This station"), "this", S.siteThis)) { S.site.clear(); S.siteThis = true; }
+    for (const std::string& n : S.seenSites)   // the name is data from a file the user typed: a label only, never a format string
+        if (chip(n.c_str(), ("n" + n).c_str(), !S.siteThis && S.site == n)) { S.site = n; S.siteThis = false; }
 }
 
 void chips() {
@@ -278,6 +316,7 @@ void scope(App& a, double now, float size) {
         char b[96];
         snprintf(b, sizeof b, "%.1f km, %03.0f\xC2\xB0", hot->km, hot->brg);
         wrappedTip(who(k.label, k.ident) + "\n" + tr(ey::groupName(k.group)) + ", " + k.mode + "\n" + b + ", " + tr("position") + " " + ago(now - k.posTime) +
+                   (k.sites.empty() || (k.sites.size() == 1 && k.sites[0].empty()) ? std::string() : "\n" + std::string(tr("Heard by")) + ": " + sitesText(k)) +
                    (k.text.empty() ? std::string() : "\n" + k.text) + "\n" + tr("Click to pick it out, right-click for more"));
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) { S.selected = key(k.group, k.ident); S.scrollToSel = true; }
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) { S.selected = key(k.group, k.ident); ImGui::OpenPopup("##eyedot"); }
@@ -331,6 +370,7 @@ void timeline(App& a, double now) {
                 std::string tip = ago(now - r.time) + ", " + clock(r.time, true) + " UTC";
                 if (r.freqHz > 0) { char b[48]; snprintf(b, sizeof b, ", %.4f MHz", r.freqHz / 1e6); tip += b; }
                 if (r.hasPos) { char b[64]; snprintf(b, sizeof b, "\n%.4f, %.4f", r.lat, r.lon); tip += b; }
+                if (const ey::Contact* c = findContact(k)) if (!c->sites.empty() && !(c->sites.size() == 1 && c->sites[0].empty())) tip += "\n" + std::string(tr("Heard by")) + ": " + sitesText(*c);
                 if (!r.first || r.text != "first seen") tip += "\n\n" + r.text;
                 tip += std::string("\n\n") + tr("Right-click: show on map, find in Messages, copy");
                 wrappedTip(tip);
@@ -352,6 +392,10 @@ void timeline(App& a, double now) {
             ImGui::TextUnformatted(r.mode.empty() ? tr(ey::groupName(r.group)) : r.mode.c_str());
             ImGui::TableNextColumn();
             ImGui::TextUnformatted(who(r.label, r.ident).c_str());
+            if (!r.site.empty()) {
+                ImGui::SameLine();
+                ImGui::TextDisabled("[%s]", r.site.c_str());   // %s: the name comes from another install
+            }
             ImGui::TableNextColumn();
             if (r.first && r.text == "first seen") ImGui::TextColored(ImVec4(1.f, 0.85f, 0.55f, 1.f), "%s", tr("first seen"));
             else if (r.first) ImGui::TextColored(ImVec4(1.f, 0.85f, 0.55f, 1.f), "%s", r.text.c_str());
@@ -366,7 +410,18 @@ void eyeTick(App& a) {
     (void)a;
     if (S.hooked) return;
     S.hooked = true;
-    dect2::automation::global().setOverview([](const dect2::automation::Event& e) { ey::global().ingest(e); }, ey::familyMask());
+    // The Eye's hook also feeds the cross-site fixer: bearings (family signal) from several stations become located signals. Runs on decoder threads.
+    dect2::automation::global().setOverview([](const dect2::automation::Event& e) {
+        if (e.type == "df.bearing") {
+            static dect2::df::CrossFixer fixer;   // has its own mutex
+            fixer.add(e);
+            if (!(e.time > 0)) return;   // an unknown time (ignored by add()) must not judge the age of the others
+            for (const auto& f : fixer.fixes(e.time))
+                ey::global().ingestLocated(f.time, f.freqHz, f.fix.lat, f.fix.lon, f.fix.e95.semiMajorM, f.sites);
+            return;
+        }
+        ey::global().ingest(e);
+    }, ey::familyMask() | (1u << dect2::automation::FSignal));
 }
 
 void eyeWindow(App& a) {
@@ -382,6 +437,7 @@ void eyeWindow(App& a) {
 
     ImGui::TextColored(ImVec4(1.f, 0.72f, 0.36f, 1.f), "%s", tr("Everything this station is seeing, from every mode, in one place."));
     chips();
+    siteChips();
 
     // the labels go in front of the combos (ImGui puts them after, where "Window" reads as belonging to the next one)
     auto btnW = [](const char* s) { return ImGui::CalcTextSize(s).x + 2 * ImGui::GetStyle().FramePadding.x; };
@@ -432,6 +488,10 @@ void eyeWindow(App& a) {
         ImGui::Dummy(ImVec2(12 * gUi, ImGui::GetTextLineHeight()));
         ImGui::SameLine();
         ImGui::Text("%s  ·  %s  ·  %s", who(k->label, k->ident).c_str(), k->mode.c_str(), ago(now - k->lastSeen).c_str());
+        if (!k->sites.empty() && !(k->sites.size() == 1 && k->sites[0].empty())) {
+            ImGui::SameLine();
+            ImGui::TextDisabled("·  %s", sitesText(*k).c_str());
+        }
         ImGui::SameLine();
         contactActions(a, k->group, k->ident, k->hasPos, k->lat, k->lon, true);
     } else {
@@ -459,7 +519,7 @@ void eyeWindow(App& a) {
     } else if (S.rows.empty()) {
         ImGui::Dummy(ImVec2(0, 20 * gUi));
         ImGui::TextDisabled("%s", tr("Nothing matches the filter or the chosen kind."));
-        if (ImGui::SmallButton(tr("Show everything"))) { S.filter[0] = 0; S.mask = 0; }
+        if (ImGui::SmallButton(tr("Show everything"))) { S.filter[0] = 0; S.mask = 0; S.site.clear(); S.siteThis = false; }
     } else {
         timeline(a, now);
     }

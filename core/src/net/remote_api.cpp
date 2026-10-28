@@ -324,7 +324,9 @@ struct RemoteApiServer::Impl {
         int bins = 512, fps = 5, slow = 1, audioId = -1;   // slow: the spectrum interval is stretched by this while the client cannot keep up
         struct AudioGuard { RemoteApiHost& h; std::mutex& m; int& id; ~AudioGuard() { if (id >= 0) { std::lock_guard<std::mutex> lk(m); h.audioClose(id); } } } audioGuard{host, hostMu, audioId};
         uint64_t telSeq = ~0ull, specSeq = ~0ull;
-        auto lastTel = std::chrono::steady_clock::now() - std::chrono::seconds(1), lastSpec = lastTel;
+        bool wantEv = false, evCheck = false;   // evCheck: the client gave a since that must be compared with the head
+        uint64_t evCursor = ~0ull;   // ~0: from the ring head when the first read happens (a new client sees only new events)
+        auto lastTel = std::chrono::steady_clock::now() - std::chrono::seconds(1), lastSpec = lastTel, lastEv = lastTel;
         std::string in;
         auto closeWith = [&](int code) {
             std::string pl;
@@ -367,10 +369,16 @@ struct RemoteApiServer::Impl {
                         if (audioId < 0 && !sendText("{\"type\":\"error\",\"error\":\"this program has no audio to send\"}")) return;
                     }
                 }
+                if (j.count("events") && j["events"].kind == JsonVal::Bool) {
+                    wantEv = j["events"].b;
+                    evCursor = ~0ull;
+                    evCheck = false;
+                    if (wantEv && j.count("since") && j["since"].kind == JsonVal::Num && j["since"].num >= 0 && j["since"].num < 1.8e19) { evCursor = (uint64_t)j["since"].num; evCheck = true; }
+                }
                 slow = 1;
                 telSeq = specSeq = ~0ull;   // the new choice is answered with the current values
                 lastTel = lastSpec = std::chrono::steady_clock::now() - std::chrono::seconds(1);
-                if (!sendText(std::string("{\"type\":\"subscribed\",\"telemetry\":") + (wantTel ? "true" : "false") + ",\"spectrum\":" + (wantSpec ? "true" : "false") + ",\"bins\":" + std::to_string(bins) + ",\"fps\":" + std::to_string(fps) + ",\"audio\":" + (audioId >= 0 ? "true" : "false") + "}")) return;
+                if (!sendText(std::string("{\"type\":\"subscribed\",\"telemetry\":") + (wantTel ? "true" : "false") + ",\"spectrum\":" + (wantSpec ? "true" : "false") + ",\"bins\":" + std::to_string(bins) + ",\"fps\":" + std::to_string(fps) + ",\"audio\":" + (audioId >= 0 ? "true" : "false") + ",\"events\":" + (wantEv ? "true" : "false") + "}")) return;
             }
             const auto now = std::chrono::steady_clock::now();
             if (wantTel && now - lastTel >= std::chrono::milliseconds(100)) {
@@ -398,6 +406,26 @@ struct RemoteApiServer::Impl {
                     if (us > interval / 2 && slow < 16) slow *= 2;
                     else if (us < interval / 16 && slow > 1) slow--;
                 }
+            }
+            if (wantEv && now - lastEv >= std::chrono::milliseconds(100)) {
+                lastEv = now;
+                std::vector<std::string> lines;
+                uint64_t missed = 0;
+                bool reset = false;
+                uint64_t head = 0;
+                {
+                    std::lock_guard<std::mutex> lk(hostMu);
+                    if (evCheck) {   // a since beyond the head: the station restarted and its seqs began again
+                        evCheck = false;
+                        head = host.eventHead();
+                        if (evCursor > head) { reset = true; evCursor = head; }
+                    }
+                    host.eventLines(evCursor, lines, 200, missed);   // at most 200 per 100 ms tick
+                }
+                if (reset && !sendText("{\"type\":\"reset\",\"head\":" + std::to_string(head) + "}")) return;
+                if (missed && !sendText("{\"type\":\"gap\",\"missed\":" + std::to_string(missed) + "}")) return;
+                for (size_t i = 0; i < lines.size(); i++)   // the cursor stands after the last line, so line i has seq cursor - lines.size() + 1 + i
+                    if (!sendText("{\"type\":\"event\",\"seq\":" + std::to_string(evCursor - lines.size() + 1 + i) + ",\"ev\":" + lines[i] + "}")) return;
             }
             if (audioId >= 0) {
                 std::string pcm;

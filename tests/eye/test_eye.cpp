@@ -116,5 +116,53 @@ int main() {
     eng.setOverview(nullptr, 0);
     CHECK(!eng.wants(au::FPager), "hook removed");
 
+    // one picture across sites: the same ident from the local station and from site "b" is one contact with both sites
+    {
+        Overview m;
+        au::Event local = aircraft("4CA2D1", "RYR4LK", kT0, 54.0, 25.0);
+        au::Event remote = aircraft("4CA2D1", "RYR4LK", kT0 + 1, 54.1, 25.1);
+        remote.str("site", "b");
+        au::Event only = aircraft("AAAAAA", "ONLYB", kT0 + 2, 50.0, 20.0);
+        only.str("site", "b");
+        m.ingest(local); m.ingest(remote); m.ingest(only);
+        auto mc = m.contacts(kT0 + 5, 60);
+        const Contact* c = nullptr;
+        for (const auto& k : mc) if (k.ident == "4CA2D1") c = &k;
+        CHECK(mc.size() == 2 && c && c->sites == std::vector<std::string>({"", "b"}), "one contact, both sites");
+        auto tb = m.timeline(100, 0, "", "b");
+        CHECK(tb.size() == 2 && tb[0].site == "b" && tb[1].site == "b", "timeline of site b: %zu", tb.size());
+        CHECK(m.timeline(100).size() == 3, "all sites: one local row, two from b");
+        CHECK(m.contacts(kT0 + 5, 60, 0, "", "b").size() == 2 && m.contacts(kT0 + 5, 60, 0, "", "zz").empty(), "contacts of a site");
+        auto tl = m.timeline(100, 0, "", "");
+        bool anyLocal = false;
+        for (const auto& r : tl) if (r.site.empty()) anyLocal = true;
+        CHECK(anyLocal, "local rows have an empty site");
+    }
+
+    // located signals: one contact per frequency, a row only the first time or when the text changes
+    {
+        Overview m;
+        CHECK(std::string(groupName(GFixes)) == "Located", "Located group name");
+        m.ingestLocated(kT0, 433.92e6, 54.7, 25.3, 120.4, {"a", "b"});
+        m.ingestLocated(kT0 + 1, 433.92e6, 54.7001, 25.3001, 120.4, {"a", "b"});
+        auto rows2 = m.timeline(100, 1u << GFixes);
+        CHECK(rows2.size() == 1 && rows2[0].ident == "433920" && rows2[0].text == "located by a, b, \xC2\xB1" "120 m", "located row: %zu '%s'", rows2.size(), rows2.empty() ? "" : rows2[0].text.c_str());
+        auto fc = m.contacts(kT0 + 2, 60, 1u << GFixes);
+        CHECK(fc.size() == 1 && fc[0].hasPos && std::abs(fc[0].lat - 54.7001) < 1e-9 && fc[0].label == "433.920 MHz", "located contact moved: %zu", fc.size());
+        m.ingestLocated(kT0 + 3, 433.92e6, 54.7, 25.3, 300, {"a", "b"});
+        CHECK(m.timeline(100, 1u << GFixes).size() == 2, "a clearly larger error is a new row");
+    }
+    {   // jittered live fixes of one transmitter: one row; a third site is a second
+        Overview m;
+        for (int i = 0; i < 10; i++)
+            m.ingestLocated(kT0 + i, 433.92e6, 54.7 + ((i % 3) - 1) * 0.00005, 25.3 + ((i % 2) ? 1 : -1) * 0.00005, 120 * (1 + 0.05 * ((i % 3) - 1)), {"a", "b"});
+        CHECK(m.timeline(100, 1u << GFixes).size() == 1, "jitter is one row: %zu", m.timeline(100, 1u << GFixes).size());
+        CHECK(m.total() == 1 && m.stats(kT0 + 10, 60)[GFixes].events == 1, "only written rows counted");
+        m.ingestLocated(kT0 + 11, 433.92e6, 54.7, 25.3, 120, {"a", "b", "c"});
+        CHECK(m.timeline(100, 1u << GFixes).size() == 2, "a third site is a second row");
+        m.ingestLocated(kT0, NAN, 1, 1, 1, {"a"});
+        m.ingestLocated(kT0, 1e300, 1, 1, 1, {"a"});
+    }
+
     return testSummary("eye");
 }

@@ -409,6 +409,7 @@ struct App {
     bool feedsOpen = false;   // View > Data feeds: the window (feeds_ui.cpp)
     bool webRadioOpen = false;   // View > Internet radio (web_radio_ui.cpp)
     bool dsnOpen = false;        // Tools > Deep Space Network (dsn_ui.cpp)
+    bool stationsOpen = false;  // Tools > Stations (stations_ui.cpp): the other installs whose events join the Eye
     bool eyeOpen = false;        // Tools > The Eye (eye_ui.cpp): everything decoded, across modes, on one scope and timeline
     bool notamOpen = false;      // Tools > NOTAMs and TFRs (adsb/notam_app.cpp)
     bool radioToolsOpen = false; // Tools > Radio tools (radio_tools_ui.cpp)
@@ -849,6 +850,7 @@ void remoteApiLoadPrefs(App& a);    // remote_api_app.cpp: the remote-control AP
 void remoteApiSavePrefs(const App& a);
 void remoteApiTick(App& a);          // every frame: runs the commands the API queued for the main thread, publishes the telemetry
 void remoteApiSection(App& a);       // the settings panel (in the Data feeds window)
+void remoteApiShutdown();            // at exit: stops the server and its connection threads (before the receivers go)
 void shareTick(App& a);             // feeds_ui.cpp: carries out the frequency / gain commands of the clients of "Share my radio" (when allowed)
 void watchlistWindow(App& a);   // app/watchlist/watchlist_ui.cpp: the Watchlists window (View > Watchlists); also starts the alerts
 void msgdbWindow(App& a);   // msgdb_ui.cpp: the Messages window (View > Messages); also starts the database and its feed
@@ -864,6 +866,8 @@ void feedsWindow(App& a);          // feeds_ui.cpp: the "Data feeds" window (Vie
 void webRadioWindow(App& a);       // web_radio_ui.cpp: internet radio stations (View > Internet radio)
 void dsnWindow(App& a);            // dsn_ui.cpp: NASA Deep Space Network Now (Tools > Deep Space Network)
 void eyeTick(App& a);              // eye_ui.cpp: feeds the Eye from the automation engine (every frame; hooks once)
+void stationsInit(App& a);         // stations_ui.cpp: reads sites.json and starts the links; once, at app start (main_start.cpp)
+void stationsWindow(App& a);       // stations_ui.cpp: Tools > Stations
 void eyeWindow(App& a);            // eye_ui.cpp: Tools > The Eye (Ctrl+E)
 void dsnDevOpen(App& a);           // dsn_ui.cpp: --dsn
 void radioToolsWindow(App& a);     // radio_tools_ui.cpp: Tools > Radio tools (a.radioToolsOpen); also feeds the drive log, every frame

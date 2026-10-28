@@ -58,6 +58,14 @@ public:
     virtual int audioOpen(int /*rateHz*/) { return -1; }           // a listener at this rate (mono, 16 bit); -1: the host has no audio
     virtual bool audioRead(int, std::string& /*pcm16le*/) { return false; }   // the audio since the last call (empty: none yet); false: the listener is gone
     virtual void audioClose(int) {}
+    // Decoded events for the "events" WebSocket subscription. Client keys: "events": true, and optionally "since": N.
+    // A reconnecting client must send since = the last seq it saw; a reset frame means the station restarted and seqs begin again.
+    // Server frames: {"type":"event","seq":N,"ev":{...}}, {"type":"gap","missed":N} (the ring overwrote events the client had not read),
+    // {"type":"reset","head":H} (since was beyond the head: sent once before any events, then the stream continues from H).
+    // eventLines appends up to `max` JSON lines (one event object each) from sequence `cursor` on and advances it, so the cursor after a line is
+    // that event's seq. A cursor of ~0 means "from now on". `missed` is the count of events lost before they could be read.
+    virtual size_t eventLines(uint64_t& /*cursor*/, std::vector<std::string>& /*lines*/, size_t /*max*/, uint64_t& missed) { missed = 0; return 0; }
+    virtual uint64_t eventHead() { return 0; }   // the sequence number of the newest event (0: none yet)
     // GET / POST under /api/v1/x/ (the program's own extras). Returns the HTTP status (0: not handled, the server answers 404) and the JSON body in `json`.
     virtual int handleExtra(const std::string& /*method*/, const std::string& /*path*/, const std::map<std::string, JsonVal>& /*body*/, std::string& /*json*/) { return 0; }
 };

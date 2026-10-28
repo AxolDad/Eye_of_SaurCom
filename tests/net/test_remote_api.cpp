@@ -2,8 +2,10 @@
 // (handshake, telemetry and spectrum pushes, ping, protocol errors) and, at the end, the real engine on the generated DVB-T2 signal behind it.
 #include "../../core/src/net/tcp_client.h"
 #include "dect2/engine/engine.h"
+#include "dect2/net/event_ring.h"
 #include "dect2/net/remote_api.h"
 #include "dect2/results/rx_json.h"
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -30,6 +32,36 @@ struct FakeHost : RemoteApiHost {
     bool failGain = false;
     bool withPage = false;                   // the optional parts of the host interface (headless server)
     std::atomic<int> audioOpened{0}, audioClosed{0}, audioReads{0};
+    int evMode = 0;                          // 1: three events on the first call; 2: a gap of 5 on the first call
+    int evCalls = 0;
+    uint64_t evFirstCursor = 0;
+    std::mutex ringMu;                       // ring and the two maxima; held through every call into the ring, so setRing(nullptr) waits for one under way
+    EventRing* ring = nullptr;               // when set, events come from this real ring
+    size_t maxAsked = 0, maxGiven = 0;       // the largest `max` the server passed, the most lines one call returned
+    void setRing(EventRing* r) { std::lock_guard<std::mutex> lk(ringMu); ring = r; maxAsked = maxGiven = 0; }
+    uint64_t evHead = ~0ull >> 1;            // what the stub reports as the ring head
+    uint64_t eventHead() override { std::lock_guard<std::mutex> lk(ringMu); return ring ? ring->head() : evHead; }
+    size_t eventLines(uint64_t& cursor, std::vector<std::string>& lines, size_t max, uint64_t& missed) override {
+        missed = 0;
+        {
+            std::lock_guard<std::mutex> lk(ringMu);
+            if (ring) {
+                const size_t n = ring->since(cursor, lines, max, missed);
+                maxAsked = std::max(maxAsked, max);
+                maxGiven = std::max(maxGiven, n);
+                return n;
+            }
+        }
+        if (evMode == 0) return 0;
+        if (evCalls++ == 0) {
+            evFirstCursor = cursor;
+            if (evMode == 2) { missed = 5; return 0; }
+            for (int i = 0; i < 3; i++) lines.push_back("{\"type\":\"t" + std::to_string(i) + "\",\"f\":{}}");
+            cursor = 3;
+            return 3;
+        }
+        return 0;
+    }
     std::string indexHtml() override { return withPage ? "<!doctype html><title>fake</title>" : std::string(); }
     bool spectrumBinary(int bins, uint64_t& seq, std::string& f) override {
         if (!withPage) return false;
@@ -399,6 +431,147 @@ static void testServerParts(FakeHost& h, int port) {
     r = http("127.0.0.1", port, withPort(get("/"), port)); CHECK(r.status == 404, "no page without a host page: %d", r.status);
 }
 
+static void testWsEvents(FakeHost& h, int port) {
+    std::string buf, pl;
+    int op = 0;
+    sock_t s = wsOpen(port, buf);
+    h.evMode = 1; h.evCalls = 0;
+    std::string sub = cframe(1, "{\"telemetry\":false,\"events\":true}");
+    sockSendAll(s, sub.data(), sub.size());
+    int seqs[3] = {0, 0, 0}, n = 0;
+    bool subscribed = false;
+    for (int i = 0; i < 8 && n < 3; i++) {
+        if (!sframe(s, buf, op, pl)) break;
+        if (pl.find("\"type\":\"subscribed\"") != std::string::npos) subscribed = pl.find("\"events\":true") != std::string::npos;
+        const size_t q = pl.find("\"type\":\"event\",\"seq\":");
+        if (q != std::string::npos) {
+            seqs[n] = atoi(pl.c_str() + q + 21);
+            CHECK(pl.find("\"ev\":{\"type\":\"t" + std::to_string(n) + "\"") != std::string::npos, "event %d payload: %s", n, pl.c_str());
+            n++;
+        }
+    }
+    CHECK(subscribed, "subscribed frame reports events");
+    CHECK(n == 3 && seqs[0] == 1 && seqs[1] == 2 && seqs[2] == 3, "three event frames in order, seq 1..3 (got %d: %d %d %d)", n, seqs[0], seqs[1], seqs[2]);
+    CHECK(h.evFirstCursor == ~0ull, "a new subscriber starts at the ring head");
+    CHECK(!sframe(s, buf, op, pl, 400), "no more event frames: %s", pl.c_str());
+    // since given: that is the first cursor; a gap is reported once
+    h.evMode = 2; h.evCalls = 0;
+    sub = cframe(1, "{\"events\":true,\"since\":2}");
+    sockSendAll(s, sub.data(), sub.size());
+    bool gap = false;
+    for (int i = 0; i < 6 && !gap; i++) {
+        if (!sframe(s, buf, op, pl)) break;
+        gap = pl.find("{\"type\":\"gap\",\"missed\":5}") != std::string::npos;
+    }
+    CHECK(gap, "gap frame with missed 5");
+    CHECK(h.evFirstCursor == 2, "since is the first cursor (%llu)", (unsigned long long)h.evFirstCursor);
+    CHECK(!sframe(s, buf, op, pl, 400) || pl.find("\"gap\"") == std::string::npos, "the gap is sent once");
+    // events off
+    sub = cframe(1, "{\"events\":false}");
+    sockSendAll(s, sub.data(), sub.size());
+    h.evMode = 1; h.evCalls = 0;
+    bool ev = false;
+    for (int i = 0; i < 6; i++) { if (!sframe(s, buf, op, pl, 400)) break; if (pl.find("\"type\":\"event\"") != std::string::npos) ev = true; }
+    CHECK(!ev && h.evCalls == 0, "no events once switched off");
+    h.evMode = 0;
+    sockClose(s);
+}
+
+// ---- the real EventRing behind the server's send loop
+static void pushN(EventRing& r, int n) { for (int i = 0; i < n; i++) r.push(automation::Event("t.x").num("i", i)); }
+static uint64_t seqOf(const std::string& pl) { const size_t q = pl.find("\"type\":\"event\",\"seq\":"); return q == std::string::npos ? 0 : strtoull(pl.c_str() + q + 21, nullptr, 10); }
+static void subscribeEv(sock_t s, const std::string& body) { const std::string f = cframe(1, body); sockSendAll(s, f.data(), f.size()); }
+// reads frames until `want` events came (or ms passed); returns the seqs, and the arrival time of each; other frames go to `others` (in order)
+static std::vector<uint64_t> readEvents(sock_t s, std::string& buf, size_t want, std::vector<std::chrono::steady_clock::time_point>* at, std::vector<std::string>* others, int ms = 4000) {
+    std::vector<uint64_t> out;
+    int op; std::string pl;
+    const auto t0 = std::chrono::steady_clock::now();
+    while (out.size() < want && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count() < ms) {
+        if (!sframe(s, buf, op, pl, 200)) continue;
+        const uint64_t q = seqOf(pl);
+        if (q) { out.push_back(q); if (at) at->push_back(std::chrono::steady_clock::now()); }
+        else if (others) others->push_back(pl);
+    }
+    return out;
+}
+static void testWsEventRing(FakeHost& h, int port) {
+    std::string buf, pl;
+    int op = 0;
+    {   // a fresh subscriber does not see what was pushed before it subscribed
+        EventRing ring(64);
+        pushN(ring, 10);
+        h.setRing(&ring);
+        sock_t s = wsOpen(port, buf);
+        subscribeEv(s, "{\"telemetry\":false,\"events\":true}");
+        std::vector<std::string> oth;
+        CHECK(readEvents(s, buf, 1, nullptr, &oth, 600).empty(), "a fresh subscriber gets no old events");
+        pushN(ring, 1);
+        const auto got = readEvents(s, buf, 1, nullptr, nullptr);
+        CHECK(got.size() == 1 && got[0] == 11, "the first new event has seq 11 (got %zu: %llu)", got.size(), got.empty() ? 0ull : (unsigned long long)got[0]);
+        sockClose(s);
+        h.setRing(nullptr);   // under the host's lock: no server thread is inside the ring when it goes
+    }
+    {   // 250 events: at most 200 per tick, contiguous, and since:N continues at N+1
+        EventRing ring(512);
+        pushN(ring, 250);
+        h.setRing(&ring);
+        sock_t s = wsOpen(port, buf);
+        subscribeEv(s, "{\"telemetry\":false,\"events\":true,\"since\":0}");
+        std::vector<std::chrono::steady_clock::time_point> at;
+        const auto got = readEvents(s, buf, 250, &at, nullptr);
+        bool contiguous = got.size() == 250;
+        for (size_t i = 0; contiguous && i < got.size(); i++) contiguous = got[i] == i + 1;
+        CHECK(contiguous, "250 events, seq 1..250 in order with no duplicates (got %zu)", got.size());
+        {   // the 200 cap, deterministically: what the server asked for and what one call gave, never the timing of the frames
+            std::lock_guard<std::mutex> lk(h.ringMu);
+            CHECK(h.maxAsked > 0 && h.maxAsked <= 200, "the server asks for at most 200 events per call (%zu)", h.maxAsked);
+            CHECK(h.maxGiven > 0 && h.maxGiven <= 200, "one call gives at most 200 events (%zu)", h.maxGiven);
+            CHECK(got.size() < 250 || h.maxGiven == 200, "the backlog of 250 came in a full 200 first (%zu)", h.maxGiven);
+        }
+        sockClose(s);
+        std::string b2;
+        sock_t s2 = wsOpen(port, b2);
+        subscribeEv(s2, "{\"telemetry\":false,\"events\":true,\"since\":100}");
+        const auto g2 = readEvents(s2, b2, 1, nullptr, nullptr);
+        CHECK(!g2.empty() && g2[0] == 101, "since:100 starts at 101 (got %llu)", g2.empty() ? 0ull : (unsigned long long)g2[0]);
+        sockClose(s2);
+        h.setRing(nullptr);   // under the host's lock: no server thread is inside the ring when it goes
+    }
+    {   // the ring overwrote what the client had not read: a gap frame with the count, then the events that are left
+        EventRing ring(64);
+        pushN(ring, 100);
+        h.setRing(&ring);
+        sock_t s = wsOpen(port, buf);
+        subscribeEv(s, "{\"telemetry\":false,\"events\":true,\"since\":0}");
+        std::vector<std::string> oth;
+        const auto got = readEvents(s, buf, 64, nullptr, &oth);
+        bool gap = false;
+        for (auto& o : oth) gap = gap || o == "{\"type\":\"gap\",\"missed\":36}";
+        CHECK(gap, "gap frame with missed 36");
+        CHECK(got.size() == 64 && got.front() == 37 && got.back() == 100, "events 37..100 follow the gap (%zu)", got.size());
+        sockClose(s);
+        h.setRing(nullptr);   // under the host's lock: no server thread is inside the ring when it goes
+    }
+    {   // since beyond the head (the station restarted): one reset frame with the head, then new events from there
+        EventRing ring(64);
+        pushN(ring, 5);
+        h.setRing(&ring);
+        sock_t s = wsOpen(port, buf);
+        subscribeEv(s, "{\"telemetry\":false,\"events\":true,\"since\":1000}");
+        std::vector<std::string> oth;
+        CHECK(readEvents(s, buf, 1, nullptr, &oth, 600).empty(), "no events after a reset");
+        int resets = 0;
+        for (auto& o : oth) if (o == "{\"type\":\"reset\",\"head\":5}") resets++;
+        CHECK(resets == 1, "exactly one reset frame with head 5 (%d)", resets);
+        pushN(ring, 1);
+        const auto got = readEvents(s, buf, 1, nullptr, nullptr);
+        CHECK(got.size() == 1 && got[0] == 6, "continues at the head: seq 6");
+        sockClose(s);
+        h.setRing(nullptr);   // under the host's lock: no server thread is inside the ring when it goes
+    }
+    (void)op; (void)pl;
+}
+
 static void testWsSlowClient(FakeHost& h, int port) {
     // a client that never reads: the server must not stall other connections or grow without bound
     h.withPage = true;
@@ -586,6 +759,8 @@ int main(int argc, char** argv) {
         testWs(h, port);
         testServerParts(h, port);
         testWsSlowClient(h, port);
+        testWsEvents(h, port);
+        testWsEventRing(h, port);
         const RemoteApiStatus st = srv.status();
         printf("server counters: %llu requests, %llu refused\n", (unsigned long long)st.requests, (unsigned long long)st.rejected);
         CHECK(srv.configure(RemoteApiConfig()) && !srv.status().listening, "switching it off");

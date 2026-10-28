@@ -7,6 +7,7 @@
 #include "../ui/scale.h"
 #include "rfcam_ui.h"
 #include "../adsb/adsb_map.h"
+#include "dect2/automation/engine.h"
 #include "dect2/df/df.h"
 #include "dect2/df/position.h"
 #include "dect2/df/source.h"
@@ -214,7 +215,23 @@ void calibrate(double hz) {
     S.msg = tr("Calibration stored.");
 }
 
-void pollJson(double now) {
+// A new bearing estimate (true bearing, compass already applied) goes out as a "df.bearing" event, so other stations can cross-fix it; at most once a second.
+void emitBearing(double hz, double bearingDeg, double conf) {
+    namespace au = dect2::automation;
+    static double last = 0;
+    if (!au::wants(au::FSignal) || !receiverLocationSet()) return;
+    const double t = au::wallNow();
+    if (t - last < 1.0) return;
+    last = t;
+    double lat = 0, lon = 0;
+    receiverLocation(lat, lon);
+    au::Event e("df.bearing");
+    e.at(t, "DF", hz);
+    e.num("bearing_deg", wrap360(bearingDeg)).num("sigma_deg", std::clamp(30.0 * (1.0 - conf), 2.0, 30.0)).num("lat", lat).num("lon", lon);
+    au::emit(std::move(e));
+}
+
+void pollJson(double now, double hz) {
     if (now - S.jsonAt < 1.0) return;
     S.jsonAt = now;
     std::ifstream f(S.path);
@@ -226,6 +243,7 @@ void pollJson(double now) {
         S.jsonBearing = wrap360(b.bearingDeg + S.compass); S.jsonConf = b.confidence;
         S.avg.add(S.jsonBearing, std::max(0.05, b.confidence));
         S.hist.push_back({now, S.jsonBearing, b.confidence});
+        emitBearing(hz, S.jsonBearing, b.confidence);
     }
 }
 
@@ -234,7 +252,7 @@ void update(App& a) {
     const double hz = tunedHz(a);
     if (!S.run || now - S.lastUpdate < (rfCamEnabled() ? 0.12 : 0.2)) return;
     S.lastUpdate = now;
-    if (S.src == SrcJson) { pollJson(now); return; }
+    if (S.src == SrcJson) { pollJson(now, hz); return; }
     const int key = S.src * 100000 + S.elements * 1000 + S.geo * 100 + (int)(hz / 1e3) + (int)(S.simBearing * 10) * 7 + (S.sim2 ? 13 : 0) + (int)(S.sim2Bearing * 10) + (int)(S.simSnr * 10) + (S.simErrors ? 5 : 0) + (int)(S.orientation * 3) + (int)(S.compass * 11) + (rfCamEnabled() ? 17 : 0);
     if (S.src == SrcSim && S.simSpin) { S.simBearing = (float)std::fmod(S.simBearing + 3.0, 360.0); }
     if (S.src == SrcSim) {
@@ -244,6 +262,7 @@ void update(App& a) {
     if (step(hz, rfCamEnabled() ? 4096 : 2048)) {
         S.avg.add(S.res.bearingDeg, std::max(0.05, S.res.confidence));
         S.hist.push_back({now, S.res.bearingDeg, S.res.confidence});
+        if (S.src != SrcSim) emitBearing(hz, S.res.bearingDeg, S.res.confidence);   // a simulated bearing is not a measurement: never exported or cross-fixed
     }
     while (!S.hist.empty() && now - S.hist.front().t > 60) S.hist.erase(S.hist.begin());
 }

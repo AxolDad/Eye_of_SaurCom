@@ -5,13 +5,14 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <cstdio>
 
 namespace dect2::eye {
 
 namespace au = automation;
 
 const char* groupName(int g) {
-    static const char* const n[kGroups] = {"Aircraft", "Air data", "Ships", "APRS", "Sondes", "Mesh / LoRa", "Pagers", "Bluetooth", "Drones"};
+    static const char* const n[kGroups] = {"Aircraft", "Air data", "Ships", "APRS", "Sondes", "Mesh / LoRa", "Pagers", "Bluetooth", "Drones", "Located"};
     return g >= 0 && g < kGroups ? n[g] : "";
 }
 
@@ -70,6 +71,8 @@ void Overview::ingest(const au::Event& ev) {
     std::string text = r.text == label ? std::string() : r.text;
     for (char& c : text) if (c == '\n' || c == '\r' || c == '\t') c = ' ';
 
+    const std::string site = field(ev, {"site"});
+
     std::lock_guard<std::mutex> lk(mu_);
     total_++;
     version_++;
@@ -91,6 +94,9 @@ void Overview::ingest(const au::Event& ev) {
         it = contacts_.emplace(key, std::move(c)).first;
     }
     Contact& c = it->second;
+    const auto sp = std::lower_bound(c.sites.begin(), c.sites.end(), site);
+    const bool newSite = sp == c.sites.end() || *sp != site;
+    if (newSite) c.sites.insert(sp, site);
     const bool newText = !text.empty() && text != c.text;
     c.lastSeen = std::max(c.lastSeen, r.time);
     c.events++;
@@ -99,8 +105,9 @@ void Overview::ingest(const au::Event& ev) {
     if (newText) c.text = text;
     if (r.hasPos) { c.hasPos = true; c.lat = r.lat; c.lon = r.lon; c.posTime = r.time; }
 
-    if (first || newText) {
+    if (first || newText || newSite) {   // a site hearing the contact for the first time gets its own row
         Row row;
+        row.site = site;
         row.time = r.time; row.group = g; row.mode = c.mode; row.ident = c.ident; row.label = c.label;
         row.text = newText ? text : std::string("first seen");
         row.freqHz = r.freqHz; row.first = first;
@@ -111,19 +118,80 @@ void Overview::ingest(const au::Event& ev) {
     }
 }
 
-std::vector<Row> Overview::timeline(size_t max, uint32_t groupMask, const std::string& filter) const {
+void Overview::ingestLocated(double time, double freqHz, double lat, double lon, double e95M, const std::vector<std::string>& sitesIn) {
+    if (!std::isfinite(freqHz) || !std::isfinite(lat) || !std::isfinite(lon) || !std::isfinite(time)) return;
+    freqHz = std::clamp(freqHz, 0.0, 1e13);
+    e95M = std::isfinite(e95M) ? std::clamp(e95M, 0.0, 1e9) : 0.0;
+    char buf[64];
+    snprintf(buf, sizeof buf, "%lld", (long long)std::llround(freqHz / 1e3));
+    const std::string ident = buf;
+    snprintf(buf, sizeof buf, "%.3f MHz", freqHz / 1e6);
+    const std::string label = buf;
+    std::vector<std::string> sites = sitesIn;
+    std::sort(sites.begin(), sites.end());
+    std::string who;
+    for (const std::string& s : sites) who += (who.empty() ? "" : ", ") + (s.empty() ? std::string("local") : s);
+    snprintf(buf, sizeof buf, ", \xC2\xB1%lld m", (long long)std::llround(e95M));
+    const std::string text = "located by " + who + buf;
+
+    std::lock_guard<std::mutex> lk(mu_);
+    version_++;
+    const int g = GFixes;
+    const std::string key = std::to_string(g) + "|" + ident;
+    auto it = contacts_.find(key);
+    const bool first = it == contacts_.end();
+    if (first) {
+        if (contacts_.size() >= lim_.maxContacts) {
+            auto old = std::min_element(contacts_.begin(), contacts_.end(), [](const auto& a, const auto& b) { return a.second.lastSeen < b.second.lastSeen; });
+            contacts_.erase(old);
+        }
+        Contact c;
+        c.group = g; c.mode = "DF"; c.ident = ident; c.firstSeen = time;
+        it = contacts_.emplace(key, std::move(c)).first;
+    }
+    Contact& c = it->second;
+    // a row only for a new contact, other sites, a position that moved noticeably or an error that changed noticeably
+    bool write = first || c.sites != sites;
+    if (!write) {
+        const double dy = (lat - c.lat) * 111320.0, dx = (lon - c.lon) * 111320.0 * std::cos(lat * 3.14159265358979 / 180);
+        const double moved = std::hypot(dx, dy);
+        write = moved > std::max(100.0, 0.25 * c.e95M) || std::fabs(e95M - c.e95M) > 0.25 * c.e95M;
+    }
+    c.lastSeen = std::max(c.lastSeen, time);
+    c.label = label;
+    c.text = text;
+    c.sites = sites;
+    c.hasPos = true; c.lat = lat; c.lon = lon; c.posTime = time;
+    if (!write) return;
+    c.e95M = e95M;
+    c.events++;
+    total_++;
+    const int64_t sec = (int64_t)std::floor(time);
+    const size_t slot = (size_t)(((sec % kSlots) + kSlots) % kSlots);
+    if (slotSec_[slot] != sec) { slotSec_[slot] = sec; slotCount_[slot].fill(0); }
+    slotCount_[slot][(size_t)g]++;
+    Row row;
+    row.time = time; row.group = g; row.mode = c.mode; row.ident = ident; row.label = label; row.text = text;
+    row.freqHz = freqHz; row.first = first; row.hasPos = true; row.lat = lat; row.lon = lon;
+    row.seq = ++seq_;
+    rows_.push_back(std::move(row));
+    while (rows_.size() > lim_.maxRows) rows_.pop_front();
+}
+
+std::vector<Row> Overview::timeline(size_t max, uint32_t groupMask, const std::string& filter, const std::string& site) const {
     const std::string q = lower(filter);
     std::vector<Row> out;
     std::lock_guard<std::mutex> lk(mu_);
     for (auto it = rows_.rbegin(); it != rows_.rend() && out.size() < max; ++it) {
         if (!inMask(groupMask, it->group)) continue;
+        if (!site.empty() && it->site != site) continue;
         if (!q.empty() && lower(it->mode + "\n" + it->ident + "\n" + it->label + "\n" + it->text).find(q) == std::string::npos) continue;
         out.push_back(*it);
     }
     return out;
 }
 
-std::vector<Contact> Overview::contacts(double now, double maxAgeSec, uint32_t groupMask, const std::string& filter) const {
+std::vector<Contact> Overview::contacts(double now, double maxAgeSec, uint32_t groupMask, const std::string& filter, const std::string& site) const {
     const std::string q = lower(filter);
     std::vector<Contact> out;
     {
@@ -131,6 +199,7 @@ std::vector<Contact> Overview::contacts(double now, double maxAgeSec, uint32_t g
         for (const auto& kv : contacts_) {
             const Contact& c = kv.second;
             if (c.lastSeen < now - maxAgeSec || !inMask(groupMask, c.group)) continue;
+            if (!site.empty() && !std::binary_search(c.sites.begin(), c.sites.end(), site)) continue;
             if (!q.empty() && lower(c.mode + "\n" + c.ident + "\n" + c.label + "\n" + c.text).find(q) == std::string::npos) continue;
             out.push_back(c);
         }

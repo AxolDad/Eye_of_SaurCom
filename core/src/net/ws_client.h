@@ -4,6 +4,7 @@
 #pragma once
 #include "tcp_client.h"
 #include "dect2/net/remote_api.h"
+#include <chrono>
 #include <cstdint>
 #include <mutex>
 #include <random>
@@ -18,8 +19,11 @@ public:
     static constexpr size_t kDefaultMaxMessage = 4u << 20;
 
     WsClient() = default;
-    void attach(sock_t s) { s_ = s; }
+    void attach(sock_t s) { s_ = s; lastFrame_ = std::chrono::steady_clock::now(); }
     sock_t sock() const { return s_; }
+    // When the last frame of any kind (pings, pongs and close included) began to arrive; attach() and a good handshake count as one. For a
+    // keepalive: a peer that answers nothing, not even a ping, is gone.
+    std::chrono::steady_clock::time_point lastFrameAt() const { return lastFrame_; }
 
     // The upgrade request and its answer: 101 with the matching Sec-WebSocket-Accept. err says why not, in plain words.
     bool handshake(const std::string& host, int port, const std::string& path, std::string& err) {
@@ -57,12 +61,14 @@ public:
         size_t b = p + 21, e = head.find("\r\n", b);
         while (b < e && head[b] == ' ') b++;
         if (head.substr(b, e - b) != wsAcceptKey(key)) { err = "the server's WebSocket handshake answer does not match (not a WebSocket server)"; return false; }
+        lastFrame_ = std::chrono::steady_clock::now();
         return true;
     }
 
     bool sendText(const std::string& s) { return sendFrame(0x1, s.data(), s.size()); }
     bool sendBinary(const void* d, size_t n) { return sendFrame(0x2, d, n); }
     void sendClose() { sendFrame(0x8, "\x03\xe8", 2); }
+    bool sendPing() { return sendFrame(0x9, "", 0); }   // the answer (a pong) is dropped by readMessage() but moves lastFrameAt()
 
     // One whole message (fragments joined; pings answered, pongs dropped). Closed: a close frame or the connection went. Timeout: nothing
     // came within the receive timeout. Bad: not a valid frame, a message over maxMessage, or a masked frame from the server.
@@ -73,6 +79,7 @@ public:
             unsigned char h[2];
             const int r0 = recvExact(h, 2);
             if (r0 != 1) return r0 == 0 ? Kind::Timeout : Kind::Closed;
+            lastFrame_ = std::chrono::steady_clock::now();
             const bool fin = h[0] & 0x80;
             const int op = h[0] & 0x0F;
             if (h[0] & 0x70) return Kind::Bad;   // no extensions were negotiated
@@ -141,6 +148,7 @@ private:
 
     sock_t s_ = kBadSock;
     std::mutex sendMu_;
+    std::chrono::steady_clock::time_point lastFrame_ = std::chrono::steady_clock::now();
 };
 
 } // namespace dect2

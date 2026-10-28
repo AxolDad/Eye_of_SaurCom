@@ -3,8 +3,10 @@
 #include "web_ui.h"
 #include "dect2/audio/audio_monitor.h"
 #include "dect2/audio/hf_demod.h"
+#include "dect2/automation/engine.h"
 #include "dect2/engine/mode_tuning.h"
 #include "dect2/engine/rate_choice.h"
+#include "dect2/net/event_ring.h"
 #include "dect2/net/netradio.h"
 #include "dect2/results/rx_json.h"
 #include "dect2/source/agc.h"
@@ -53,9 +55,11 @@ ServerHost::ServerHost(ConfigFile& cfg) : cfg_(cfg) {
     e_.fm().setAudioTap([this](const float* l, const float* r, size_t n) { if (fmTap_.load(std::memory_order_relaxed)) audioIn(l, r, n, false); });
     e_.monitor().setSink([this](const float* s, int frames) { audioIn(s, nullptr, (size_t)frames, true); });
     buildModes();
+    evListener_ = automation::global().addListener([](const automation::Event& e) { globalEventRing().push(e); }, (1u << automation::kFamilies) - 1);
 }
 
 ServerHost::~ServerHost() {
+    if (evListener_ > 0) automation::global().removeListener(evListener_);
     quit_ = true;
     if (snapTh_.joinable()) snapTh_.join();
     e_.stop();
@@ -505,6 +509,9 @@ void ServerHost::audioClose(int id) {
     std::lock_guard<std::mutex> lk(mu_);
     applyMonitor();
 }
+
+size_t ServerHost::eventLines(uint64_t& cursor, std::vector<std::string>& lines, size_t max, uint64_t& missed) { return globalEventRing().since(cursor, lines, max, missed); }
+uint64_t ServerHost::eventHead() { return globalEventRing().head(); }
 
 std::string ServerHost::indexHtml() { return kIndexHtml; }
 
