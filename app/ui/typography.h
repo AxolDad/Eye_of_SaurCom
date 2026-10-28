@@ -1,12 +1,17 @@
 // The typography system in one place: the font set (Inter for text, JetBrains Mono for numbers), the size scale, the spacing
-// and the text colours. Three looks, chosen in View > Font look and saved as a preference (default Current):
-//   0 = Current (system monospace font, current spacing)   1 = Clean   2 = Compact
+// and the text colours. Three looks, chosen in View > Font look and saved as a preference (default Clean):
+//   0 = Classic (system monospace font for everything)   1 = Clean (Inter 14 px, the default)   2 = Compact (Inter 13 px)
+// Numbers and frequencies stay monospaced in every look (fonts().mono / App::mono).
 #pragma once
 #include "imgui.h"
 
 namespace typo {
 
 enum Variant { Classic = 0, Clean = 1, Compact = 2 };
+// The look for someone who never chose one ("uiTypography" absent): Clean, a proportional font that reads well in a browser stream.
+// A saved choice (Classic included) is always kept.
+constexpr int kDefaultLook = Clean;
+inline Variant variantFromPref(long v) { return v == 1 ? Clean : v == 2 ? Compact : v == 0 ? Classic : Variant(kDefaultLook); }
 Variant variant();
 // set once at start-up from the saved preference, before loadFonts(); a change in the menu applies after a restart
 void setVariant(Variant v);

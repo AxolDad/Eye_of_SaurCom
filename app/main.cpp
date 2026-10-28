@@ -281,10 +281,8 @@ int main(int argc, char** argv) {
 
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = nullptr;
-    {   // the font look saved in View > Font look (Current when never changed); read here, before the fonts load
-        const long v = plat::prefs().getI("uiTypography", 0);
-        typo::setVariant(v == 1 ? typo::Clean : v == 2 ? typo::Compact : typo::Classic);
-    }
+    // the font look saved in View > Font look (Clean when never chosen); read here, before the fonts load
+    typo::setVariant(typo::variantFromPref(plat::prefs().getI("uiTypography", typo::kDefaultLook)));
     applyTheme();
     typo::applyStyle(ImGui::GetStyle());
     static ImGuiStyle baseStyle = ImGui::GetStyle();   // the style at scale 1
