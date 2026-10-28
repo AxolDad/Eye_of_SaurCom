@@ -96,6 +96,9 @@ static void testParse() {
     ok("52.1 \xE2\x88\x92" "1.3", 52.1, -1.3);
     ok("52.1, - 1.3", 52.1, -1.3);
     ok("52.1 \xE2\x80\x93" "1.3", 52.1, -1.3);
+    ok("52.1 \xE2\x80\x90" "1.3", 52.1, -1.3);   // U+2010
+    ok("52.1; - 1.3", 52.1, -1.3);
+    ok("- 33.9, 151.2", -33.9, 151.2);
     ok("\xE2\x88\x92" "33.9 151.2", -33.9, 151.2);
     // OSM
     ok("https://www.openstreetmap.org/#map=17/52.1234/-1.3456", 52.1234, -1.3456);
@@ -132,6 +135,10 @@ static void testParse() {
     bad("0, 0", "ocean");
     bad("hello world", "location");
     bad("52.1 -, 1.3", "location");
+    bad("52.1 - 1.3", "minus sign or a separator? Write 52.1, -1.3 or 52.1 1.3");
+    bad("52.1 \xE2\x80\x94 1.3", "minus sign or a separator");
+    bad("10 - 20", "minus sign or a separator");
+    bad("52.1N - 1.3W", "minus sign or a separator");
     bad("52.1, 1.3 -", "location");
     bad("https://maps.google.com/?sll=52.1,-1.3", "coordinates");
     bad("52.1", "location");

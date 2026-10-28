@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <vector>
 #include "dect2/common/mathconst.h"
 
@@ -52,15 +53,41 @@ bool fromMaidenhead(const std::string& in, double& latDeg, double& lonDeg, doubl
     return true;
 }
 
-bool parseCoordinates(const std::string& textIn, double& latDeg, double& lonDeg, bool checkRange) {
-    // typeset minus signs (U+2212, figure dash, en dash, em dash) are minus signs; a sign may be followed by spaces ("- 1.3")
-    std::string text;
-    for (size_t i = 0; i < textIn.size(); i++) {
-        const unsigned char a = (unsigned char)textIn[i];
-        if (a == 0xE2 && i + 2 < textIn.size() + 0 && (unsigned char)textIn[i + 1] == 0x88 && (unsigned char)textIn[i + 2] == 0x92) { text += '-'; i += 2; }
-        else if (a == 0xE2 && i + 2 < textIn.size() + 0 && (unsigned char)textIn[i + 1] == 0x80 && (unsigned char)textIn[i + 2] >= 0x92 && (unsigned char)textIn[i + 2] <= 0x94) { text += '-'; i += 2; }
-        else text += (char)a;
+namespace {
+// typeset minus signs (U+2010 hyphen, U+2012 figure dash, U+2013 en dash, U+2014 em dash, U+2212 minus) become '-'
+std::string asciiMinus(const std::string& in) {
+    std::string t;
+    for (size_t i = 0; i < in.size(); i++) {
+        const unsigned char a = (unsigned char)in[i];
+        if (a == 0xE2 && i + 2 < in.size()) {
+            const unsigned char b = (unsigned char)in[i + 1], c = (unsigned char)in[i + 2];
+            if ((b == 0x88 && c == 0x92) || (b == 0x80 && (c == 0x90 || (c >= 0x92 && c <= 0x94)))) { t += '-'; i += 2; continue; }
+        }
+        t += (char)a;
     }
+    return t;
+}
+bool ambiguousDash(const std::string& t) {
+    for (size_t i = 1; i + 1 < t.size(); i++) {
+        if (t[i] != '-' || !std::isspace((unsigned char)t[i - 1]) || !std::isspace((unsigned char)t[i + 1])) continue;
+        size_t p = i;
+        while (p > 0 && std::isspace((unsigned char)t[p - 1])) p--;
+        size_t n = i + 1;
+        while (n < t.size() && std::isspace((unsigned char)t[n])) n++;
+        if (p == 0 || n >= t.size() || t[p - 1] == ',' || t[p - 1] == ';') continue;   // a sign: at the start, or after a separator
+        const unsigned char c = (unsigned char)t[n];
+        if (std::isdigit(c) || c == '.' || std::strchr("NSEWnsew", c)) return true;
+    }
+    return false;
+}
+}
+
+bool hasAmbiguousDash(const std::string& text) { return ambiguousDash(asciiMinus(text)); }
+
+bool parseCoordinates(const std::string& textIn, double& latDeg, double& lonDeg, bool checkRange) {
+    std::string text = asciiMinus(textIn);
+    if (ambiguousDash(text)) return false;   // "52.1 - 1.3": a minus or a separator?
+    // a sign may be followed by spaces ("52.1, - 1.3")
     for (size_t i = 0; i + 1 < text.size(); i++)
         if (text[i] == '-' || text[i] == '+') {
             size_t j = i + 1;

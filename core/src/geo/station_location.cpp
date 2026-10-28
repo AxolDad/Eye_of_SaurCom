@@ -190,6 +190,7 @@ bool parseLocationText(const std::string& textIn, StationPos& out, std::string& 
         }
         locator = true;
     } else {
+        if (hasAmbiguousDash(text)) { err = "Is that a minus sign or a separator? Write 52.1, -1.3 or 52.1 1.3"; return false; }
         if (hasDecimalComma(text)) { err = "Use a dot for decimals: 52.1, -1.3"; return false; }
         if (!parseCoordinates(text, lat, lon, false)) {
             err = "Can't read a location from that. Try 52.1, -1.3 or a locator like IO91wm";
@@ -392,6 +393,7 @@ bool GpsdClient::latest(GpsFix& out) const {
 
 std::string GpsdClient::status() const {
     std::lock_guard<std::mutex> g(m_);
+    if (status_.rfind("fix (", 0) == 0 && std::chrono::steady_clock::now() - fixAt_ > std::chrono::seconds(10)) return "no fix for 10 s";
     return status_.empty() ? "not started" : status_;
 }
 

@@ -69,6 +69,8 @@ int main() {
     CHECK(parseCoordinates("52.1 \xE2\x88\x92" "1.3", la, lo) && nearBy(lo, -1.3), "U+2212 is a minus");
     CHECK(parseCoordinates("52.1, - 1.3", la, lo) && nearBy(lo, -1.3), "spaced minus is a sign");
     CHECK(!parseCoordinates("52.1 -, 1.3", la, lo) && !parseCoordinates("52.1 1.3 -", la, lo), "a stray minus is refused, not skipped");
+    CHECK(!parseCoordinates("52.1 - 1.3", la, lo) && !parseCoordinates("10 \xE2\x80\x94 20", la, lo) && hasAmbiguousDash("10 - 20") && !hasAmbiguousDash("52.1, - 1.3"), "spaced dash without a comma is ambiguous");
+    CHECK(parseCoordinates("52.1 \xE2\x80\x90" "1.3", la, lo) && nearBy(lo, -1.3), "U+2010 is a minus");
     CHECK(!parseCoordinates("91 10", la, lo), "latitude over 90 refused");
     CHECK(!parseCoordinates("10 181", la, lo), "longitude over 180 refused");
     CHECK(!parseCoordinates("54 61 0 25 0 0", la, lo), "61 minutes refused");
