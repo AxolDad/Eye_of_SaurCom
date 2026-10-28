@@ -55,6 +55,8 @@ void startApp(App& app, int argc, char** argv) {
     if (const char* ws = getenv("DECT2_WIZSTEP")) wizEnter(app, atoi(ws));
     app.engine.log("Eye of SaurCom started");
     if (!gCrashNote.empty()) app.engine.log(gCrashNote);
+    radionames::load();   // the user's radio names (<data>/radios/names.json); the one app-wide copy, written only from the UI thread
+    if (!radionames::loadError().empty()) app.engine.log(radionames::loadError());   // a damaged file was kept as names.json.bad-<time>
     refreshDevices(app);
     bool safeStart = false;   // --safe-start: do not pick or open a radio by itself (a saved network radio that hangs the start-up)
     for (int i = 1; i < argc; i++) if (std::string(argv[i]) == "--safe-start") safeStart = true;

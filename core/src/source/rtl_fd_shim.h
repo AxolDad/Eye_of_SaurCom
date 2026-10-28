@@ -93,6 +93,8 @@ inline int setAgc(void* p, int on) { return D(p)->rtl->setAgcMode(on != 0); }
 inline int resetBuffer(void* p) { return D(p)->rtl->resetBuffer(); }
 inline int getTunerType(void* p) { return D(p)->rtl->tunerType(); }
 inline int setDirect(void* p, int m) { return D(p)->rtl->setDirectSampling(m); }
+inline int readEeprom(void* p, uint8_t* out, uint32_t off, size_t len) { return D(p)->rtl->readEeprom(out, off, len); }
+inline int writeEeprom(void* p, const uint8_t* data, uint32_t off, size_t len) { return D(p)->rtl->writeEeprom(data, off, len); }
 inline int setBias(void* p, int on) { return D(p)->rtl->setBiasTee(on != 0); }
 inline int setPpm(void* p, int ppm) { return D(p)->rtl->setFreqCorrection(ppm); }
 inline int setOffset(void* p, int on) { return D(p)->rtl->setOffsetTuning(on != 0); }

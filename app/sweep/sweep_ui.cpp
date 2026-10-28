@@ -368,6 +368,10 @@ void windowPanel(App& a) {
 }
 } // namespace
 
+void sweepPresetRange(App& a, double fromMhz, double toMhz) {
+    if (!S.running.load() && toMhz > fromMhz) { S.fromMHz = (float)fromMhz; S.toMHz = (float)toMhz; }
+    a.sweepOpen = true;
+}
 void sweepWindow(App& a) {
     if (a.sweepOpen) windowPanel(a);
     else if (S.running.load()) stopSweep();   // closing the window gives the radio back

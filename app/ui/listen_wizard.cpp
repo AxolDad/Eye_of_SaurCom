@@ -2,6 +2,7 @@
 // step 2 the place (its band plan, from core's bandplan registry), step 3 one of five things to listen to. It only picks settings and
 // calls the existing tune and start code (setFamily / setMode / startReceiver); it adds no DSP of its own.
 #include "../app.h"
+#include "radio_name_ui.h"
 #include "dect2/bandplan/bandplan.h"
 #include "dect2/engine/mode_tuning.h"
 #include "dect2/general/general_rx.h"
@@ -126,7 +127,7 @@ void listenWizard(App& a, ImVec2 disp) {
         for (int i = 0; i < (int)a.devices.size(); i++) {
             if (!listenSource(a.devices[i])) continue;
             if (a.devices[i].isRadio()) radios++;
-            if (ImGui::RadioButton((a.devices[i].name + "##s" + std::to_string(i)).c_str(), gDev == i)) gDev = i;
+            if (textRadioButton(("##s" + std::to_string(i)).c_str(), radioShownName(a, i), gDev == i)) gDev = i;   // a "##" in a name stays visible
         }
         // an IQ recording: choose it here, or the start would have nothing to play
         if (gDev >= 0 && gDev < (int)a.devices.size() && a.devices[gDev].kind == DeviceInfo::File) {

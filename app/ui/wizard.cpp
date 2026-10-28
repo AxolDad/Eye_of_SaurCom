@@ -1,5 +1,6 @@
 // The setup wizard (language, radio, location, goals).
 #include "../app.h"
+#include "radio_name_ui.h"
 #include "../panels/fixit.h"
 #include "dect2/geo/maidenhead.h"
 #include "dect2/engine/mode_tuning.h"
@@ -144,7 +145,7 @@ void setupWizard(App& a, ImVec2 disp) {
         if (!radios && (a.devIdx < 0 || a.devIdx >= (int)a.devices.size() || !a.devices[a.devIdx].isRadio())) a.devIdx = 0;
         for (int i = 0; i < (int)a.devices.size(); i++) {
             if (!(a.devices[i].isRadio() || a.devices[i].kind == DeviceInfo::Synthetic)) continue;
-            if (ImGui::RadioButton((a.devices[i].name + "##r" + std::to_string(i)).c_str(), a.devIdx == i)) a.devIdx = i;
+            if (textRadioButton(("##r" + std::to_string(i)).c_str(), radioShownName(a, i), a.devIdx == i)) a.devIdx = i;   // a "##" in a name stays visible
         }
         if (!radios) {
             ImGui::TextColored(pal::warnAmber(), "%s", tr("No radio found"));

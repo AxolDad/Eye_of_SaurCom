@@ -76,6 +76,8 @@ public:
     int setOffsetTuning(bool on) { return saurcom_usb_rtl_set_offset_tuning(h_, on); }
     int setBiasTee(bool on) { return saurcom_usb_rtl_set_bias_tee(h_, on); }
     int resetBuffer() { return saurcom_usb_rtl_reset_buffer(h_); }
+    int readEeprom(uint8_t* out, uint32_t offset, size_t len) { return saurcom_usb_rtl_read_eeprom(h_, out, offset, len); }
+    int writeEeprom(const uint8_t* data, uint32_t offset, size_t len) { return saurcom_usb_rtl_write_eeprom(h_, data, offset, len); }
     int readSync(uint8_t* buf, size_t len) { return saurcom_usb_rtl_read_sync(h_, buf, len); }
     // 1 when the manufacturer / product strings read at open equal these (NUL terminated), else 0
     int checkDongleModel(const char* manufact, const char* product) {

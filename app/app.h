@@ -25,6 +25,7 @@
 #include "dect2/net/netradio.h"
 #include "dect2/net/kiwisdr.h"
 #include "dect2/source/hamlib_rig.h"
+#include "dect2/source/radio_id.h"
 #include "dect2/source/rig_setup.h"
 #include "platform/airplay.h"
 #include "dect2/common/timecompat.h"
@@ -87,6 +88,13 @@ struct Waterfall {
     bool accEmpty = true;
     int writeRow = 0; // newest row; older rows follow at writeRow+1 ... wrapping
     int filled = 0;
+    // The history at the full FFT width, for a view zoomed in further than the W columns resolve (the main waterfall only: keepFine).
+    // fineW bins a row (0: none, the FFT is not wider than W), fineH rows (H, fewer if fineW x H would pass kFineBytes); written with lv,
+    // newest at fineWr. Seeded from lv when the FFT size changes, so the picture goes on (old rows blocky, new ones sharp).
+    static constexpr size_t kFineBytes = 32u << 20;
+    bool keepFine = false;
+    std::vector<uint8_t> lvFine;
+    int fineW = 0, fineH = 0, fineWr = 0, fineFilled = 0;
     double pushT = 0; // when the newest row came in (glfwGetTime)
     double rowDt = 1.0 / 30; // steady seconds per row, for the time labels and the scrolling
     double stamps[128] = {};
@@ -143,9 +151,32 @@ struct Waterfall {
         writeFrom(d, dbfs.size());
         return true;
     }
-    // the bins of the frame onto the 4096 columns (the highest of those that share a column), the levels onto the colour table: one row uploaded
+    // a new FFT width for the fine history: rows from lv by nearest column (lv's row writeRow + age is the fine row age, fineWr = 0)
+    void reseedFine(int n) {
+        if (!keepFine || n <= W) { lvFine.clear(); lvFine.shrink_to_fit(); fineW = fineH = fineWr = fineFilled = 0; return; }
+        fineW = n;
+        fineH = (int)std::max<size_t>(1, std::min<size_t>(H, kFineBytes / (size_t)n));
+        lvFine.assign((size_t)fineW * fineH, 0);
+        fineWr = 0;
+        fineFilled = std::min(filled, fineH);
+        for (int age = 0; age < fineFilled; age++) {
+            const uint8_t* s = lv.data() + (size_t)((writeRow + age) % H) * W;
+            uint8_t* o = lvFine.data() + (size_t)age * fineW;
+            for (int i = 0; i < fineW; i++) o[i] = s[(size_t)i * W / fineW];
+        }
+    }
+    void writeFine(const float* d, size_t n, float inv) {
+        if ((int)n != fineW) reseedFine((int)n);   // (before this row goes into lv, so the seed is the rows before it)
+        if (fineW <= 0) return;
+        fineWr = (fineWr + fineH - 1) % fineH;
+        uint8_t* o = lvFine.data() + (size_t)fineWr * fineW;
+        for (size_t i = 0; i < n; i++) { const float v = (d[i] - minDb) * inv; o[i] = (uint8_t)(v <= 0.f ? 0 : v >= 255.f ? 255 : (int)v); }
+        fineFilled = std::min(fineH, fineFilled + 1);
+    }
+    // the bins of the frame onto the W columns (the highest of those that share a column), the levels onto the colour table: one row uploaded
     void writeFrom(const float* d, size_t n) {
         const float inv = 255.f / std::max(1.f, maxDb - minDb);
+        if (keepFine && (n > (size_t)W || fineW > 0)) writeFine(d, n, inv);
         uint32_t* r = row.data();
         writeRow = (writeRow + H - 1) % H;
         uint8_t* l = lv.data() + (size_t)writeRow * W;
@@ -315,6 +346,8 @@ struct App {
     int playReq = -1;
     int dabStation = -1;      // --station: DAB sub-channel to play on start (testing)
     std::vector<DeviceInfo> devices; // [0]=synthetic, [1]=file, then sound cards, then radios
+    mutable std::vector<dect2::RadioRow> radioRows;   // one per entry of devices: key, the user's name, #n (state/radio_names.h; a cache, rebuilt by radioRow())
+    mutable unsigned radioRowsGen = 0;
     // radios on the network the user added (prefs "netRadios"; listed by refreshDevices) and the "Add network radio" window
     std::vector<NetRadio> netRadios;
     std::vector<std::string> hiddenRadios;   // prefs "hiddenRadios": radios the user hid from the list (by name)
@@ -731,6 +764,7 @@ double generalListenHz(const App& a);
 void generalRecallHz(App& a, double hz);          // general_ui.cpp: a memory's frequency: the dial on hz, the channel marker back on the dial              // general_ui.cpp: the general receiver's listening frequency (the dial plus its offset)
 void stationHealthWindow(App& a);                  // station_health_ui.cpp: the station and antenna health report (a.stationHealthOpen)
 void sweepWindow(App& a);                          // sweep_ui.cpp: the fast sweep scanner window (a.sweepOpen)
+void sweepPresetRange(App& a, double fromMhz, double toMhz);   // sweep_ui.cpp: open the sweep scanner set to this range (kept while a sweep runs)
 void scannerWindow(App& a);                        // scanner_ui.cpp: the scanner window (a.scannerOpen) and its scan loop, every frame (HIGHLY EXPERIMENTAL)
 void scannerButton(App& a);                        // a button that opens it (the classic interface's Scan tab)
 GLFWmonitor* monitorFor(int x, int y, int w, int h);   // widgets.cpp: the monitor holding most of the rectangle
@@ -804,7 +838,8 @@ const dect2::SubMode* curSub(const App& a);    // the protocol entry selected, n
 int subIndexOf(const char* id);                // 1 .. kNumSubModes, 0 when not one
 int modeSlot(const App& a);                    // index of famFreq / famGain for the current entry
 int engineStd(const App& a);
-void refreshDevices(App& a);
+// radios/listErr: a radio listing already made (the background watch, app/state/radio_watch.cpp) used in place of listing again.
+void refreshDevices(App& a, const std::vector<DeviceInfo>* radios = nullptr, const std::string* listErr = nullptr);
 void kiwiFindWindow(App& a);    // the "Find KiwiSDR" window (toolbar_rig.cpp)
 void netRadioWindow(App& a);   // the "Add network radio" window (toolbar_rig.cpp)
 void hamlibRigWindow(App& a);  // the "Add Hamlib rig" window (toolbar_rig.cpp)
@@ -816,6 +851,7 @@ std::string rateModeId(const App& a);
 std::string rateContext(const App& a);
 double savedSampleRate(const App& a);
 void saveSampleRate(App& a, double hz);
+void chooseSampleRate(App& a, double hz);   // toolbar_source.cpp: save the rate for this radio and mode and restart a running radio at it
 double modeMinSampleRate(const App& a);
 void sampleRateControl(App& a);
 std::string biasContext(const App& a);   // the prefs key of the antenna power for this mode on this radio ("" = none)
@@ -1032,6 +1068,17 @@ void channelWidthPopup(App& a);      // automatic or manual, where the mode allo
 void spectrumWaterfall(App& a, float& frac, bool drag);   // the spectrum on top of the waterfall, one panel
 void specFreqViewUpdate(const App& a);                                     // plots.cpp: keep linked frequency pan/zoom in sync with the radio
 void specFreqViewGet(double& loMhz, double& hiMhz);
+void specFreqViewSet(App& a, double loMhz, double hiMhz);                   // plots.cpp: show this range (clamped to the band), the Zoom slider follows
+// span_bar.cpp: the Span bar above the spectrum and waterfall (narrower / wider, typed span, presets, fit to a signal)
+float spanBarHeight();
+void spanBar(App& a, ImVec2 pos, float width);
+void spanSetSpan(App& a, double spanHz, double centreMhz);   // wider than the radio captures restarts it at a higher rate
+void spanStep(App& a, bool wider);                          // x2 / /2 about the middle of the view
+void spanShowWholeBand(App& a);
+void spanFitSignal(App& a, double mhz, double mhzPerPx);    // fit the view to the signal at mhz (mhzPerPx: the plot's scale, 0 = unknown)
+void spanContextItems(App& a, double mhz);                  // "Fit to this signal", "Show the whole band", "Wider x2", "Narrower x2"
+void spanTick(App& a);                                      // every frame (drawUI): the automatic FFT size and a wider view waiting for the radio
+bool& spanZoomToolOn();                                     // the bar's "Zoom to selection" toggle: a plain drag on the spectrum selects a range
 void specFreqViewWheel(App& a, float mouseNorm, float wheel, double& loMhz, double& hiMhz);
 bool specDbRangeKeys(App& a);                                              // Ctrl+arrows dB range (3D view has no spectrum plot hover)
 float specPlotBwBtnW();                                                    // plots.cpp: layout of corner controls (same frame)
@@ -1114,6 +1161,7 @@ bool writeZipFile(const std::string& path, const std::vector<std::pair<std::stri
 void radioMessagesUi(App& a, bool vertical);
 // radio_ui.cpp: the "Radio settings" of the selected radio (only the ones it has): a collapsible section in a side panel (vertical), a
 // button with a popup in a one-line bar. A change reaches a running radio at once (a retune, or a restart for one that takes effect at open)
+#include "state/radio_names.h"   // radioRow(), radioShownName(), findRadio(): the user's radio names (needs App above)
 void radioSettingsUi(App& a, bool vertical);
 // subs_ui.cpp: DVB subtitles and teletext subtitle pages over the picture, the language choice, the teletext page drawing
 void subsUpdate(App& a);                  // every frame: the subtitle services of the playing programme, decoder PIDs, the overlay bitmap

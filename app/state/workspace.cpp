@@ -51,10 +51,10 @@ std::string encodeRecord(const Workspace& w) {
     char num[160];
     snprintf(num, sizeof num, "%.6f|%.0f|%d|%d|%d", w.freqMhz, w.sampleRateHz, w.lnaDb, w.vgaDb, w.ampOn ? 1 : 0);
     return escapeField(w.name) + "|" + escapeField(w.devName) + "|" + std::to_string(w.family) + "|" + escapeField(w.subId) + "|" + num
-         + "|" + escapeField(w.panels);
+         + "|" + escapeField(w.panels) + "|" + escapeField(w.devKey);
 }
 
-// name|device|family|sub|freq|rate|lna|vga|amp|panels (the panels field may be empty)
+// name|device|family|sub|freq|rate|lna|vga|amp|panels|deviceKey (the panels and key fields may be empty; older files stop earlier)
 bool decodeRecord(const std::string& line, Workspace& w) {
     const std::vector<std::string> f = splitRecord(line);
     if (f.size() < 9) return false;
@@ -62,6 +62,7 @@ bool decodeRecord(const std::string& line, Workspace& w) {
     w.freqMhz = atof(f[4].c_str()); w.sampleRateHz = atof(f[5].c_str());
     w.lnaDb = atoi(f[6].c_str()); w.vgaDb = atoi(f[7].c_str()); w.ampOn = f[8] == "1";
     w.panels = f.size() > 9 ? f[9] : std::string();
+    w.devKey = f.size() > 10 ? f[10] : std::string();
     return !w.name.empty();
 }
 
@@ -110,6 +111,7 @@ Workspace workspaceCapture(const App& a, const std::string& name) {
     Workspace w;
     w.name = name;
     w.devName = a.devIdx >= 0 && a.devIdx < (int)a.devices.size() ? a.devices[a.devIdx].name : std::string();
+    w.devKey = a.devIdx >= 2 && a.devIdx < (int)a.devices.size() ? radioKeyAt(a, a.devIdx) : std::string();
     w.family = a.family;
     if (const SubMode* sm = curSub(a)) w.subId = sm->id;
     w.freqMhz = a.freqMhz;
@@ -129,9 +131,10 @@ bool workspaceApply(App& a, const Workspace& w, std::string& why) {
     selectMode(a, w.family, w.subId.empty() ? nullptr : w.subId.c_str());   // the mode and its protocol entry, as the Mode menu sets them
     if (a.family != w.family) { why = "The workspace's mode is not available here."; return false; }
     if (!w.devName.empty()) {   // the radio this workspace was made with, when it is plugged in
-        bool found = false;
-        for (int i = 0; i < (int)a.devices.size() && !found; i++) if (a.devices[i].name == w.devName) { a.devIdx = i; found = true; }
-        if (!found) why = "The radio " + w.devName + " is not connected; the current radio is kept. ";
+        int at = findRadio(a, w.devKey, w.devName);   // by key first, then by the internal name
+        for (int i = 0; at < 0 && i < 2 && i < (int)a.devices.size(); i++) if (a.devices[i].name == w.devName) at = i;   // the test signal / file entries have no key
+        if (at >= 0) a.devIdx = at;
+        else why = "The radio " + w.devName + " is not connected; the current radio is kept. ";
     }
     if (w.freqMhz > 0) tuneFreq(a, w.freqMhz);   // the frequency, as the tuning field sets it
     if (w.sampleRateHz > 0) saveSampleRate(a, w.sampleRateHz);   // remembered for this mode and radio, as the Rate control does

@@ -12,6 +12,7 @@
 #include "native_common.h"
 #include "native_realddc.h"
 #include "dect2/dsp/dsp_compat.h"
+#include "dect2/source/usb_path.h"
 #include <map>
 
 namespace dect2 {
@@ -380,6 +381,8 @@ void listFobos(std::vector<DeviceInfo>& out) {
         fflush(stderr);
     }
     std::vector<DeviceInfo> list;
+    // the USB port, when there is exactly one such radio on the bus and the library sees one (nothing to order-match); several: left empty
+    const std::vector<std::string> paths = serials.size() == 1 ? usbPathsInOrder(usbEnumerateFresh(), {{0x16d0, 0x132e}}, 1) : std::vector<std::string>();
     for (size_t i = 0; i < serials.size() && i < 16; i++) {
         const std::string& sn = serials[i];
         // the sample rates and the revision come from the radio: it is opened once for them (not when another program has it)
@@ -395,6 +398,7 @@ void listFobos(std::vector<DeviceInfo>& out) {
         DeviceInfo d;
         d.kind = DeviceInfo::Native;
         d.board = "fobos";
+        if (i < paths.size()) d.usbPath = paths[i];
         d.serial = readable(sn) ? sn : std::string();
         d.nativeArgs = std::to_string(i);
         std::vector<double> rates(std::begin(kDefaultRates), std::end(kDefaultRates));

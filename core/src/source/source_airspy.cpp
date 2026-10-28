@@ -290,6 +290,7 @@ void listAirspy(std::vector<DeviceInfo>& out) {
         }
     }
     std::vector<uint64_t> serials;
+    std::vector<UsbNode> usbNodes;   // a fresh walk taken right after the library's own listing: both must see the same order (usb_path.h)
     int found = 0;
     {
         std::lock_guard<std::mutex> lk(gDevMu);
@@ -298,9 +299,10 @@ void listAirspy(std::vector<DeviceInfo>& out) {
             const int n = airspy().list_devices(sn, 16);
             found = n;
             for (int i = 0; i < n && i < 16; i++) serials.push_back(sn[i]);
+            usbNodes = usbEnumerateFresh();   // before the probes below open radios
         } else {   // older library: is there at least one?
             AirspyApi::airspy_device* d = nullptr;
-            if (airspy().open(&d) == 0 && d) { probe(0, d); airspy().close(d); gLastClose = SteadyClock::now(); serials.push_back(0); }
+            if (airspy().open(&d) == 0 && d) { probe(0, d); airspy().close(d); gLastClose = SteadyClock::now(); serials.push_back(0); usbNodes = usbEnumerateFresh(); }
             found = (int)serials.size();
         }
         // The sample rates and the model come from the radio (an R2: 10 / 2.5 Msps to 1.8 GHz; a Mini: 6 / 3 Msps, 10 with newer firmware, to
@@ -315,9 +317,14 @@ void listAirspy(std::vector<DeviceInfo>& out) {
     // in the log file as well: when a radio does not show up this says whether the library saw it (a negative number is a library error)
     fprintf(stderr, "Airspy: the library lists %d radio(s)%s\n", found, found < 0 ? " (an error)" : "");
     fflush(stderr);
+    // libairspy lists its radios in libusb's order and hides the libusb device: the i-th one is the i-th 1d50:60a1 on the bus, when the counts agree
+    const std::vector<std::string> paths = serials.empty() ? std::vector<std::string>() : usbPathsInOrder(usbNodes, {{0x1d50, 0x60a1}}, serials.size());
     std::vector<DeviceInfo> list;
+    size_t sIdx = 0;
     for (uint64_t sn : serials) {
         DeviceInfo d;
+        if (sIdx < paths.size()) d.usbPath = paths[sIdx];
+        sIdx++;
         d.kind = DeviceInfo::Native;
         d.board = "airspy";
         char b[32];

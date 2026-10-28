@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <vector>
 #include "dect2/common/mathconst.h"
 
@@ -52,7 +53,47 @@ bool fromMaidenhead(const std::string& in, double& latDeg, double& lonDeg, doubl
     return true;
 }
 
-bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg) {
+namespace {
+// typeset minus signs (U+2010 hyphen, U+2012 figure dash, U+2013 en dash, U+2014 em dash, U+2212 minus) become '-'
+std::string asciiMinus(const std::string& in) {
+    std::string t;
+    for (size_t i = 0; i < in.size(); i++) {
+        const unsigned char a = (unsigned char)in[i];
+        if (a == 0xE2 && i + 2 < in.size()) {
+            const unsigned char b = (unsigned char)in[i + 1], c = (unsigned char)in[i + 2];
+            if ((b == 0x88 && c == 0x92) || (b == 0x80 && (c == 0x90 || (c >= 0x92 && c <= 0x94)))) { t += '-'; i += 2; continue; }
+        }
+        t += (char)a;
+    }
+    return t;
+}
+bool ambiguousDash(const std::string& t) {
+    for (size_t i = 1; i + 1 < t.size(); i++) {
+        if (t[i] != '-' || !std::isspace((unsigned char)t[i - 1]) || !std::isspace((unsigned char)t[i + 1])) continue;
+        size_t p = i;
+        while (p > 0 && std::isspace((unsigned char)t[p - 1])) p--;
+        size_t n = i + 1;
+        while (n < t.size() && std::isspace((unsigned char)t[n])) n++;
+        if (p == 0 || n >= t.size() || t[p - 1] == ',' || t[p - 1] == ';') continue;   // a sign: at the start, or after a separator
+        const unsigned char c = (unsigned char)t[n];
+        if (std::isdigit(c) || c == '.' || std::strchr("NSEWnsew", c)) return true;
+    }
+    return false;
+}
+}
+
+bool hasAmbiguousDash(const std::string& text) { return ambiguousDash(asciiMinus(text)); }
+
+bool parseCoordinates(const std::string& textIn, double& latDeg, double& lonDeg, bool checkRange) {
+    std::string text = asciiMinus(textIn);
+    if (ambiguousDash(text)) return false;   // "52.1 - 1.3": a minus or a separator?
+    // a sign may be followed by spaces ("52.1, - 1.3")
+    for (size_t i = 0; i + 1 < text.size(); i++)
+        if (text[i] == '-' || text[i] == '+') {
+            size_t j = i + 1;
+            while (j < text.size() && (text[j] == ' ' || text[j] == '\t')) j++;
+            if (j > i + 1 && j < text.size() && (std::isdigit((unsigned char)text[j]) || text[j] == '.')) text.erase(i + 1, j - i - 1);
+        }
     struct Group { std::vector<double> n; char hemi = 0; bool neg = false; };
     std::vector<Group> g(1);
     auto close = [&] { if (!g.back().n.empty()) g.emplace_back(); };
@@ -63,6 +104,7 @@ bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg) {
             const double v = std::strtod(text.c_str() + i, &e);
             if (e == text.c_str() + i) return false;
             if (g.back().n.size() == 3) close();   // a fourth number starts the longitude
+            else if (c == '-' && g.back().n.size() == 1 && !g.back().hemi) close();   // "52.1 -1.3": a minus after a lone number starts the longitude
             if (g.back().n.empty() && (c == '-')) g.back().neg = true;
             else if (c == '-') return false;       // a minus sign on minutes or seconds
             g.back().n.push_back(std::fabs(v));
@@ -74,7 +116,7 @@ bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg) {
             if (!g.back().n.empty() && !g.back().hemi) { g.back().hemi = u; close(); }   // 54.7N
             else { close(); if (g.back().hemi) return false; g.back().hemi = u; }        // N54.7
         } else if (c == ',' || c == ';') close();
-        else if (std::isalpha(c)) return false;
+        else if (std::isalpha(c) || c == '-' || c == '+') return false;   // a stray sign is not skipped: it would flip a hemisphere
         i++;   // spaces, degree, minute and second signs (any byte of a UTF-8 sign) separate numbers
     }
     if (g.back().n.empty() && !g.back().hemi) g.pop_back();
@@ -96,7 +138,7 @@ bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg) {
     const bool lonFirst = g[0].hemi == 'E' || g[0].hemi == 'W' || g[1].hemi == 'N' || g[1].hemi == 'S';
     if (lonFirst && ((g[0].hemi == 'N' || g[0].hemi == 'S') || (g[1].hemi == 'E' || g[1].hemi == 'W'))) return false;   // two latitudes
     latDeg = lonFirst ? v[1] : v[0]; lonDeg = lonFirst ? v[0] : v[1];
-    return std::fabs(latDeg) <= 90 && std::fabs(lonDeg) <= 180;
+    return !checkRange || (std::fabs(latDeg) <= 90 && std::fabs(lonDeg) <= 180);
 }
 
 std::string toDms(double deg, bool isLat) {

@@ -3,6 +3,7 @@
 #include "dect2/common/stable_random.h"
 #include "dect2/source/hamlib_rig.h"
 #include "dect2/source/source.h"
+#include "dect2/source/usb_path.h"
 #include "dect2/net/netradio.h"
 #include "dect2/dsp/gen_util.h"
 #include "dect2/tv/demo_ts.h"
@@ -586,7 +587,19 @@ static std::vector<std::string> gHidden;
 void setHiddenRadios(const std::vector<std::string>& names) { std::lock_guard<std::mutex> lk(gHiddenMu); gHidden = names; }
 std::vector<std::string> hiddenRadios() { std::lock_guard<std::mutex> lk(gHiddenMu); return gHidden; }
 
+static thread_local const std::vector<DeviceInfo>* tlKnown = nullptr;
+RadioListingKnown::RadioListingKnown(std::vector<DeviceInfo> inUse) : v_(std::move(inUse)), prev_(tlKnown) { tlKnown = &v_; }
+RadioListingKnown::~RadioListingKnown() { tlKnown = prev_; }
+const DeviceInfo* radioListingKnown(DeviceInfo::Kind kind, const std::string& usbPath) {
+    if (!tlKnown || usbPath.empty()) return nullptr;
+    for (const auto& d : *tlKnown) if (d.kind == kind && d.usbPath == usbPath) return &d;
+    return nullptr;
+}
+
+static std::mutex gListMu;
 std::vector<DeviceInfo> listRadios(std::string& err) {
+    std::lock_guard<std::mutex> listing(gListMu);
+    UsbWalkScope usbWalk;   // one USB walk for the whole listing (native and Soapy radios share it)
     std::vector<DeviceInfo> out = listHackrfDevices(err);
     std::string e2;
     const std::vector<DeviceInfo> native = listNativeDevices(e2);

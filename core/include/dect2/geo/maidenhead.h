@@ -12,8 +12,12 @@ std::string toMaidenhead(double latDeg, double lonDeg, int chars = 6);
 bool fromMaidenhead(const std::string& loc, double& latDeg, double& lonDeg, double* heightDeg = nullptr, double* widthDeg = nullptr);
 
 // A latitude and a longitude from text: "54.687, 25.280", "54.687N 25.280E", "-33.9 151.2", "54°41'13\"N 25°16'48\"E",
-// "54 41 13 N 25 16 48 E", "N54 41.2 E25 16.8". False when it does not read as a position on Earth.
-bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg);
+// "54 41 13 N 25 16 48 E", "N54 41.2 E25 16.8", "52.1 -1.3". False when it does not read as a position on Earth; with `checkRange` false the pair is
+// returned even when it lies outside +-90 / +-180 (the caller says why), and only text that is not a pair at all gives false.
+bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg, bool checkRange = true);
+// True for "52.1 - 1.3" / "10 \xE2\x80\x94 20": a dash with spaces on both sides and no comma before it, which could be a minus sign or a separator.
+// parseCoordinates refuses such text.
+bool hasAmbiguousDash(const std::string& text);
 // One angle as degrees, minutes and seconds with its hemisphere: 54°41'13.2"N
 std::string toDms(double deg, bool isLat);
 

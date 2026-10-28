@@ -33,6 +33,8 @@ struct RtlApi {
     int (DECT2_CALL* set_freq_correction)(rtlsdr_dev_t*, int) = nullptr;  // optional (every librtlsdr has it): whole ppm
     int (DECT2_CALL* set_offset_tuning)(rtlsdr_dev_t*, int) = nullptr;    // optional
     int (DECT2_CALL* check_dongle_model)(rtlsdr_dev_t*, char*, char*) = nullptr;   // RTL-SDR Blog library only
+    int (DECT2_CALL* read_eeprom)(rtlsdr_dev_t*, uint8_t*, uint8_t, uint16_t) = nullptr;         // optional: the serial tool (rtl_serial.h)
+    int (DECT2_CALL* write_eeprom)(rtlsdr_dev_t*, uint8_t*, uint8_t, uint16_t) = nullptr;        // optional: librtlsdr takes a non-const buffer
     bool blogLib = false;
     bool ok = false;
     DynLib lib;
@@ -71,6 +73,8 @@ struct RtlApi {
         set_freq_correction = [] (rtlsdr_dev_t* d, int ppm) -> int { return setPpm(d, ppm); };
         set_offset_tuning = [] (rtlsdr_dev_t* d, int on) -> int { return setOffset(d, on); };
         check_dongle_model = [] (rtlsdr_dev_t* d, char* m, char* p) -> int { return checkModel(d, m, p); };
+        read_eeprom = [] (rtlsdr_dev_t* d, uint8_t* b, uint8_t off, uint16_t n) -> int { return readEeprom(d, b, off, n); };
+        write_eeprom = [] (rtlsdr_dev_t* d, uint8_t* b, uint8_t off, uint16_t n) -> int { return writeEeprom(d, b, off, n); };
         blogLib = true;   // the protocol layer follows the RTL-SDR Blog fork (V3 / V4 handling)
         ok = true;
         lib.path = "usb descriptor";
@@ -94,6 +98,7 @@ struct RtlApi {
             lib.opt(set_freq_correction, "rtlsdr_set_freq_correction"); lib.opt(set_offset_tuning, "rtlsdr_set_offset_tuning");
             lib.opt(read_sync, "rtlsdr_read_sync");
             lib.opt(check_dongle_model, "rtlsdr_check_dongle_model");
+            lib.opt(read_eeprom, "rtlsdr_read_eeprom"); lib.opt(write_eeprom, "rtlsdr_write_eeprom");
             blogLib = check_dongle_model != nullptr;
         }
     }
@@ -409,9 +414,22 @@ private:
     double lo_ = 0, hi_ = 0;
 };
 
+// The VID/PID pairs librtlsdr takes for a dongle (known_devices[] in librtlsdr.c)
+static const std::vector<std::pair<uint16_t, uint16_t>> kRtlUsbIds = {
+    {0x0bda, 0x2832}, {0x0bda, 0x2838}, {0x0413, 0x6680}, {0x0413, 0x6f0f}, {0x0458, 0x707f}, {0x0ccd, 0x00a9}, {0x0ccd, 0x00b3},
+    {0x0ccd, 0x00b4}, {0x0ccd, 0x00b5}, {0x0ccd, 0x00b7}, {0x0ccd, 0x00b8}, {0x0ccd, 0x00b9}, {0x0ccd, 0x00c0}, {0x0ccd, 0x00c6},
+    {0x0ccd, 0x00d3}, {0x0ccd, 0x00d7}, {0x0ccd, 0x00e0}, {0x1554, 0x5020}, {0x15f4, 0x0131}, {0x15f4, 0x0133}, {0x185b, 0x0620},
+    {0x185b, 0x0650}, {0x185b, 0x0680}, {0x1b80, 0xd393}, {0x1b80, 0xd394}, {0x1b80, 0xd395}, {0x1b80, 0xd397}, {0x1b80, 0xd398},
+    {0x1b80, 0xd39d}, {0x1b80, 0xd3a4}, {0x1b80, 0xd3a8}, {0x1b80, 0xd3af}, {0x1b80, 0xd3b0}, {0x1d19, 0x1101}, {0x1d19, 0x1102},
+    {0x1d19, 0x1103}, {0x1d19, 0x1104}, {0x1f4d, 0xa803}, {0x1f4d, 0xb803}, {0x1f4d, 0xc803}, {0x1f4d, 0xd286}, {0x1f4d, 0xd803}};
+
 void listRtl(std::vector<DeviceInfo>& out) {
     if (!rtl().ok) return;
     const uint32_t n = rtl().get_device_count();
+    // librtlsdr numbers its dongles in libusb's order (rtlsdr_get_device_count walks libusb_get_device_list), but hides the libusb device and
+    // the serial is not read without opening it: the i-th dongle is the i-th libusb device with a VID/PID from its table, and only when the
+    // two counts agree (the walk is a fresh one, right after the library's own count, so both see the same order) (see usbPathsInOrder). Identical dongles with the same serial are told apart by this.
+    const std::vector<std::string> paths = n ? usbPathsInOrder(usbEnumerateFresh(), kRtlUsbIds, n) : std::vector<std::string>();
     for (uint32_t i = 0; i < n && i < 16; i++) {
         char vendor[256] = {0}, product[256] = {0}, serial[256] = {0};
         rtl().get_device_usb_strings(i, vendor, product, serial);
@@ -419,6 +437,7 @@ void listRtl(std::vector<DeviceInfo>& out) {
         d.kind = DeviceInfo::Native;
         d.board = "rtlsdr";
         d.nativeArgs = std::to_string(i);
+        if (i < paths.size()) d.usbPath = paths[i];
         d.serial = trimmed(serial, sizeof serial);
         std::string label = trimmed(product, sizeof product);
         const RtlModel model = rtlModel(i);
@@ -459,6 +478,75 @@ std::unique_ptr<IqSource> makeRtl(const DeviceInfo& d) {
 
 // ---- Kraken / Kerberos hub plumbing (dect2/df/rtl_group.h): the dongles as plain synchronous links
 } // namespace dect2
+
+// ---- the EEPROM of a dongle for the serial tool (rtl_serial.h)
+#include "dect2/source/rtl_serial.h"
+namespace dect2 {
+namespace {
+struct NativeEepromIo final : RtlEepromIo {
+    native::RtlApi::rtlsdr_dev_t* dev = nullptr;
+    uint16_t vid = 0, pid = 0;
+    bool haveId = false;
+    bool liveUsbId(uint16_t& v, uint16_t& p) override { if (haveId) { v = vid; p = pid; } return haveId; }
+    ~NativeEepromIo() override { if (dev) native::rtl().close(dev); }
+    bool read(uint32_t off, uint8_t* buf, size_t len, std::string& err) override {
+        if (off > 255 || len > 256 - off) { err = "EEPROM range out of bounds"; return false; }
+        const int r = native::rtl().read_eeprom(dev, buf, (uint8_t)off, (uint16_t)len);
+        if (!rtlEepromReadOk(r)) { err = "reading the EEPROM failed (librtlsdr code " + std::to_string(r) + (r == -3 ? ": this dongle has no EEPROM" : "") + ")"; return false; }
+        return true;
+    }
+    bool write(uint32_t off, const uint8_t* buf, size_t len, std::string& err) override {
+        if (off > 255 || len > 256 - off) { err = "EEPROM range out of bounds"; return false; }
+        std::vector<uint8_t> tmp(buf, buf + len);   // librtlsdr takes a non-const pointer
+        const int r = native::rtl().write_eeprom(dev, tmp.data(), (uint8_t)off, (uint16_t)len);
+        if (!rtlEepromWriteOk(r)) { err = "writing the EEPROM failed (librtlsdr code " + std::to_string(r) + ")"; return false; }
+        return true;
+    }
+};
+}  // namespace
+
+// librtlsdr opens a dongle by its position in the USB list, which moves when a dongle is plugged or unplugged. The EEPROM is rewritten, so the position
+// of the listing is only used when the dongle there still has the serial of d and (with a USB port known, or several dongles with that serial) the port.
+bool rtlKnownUsbId(uint16_t vid, uint16_t pid) {
+    for (const auto& id : native::kRtlUsbIds) if (id.first == vid && id.second == pid) return true;
+    return false;
+}
+
+std::unique_ptr<RtlEepromIo> openRtlEepromIo(const DeviceInfo& d, const std::vector<DeviceInfo>& listed, std::string& err) {
+    using namespace native;
+    auto& a = rtl();
+    if (!a.ok) { err = "The RTL-SDR library (librtlsdr) is not available."; return nullptr; }
+    if (!a.read_eeprom || !a.write_eeprom) { err = "This librtlsdr cannot read or write the EEPROM."; return nullptr; }
+    const char* stale = "The radio list changed; rescan and try again.";
+    const uint32_t n = a.get_device_count();
+    // which dongle the index is, from the listing and a descriptor-only USB walk: the other dongles may be streaming in other tabs, and reading
+    // their USB strings would open them. Only the target, which the caller has claimed, is opened (for its strings, then for the EEPROM).
+    const std::vector<std::string> paths = usbPathsInOrder(usbEnumerateFresh(), kRtlUsbIds, n);
+    if (!rtlEepromTargetOk(d, listed, n, paths, err)) return nullptr;
+    const uint32_t idx = (uint32_t)strtoul(d.nativeArgs.c_str(), nullptr, 10);
+    {
+        char vendor[256] = {0}, product[256] = {0}, serial[256] = {0};
+        if (a.get_device_usb_strings(idx, vendor, product, serial) != 0) { err = "The dongle's USB strings cannot be read."; return nullptr; }
+        if (trimmed(serial, sizeof serial) != d.serial) { err = stale; return nullptr; }
+    }
+    auto io = std::make_unique<NativeEepromIo>();
+    const int r = a.open(&io->dev, idx);
+    if (r != 0 || !io->dev) { io->dev = nullptr; err = "RTL-SDR: cannot open the radio: " + native::usbErrorText(r); return nullptr; }
+    // opened by position: a plug or unplug since the checks above would have moved it. Look again before anything is written (the caller also
+    // compares the serial in the EEPROM with the one expected).
+    {
+        char vendor[256] = {0}, product[256] = {0}, serial[256] = {0};
+        const bool same = a.get_device_count() == n && a.get_device_usb_strings(idx, vendor, product, serial) == 0 && trimmed(serial, sizeof serial) == d.serial;
+        const std::vector<std::string> again = usbPathsInOrder(usbEnumerateFresh(), kRtlUsbIds, n);
+        const bool portSame = d.usbPath.empty() ? true : (again.size() == n && again[idx] == d.usbPath);
+        if (!d.usbPath.empty())
+            for (const auto& nd : usbEnumerateFresh()) if (nd.path == d.usbPath) { io->vid = nd.vid; io->pid = nd.pid; io->haveId = true; break; }
+        std::string why;
+        if (!same || !portSame || !rtlEepromTargetOk(d, listed, n, again, why)) { err = stale; return nullptr; }   // (io closes the dongle)
+    }
+    return io;
+}
+}  // namespace dect2
 #include "dect2/df/rtl_group.h"
 namespace dect2 {
 namespace df {

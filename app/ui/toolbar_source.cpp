@@ -79,6 +79,7 @@ void startReceiver(App& a) {
     else {
         if (a.devices[a.devIdx].isAudio() || a.devices[a.devIdx].kind == DeviceInfo::Hamlib) applyAudioSettings(a);
         a.engine.setComputeMode(a.computeMode); a.engine.setStandard(engineStd(a));
+        logRadioStart(a, a.devIdx);
         a.engine.start(a.devices[a.devIdx], a.tune, a.file);
         savePrefs(a);
         a.smooth.clear(); a.peak.clear(); a.lastSeq = 0;
@@ -105,7 +106,7 @@ static std::string mspsText(double hz) {
     if (!s.empty() && s.back() == '.') s.pop_back();
     return s + " Msps";
 }
-static void chooseSampleRate(App& a, double hz) {
+void chooseSampleRate(App& a, double hz) {
     saveSampleRate(a, hz);
     const bool restart = a.engine.running() && a.devices[a.devIdx].isRadio();
     const double old = a.tune.sampleRate;

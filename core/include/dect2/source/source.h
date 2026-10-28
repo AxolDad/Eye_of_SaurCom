@@ -124,6 +124,7 @@ struct DeviceInfo {
     std::string name;   // display name
     std::string serial; // HackRF serial / file path
     std::string board;  // "HackRF One", "HackRF Pro", "airspy", "sdrplay", ...
+    std::string usbPath; // "bus-port.port", empty when unknown
     // generic radios (SoapySDR)
     std::string soapyArgs;     // device arguments, e.g. "driver=airspy,serial=..."
     std::string nativeArgs;    // what the radio's own library wants to open it (index, serial, URI, ...)
@@ -216,7 +217,22 @@ bool soapySupported();
 std::vector<DeviceInfo> listNativeDevices(std::string& err);
 std::unique_ptr<IqSource> makeNativeSource(const DeviceInfo& d);
 // Every radio found: HackRF first, then the native ones, then the SoapySDR ones (a radio found natively is not listed again through SoapySDR).
+// One listing at a time in the whole process (the background watch and a Refresh press can overlap).
 std::vector<DeviceInfo> listRadios(std::string& err);
+// While one of these lives on a thread, listRadios() on that thread does not open a HackRF that is in `inUse` (matched by USB path): its entry is
+// reused as it was. A radio that is streaming must not be touched by a background listing; every other kind's listing already leaves a radio
+// this program has open alone (Airspy, Airspy HF+, Fobos), or reads it from the cache (RTL-SDR's tuner type).
+class RadioListingKnown {
+public:
+    explicit RadioListingKnown(std::vector<DeviceInfo> inUse);
+    ~RadioListingKnown();
+    RadioListingKnown(const RadioListingKnown&) = delete;
+    RadioListingKnown& operator=(const RadioListingKnown&) = delete;
+private:
+    std::vector<DeviceInfo> v_;
+    const std::vector<DeviceInfo>* prev_ = nullptr;
+};
+const DeviceInfo* radioListingKnown(DeviceInfo::Kind kind, const std::string& usbPath);   // nullptr when none (or no USB path)
 std::unique_ptr<IqSource> makeSource(const DeviceInfo& d);
 
 // File format helpers (sidecar-free for now): .cs8 interleaved signed 8-bit IQ, .cu8 unsigned, .cf32 float.

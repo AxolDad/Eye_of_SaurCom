@@ -3,6 +3,7 @@
 #include "plot_util.h"
 #include "tune_drag.h"
 #include "dect2/specan/specan_dsp.h"
+#include "dect2/dsp/span_view.h"
 
 // Click on the spectrum or the waterfall to tune to that frequency (a drag still pans). The grid follows the mode: FM 0.1 MHz, DMR 12.5 kHz, else 1 kHz.
 // The Identify tool: with it on (key I, or the "Identify" button), a click on a signal identifies it and a drag across it identifies what is inside;
@@ -29,6 +30,49 @@ static void identifyPlotInput(App& a, int plotId) {
             else identifyRegion(a, std::min(x0, x1), std::max(x0, x1));
         }
     }
+}
+
+// The Span bar's zoom selection on the spectrum or the waterfall: with its "Zoom to selection" toggle on (it turns itself off after one
+// zoom), or Ctrl held as the shortcut (Cmd on a Mac), a drag across a range zooms to it on release, the range drawn while dragging;
+// Ctrl+double-click fits the view to the signal under the mouse. Shift+drag stays the Identify selection. The wheel keeps zooming.
+static int gSpanDragPlot = -1;
+static double gSpanX0 = 0;
+static bool spanModifier() {
+    const ImGuiIO& io = ImGui::GetIO();
+    return io.KeyCtrl && !io.KeyShift;
+}
+static bool spanSelecting(const App& a) {   // a drag belongs to the zoom selection (and does not pan)
+    return gSpanDragPlot >= 0 || (!a.identifyTool && !ImGui::GetIO().KeyShift && (spanModifier() || spanZoomToolOn()));
+}
+static void spanSelectInput(App& a, int plotId) {
+    const bool hov = plt::IsPlotHovered();
+    const bool armed = !a.identifyTool && !ImGui::GetIO().KeyShift && (spanModifier() || spanZoomToolOn());
+    if (hov && (armed || gSpanDragPlot == plotId)) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+    if (hov && armed && spanModifier() && ImGui::IsMouseDoubleClicked(0)) {
+        gSpanDragPlot = -1;
+        const plt::Rect lim = plt::GetPlotLimits();
+        spanFitSignal(a, plt::GetPlotMousePos().x, (lim.X.Max - lim.X.Min) / std::max(1.f, plt::GetPlotSize().x));
+        return;
+    }
+    if (hov && armed && ImGui::IsMouseClicked(0)) { gSpanDragPlot = plotId; gSpanX0 = plt::GetPlotMousePos().x; }
+    if (gSpanDragPlot != plotId) return;
+    const double x0 = gSpanX0, x1 = plt::GetPlotMousePos().x;
+    if (ImGui::IsMouseDown(0)) {
+        plt::Spec bs; bs.FillColor = ImVec4(0.95f, 0.80f, 0.30f, 0.20f);
+        plt::PlotVBand("##spansel", std::min(x0, x1), std::max(x0, x1), bs);
+        const double ex[2] = {std::min(x0, x1), std::max(x0, x1)};
+        plt::Spec es; es.LineColor = ImVec4(0.95f, 0.80f, 0.30f, 0.8f); es.LineWeight = 1.f;
+        plt::PlotInfLines("##spanseledges", ex, 2, es);
+        ImGui::SetTooltip("%s", (std::string(tr("Zoom to")) + " " + formatSpan(std::fabs(x1 - x0) * 1e6)).c_str());
+        return;
+    }
+    gSpanDragPlot = -1;
+    if (!ImGui::IsMouseReleased(0)) return;   // the button went up while this plot was not drawn: drop the selection
+    const plt::Rect lim = plt::GetPlotLimits();
+    const double perPx = (lim.X.Max - lim.X.Min) / std::max(1.f, plt::GetPlotSize().x);
+    if (std::fabs(x1 - x0) < 4 * perPx) return;   // a click without a drag does nothing (the toggle stays on)
+    spanSetSpan(a, std::fabs(x1 - x0) * 1e6, (x0 + x1) / 2);
+    spanZoomToolOn() = false;   // one zoom, then back to the usual drag
 }
 
 // the "Identify" toggle in the corner of the spectrum, beside the other buttons
@@ -58,6 +102,7 @@ static float identifyButton(App& a, ImVec2 plotMin, ImVec2 plotSize, float right
 
 static void clickToTune(App& a, int plotId) {
     if (autoLabelsHovered()) return;   // the mouse is on a name: it tunes (autolabel.cpp)
+    if (spanSelecting(a)) return;   // Ctrl or the "Zoom to selection" toggle: the Span bar's zoom selection (spanSelectInput)
     if (a.family == 55) { generalPlotMouse(a, plotId); return; }   // the general receiver: its channel marker, without retuning the radio
     if (!plt::IsPlotHovered() || a.fmScan.running) return;
     if (a.identifyTool || ImGui::GetIO().KeyShift) return;   // the Identify tool and Shift+drag select a signal instead of tuning (identifyPlotInput)
@@ -419,6 +464,15 @@ static void syncSpecZoomFromFreqView(App& a) {
     if (gXHi > gXLo) a.specZoom = freqZoomFromSpan(a, gXHi - gXLo);
 }
 
+void specFreqViewSet(App& a, double loMhz, double hiMhz) {
+    specFreqViewUpdate(a);
+    const double span = std::max(kFreqSpanMinMhz, std::min(sampleRateMhz(a), hiMhz - loMhz)), c = (loMhz + hiMhz) * 0.5;
+    gXLo = c - span * 0.5;
+    gXHi = c + span * 0.5;
+    clampFreqViewToBand(a);
+    syncSpecZoomFromFreqView(a);
+}
+
 static bool gFreqZoomSliderActive = false;
 
 static void specFreqZoomBeforePlots(App& a) {
@@ -752,7 +806,7 @@ void specDisplayPopup(App& a) {
             }
             ImGui::EndCombo();
         }
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Bins in the spectrum: more is finer but costs more CPU. Auto follows the sample rate."));
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Bins in the spectrum: more is finer but costs more CPU. Auto follows the sample rate and the zoom: a narrow view gets more bins (up to 65536), so it is sharper."));
     }
     if (ImGui::Checkbox(tr("Grid"), &a.specGrid)) save = true;
     ImGui::Separator();
@@ -861,7 +915,7 @@ static void dragRetune(App& a) {
     static bool dragSaved = true;
     const bool held = ImGui::IsMouseDown(0);
     if (plt::IsPlotHeld() && ImGui::IsMouseDragging(0, 4)) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);   // grabbing
-    else if (plt::IsPlotHovered() && !held && !a.identifyTool && !ImGui::GetIO().KeyShift) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    else if (plt::IsPlotHovered() && !held && !a.identifyTool && !ImGui::GetIO().KeyShift && !spanSelecting(a)) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
     if (!held) { pacer.pending = 0; if (!dragSaved) { dragSaved = true; savePrefs(a); } return; }
     if (a.touchUi || ov == 0 || !a.engine.running() || a.second.drawing) return;
     const bool file = !a.devices.empty() && a.devIdx >= 0 && a.devIdx < (int)a.devices.size() && (a.devices[a.devIdx].kind == DeviceInfo::File || a.devices[a.devIdx].isAudio());
@@ -891,7 +945,7 @@ static void spectrumPlot(App& a, ImVec2 size, int extraFlags) {
     bool drawn = false, openCtx = false;
     double visLo = 0, visHi = 0;
     static double ctxMhz = 0;
-    if (plt::BeginPlot("##spec", size, plt::Flags_NoLegend | plt::Flags_NoTitle | plt::Flags_Overlay | plt::Flags_SmoothZoom | extraFlags | (a.family == 55 && generalDragging(0) ? plt::Flags_NoPan : 0) | (a.identifyTool || ImGui::GetIO().KeyShift ? plt::Flags_NoPan : 0))) {
+    if (plt::BeginPlot("##spec", size, plt::Flags_NoLegend | plt::Flags_NoTitle | plt::Flags_Overlay | plt::Flags_SmoothZoom | extraFlags | (a.family == 55 && generalDragging(0) ? plt::Flags_NoPan : 0) | (a.identifyTool || ImGui::GetIO().KeyShift || spanSelecting(a) ? plt::Flags_NoDragPan : 0))) {
         drawn = true;
         plt::SetupAxes(nullptr, kYLabel, (a.specGrid ? 0 : plt::AxisFlags_NoGridLines), plt::AxisFlags_Inside | (a.specGrid ? 0 : plt::AxisFlags_NoGridLines));   // the frequencies along the bottom edge, inside, as in SDR++
         setupFreqAxis(a);
@@ -987,6 +1041,7 @@ static void spectrumPlot(App& a, ImVec2 size, int extraFlags) {
         autoLabelsDraw(a, 0, plotMin, plotSize, plt::GetPlotLimits().X.Min, plt::GetPlotLimits().X.Max);
         clickToTune(a, 0);
         identifyPlotInput(a, 0);
+        spanSelectInput(a, 0);
         visLo = plt::GetPlotLimits().X.Min; visHi = plt::GetPlotLimits().X.Max;
         specxDrawBookmarks(ImGui::GetWindowDrawList(), visLo * 1e6, visHi * 1e6,
                            plotMin.x, plotMin.x + plotSize.x, plotMin.y, plotMin.y + plotSize.y);
@@ -1010,6 +1065,8 @@ static void spectrumPlot(App& a, ImVec2 size, int extraFlags) {
         if (ImGui::MenuItem(trw("Identify this signal"), nullptr, false, a.engine.running())) identifyAt(a, ctxMhz);
         if (!a.engine.running() && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s", tr("Start the receiver first"));
         if (ImGui::MenuItem(trw("Identify all signals"), nullptr, false, a.engine.running())) identifyAll(a);
+        ImGui::Separator();
+        spanContextItems(a, ctxMhz);
         ImGui::EndPopup();
     }
 }
@@ -1064,7 +1121,7 @@ static void waterfallPlot(App& a, ImVec2 size, int extraFlags) {
     }
     ImVec2 plotMin, plotSize;
     bool drawn = false;
-    if (plt::BeginPlot("##wf", size, plt::Flags_NoLegend | plt::Flags_NoTitle | plt::Flags_Overlay | plt::Flags_SmoothZoom | extraFlags | (a.family == 55 && generalDragging(1) ? plt::Flags_NoPan : 0) | (a.identifyTool || ImGui::GetIO().KeyShift ? plt::Flags_NoPan : 0))) {
+    if (plt::BeginPlot("##wf", size, plt::Flags_NoLegend | plt::Flags_NoTitle | plt::Flags_Overlay | plt::Flags_SmoothZoom | extraFlags | (a.family == 55 && generalDragging(1) ? plt::Flags_NoPan : 0) | (a.identifyTool || ImGui::GetIO().KeyShift || spanSelecting(a) ? plt::Flags_NoDragPan : 0))) {
         drawn = true;
         plt::SetupAxes(nullptr, tr("seconds ago"), plt::AxisFlags_NoTickLabels | (a.specGrid ? 0 : plt::AxisFlags_NoGridLines), plt::AxisFlags_Inside | (a.specGrid ? 0 : plt::AxisFlags_NoGridLines));   // the spectrum above shows the frequencies
         double fs = (a.engine.sampleRate() > 0 ? a.engine.sampleRate() : a.tune.sampleRate) / 1e6;
@@ -1085,21 +1142,28 @@ static void waterfallPlot(App& a, ImVec2 size, int extraFlags) {
         const ImVec2 psz = plt::GetPlotSize();   // first: it finishes the setup, after which the limits are this frame's
         const plt::Rect vis = plt::GetPlotLimits();
         const ImVec2 fbs = ImGui::GetIO().DisplayFramebufferScale;
-        const int W = Waterfall::W;
-        const int c0 = (int)std::floor((vis.X.Min - x0) / (x1 - x0) * W), c1 = (int)std::ceil((vis.X.Max - x0) / (x1 - x0) * W);
-        const int k = plt::WfView::groupRows(vis.Y.Max - vis.Y.Min, psz.y * std::max(1.f, fbs.y), H);
+        const int W = Waterfall::W;   // the texture's width, and the columns of the usual history
+        a.wf.keepFine = true;   // this is the main waterfall: keep the full-FFT history for a narrow view
+        const int pxW = std::max(1, std::min(W - 1, (int)(psz.x * std::max(1.f, fbs.x))));
+        int c0 = (int)std::floor((vis.X.Min - x0) / (x1 - x0) * W), c1 = (int)std::ceil((vis.X.Max - x0) / (x1 - x0) * W);
+        // zoomed in past what the W columns resolve (fewer of them in view than the plot has pixels) and the FFT is wider: the full-FFT
+        // history, so a narrow view is sharper, not only magnified. A wide view stays on the W columns (the same cost as before).
+        const bool fine = a.wf.fineW > W && a.wf.fineFilled > 0 && c1 - c0 < pxW;
+        const int LW = fine ? a.wf.fineW : W, LH = fine ? a.wf.fineH : H;
+        if (fine) { c0 = (int)std::floor((vis.X.Min - x0) / (x1 - x0) * LW); c1 = (int)std::ceil((vis.X.Max - x0) / (x1 - x0) * LW); }
+        const int k = plt::WfView::groupRows(vis.Y.Max - vis.Y.Min, psz.y * std::max(1.f, fbs.y), LH);
         if (!a.wf.viewImg && gGfx) a.wf.viewImg = gGfx->createImage(W, H, 0xFF000000u);
         bool full = false;
         static std::vector<int> dirty;
         plt::WfView& v = a.wf.view;
-        if (a.wf.viewImg && a.wf.view.update(a.wf.lv.data(), W, H, a.wf.writeRow, a.wf.rows - 1, a.wf.filled, a.wf.lut, a.wf.lutGen,
-                                              c0, c1, std::max(1, (int)(psz.x * std::max(1.f, fbs.x))), k, full, dirty)) {
+        if (a.wf.viewImg && a.wf.view.update(fine ? a.wf.lvFine.data() : a.wf.lv.data(), LW, LH, fine ? a.wf.fineWr : a.wf.writeRow, a.wf.rows - 1,
+                                              fine ? a.wf.fineFilled : a.wf.filled, a.wf.lut, a.wf.lutGen, c0, c1, pxW, k, full, dirty)) {
             if (full) a.wf.viewImg->update(0, 0, v.stride, v.rowsAlloc, v.px.data());
             else for (int r : dirty) a.wf.viewImg->update(0, r, v.stride, 1, v.px.data() + (size_t)r * v.stride);
         }
         if (a.wf.viewImg && v.cols > 0 && a.wf.rows > 0) {
             ImTextureID tex = a.wf.viewImg->texture();
-            const double vx0 = x0 + (x1 - x0) * v.c0 / W, vx1 = x0 + (x1 - x0) * v.c1 / W;
+            const double vx0 = x0 + (x1 - x0) * v.c0 / v.srcW, vx1 = x0 + (x1 - x0) * v.c1 / v.srcW;
             const float u1 = (float)v.cols / W;
             const long long R = a.wf.rows - 1, gN = R / v.k;
             const int w = v.rowOf(gN);
@@ -1117,6 +1181,7 @@ static void waterfallPlot(App& a, ImVec2 size, int extraFlags) {
         autoLabelsDraw(a, 1, plotMin, plotSize, plt::GetPlotLimits().X.Min, plt::GetPlotLimits().X.Max);
         clickToTune(a, 1);
         identifyPlotInput(a, 1);
+        spanSelectInput(a, 1);
         plt::EndPlot();
     }
     if (drawn) cornerPopup(a, a.wf.paused ? "Paused###wfbtn" : "Waterfall###wfbtn", "##wfpop", plotMin, plotSize, 0, 40 * gUi, ImGui::GetTextLineHeight() + 6 * gUi, a.wf.paused,
@@ -1127,10 +1192,13 @@ static void waterfallPlot(App& a, ImVec2 size, int extraFlags) {
 // frac: the spectrum's share of the height; with drag set, the boundary line is a handle that changes it.
 void spectrumWaterfall(App& a, float& frac, bool drag) {
     const double tPlot0 = glfwGetTime();
-    const ImVec2 p = ImGui::GetCursorScreenPos();
+    ImVec2 p = ImGui::GetCursorScreenPos();
     const ImVec2 avail = ImGui::GetContentRegionAvail();
     const float sliderCol = std::min(52.f * gUi, std::max(0.f, avail.x - 60.f));
-    const float w = std::max(60.f, avail.x - sliderCol), h = avail.y;
+    const float barH = avail.y > 200 * gUi ? spanBarHeight() : 0;   // the Span bar, above everything (left out in a very short panel)
+    if (barH > 0) spanBar(a, p, avail.x);
+    p.y += barH;
+    const float w = std::max(60.f, avail.x - sliderCol), h = avail.y - barH;
     const float stripH = bandPlanStripHeight();
     const float hs = std::floor(std::min(std::max(60.f + stripH, h * frac), std::max(60.f + stripH, h - 60.f)));
     const float y = p.y + hs;

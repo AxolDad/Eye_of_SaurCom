@@ -267,6 +267,7 @@ static void hiddenPopOut(App& a) {
 
 void drawUI(App& a, ImVec2 disp, bool draw) {
     tickReceiver(a);
+    spanTick(a);   // the Span bar's automatic FFT size, also for a receiver whose tab is not shown (it goes back to the engine's own)
     if (!draw) return;   // a receiver whose tab is not shown: ticked above, not drawn
     videoOnlyKeys(a);
     if (a.videoOnly) { videoOnlyWindow(a, disp); return; }

@@ -27,6 +27,7 @@ std::unique_ptr<IqSource> makeRfnm(const DeviceInfo& d);
 std::vector<DeviceInfo> listNativeDevices(std::string& err) {
     std::vector<DeviceInfo> out;
     if (native::nativeDisabled()) return out;
+    UsbWalkScope usbWalk;   // one USB walk for the whole listing
     try {
         native::listRtl(out);
         native::listAirspy(out);

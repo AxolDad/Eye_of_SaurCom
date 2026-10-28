@@ -1,6 +1,9 @@
 // Several receivers at once: see receivers.h and docs/multi-sdr.md.
 #include "receivers.h"
 #include "rxbar.h"
+#include "radio_watch.h"
+#include "../ui/rtl_serial_ui.h"
+#include "../ui/notices.h"
 #include "adsb/adsb_acars.h"
 #include "transcribe/transcribe_app.h"
 #include "dect2/engine/device_claims.h"
@@ -76,9 +79,9 @@ App* create(int id) {
     {   // the radio it had, else the first one nobody has, else the test signal
         int pick = 0;
         PrefScope ps(id);
-        const std::string name = plat::prefs().getS("devName", "");
-        for (int i = 2; i < (int)a.devices.size() && pick == 0; i++)
-            if (!name.empty() && a.devices[i].name == name && !deviceHolder(a.devices[i])) pick = i;
+        const std::string name = plat::prefs().getS("devName", ""), key = plat::prefs().getS("devKey", "");
+        const int saved = findRadio(a, key, name);   // by key first, then by the internal name
+        if (saved >= 2 && !deviceHolder(a.devices[saved])) pick = saved;
         for (int i = 2; i < (int)a.devices.size() && pick == 0; i++)
             if (a.devices[i].isRadio() && !deviceHolder(a.devices[i])) pick = i;
         a.devIdx = pick;
@@ -229,7 +232,7 @@ void strip(App& first, ImVec2 disp, float h) {
                 ImGui::BeginTooltip();
                 ImGui::Text("RX %d: %s, %.3f MHz", r->rxId, modeName(*r), r->freqMhz);
                 ImGui::TextColored(run ? pal::okGreen() : grey, "%s", run ? tr("Receiving") : tr("Stopped"));
-                if (di) ImGui::Text(tr("Radio: %s"), di->name.c_str());
+                if (di) ImGui::Text(tr("Radio: %s"), radioShownName(*r, r->devIdx).c_str());
                 ImGui::EndTooltip();
             }
         }
@@ -295,6 +298,22 @@ App* addReceiver() {
     return nullptr;
 }
 
+App* receiverSelected() { return receiverById(gSel); }
+
+App* addReceiverWithRadio(const std::string& key, const std::string& name, std::string* why) {
+    App* n = addReceiver();
+    if (!n) { if (why) *why = tr("The most receivers are open."); return nullptr; }
+    const int idx = findRadio(*n, key, name);
+    if (idx < 2) { if (why) *why = tr("That radio is no longer in the list."); return n; }
+    if (const int held = deviceHolder(n->devices[idx])) {
+        if (why) *why = std::string(tr("That radio is in use by ")) + deviceHolderText(held) + ".";
+        return n;
+    }
+    n->devIdx = idx;
+    n->tune.biasTee = false;
+    return n;
+}
+
 void closeReceiver(int id) {
     if (id >= 2) gCloseQ.push_back(id);
 }
@@ -347,9 +366,14 @@ void receiversFrame(App& first, ImVec2 disp) {
     drawWarning(first);
     acarslog::tick(first);
     tx::tick(first);
+    rtlSerialTick();
+    radioWatchTick(first);       // plugged-in radios: the New radio notice and Find this radio (a poll on a worker thread, results picked up here)
+    noticesDraw(h);
 }
 
 void receiversShutdown(App& first) {
+    rtlSerialShutdown();    // a running EEPROM write finishes first
+    radioWatchShutdown();   // before the engines and the radio libraries go
     tx::shutdown();
     for (int id = 2; id <= kMaxReceivers; id++) if (App* r = gExtra[id - 2].get()) {
         { PrefScope ps(id); savePrefs(*r); }

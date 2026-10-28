@@ -156,6 +156,7 @@ void scanTabCommon(App& a) {
                 for (int k = 0; k < (int)(sizeof(kBw) / sizeof(kBw[0])); k++) if (kBw[k].mhz == r.bwMhz) a.bwIdx = k;
                 a.tune.centerHz = a.freqMhz * 1e6; applyBandwidth(a);
                 a.engine.setComputeMode(a.computeMode); a.engine.setStandard(engineStd(a));
+                logRadioStart(a, hw);
                 a.engine.start(a.devices[hw], a.tune, a.file);
                 a.devIdx = hw; a.smooth.clear(); a.peak.clear(); a.lastSeq = 0; savePrefs(a);
             }

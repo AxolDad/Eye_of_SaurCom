@@ -38,6 +38,7 @@ inline bool rx888ProductIsMk2(const std::string& product) { return product.find(
 struct Rx888UsbDevice {
     uint16_t vid = 0, pid = 0;
     int bus = 0, address = 0;
+    std::string usbPath;                         // "<bus>-<port>.<port>", empty when libusb cannot say
     std::string manufacturer, product, serial;   // app mode only (the boot loader has none)
     // 0: the name was read (a boot loader has nothing to read). Otherwise the libusb error from opening the device to read it.
     // An application-mode FX3 that could not be opened is still listed, so a radio that just re-enumerated is not invisible.

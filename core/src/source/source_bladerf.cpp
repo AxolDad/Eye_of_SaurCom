@@ -285,7 +285,10 @@ void listBlade(std::vector<DeviceInfo>& out) {
     BladeApi::devinfo_t* list = nullptr;
     const int n = blade().get_device_list(&list);
     if (n <= 0 || !list) return;
+    std::vector<UsbNode> usbNodes;
+    if (n > 0) usbNodes = usbEnumerate();
     for (int i = 0; i < n && i < 16; i++) {
+        const std::string usbPath = usbPathByBusAddress(usbNodes, list[i].usb_bus, list[i].usb_addr);   // libbladeRF reports the bus and address
         const std::string serial = trimmed(list[i].serial, sizeof list[i].serial);
         const std::string prod = trimmed(list[i].product, sizeof list[i].product);
         // one entry per receive input on the bladeRF 2.0 (RX1, RX2), so the user picks the one the antenna is on (the first is what Eye of SaurCom
@@ -296,6 +299,7 @@ void listBlade(std::vector<DeviceInfo>& out) {
         d.kind = DeviceInfo::Native;
         d.board = "bladerf";
         d.serial = serial;
+        d.usbPath = usbPath;
         d.nativeArgs = two ? serial + "#" + std::to_string(port) : serial;
         d.name = (prod.empty() ? "bladeRF" : prod) + (d.serial.size() > 8 ? " " + d.serial.substr(d.serial.size() - 8) : "") + (two ? (port ? " RX2" : " RX1") : "") + " (native, experimental)";
         d.maxRateHz = 61.44e6; d.minRateHz = 0.52e6;
