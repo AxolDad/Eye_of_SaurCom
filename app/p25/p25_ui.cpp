@@ -424,6 +424,11 @@ void followView(App& a) {
     if (si.valid) kvRow(a, "site", "WACN %05X system %03X RFSS %d site %d NAC %03X", si.wacn < 0 ? 0 : si.wacn, si.sysId < 0 ? 0 : si.sysId, si.rfss, si.site, si.nac < 0 ? 0 : si.nac);
     if (wideActive(a)) ImGui::TextDisabled("wide capture: calls inside the span are followed by the carrier decoders (up to %d at once)", T.ctl.follower.config().maxSlices);
     else ImGui::TextDisabled("single channel: the radio leaves the control channel for each call (turn on whole-span decoding to follow inside the capture)");
+    // asked for often with several radios attached: say plainly what works today (docs/trunking.md, "Several radios")
+    ImGui::PushTextWrapPos(0);
+    ImGui::TextDisabled("%s", tr("Voice on a second radio is not supported yet: this receiver follows calls with its own radio. "
+                                 "With a wide-band radio (HackRF), turn on whole-span decoding so the control channel and the voice channels are received together."));
+    ImGui::PopTextWrapPos();
     FollowConfig fc = T.ctl.follower.config();
     ImGui::SetNextItemWidth(110 * gUi); bool ch = ImGui::SliderInt("simultaneous calls", &fc.maxSlices, 1, 4);
     ImGui::SameLine(0, 10 * gUi); ImGui::SetNextItemWidth(110 * gUi); ch |= ImGui::SliderFloat("hang time s", &S.hang, 0.5f, 6.f, "%.1f");

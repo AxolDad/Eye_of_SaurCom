@@ -25,6 +25,14 @@ Voice sound needs the user-installed vocoder add-on (see [CODECS.md](CODECS.md))
 
 Import reads the header row, case-insensitive, any column order: `Decimal` (also `DEC`, `TGID`, `Talkgroup`), `Hex`, `Alpha Tag` (`Name`), `Mode` (D, DE, T, A), `Description`, `Tag`, `Category` (`Group`), and the Eye of SaurCom extras `Priority`, `Lockout`, `List`, `Listen`. The usual RadioReference-style export (Decimal, Hex, Alpha Tag, Mode, Description, Tag, Category) imports as it is; without a header that order is assumed. Quoted fields, doubled quotes, LF/CRLF and a UTF-8 BOM are accepted. A row without a valid number (1 to 65535) is skipped and counted. Eye of SaurCom downloads no data: you bring the file.
 
+## Several radios
+
+The follower runs inside one receiver and uses that receiver's radio only. A second radio for the voice channels (control channel on one
+radio, voice on another) is not supported yet: the follower's retune and slice actions go to its own engine, and a second receiver tab
+cannot run P25, DMR or NXDN at the same time as the first (the mode screens keep one shared state, see multi-sdr.md). With a wide-band radio
+(HackRF, 8 to 20 Msps) turn on whole-span decoding: every voice channel inside the capture is followed without leaving the control channel.
+Extra radios can run other modes in their own receiver tabs meanwhile.
+
 ## Honest scope
 
 - **P25 Phase 1 control channel**: implemented and tested with synthetic signals (through the real C4FM receiver, and as message logic). Not tested on a real system.
