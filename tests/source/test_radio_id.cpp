@@ -223,5 +223,59 @@ int main() {
         for (size_t i = 0; same && i < a.size(); i++) same = a[i].bus == b[i].bus && a[i].address == b[i].address && a[i].path == b[i].path;
         CHECK(same, "same snapshot in one scope");
     }
+    // a name from the user: control characters and newlines go, the ends are trimmed, text and UTF-8 stay
+    {
+        CHECK(cleanRadioName("Bench\nRTL\t1\r") == "BenchRTL1", "controls stripped: %s", cleanRadioName("Bench\nRTL\t1\r").c_str());
+        CHECK(cleanRadioName("  Roof  ") == "Roof", "trimmed");
+        CHECK(cleanRadioName(std::string("a\x01" "b\x7f" "c")) == "abc", "DEL and low controls");
+        CHECK(cleanRadioName("Ant\xC2\x85" "enna") == "Antenna", "C1 control (NEL) stripped");
+        CHECK(cleanRadioName("Ma\xC3\xAD" "n %s %n ##x") == "Ma\xC3\xAD" "n %s %n ##x", "text kept as it is (the shower escapes it)");
+        CHECK(cleanRadioName("\n\t ").empty(), "only controls gives empty");
+    }
+    // a second radio with the same serial turns sn: keys into usb: keys; the label of the first one follows to a usb: key (once)
+    {
+        RadioLabels L;
+        const std::string snKey = radioKey(rtl("A1B2C3", "1-1"));
+        L.set(snKey, "Roof");
+        // one radio: nothing to move
+        auto one = identifyRadios({rtl("A1B2C3", "1-1")}, L);
+        CHECK(!migrateLabels(one, L) && one[0].label == "Roof", "unique radio keeps its label, no change");
+        // two radios, same serial: the label moves to exactly one usb: key
+        auto two = identifyRadios({rtl("A1B2C3", "1-2"), rtl("A1B2C3", "1-1")}, L);
+        CHECK(two[0].key.find(":usb:") != std::string::npos && two[0].label.empty() && two[1].label.empty(), "usb keys, no label yet");
+        CHECK(migrateLabels(two, L), "migration reports a change");
+        int named = 0; for (auto& r : two) if (r.label == "Roof") named++;
+        CHECK(named == 1, "exactly one radio got the label: %d", named);
+        CHECK(two[1].label == "Roof", "the lowest USB path (#1) gets it");
+        CHECK(L.get(two[1].key) == "Roof" && L.get(two[0].key).empty(), "stored under the usb key");
+        CHECK(L.get(snKey) == "Roof", "the old sn: label stays for when the second radio goes");
+        // second call and a rebuilt list: no change, the other radio is not named too
+        CHECK(!migrateLabels(two, L), "idempotent");
+        auto again = identifyRadios({rtl("A1B2C3", "1-2"), rtl("A1B2C3", "1-1")}, L);
+        CHECK(!migrateLabels(again, L), "rebuilt list: no change");
+        CHECK(again[0].label.empty() && again[1].label == "Roof", "still one name");
+        // a radio that already has its own label is not touched; other kinds/boards/serials do not borrow
+        RadioLabels M;
+        M.set(radioKey(rtl("ZZ", "1-1")), "Other");
+        auto r3 = identifyRadios({rtl("A1B2C3", "1-1"), rtl("A1B2C3", "1-2")}, M);
+        CHECK(!migrateLabels(r3, M), "no label under this serial: nothing");
+        // a factory-serial radio never had an sn: key
+        RadioLabels F;
+        F.set(std::to_string((int)DeviceInfo::Native) + ":rtlsdr:sn:00000001", "stale");
+        auto r4 = identifyRadios({rtl("00000001", "1-1"), rtl("00000001", "1-2")}, F);
+        CHECK(!migrateLabels(r4, F), "factory serial: no migration");
+    }
+    // identifySources: one row per entry, only radios get keys and numbers (a sound card or the test signal keeps its own name), labels migrate
+    {
+        DeviceInfo syn; syn.kind = DeviceInfo::Synthetic; syn.name = "Test signal";
+        DeviceInfo snd; snd.kind = DeviceInfo::Audio; snd.name = "USB Audio";
+        RadioLabels L;
+        L.set(radioKey(rtl("A1B2C3", "1-1")), "Roof");
+        bool moved = false;
+        auto rows = identifySources({syn, snd, snd, rtl("A1B2C3", "1-2"), rtl("A1B2C3", "1-1")}, L, &moved);
+        CHECK(rows.size() == 5 && rows[0].key.empty() && rows[1].key.empty() && rows[1].dupIndex == 0 && rows[2].dupIndex == 0, "non-radios: no key, no number");
+        CHECK(rows[3].dupIndex == 2 && rows[4].dupIndex == 1 && rows[4].label == "Roof" && moved, "radios numbered and the label moved");
+        CHECK(rows[0].dev.name == "Test signal" && rows[4].dev.usbPath == "1-1", "rows keep their devices in order");
+    }
     return testSummary("radio_id");
 }

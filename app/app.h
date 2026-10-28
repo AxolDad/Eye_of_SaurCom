@@ -25,6 +25,7 @@
 #include "dect2/net/netradio.h"
 #include "dect2/net/kiwisdr.h"
 #include "dect2/source/hamlib_rig.h"
+#include "dect2/source/radio_id.h"
 #include "dect2/source/rig_setup.h"
 #include "platform/airplay.h"
 #include "dect2/common/timecompat.h"
@@ -315,6 +316,8 @@ struct App {
     int playReq = -1;
     int dabStation = -1;      // --station: DAB sub-channel to play on start (testing)
     std::vector<DeviceInfo> devices; // [0]=synthetic, [1]=file, then sound cards, then radios
+    mutable std::vector<dect2::RadioRow> radioRows;   // one per entry of devices: key, the user's name, #n (state/radio_names.h; a cache, rebuilt by radioRow())
+    mutable unsigned radioRowsGen = 0;
     // radios on the network the user added (prefs "netRadios"; listed by refreshDevices) and the "Add network radio" window
     std::vector<NetRadio> netRadios;
     std::vector<std::string> hiddenRadios;   // prefs "hiddenRadios": radios the user hid from the list (by name)
@@ -1114,6 +1117,7 @@ bool writeZipFile(const std::string& path, const std::vector<std::pair<std::stri
 void radioMessagesUi(App& a, bool vertical);
 // radio_ui.cpp: the "Radio settings" of the selected radio (only the ones it has): a collapsible section in a side panel (vertical), a
 // button with a popup in a one-line bar. A change reaches a running radio at once (a retune, or a restart for one that takes effect at open)
+#include "state/radio_names.h"   // radioRow(), radioShownName(), findRadio(): the user's radio names (needs App above)
 void radioSettingsUi(App& a, bool vertical);
 // subs_ui.cpp: DVB subtitles and teletext subtitle pages over the picture, the language choice, the teletext page drawing
 void subsUpdate(App& a);                  // every frame: the subtitle services of the playing programme, decoder PIDs, the overlay bitmap

@@ -45,6 +45,21 @@ std::vector<RadioRow> identifyRadios(const std::vector<DeviceInfo>& devs, const 
 // A label is shown as it is: the user chose it to tell the radios apart.
 std::string radioDisplayName(const RadioRow& r);
 
+// A radio's key flips from "sn:<serial>" to "usb:<path>" when a second radio with that serial appears. For rows that have a usb: key and no
+// label, while a label exists under the "sn:" key of the same kind, board and serial, that label is copied to the usb: key of one radio (the
+// lowest dupIndex, then the lowest USB path), saved in labels (the caller saves the file) and set on the row. The sn: label is kept, so the
+// name is back when the second radio goes. A group where any radio already has a label is left alone, so this does nothing the second time.
+// Returns true when it changed anything.
+bool migrateLabels(std::vector<RadioRow>& rows, RadioLabels& labels);
+
+// A name typed by the user, made safe to store and show: control characters (newlines, tabs, DEL, C1 controls) are dropped and the ends
+// are trimmed. Other text, UTF-8 included, is kept as it is; it must still only ever be shown as text, never as a format string.
+std::string cleanRadioName(const std::string& s);
+
+// identifyRadios over a whole source list (test signal, file, sound cards, radios): one row per entry in the same order. Only entries that
+// are radios get a key, a number and a label; the rest keep their own name. Runs migrateLabels (labels change; *migrated says whether).
+std::vector<RadioRow> identifySources(const std::vector<DeviceInfo>& devs, RadioLabels& labels, bool* migrated = nullptr);
+
 struct RadioDiff { std::vector<DeviceInfo> added, removed; };
 // Radios are matched by their key as identifyRadios() gives it (so identical-serial radios on different ports differ).
 RadioDiff diffRadios(const std::vector<DeviceInfo>& before, const std::vector<DeviceInfo>& after);

@@ -1,6 +1,7 @@
 // The File menu part of workspaces (save, load, delete) and the two dialogs: the save name and "Restore last session?".
 // The logic is in workspace.cpp. English text only.
 #include "workspace.h"
+#include "radio_names.h"
 #include "imgui.h"
 #include <cstdio>
 #include <cstring>
@@ -119,7 +120,9 @@ void workspaceDialogs(App& a) {
         if (!workspaceRestorePending()) { ImGui::CloseCurrentPopup(); ImGui::EndPopup(); return; }
         const Workspace& w = workspaceRecovered();
         ImGui::TextUnformatted("Eye of SaurCom did not close cleanly last time.");
-        ImGui::Text("Last session: %s, %.3f MHz", w.devName.empty() ? "no radio" : w.devName.c_str(), w.freqMhz);
+        std::string radio = w.devName.empty() ? std::string("no radio") : w.devName;
+        if (!w.devName.empty() && !radionames::labelFor(w.devKey).empty()) radio = radionames::labelFor(w.devKey);   // the user's name for it
+        ImGui::Text("Last session: %s, %.3f MHz", radio.c_str(), w.freqMhz);
         if (!w.panels.empty()) ImGui::Text("Windows open: %s", w.panels.c_str());
         ImGui::TextUnformatted("Restore last session? The settings come back; press Start to listen again.");
         ImGui::TextDisabled("Enter: Restore   Esc: Start fresh");

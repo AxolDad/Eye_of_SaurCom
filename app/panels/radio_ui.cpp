@@ -2,6 +2,7 @@
 // correction, direct sampling, notch filters, gain modes, ...), only those the selected radio has. The values live in a.tune.radio, are
 // saved per radio (app_state.cpp: syncRadioSettings / saveRadioSettings) and reach a running radio at once (a retune); one that takes
 // effect when the radio is opened restarts a running receiver. A value set back to its default is dropped, so the driver does what it always did.
+#include "../ui/radio_name_ui.h"
 #include "../app.h"
 #include "dect2/source/converter.h"
 #include "dect2/selfcal/selfcal.h"
@@ -311,6 +312,7 @@ void radioSettingsUi(App& a, bool vertical) {
         open = ImGui::BeginPopup("##radiosetpop");
     }
     if (!open) return;
+    radioNameField(a, vertical);
     bool restart = false, retune = false;
     for (const auto& r : d.settings) {
         auto it = a.tune.radio.find(r.key);

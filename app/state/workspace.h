@@ -9,7 +9,8 @@
 
 struct Workspace {
     std::string name;
-    std::string devName;      // the radio's name, matched again at the start; empty when none
+    std::string devName;      // the radio's internal name (not the display name), matched again at the start; empty when none
+    std::string devKey;       // the radio's key (serial or USB port), tried before the name; empty when none or from an older version
     int family = 0;
     std::string subId;        // the protocol entry's id, empty for none
     double freqMhz = 0;

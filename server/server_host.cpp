@@ -12,6 +12,7 @@
 #include "dect2/source/agc.h"
 #include "dect2/source/gain.h"
 #include "dect2/source/iq_file.h"
+#include "dect2/source/radio_id.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -42,6 +43,22 @@ static const char* demodName(int d) {
 static int demodFromName(const std::string& s) {
     return s == "usb" ? 0 : s == "lsb" ? 1 : s == "nfm" ? 2 : s == "am" ? 3 : s == "auto" ? 4 : -1;
 }
+
+namespace {
+// <data folder>/radios/names.json, the folder the desktop app uses (plat::dataDir(): DECT2_DATA_DIR, %LOCALAPPDATA%\SaurCom, $XDG_DATA_HOME/saurcom or ~/.local/share/saurcom)
+std::string radioNamesPath() {
+    std::string d;
+    if (const char* o = getenv("DECT2_DATA_DIR"); o && *o) d = o;
+#ifdef _WIN32
+    else if (const char* la = getenv("LOCALAPPDATA")) d = std::string(la) + "\\SaurCom";
+#else
+    else if (const char* x = getenv("XDG_DATA_HOME"); x && *x) d = std::string(x) + "/saurcom";
+    else if (const char* h = getenv("HOME")) d = std::string(h) + "/.local/share/saurcom";
+    else d = "/tmp/saurcom";
+#endif
+    return d + "/radios/names.json";
+}
+}  // namespace
 
 ServerHost::ServerHost(ConfigFile& cfg) : cfg_(cfg) {
     // No sound from the machine itself: the sound goes to the browser. Everything the command line (dect2cli) silences is silenced here too.
@@ -361,12 +378,19 @@ std::string ServerHost::statusJson() {
 std::string ServerHost::devicesJson() {
     std::lock_guard<std::mutex> lk(mu_);
     refreshDevices(false);
+    { std::string lerr; labels_.load(radioNamesPath(), lerr); }   // missing or damaged: no names (the desktop app is the one that writes the file)
+    const std::vector<RadioRow> rows = identifySources(devices_, labels_);   // the labels are only read here; this server never writes names.json
     std::string o = "[";
     for (size_t i = 0; i < devices_.size(); i++) {
         const DeviceInfo& d = devices_[i];
         if (i) o += ',';
         o += "{\"index\":" + std::to_string(i) + ",\"name\":\"" + jsonEscape(d.name) + "\",\"kind\":\"" + kindName(d.kind) + "\",\"board\":\"" + jsonEscape(d.board) + "\"";
         if (d.kind != DeviceInfo::File) o += ",\"serial\":\"" + jsonEscape(d.serial) + "\"";
+        if (d.isRadio()) {   // the same identity fields as the desktop app's API: the user's name (from names.json, read only), USB port, #n among look-alikes
+            const RadioRow& rr = rows[i];
+            o += ",\"label\":\"" + jsonEscape(rr.label) + "\",\"usb\":\"" + jsonEscape(d.usbPath) + "\",\"dup\":" + std::to_string(rr.dupIndex) +
+                 ",\"display\":\"" + jsonEscape(radioDisplayName(rr)) + "\"";
+        }
         o += ",\"minRateHz\":" + jsonNum(d.minRateHz) + ",\"maxRateHz\":" + jsonNum(d.maxRateHz) + ",\"gainMinDb\":" + jsonNum(d.gainMinDb) + ",\"gainMaxDb\":" + jsonNum(d.gainMaxDb) +
              ",\"minFreqHz\":" + jsonNum(d.minFreqHz) + ",\"maxFreqHz\":" + jsonNum(d.maxFreqHz) + ",\"selected\":" + (devIdx_ == (int)i ? "true" : "false") + "}";
     }

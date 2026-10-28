@@ -126,7 +126,7 @@ void listenWizard(App& a, ImVec2 disp) {
         for (int i = 0; i < (int)a.devices.size(); i++) {
             if (!listenSource(a.devices[i])) continue;
             if (a.devices[i].isRadio()) radios++;
-            if (ImGui::RadioButton((a.devices[i].name + "##s" + std::to_string(i)).c_str(), gDev == i)) gDev = i;
+            if (ImGui::RadioButton((radioShownName(a, i) + "##s" + std::to_string(i)).c_str(), gDev == i)) gDev = i;
         }
         // an IQ recording: choose it here, or the start would have nothing to play
         if (gDev >= 0 && gDev < (int)a.devices.size() && a.devices[gDev].kind == DeviceInfo::File) {

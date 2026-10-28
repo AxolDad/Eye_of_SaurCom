@@ -144,7 +144,7 @@ void setupWizard(App& a, ImVec2 disp) {
         if (!radios && (a.devIdx < 0 || a.devIdx >= (int)a.devices.size() || !a.devices[a.devIdx].isRadio())) a.devIdx = 0;
         for (int i = 0; i < (int)a.devices.size(); i++) {
             if (!(a.devices[i].isRadio() || a.devices[i].kind == DeviceInfo::Synthetic)) continue;
-            if (ImGui::RadioButton((a.devices[i].name + "##r" + std::to_string(i)).c_str(), a.devIdx == i)) a.devIdx = i;
+            if (ImGui::RadioButton((radioShownName(a, i) + "##r" + std::to_string(i)).c_str(), a.devIdx == i)) a.devIdx = i;
         }
         if (!radios) {
             ImGui::TextColored(pal::warnAmber(), "%s", tr("No radio found"));

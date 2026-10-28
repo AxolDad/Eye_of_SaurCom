@@ -3,6 +3,8 @@
 // The source, rig windows, status bar and mode selection are in toolbar_source.cpp, toolbar_rig.cpp, statusbar.cpp and mode_select.cpp.
 #include "../app.h"
 #include "touch.h"
+#include "radio_name_ui.h"
+#include "../state/radio_names.h"
 #include "dect2/engine/rate_choice.h"
 #include "dect2/engine/click_tune.h"
 #include "dect2/source/antenna_ports.h"
@@ -21,8 +23,10 @@
 static void toolbarSource(App& a, bool vertical, bool running) {
     ImGui::TextDisabled("%s", tr("SRC")); ImGui::SameLine(0, 5 * gUi);
     // in the side panel the box takes the width left by the refresh button; a long name is cut short with "...", whole on hover
-    const float srcW = vertical ? std::max(90.f * gUi, ImGui::GetContentRegionAvail().x - ImGui::GetFrameHeight() - 2 * ImGui::GetStyle().ItemSpacing.x) : 190 * gUi;
-    const std::string srcName = ellipsize(a.devices[a.devIdx].name, srcW - ImGui::GetFrameHeight() - 2 * ImGui::GetStyle().FramePadding.x);
+    const float srcW = vertical ? std::max(90.f * gUi, ImGui::GetContentRegionAvail().x - ImGui::GetFrameHeight() - 2 * ImGui::GetStyle().ItemSpacing.x -
+        (a.devices[a.devIdx].isRadio() ? ImGui::CalcTextSize("Aa").x + 2 * ImGui::GetStyle().FramePadding.x + ImGui::GetStyle().ItemSpacing.x : 0.f)) : 190 * gUi;
+    const std::string srcFull = radioShownName(a, a.devIdx);   // the user's name for the radio, else name, serial and USB port
+    const std::string srcName = ellipsize(srcFull, srcW - ImGui::GetFrameHeight() - 2 * ImGui::GetStyle().FramePadding.x);
     ImGui::SetNextItemWidth(srcW);
     ImGui::BeginDisabled(running);
     if (ImGui::BeginCombo("##src", srcName.c_str())) {
@@ -30,7 +34,8 @@ static void toolbarSource(App& a, bool vertical, bool running) {
         {
             const int held = deviceHolder(a.devices[i]);   // a radio another receiver has open cannot be picked here
             const bool other = held != 0 && held != a.rxId;
-            const std::string nm = a.devices[i].name + (other ? " (in use by " + deviceHolderText(held) + ")" : std::string());
+            // shown as text only; the ##id keeps two radios with the same text apart and a name cannot inject its own ID
+            const std::string nm = radioShownName(a, i) + (other ? " (in use by " + deviceHolderText(held) + ")" : std::string()) + "##srcitem" + std::to_string(i);
             ImGui::BeginDisabled(other);
             if (ImGui::Selectable(nm.c_str(), i == a.devIdx) && i != a.devIdx) {
                 a.devIdx = i;
@@ -38,6 +43,7 @@ static void toolbarSource(App& a, bool vertical, bool running) {
             }
             ImGui::EndDisabled();
             if (a.devices[i].isRadio() && ImGui::BeginPopupContextItem(("##hide" + std::to_string(i)).c_str())) {
+                if (ImGui::MenuItem(tr("Name this radio…"))) radioNameRequest(i);
                 if (ImGui::MenuItem(tr("Hide this radio"))) {
                     auto h = hiddenRadios(); h.push_back(a.devices[i].name); setHiddenRadios(h);
                     a.hiddenRadios = h; a.devIdx = 0; a.devicesDirty = true;
@@ -62,8 +68,8 @@ static void toolbarSource(App& a, bool vertical, bool running) {
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         if (a.devices[a.devIdx].isAudio())
             ImGui::SetTooltip("%s", tr("For WebSDR, a virtual audio cable (VAC), or a radio's speaker or line into the computer. Not a replacement for an SDR when you need megahertz of bandwidth."));
-        else if (srcName != a.devices[a.devIdx].name)
-            ImGui::SetTooltip("%s", a.devices[a.devIdx].name.c_str());
+        else if (srcName != srcFull)
+            ImGui::SetTooltip("%s", srcFull.c_str());
     }
     {   // the antenna port of a radio with several (one list entry each): the same switch as choosing the entry above
         const auto ports = antennaSiblings(a.devices, a.devIdx);
@@ -86,13 +92,32 @@ static void toolbarSource(App& a, bool vertical, bool running) {
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip(tr("Antenna port%s%s"), h.empty() ? "" : ": ", h.c_str());
         }
     }
+    if (a.devices[a.devIdx].isRadio()) {   // name this radio: allowed while it runs
+        ImGui::EndDisabled();
+        ImGui::SameLine(0, 4 * gUi);
+        if (ImGui::SmallButton("Aa##rname")) radioNameRequest(a.devIdx);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Name this radio (your name is shown instead of the model and serial)"));
+        ImGui::BeginDisabled(running);
+    }
     ImGui::SameLine();
     // not while a scan has the radio open: a radio in use may not be listed (or its limits not be readable), and the choice would move to another one
     ImGui::BeginDisabled(a.scanner.progress().running);
     if (iconFlat(Ic::Refresh, tr("Rescan for devices"))) refreshDevices(a), a.devIdx = std::min(a.devIdx, (int)a.devices.size() - 1);
     ImGui::EndDisabled();
     ImGui::EndDisabled();
+    radioNameModal(a);
     radioMessagesUi(a, vertical);
+    {   // two radios with one serial: names follow the USB port
+        const std::string sw = sharedSerialWarning(a);
+        if (!sw.empty()) {
+            if (vertical) { ImGui::PushTextWrapPos(0.0f); ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.25f, 1), "%s", sw.c_str()); ImGui::PopTextWrapPos(); }
+            else {
+                ImGui::SameLine(0, 6 * gUi);
+                ImGui::TextColored(ImVec4(0.9f, 0.7f, 0.28f, 1), "(!)");
+                if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(420 * gUi); ImGui::TextUnformatted(sw.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
+            }
+        }
+    }
     {   // a radio too slow for the mode: said here for every mode (the engine's log line was all there was)
         const std::string rw = rateWarning(a);
         if (!rw.empty() && vertical) { ImGui::PushTextWrapPos(0.0f); ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.25f, 1), "%s", rw.c_str()); ImGui::PopTextWrapPos(); }

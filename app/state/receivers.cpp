@@ -76,9 +76,9 @@ App* create(int id) {
     {   // the radio it had, else the first one nobody has, else the test signal
         int pick = 0;
         PrefScope ps(id);
-        const std::string name = plat::prefs().getS("devName", "");
-        for (int i = 2; i < (int)a.devices.size() && pick == 0; i++)
-            if (!name.empty() && a.devices[i].name == name && !deviceHolder(a.devices[i])) pick = i;
+        const std::string name = plat::prefs().getS("devName", ""), key = plat::prefs().getS("devKey", "");
+        const int saved = findRadio(a, key, name);   // by key first, then by the internal name
+        if (saved >= 2 && !deviceHolder(a.devices[saved])) pick = saved;
         for (int i = 2; i < (int)a.devices.size() && pick == 0; i++)
             if (a.devices[i].isRadio() && !deviceHolder(a.devices[i])) pick = i;
         a.devIdx = pick;
@@ -229,7 +229,7 @@ void strip(App& first, ImVec2 disp, float h) {
                 ImGui::BeginTooltip();
                 ImGui::Text("RX %d: %s, %.3f MHz", r->rxId, modeName(*r), r->freqMhz);
                 ImGui::TextColored(run ? pal::okGreen() : grey, "%s", run ? tr("Receiving") : tr("Stopped"));
-                if (di) ImGui::Text(tr("Radio: %s"), di->name.c_str());
+                if (di) ImGui::Text(tr("Radio: %s"), radioShownName(*r, r->devIdx).c_str());
                 ImGui::EndTooltip();
             }
         }

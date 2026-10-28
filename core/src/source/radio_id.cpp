@@ -144,6 +144,62 @@ std::string radioDisplayName(const RadioRow& r) {
     return s;
 }
 
+std::string cleanRadioName(const std::string& s) {
+    std::string o;
+    for (size_t i = 0; i < s.size(); i++) {
+        const unsigned char c = static_cast<unsigned char>(s[i]);
+        if (c < 0x20 || c == 0x7F) continue;
+        if (c == 0xC2 && i + 1 < s.size() && static_cast<unsigned char>(s[i + 1]) >= 0x80 && static_cast<unsigned char>(s[i + 1]) <= 0x9F) { i++; continue; }
+        o += s[i];
+    }
+    size_t b = 0, e = o.size();
+    while (b < e && o[b] == ' ') b++;
+    while (e > b && o[e - 1] == ' ') e--;
+    return o.substr(b, e - b);
+}
+
+bool migrateLabels(std::vector<RadioRow>& rows, RadioLabels& labels) {
+    // radios of one kind, board and serial, grouped by the "sn:" key they had while alone
+    std::map<std::string, std::vector<size_t>> groups;
+    for (size_t i = 0; i < rows.size(); i++) {
+        const DeviceInfo& d = rows[i].dev;
+        if (d.serial.empty() || isFactorySerial(d.serial)) continue;   // these never had an sn: key
+        if (rows[i].key.find(":usb:") == std::string::npos) continue;
+        groups[keyFor(d, false)].push_back(i);
+    }
+    bool changed = false;
+    for (auto& [snKey, idx] : groups) {
+        const std::string name = labels.get(snKey);
+        if (name.empty()) continue;
+        bool anyLabel = false;
+        for (size_t i : idx) anyLabel |= !rows[i].label.empty();
+        if (anyLabel) continue;
+        size_t best = idx[0];
+        for (size_t i : idx) {
+            const RadioRow &a = rows[i], &b = rows[best];
+            if (std::make_pair(a.dupIndex, a.dev.usbPath) < std::make_pair(b.dupIndex, b.dev.usbPath)) best = i;
+        }
+        labels.set(rows[best].key, name);
+        rows[best].label = labels.get(rows[best].key);
+        changed = true;
+    }
+    return changed;
+}
+
+std::vector<RadioRow> identifySources(const std::vector<DeviceInfo>& devs, RadioLabels& labels, bool* migrated) {
+    std::vector<DeviceInfo> radios;
+    std::vector<size_t> at;
+    for (size_t i = 0; i < devs.size(); i++)
+        if (devs[i].isRadio()) { radios.push_back(devs[i]); at.push_back(i); }
+    std::vector<RadioRow> rr = identifyRadios(radios, labels);
+    const bool moved = migrateLabels(rr, labels);
+    if (migrated) *migrated = moved;
+    std::vector<RadioRow> out(devs.size());
+    for (size_t i = 0; i < devs.size(); i++) out[i].dev = devs[i];
+    for (size_t k = 0; k < at.size(); k++) out[at[k]] = std::move(rr[k]);
+    return out;
+}
+
 RadioDiff diffRadios(const std::vector<DeviceInfo>& before, const std::vector<DeviceInfo>& after) {
     const RadioLabels none;
     const auto b = identifyRadios(before, none), a = identifyRadios(after, none);

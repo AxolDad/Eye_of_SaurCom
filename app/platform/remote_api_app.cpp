@@ -138,6 +138,10 @@ struct Host : RemoteApiHost {
                 if (i) o += ',';
                 o += "{\"index\":" + std::to_string(i) + ",\"name\":\"" + jsonEscape(d.name) + "\",\"kind\":\"" + kindName(d.kind) + "\",\"board\":\"" + jsonEscape(d.board) + "\"";
                 if (d.kind != DeviceInfo::File) o += ",\"serial\":\"" + jsonEscape(d.serial) + "\"";   // a file's "serial" is its path: not given out
+                if (const dect2::RadioRow* rr = d.isRadio() ? radioRow(a, (int)i) : nullptr) {   // the radio's identity: the user's name, USB port, and #n among look-alikes (0 = unique)
+                    o += ",\"label\":\"" + jsonEscape(rr->label) + "\",\"usb\":\"" + jsonEscape(d.usbPath) + "\",\"dup\":" + std::to_string(rr->dupIndex) +
+                         ",\"display\":\"" + jsonEscape(dect2::radioDisplayName(*rr)) + "\"";
+                }
                 o += ",\"minRateHz\":" + jsonNum(d.minRateHz) + ",\"maxRateHz\":" + jsonNum(d.maxRateHz) + ",\"gainMinDb\":" + jsonNum(d.gainMinDb) + ",\"gainMaxDb\":" + jsonNum(d.gainMaxDb) +
                      ",\"minFreqHz\":" + jsonNum(d.minFreqHz) + ",\"maxFreqHz\":" + jsonNum(d.maxFreqHz) + ",\"selected\":" + (a.devIdx == (int)i ? "true" : "false") + "}";
             }

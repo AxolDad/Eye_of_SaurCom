@@ -358,7 +358,8 @@ void savePrefs(const App& a) {
         d.setS("hamlibRigs", hamlibRigsToString(a.hamlibRigs));
         { std::string j; for (const auto& n : a.hiddenRadios) j += n + "\n"; d.setS("hiddenRadios", j); }
     }
-    d.setS("devName", a.devIdx >= 2 && a.devIdx < (int)a.devices.size() ? a.devices[a.devIdx].name : std::string());   // the radio of this receiver, found again at the next start
+    d.setS("devName", a.devIdx >= 2 && a.devIdx < (int)a.devices.size() ? a.devices[a.devIdx].name : std::string());   // the radio of this receiver, found again at the next start (the internal name, never the display name)
+    d.setS("devKey", a.devIdx >= 2 && a.devIdx < (int)a.devices.size() ? radioKeyAt(a, a.devIdx) : std::string());      // tried first: tells two radios with one name apart
     saveModeAndGains(d, a);
     saveKeys(d, a, false);
     saveSpectrumRanges(d, a);

@@ -124,6 +124,7 @@ void refreshDevices(App& a) {
     // the radio chosen before stays chosen when it is found again (a radio unplugged or added moves the others in the list)
     const bool hadRadio = a.devIdx >= 2 && a.devIdx < (int)a.devices.size();
     const std::string keep = hadRadio ? a.devices[a.devIdx].name : "";
+    const std::string keepKey = hadRadio ? radioKeyAt(a, a.devIdx) : std::string();   // found again by its key first (two radios can share a name), then by name
     // A radio that is open (the receiver or a channel scan has it) may be missing from a new list: some drivers cannot look at a radio in
     // use (WinUSB on Windows, the SDRplay service), and the list would then drop the radio being received and move the choice to another
     // entry. It stays in the list as it was.
@@ -154,7 +155,7 @@ void refreshDevices(App& a) {
     for (auto& h : sdrplayApiHints()) a.usbHints.push_back(h);
     if (hadRadio) {
         int idx = -1;
-        for (int i = 2; i < (int)a.devices.size(); i++) if (a.devices[i].name == keep) { idx = i; break; }
+        idx = findRadio(a, keepKey, keep);
         if (idx < 0 && inUse) { a.devices.push_back(keepDev); idx = (int)a.devices.size() - 1; }
         if (idx < 0) {   // it is gone: another radio must not inherit its antenna power, and Start must not open whatever now sits at its place
             a.tune.biasTee = false;
