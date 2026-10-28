@@ -1,0 +1,299 @@
+#!/usr/bin/env bash
+# Updates Eye of SaurCom in the Proxmox container that saurcom-lxc.sh made (installed as /usr/local/bin/saurcom-update):
+#
+#   saurcom-update                  the newest release
+#   saurcom-update 0.3.1            a given one
+#   saurcom-update --request        what the app asked for (run by saurcom-update.service when the app writes its request file)
+#   saurcom-update --auto           the newest release, only if the app's "Install updates automatically" is on and it is newer
+#                                   (run daily at 04:00 by saurcom-update-auto.timer)
+#   saurcom-update --install-units  only install or refresh the systemd units below
+#
+# The app talks to this script through files in its config volume (/opt/saurcom/config/.saurcom-update here, /config/.saurcom-update in the
+# app's container): no network port and no Docker socket in the app's container.
+#   request  the version the app wants ("0.3.1" or "latest"); only a version is read from it, never run, and it is removed afterwards
+#   auto     1 or 0, the app's "Install updates automatically (at 04:00)"
+#   status   written here at every step: {"state":"checking|pulling|restarting|done|failed","version":"…","message":"…","time":…}
+#   log      this script's log, capped in size
+# Every run installs or refreshes the units (saurcom-update.path watches the request file; saurcom-update-auto.timer runs --auto), so a
+# container made before the update button gets them with its next update.
+#
+# The new image is pulled before anything is stopped: a failed download leaves the running version as it is. If the new version does not
+# start, the previous image is started again. flock keeps two updates from running at once.
+set -Eeuo pipefail
+umask 022
+
+# (the variables below can be changed for tests; systemd runs this with none of them set)
+D=${SAURCOM_DIR:-/opt/saurcom}                                  # .env, compose.yaml, config/
+UNIT_DIR=${SAURCOM_UNIT_DIR:-/etc/systemd/system}
+UP=${SAURCOM_UP:-/usr/local/sbin/saurcom-up}                    # starts the app's container with what .env says
+SELF=${SAURCOM_SELF:-/usr/local/bin/saurcom-update}             # where the units run this script from
+LOCK=${SAURCOM_LOCK:-/run/lock/saurcom-update.lock}
+API=${SAURCOM_RELEASES_API:-https://api.github.com/repos/AxolDad/Eye_of_SaurCom/releases/latest}
+START_WAIT=${SAURCOM_START_WAIT:-120}                           # seconds the new container has to be running
+SETTLE=${SAURCOM_SETTLE:-20}                                    # ...and to keep running (not a restart loop)
+REGISTRY=ghcr.io/axoldad/saurcom
+APP_GID=1000                                                    # the app's group in its container (PGID in compose.yaml)
+LOG_MAX=262144
+U=$D/config/.saurcom-update
+VER=""                                                          # the version this run is about, for the status file
+HAVE_DIR=0                                                      # the working directory is $U, checked: status and log go there
+
+say() { printf '%s\n' "$*"; }
+log() {
+    printf '%s %s\n' "$(date '+%F %T')" "$*" >&3 2>/dev/null || true
+    say "$*"
+}
+# a release version: digits and dots (one to four numbers), optionally with a leading v (the app checks the same: container_update.h)
+valid_version() { [[ ${#1} -le 32 && $1 =~ ^v?[0-9]+(\.[0-9]+){0,3}$ ]]; }
+# a > b, for versions that are valid_version
+newer() { [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -1)" = "$1" ]; }
+json_str() { printf '%s' "$1" | tr -d '\000-\037' | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+
+# The status file, replaced in one step (a new file and a rename: a reader never sees half of it, and the rename does not follow a link
+# someone put in its place).
+status() {
+    local st=$1 msg=$2 tmp
+    log "[$st] $msg"
+    [ "$HAVE_DIR" = 1 ] || return 0
+    tmp=$(mktemp .status.XXXXXX 2>/dev/null) || return 0
+    printf '{"state":"%s","version":"%s","message":"%s","time":%s}\n' "$st" "$(json_str "$VER")" "$(json_str "$msg")" "$(date +%s)" > "$tmp"
+    chmod 644 "$tmp"
+    mv -f "$tmp" status
+}
+
+# Moves into $U and makes it safe for root to write in. The directory is in the app's volume, which the app (uid 1000) owns, so the app
+# could put links there: the checks are made on the directory we are in (after cd), not on its name, and the directory becomes root's,
+# group-writable for the app and sticky, so that the app can add its request but cannot replace the status or the log.
+enter_dir() {
+    [ -d "$D/config" ] || return 1
+    if [ -L "$U" ]; then rm -f "$U"; fi
+    mkdir -p "$U" 2>/dev/null || return 1
+    cd -P "$U" 2>/dev/null || return 1
+    [ "$(pwd -P)" = "$(cd -P "$D/config" && pwd -P)/.saurcom-update" ] || return 1
+    if [ "$(id -u)" = 0 ]; then
+        chown 0:"$APP_GID" . && chmod 1775 . || return 1
+        [ "$(stat -c %u .)" = 0 ] || return 1
+    fi
+    # the log: a plain file of ours, the last part kept when it grows past LOG_MAX
+    if [ -e log ] || [ -L log ]; then
+        if [ -L log ] || [ ! -f log ] || [ "$(stat -c %u log)" != "$(id -u)" ]; then rm -rf log; fi
+    fi
+    if [ -f log ] && [ "$(stat -c %s log)" -gt "$LOG_MAX" ]; then
+        local tmp
+        tmp=$(mktemp .log.XXXXXX) && tail -c $((LOG_MAX / 2)) log > "$tmp" && chmod 644 "$tmp" && mv -f "$tmp" log
+    fi
+    if [ ! -e log ]; then (set -o noclobber; : > log) 2>/dev/null || return 1; chmod 644 log; fi
+    exec 3>>log
+    HAVE_DIR=1
+}
+
+# a small file of the app's: its first line, if it is a plain file (not a link, not a pipe)
+read_small() {
+    [ -f "$1" ] && [ ! -L "$1" ] || return 1
+    timeout 5 head -c 64 -- "$1" 2>/dev/null | head -n 1 | tr -d '\r '
+}
+
+latest_release() {
+    curl -fsSL --max-time 60 "$API" 2>/dev/null | sed -nE 's/.*"tag_name": *"v?([^"]+)".*/\1/p' | head -1
+}
+
+current_image() { sed -n 's/^SAURCOM_IMAGE=//p' "$D/.env" | head -1; }
+set_image() {
+    local tmp
+    tmp=$(mktemp "$D/.env.XXXXXX")
+    sed "s#^SAURCOM_IMAGE=.*#SAURCOM_IMAGE=$1#" "$D/.env" > "$tmp"
+    chmod --reference="$D/.env" "$tmp" 2>/dev/null || chmod 600 "$tmp"
+    mv -f "$tmp" "$D/.env"
+}
+# the app's container runs the given image, and keeps running for SETTLE seconds
+started() {
+    local img=$1 i s
+    for ((i = 0; i <= START_WAIT; i += 2)); do
+        s=$(docker inspect -f '{{.State.Status}} {{.Config.Image}}' saurcom 2>/dev/null || true)
+        [ "$s" = "running $img" ] && break
+        [ "$i" -lt "$START_WAIT" ] && sleep 2
+    done
+    [ "$s" = "running $img" ] || return 1
+    sleep "$SETTLE"
+    s=$(docker inspect -f '{{.State.Status}} {{.Config.Image}}' saurcom 2>/dev/null || true)
+    [ "$s" = "running $img" ]
+}
+
+# --------------------------------------------------------------------------------------------------------------- the systemd units
+units() {
+    cat <<EOF
+#=saurcom-update.path
+# Eye of SaurCom: the app's update button writes this request file (written by saurcom-update)
+[Unit]
+Description=Eye of SaurCom: an update requested in the app
+
+[Path]
+PathExists=$U/request
+Unit=saurcom-update.service
+
+[Install]
+WantedBy=paths.target
+#=saurcom-update.service
+# Eye of SaurCom: runs the update the app asked for (written by saurcom-update)
+[Unit]
+Description=Eye of SaurCom: update requested in the app
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=$SELF --request
+TimeoutStartSec=3600
+#=saurcom-update-auto.service
+# Eye of SaurCom: installs a newer release when the app's "Install updates automatically" is on (written by saurcom-update)
+[Unit]
+Description=Eye of SaurCom: automatic update
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=$SELF --auto
+TimeoutStartSec=3600
+#=saurcom-update-auto.timer
+# Eye of SaurCom: every day at 04:00 local time, plus up to 30 minutes (written by saurcom-update)
+[Unit]
+Description=Eye of SaurCom: daily check for an automatic update
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+RandomizedDelaySec=30min
+Persistent=false
+
+[Install]
+WantedBy=timers.target
+EOF
+}
+
+install_units() {
+    if ! command -v systemctl >/dev/null 2>&1 || [ ! -d "$UNIT_DIR" ]; then
+        log "no systemd here: the update button and the automatic updates need saurcom-update.path and saurcom-update-auto.timer"
+        return 0
+    fi
+    local changed=0 name="" body="" line
+    flush() {
+        [ -n "$name" ] || return 0
+        if [ ! -f "$UNIT_DIR/$name" ] || [ "$(cat "$UNIT_DIR/$name")" != "${body%$'\n'}" ]; then
+            printf '%s' "$body" > "$UNIT_DIR/$name"
+            chmod 644 "$UNIT_DIR/$name"
+            changed=1
+        fi
+    }
+    while IFS= read -r line; do
+        if [[ $line == '#='* ]]; then flush; name=${line#\#=}; body=""; else body+="$line"$'\n'; fi
+    done < <(units)
+    flush
+    if [ "$changed" = 1 ]; then systemctl daemon-reload || true; log "installed the update units (the app's update button, the 04:00 timer)"; fi
+    systemctl enable --quiet saurcom-update.path saurcom-update-auto.timer 2>/dev/null || true
+    systemctl start saurcom-update.path saurcom-update-auto.timer 2>/dev/null || true
+}
+
+# --------------------------------------------------------------------------------------------------------------- the update
+# update <version|latest> <auto: 1 = only if newer, quietly otherwise>
+update() {
+    local want=$1 auto=$2 cur cur_v img
+    cur=$(current_image)
+    cur_v=${cur##*:}
+    VER=""
+    if [ "$want" = latest ]; then
+        [ "$auto" = 1 ] || status checking "Looking for the newest version…"
+        want=$(latest_release)
+        if ! valid_version "$want"; then
+            [ "$auto" = 1 ] && { log "auto: could not find the latest release"; return 1; }
+            status failed "Could not find the newest release on GitHub. Eye of SaurCom ${cur_v:-?} still runs."
+            return 1
+        fi
+    fi
+    want=${want#v}
+    VER=$want
+    img="$REGISTRY:$want"
+    if [ "$auto" = 1 ]; then
+        if valid_version "$cur_v" && ! newer "$want" "$cur_v"; then log "auto: $cur_v is the newest version"; return 0; fi
+        if [ "$cur" = "$img" ]; then log "auto: $want runs already"; return 0; fi
+        status checking "Eye of SaurCom $want is available: installing it by itself."
+    fi
+
+    status pulling "Downloading Eye of SaurCom $want…"
+    if ! docker pull "$img" >&3 2>&1; then
+        status failed "Could not download $img. Eye of SaurCom ${cur_v:-?} still runs, nothing was changed."
+        return 1
+    fi
+
+    status restarting "Restarting with Eye of SaurCom $want…"
+    printf 'SAURCOM_PREVIOUS_IMAGE=%s\n' "$cur" > "$D/previous-image"
+    set_image "$img"
+    if "$UP" >&3 2>&1 && started "$img"; then
+        docker image prune -f >/dev/null 2>&1 || true
+        status "done" "Eye of SaurCom $want is running."
+        return 0
+    fi
+
+    log "$img did not start: going back to ${cur:-nothing}"
+    docker logs --tail 40 saurcom >&3 2>&1 || true
+    if [ -n "$cur" ] && [ "$cur" != "$img" ]; then
+        set_image "$cur"
+        if "$UP" >&3 2>&1 && started "$cur"; then
+            status failed "Eye of SaurCom $want did not start. Went back to ${cur_v}."
+        else
+            status failed "Eye of SaurCom $want did not start, and going back to ${cur_v} failed too."
+        fi
+    else
+        status failed "Eye of SaurCom $want did not start."
+    fi
+    return 1
+}
+
+# --------------------------------------------------------------------------------------------------------------- main
+mode=cli arg=""
+case "${1:-}" in
+    --request) mode=request ;;
+    --auto) mode=auto ;;
+    --install-units) mode=units ;;
+    -h|--help) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    "") arg=latest ;;
+    latest) arg=latest ;;
+    *)  if ! valid_version "$1"; then say "saurcom-update: \"$1\" is not a version (digits and dots, like 0.3.1)" >&2; exit 2; fi
+        arg=$1 ;;
+esac
+[ $# -le 1 ] || { say "saurcom-update: one version at most" >&2; exit 2; }
+exec 3>/dev/null
+
+mkdir -p "$(dirname "$LOCK")"
+exec 9>"$LOCK"
+if ! flock -n 9; then
+    say "saurcom-update: another update is running (see $U/log)" >&2
+    # the app's request is answered by the update that runs (its status); left here, it would start the service again at once
+    if [ "$mode" = request ] && enter_dir; then rm -f request; fi
+    exit 1
+fi
+
+enter_dir || say "saurcom-update: cannot use $U: no status for the app, no log"
+[ -f "$D/.env" ] || { say "saurcom-update: $D/.env not found: is this the container saurcom-lxc.sh made?" >&2; exit 1; }
+install_units
+[ "$mode" = units ] && exit 0
+
+rc=0
+case "$mode" in
+    cli)
+        update "$arg" 0 || rc=$? ;;
+    request)
+        [ "$HAVE_DIR" = 1 ] || exit 1
+        req=$(read_small request || true)
+        rm -f request
+        if [ -z "$req" ]; then exit 0; fi
+        if [ "$req" != latest ] && ! valid_version "$req"; then
+            VER=""; status failed "The request was not a version: nothing was changed."; exit 2
+        fi
+        update "$req" 0 || rc=$? ;;
+    auto)
+        a=$( [ "$HAVE_DIR" = 1 ] && read_small auto || true)
+        if [ "$a" != 1 ]; then log "auto: off in the app"; exit 0; fi
+        update latest 1 || rc=$? ;;
+esac
+# (a request that came in while this ran starts the service again: the path unit sees the file)
+exit "$rc"

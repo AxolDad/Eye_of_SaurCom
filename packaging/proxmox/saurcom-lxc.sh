@@ -249,7 +249,7 @@ run pct create "$CTID" "$TEMPLATE_STORAGE:vztmpl/$TEMPLATE" \
     --rootfs "$STORAGE:$DISK" --net0 "$net" --ostype debian --timezone host \
     --unprivileged "$([ "$PRIVILEGED" = 1 ] && echo 0 || echo 1)" --features nesting=1,keyctl=1 \
     --onboot 1 --tags saurcom \
-    --description "Eye of SaurCom $VERSION: https://<this container>:3001 (web login $WEB_USER). Made by saurcom-lxc.sh; update with: pct exec $CTID -- saurcom-update"
+    --description "Eye of SaurCom $VERSION: https://<this container>:3001 (web login $WEB_USER). Made by saurcom-lxc.sh; update with the version button in the app's top bar, or: pct exec $CTID -- saurcom-update"
 
 # The passthrough. The USB bus as a directory: radios plugged in later appear in the container at once (major 189: USB devices).
 # Serial ports: each name is bound when the container starts, if it exists then (majors 188: ttyUSB, 166: ttyACM).
@@ -294,12 +294,21 @@ fi
 # ---------------------------------------------------------------- inside: Docker and Eye of SaurCom
 msg "Installing Docker and Eye of SaurCom $VERSION in the container (the image is about 2 GB)"
 setup=$(asset saurcom-lxc-setup.sh) || die "could not get saurcom-lxc-setup.sh"
+upd=$(asset saurcom-update) || die "could not get saurcom-update"
+if [ "$DRY_RUN" = 1 ]; then
+    echo "    [dry-run] pct push $CTID saurcom-update /usr/local/bin/saurcom-update --perms 0755"
+else
+    updf=$(mktemp)
+    printf '%s\n' "$upd" > "$updf"
+    pct push "$CTID" "$updf" /usr/local/bin/saurcom-update --perms 0755
+    rm -f "$updf"
+fi
 if [ "$DRY_RUN" = 1 ]; then
     echo "    [dry-run] pct exec $CTID -- env SAURCOM_IMAGE=$IMAGE ... bash -s  < saurcom-lxc-setup.sh ($(wc -l <<<"$setup") lines)"
 else
     pct exec "$CTID" -- env \
         SAURCOM_IMAGE="$IMAGE" SAURCOM_USER="$WEB_USER" SAURCOM_PASSWORD="$WEB_PASSWORD" TZ="$TZ_HOST" \
-        SAURCOM_GPU="${GPU_NODE:+/dev/dri/$(basename "$GPU_NODE")}" SAURCOM_SERIAL="$SERIAL" \
+        SAURCOM_GPU="${GPU_NODE:+/dev/dri/$(basename "$GPU_NODE")}" SAURCOM_SERIAL="$SERIAL" SAURCOM_ASSET_REF="$ASSET_REF" \
         bash -s <<<"$setup"
 fi
 
@@ -326,7 +335,7 @@ Open **$url** in your web browser (not the Proxmox console).
 - Web login: \`$WEB_USER\` and the password the installer printed.
 - Lost it? On the node ($node > Shell): \`pct exec $CTID -- grep SAURCOM_PASSWORD /opt/saurcom/.env\`
 - The Proxmox **Console** asks for the container's own Linux login, which is not the web login. For a shell inside, run \`pct enter $CTID\` on the node.
-- Update: \`pct exec $CTID -- saurcom-update\`"
+- Update: the version button in the app's top bar (**Update now**; it can also install updates by itself at 04:00). In a shell: \`pct exec $CTID -- saurcom-update\`"
 run pct set "$CTID" --description "$notes"
 
 cat <<EOF
@@ -350,8 +359,8 @@ ${G}${B}Eye of SaurCom is running in container $CTID.${N}
   Console   the Proxmox Console asks for the container's own Linux login, not this one; for a shell inside, run: pct enter $CTID
   Notes     the address and these hints are also in the container's Notes (its Summary page in Proxmox)
 
-  Update    pct exec $CTID -- saurcom-update            (the newest release)
-            pct exec $CTID -- saurcom-update 0.3.1      (a given one)
+  Update    the version button in the app's top bar: Update now, or "Install updates automatically (at 04:00)"
+            in a shell: pct exec $CTID -- saurcom-update   (or saurcom-update 0.3.1 for a given one)
   Log       pct exec $CTID -- cat /opt/saurcom/config/saurcom.log
   Radios    plug them into this node; they appear in the app at once (on the next "Refresh" of the radio list)
 EOF

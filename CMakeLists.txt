@@ -1260,6 +1260,16 @@ if(DECT2_BUILD_TESTS)
   add_executable(test_updater tests/engine/test_updater.cpp)
   target_link_libraries(test_updater PRIVATE dect2core)
   add_test(NAME updater COMMAND test_updater)
+  add_executable(test_container_update tests/engine/test_container_update.cpp)   # updates of the Docker image from the app: version rule, status file, what the window shows
+  target_link_libraries(test_container_update PRIVATE dect2_automation)
+  add_test(NAME container_update COMMAND test_container_update)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")   # packaging/proxmox/saurcom-update with a fake docker, curl and systemctl (GNU stat, flock)
+    find_program(DECT2_BASH bash)
+    find_program(DECT2_FLOCK flock)
+    if(DECT2_BASH AND DECT2_FLOCK)
+      add_test(NAME saurcom_update_script COMMAND ${DECT2_BASH} ${SAURCOM_ROOT}/tests/packaging/test_saurcom_update.sh)
+    endif()
+  endif()
 
   add_executable(test_bandplan tests/bandplan/test_bandplan.cpp)   # band plans: built-in channel tables, validation, CSV / JSON import and export, damaged files
   target_link_libraries(test_bandplan PRIVATE dect2core)

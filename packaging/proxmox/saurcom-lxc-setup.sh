@@ -6,6 +6,7 @@
 #   TZ                 the node's time zone
 #   SAURCOM_GPU        /dev/dri/renderD128 when a graphics chip is passed through, else empty
 #   SAURCOM_SERIAL     1: pass the container's USB serial ports on to the app
+#   SAURCOM_ASSET_REF  the branch or tag saurcom-update comes from if saurcom-lxc.sh did not put it in place (default main)
 #
 # The devices are bound into the app's container as volumes, not with --device: Docker in an unprivileged container cannot make device
 # files (mknod), and a bound directory also shows a radio plugged in later.
@@ -109,26 +110,12 @@ exec docker compose -f compose.yaml -f compose.devices.yaml up -d --remove-orpha
 EOF
 chmod 755 /usr/local/sbin/saurcom-up
 
-cat > /usr/local/bin/saurcom-update <<'EOF'
-#!/usr/bin/env bash
-# saurcom-update            the newest Eye of SaurCom release
-# saurcom-update 0.3.1      a given one
-set -euo pipefail
-cd /opt/saurcom
-v=${1:-}
-if [ -z "$v" ]; then
-    v=$(curl -fsSL https://api.github.com/repos/AxolDad/Eye_of_SaurCom/releases/latest | sed -nE 's/.*"tag_name": *"v?([^"]+)".*/\1/p' | head -1)
-    [ -n "$v" ] || { echo "could not find the latest release (give a version: saurcom-update 0.3.1)"; exit 1; }
+# saurcom-update (packaging/proxmox/saurcom-update): saurcom-lxc.sh puts it in place before this runs (pct push); else it comes from GitHub.
+# It also installs the units behind the app's update button (saurcom-update.path) and the automatic updates (saurcom-update-auto.timer).
+if [ ! -x /usr/local/bin/saurcom-update ]; then
+    curl -fsSL -o /usr/local/bin/saurcom-update "https://raw.githubusercontent.com/AxolDad/Eye_of_SaurCom/${SAURCOM_ASSET_REF:-main}/packaging/proxmox/saurcom-update"
+    chmod 755 /usr/local/bin/saurcom-update
 fi
-v=${v#v}
-img="ghcr.io/axoldad/saurcom:$v"
-docker pull "$img"
-sed -i "s#^SAURCOM_IMAGE=.*#SAURCOM_IMAGE=$img#" .env
-/usr/local/sbin/saurcom-up
-docker image prune -f >/dev/null
-echo "Eye of SaurCom $v is running."
-EOF
-chmod 755 /usr/local/bin/saurcom-update
 
 cat > /etc/systemd/system/saurcom.service <<'EOF'
 [Unit]
@@ -155,6 +142,7 @@ set -a; # shellcheck source=/dev/null
 docker pull "$SAURCOM_IMAGE"
 systemctl daemon-reload
 systemctl enable --now saurcom
+/usr/local/bin/saurcom-update --install-units
 
 echo "--- radios on the USB bus now"
 lsusb 2>/dev/null || true
