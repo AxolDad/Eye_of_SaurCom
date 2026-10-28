@@ -73,6 +73,9 @@ std::vector<EventInfo> build() {
         {"lat", 'n', "latitude of the position in the call", "55.1"}, {"lon", 'n', "longitude of the position in the call", "11.2"}}});
     v.push_back({"signal.new", "New signal found by the sweep scanner", "Sweep scanner", "Sweep", 433.92e6, {
         {"bw_hz", 'n', "width", "12500"}, {"peak_db", 'n', "peak level dBFS", "-60"}, {"snr_db", 'n', "signal to noise ratio", "18"}}});
+    v.push_back({"df.bearing", "Direction-finding bearing estimate", "DF window", "DF", 433.92e6, {
+        {"bearing_deg", 'n', "true bearing to the transmitter, degrees clockwise from north", "72"}, {"sigma_deg", 'n', "1-sigma bearing error", "4"},
+        {"lat", 'n', "latitude of the receiving station", "54.7"}, {"lon", 'n', "longitude of the receiving station", "25.3"}}});
     v.push_back({"receiver.state", "Receiver state changed", "all", "", 0, {
         {"state", 's', "started, stopped, dropped, reconnected, overload", "dropped"}, {"detail", 's', "a few words", "radio stopped sending samples"}}});
     v.push_back({"satellite.aos", "Tracked satellite pass starts", "Passes window", "", 137.1e6, {

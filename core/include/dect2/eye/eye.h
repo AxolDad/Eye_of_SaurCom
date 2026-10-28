@@ -15,7 +15,7 @@
 namespace dect2::eye {
 
 // What a contact is, for the chips, the colours and the filters.
-enum Group { GAircraft, GAirData, GShips, GAprs, GSondes, GMesh, GPagers, GBluetooth, GDrones, kGroups };
+enum Group { GAircraft, GAirData, GShips, GAprs, GSondes, GMesh, GPagers, GBluetooth, GDrones, GFixes, kGroups };
 const char* groupName(int g);             // "Aircraft", "Air data" ...
 int groupOfType(const std::string& type);  // -1 for a type the Eye does not show
 uint32_t familyMask();                     // the automation families the Eye listens to (bit = 1 << automation::Family)
@@ -23,6 +23,7 @@ uint32_t familyMask();                     // the automation families the Eye li
 struct Row {
     double time = 0;
     int group = 0;
+    std::string site;     // the station network site the event came from ("" = this station)
     std::string mode;     // "ADS-B"
     std::string ident;    // "4CA2D1"
     std::string label;    // a friendlier name when the event has one: call sign, ship name ("RYR4LK")
@@ -37,6 +38,7 @@ struct Row {
 struct Contact {
     int group = 0;
     std::string mode, ident, label, text;   // text: the last message or summary
+    std::vector<std::string> sites;         // every site that reported the contact, sorted ("" = this station)
     double firstSeen = 0, lastSeen = 0;
     int64_t events = 0;
     bool hasPos = false;
@@ -60,10 +62,16 @@ public:
     // One decoder event. Ignores types outside the Eye's groups, and voice or encrypted content (like the message database).
     void ingest(const automation::Event& ev);
 
-    // Newest first. groupMask: bit = 1 << Group (0 = all). filter: a case-insensitive substring of mode, ident, label or text (empty = all).
-    std::vector<Row> timeline(size_t max, uint32_t groupMask = 0, const std::string& filter = std::string()) const;
+    // A signal located from bearings of several sites (the caller does the fixing, so the Eye stays free of the DF code): makes or moves the
+    // "Located" contact of that frequency; a row only the first time or when its text changes.
+    void ingestLocated(double time, double freqHz, double lat, double lon, double e95M, const std::vector<std::string>& sites);
+
+    // Newest first. groupMask: bit = 1 << Group (0 = all). site: only that site's rows or contacts (empty = all sites; a local event has site ""). filter: a case-insensitive substring of mode, ident, label or text (empty = all).
+    std::vector<Row> timeline(size_t max, uint32_t groupMask = 0, const std::string& filter = std::string(),
+                         const std::string& site = std::string()) const;
     // Contacts heard at or after now - maxAgeSec, most recently heard first; filter as for timeline().
-    std::vector<Contact> contacts(double now, double maxAgeSec, uint32_t groupMask = 0, const std::string& filter = std::string()) const;
+    std::vector<Contact> contacts(double now, double maxAgeSec, uint32_t groupMask = 0, const std::string& filter = std::string(),
+                                  const std::string& site = std::string()) const;
     std::array<GroupStat, kGroups> stats(double now, double windowSec) const;   // windowSec up to an hour
     uint64_t total() const;     // events ingested since the start (or the last clear)
     uint64_t version() const;   // changes whenever ingest() or clear() changed something: redraw only then

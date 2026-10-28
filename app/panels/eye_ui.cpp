@@ -5,6 +5,7 @@
 // changed, so a busy ADS-B receiver does not make it stutter or hold up the decoders.
 #include "../app.h"
 #include "dect2/automation/engine.h"
+#include "dect2/df/xfix.h"
 #include "dect2/eye/eye.h"
 #include "dect2/track/track_geo.h"
 #include <algorithm>
@@ -56,6 +57,7 @@ ImU32 groupColour(int g, int alpha = 255) {
         {255, 107, 107},  // pagers: red
         {106, 156, 255},  // Bluetooth: blue
         {247, 140, 108},  // drones: coral
+        {255, 255, 255},  // located (cross-site fixes): white
     };
     const int i = g >= 0 && g < ey::kGroups ? g : 0;
     return IM_COL32(c[i][0], c[i][1], c[i][2], alpha);
@@ -366,7 +368,17 @@ void eyeTick(App& a) {
     (void)a;
     if (S.hooked) return;
     S.hooked = true;
-    dect2::automation::global().setOverview([](const dect2::automation::Event& e) { ey::global().ingest(e); }, ey::familyMask());
+    // The Eye's hook also feeds the cross-site fixer: bearings (family signal) from several stations become located signals. Runs on decoder threads.
+    dect2::automation::global().setOverview([](const dect2::automation::Event& e) {
+        if (e.type == "df.bearing") {
+            static dect2::df::CrossFixer fixer;   // has its own mutex
+            fixer.add(e);
+            for (const auto& f : fixer.fixes(e.time))
+                ey::global().ingestLocated(f.time, f.freqHz, f.fix.lat, f.fix.lon, f.fix.e95.semiMajorM, f.sites);
+            return;
+        }
+        ey::global().ingest(e);
+    }, ey::familyMask() | (1u << dect2::automation::FSignal));
 }
 
 void eyeWindow(App& a) {
