@@ -202,5 +202,16 @@ int main() {
         // enumeration never throws, and each path it gives has the shape (or is empty)
         for (const auto& n : usbEnumerate()) CHECK(n.path.empty() || usbPathLooksValid(n.path), "live path shape: %s", n.path.c_str());
     }
+    // one walk per listing: inside a scope every call returns the same snapshot, nested scopes included; outside, each call is a fresh walk
+    // (a hotplug during the scope would not show, which is the point). The fresh-context order itself needs real hardware to check.
+    {
+        UsbWalkScope outer;
+        const auto a = usbEnumerate();
+        { UsbWalkScope inner; CHECK(usbEnumerate().size() == a.size(), "nested scope reuses the walk"); }
+        const auto b = usbEnumerate();
+        bool same = a.size() == b.size();
+        for (size_t i = 0; same && i < a.size(); i++) same = a[i].bus == b[i].bus && a[i].address == b[i].address && a[i].path == b[i].path;
+        CHECK(same, "same snapshot in one scope");
+    }
     return testSummary("radio_id");
 }

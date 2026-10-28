@@ -38,18 +38,33 @@ std::string usbPathOf(libusb_device* dev) {
 #endif
 }
 
-std::vector<UsbNode> usbEnumerate() {
+namespace {
+thread_local int tScopeDepth = 0;
+thread_local bool tHave = false;
+thread_local std::vector<UsbNode> tSnap;
+
+std::vector<UsbNode> walk() {
     std::vector<UsbNode> out;
 #ifdef DECT2_USB_PATHS
+#ifdef _WIN32
     static std::mutex mu;
-    static libusb_context* ctx = nullptr;
+    static libusb_context* shared = nullptr;
     static bool failed = false;
     std::lock_guard<std::mutex> lk(mu);
-    if (!ctx && !failed && libusb_init(&ctx) != 0) { ctx = nullptr; failed = true; }
-    if (!ctx) return out;
+    if (!shared && !failed && libusb_init(&shared) != 0) { shared = nullptr; failed = true; }
+    libusb_context* ctx = shared;
+#else
+    libusb_context* ctx = nullptr;   // fresh for this walk, like the radio libraries' own (see usb_path.h)
+    if (libusb_init(&ctx) != 0) return out;
+#endif
     libusb_device** list = nullptr;
-    const ssize_t n = libusb_get_device_list(ctx, &list);
-    if (n < 0) return out;
+    const ssize_t n = ctx ? libusb_get_device_list(ctx, &list) : -1;
+    if (n < 0) {
+#ifndef _WIN32
+        if (ctx) libusb_exit(ctx);
+#endif
+        return out;
+    }
     for (ssize_t i = 0; i < n; i++) {
         libusb_device_descriptor d{};
         if (libusb_get_device_descriptor(list[i], &d) != 0) continue;
@@ -60,8 +75,21 @@ std::vector<UsbNode> usbEnumerate() {
         out.push_back(u);
     }
     libusb_free_device_list(list, 1);
+#ifndef _WIN32
+    libusb_exit(ctx);
+#endif
 #endif
     return out;
+}
+}  // namespace
+
+UsbWalkScope::UsbWalkScope() { if (tScopeDepth++ == 0) tHave = false; }
+UsbWalkScope::~UsbWalkScope() { if (--tScopeDepth == 0) { tHave = false; tSnap.clear(); } }
+
+std::vector<UsbNode> usbEnumerate() {
+    if (tScopeDepth == 0) return walk();
+    if (!tHave) { tSnap = walk(); tHave = true; }
+    return tSnap;
 }
 
 std::vector<std::string> usbPathsInOrder(const std::vector<UsbNode>& nodes, const std::vector<std::pair<uint16_t, uint16_t>>& ids, size_t expected) {

@@ -3,6 +3,7 @@
 #include "dect2/common/stable_random.h"
 #include "dect2/source/hamlib_rig.h"
 #include "dect2/source/source.h"
+#include "dect2/source/usb_path.h"
 #include "dect2/net/netradio.h"
 #include "dect2/dsp/gen_util.h"
 #include "dect2/tv/demo_ts.h"
@@ -587,6 +588,7 @@ void setHiddenRadios(const std::vector<std::string>& names) { std::lock_guard<st
 std::vector<std::string> hiddenRadios() { std::lock_guard<std::mutex> lk(gHiddenMu); return gHidden; }
 
 std::vector<DeviceInfo> listRadios(std::string& err) {
+    UsbWalkScope usbWalk;   // one USB walk for the whole listing (native and Soapy radios share it)
     std::vector<DeviceInfo> out = listHackrfDevices(err);
     std::string e2;
     const std::vector<DeviceInfo> native = listNativeDevices(e2);

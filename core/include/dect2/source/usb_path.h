@@ -26,9 +26,22 @@ struct UsbNode {
     std::string path;
 };
 
-// Every USB device in libusb's enumeration order, from a context of this module's own (kept for the life of the program; cheap to call again).
+// Every USB device in libusb's enumeration order. On Linux and macOS this uses a fresh libusb context for every walk (init, list, exit), exactly as
+// librtlsdr and libairspy do: a context kept alive orders a replugged device differently from a fresh one (hotplug backends insert at the head),
+// and usbPathsInOrder() is only right when both sides see the same order. Windows keeps one context (it has no such reordering; exiting a context
+// there is what source_airspy.cpp warns about). Inside a UsbWalkScope the first walk is reused by the later calls of the same thread.
 // Nothing is opened. Empty if libusb is unavailable or on a platform without port numbers (Android hands radios over as descriptors).
 std::vector<UsbNode> usbEnumerate();
+
+// One listing = one USB walk: while a scope is alive on this thread, usbEnumerate() walks once and returns that snapshot to every later call.
+// Put one around a whole radio listing (listRadios, listNativeDevices). Scopes nest.
+class UsbWalkScope {
+public:
+    UsbWalkScope();
+    ~UsbWalkScope();
+    UsbWalkScope(const UsbWalkScope&) = delete;
+    UsbWalkScope& operator=(const UsbWalkScope&) = delete;
+};
 
 // The paths of the nodes whose VID/PID is in ids, in libusb order, for a library that numbers its radios in that same order (librtlsdr and
 // libairspy do). Only when exactly `expected` such nodes exist: any other count means the library skipped a radio or saw one libusb does not,
