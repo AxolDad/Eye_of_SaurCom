@@ -82,5 +82,18 @@ int main() {
         cf.add(e);
         CHECK(cf.fixes(kT0).empty(), "no position, no fix");
     }
+    {   // untrusted input
+        CrossFixer cf;
+        cf.add(bearing("", kT0, 433.92e6, a_la, a_lo, ba));
+        cf.add(bearing("b", kT0, 433.92e6, 95, b_lo, bb));
+        cf.add(bearing("b", kT0, 433.92e6, b_la, 181, bb));
+        cf.add(bearing("b", kT0, 0, b_la, b_lo, bb));
+        cf.add(bearing("b", kT0, 2e12, b_la, b_lo, bb));
+        cf.add(bearing("b", kT0, 433.92e6, b_la, b_lo, 1e6));
+        cf.add(bearing("b", kT0, 433.92e6, b_la, b_lo, bb, 0));
+        CHECK(cf.fixes(kT0).empty(), "invalid bearings rejected");
+        cf.add(bearing("b", kT0, 433.92e6, b_la, b_lo, bb - 360));   // wraps
+        CHECK(cf.fixes(kT0).size() == 1, "negative bearing wraps");
+    }
     return testSummary("xfix");
 }

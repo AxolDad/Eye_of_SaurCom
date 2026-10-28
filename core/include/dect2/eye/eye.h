@@ -44,6 +44,7 @@ struct Contact {
     bool hasPos = false;
     double lat = 0, lon = 0;
     double posTime = 0;
+    double e95M = 0;        // Located contacts: the 95 % error of the last row written
 };
 
 struct GroupStat {

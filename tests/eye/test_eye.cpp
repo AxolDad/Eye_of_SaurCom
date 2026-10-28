@@ -150,7 +150,18 @@ int main() {
         auto fc = m.contacts(kT0 + 2, 60, 1u << GFixes);
         CHECK(fc.size() == 1 && fc[0].hasPos && std::abs(fc[0].lat - 54.7001) < 1e-9 && fc[0].label == "433.920 MHz", "located contact moved: %zu", fc.size());
         m.ingestLocated(kT0 + 3, 433.92e6, 54.7, 25.3, 300, {"a", "b"});
-        CHECK(m.timeline(100, 1u << GFixes).size() == 2, "a changed text is a new row");
+        CHECK(m.timeline(100, 1u << GFixes).size() == 2, "a clearly larger error is a new row");
+    }
+    {   // jittered live fixes of one transmitter: one row; a third site is a second
+        Overview m;
+        for (int i = 0; i < 10; i++)
+            m.ingestLocated(kT0 + i, 433.92e6, 54.7 + ((i % 3) - 1) * 0.00005, 25.3 + ((i % 2) ? 1 : -1) * 0.00005, 120 * (1 + 0.05 * ((i % 3) - 1)), {"a", "b"});
+        CHECK(m.timeline(100, 1u << GFixes).size() == 1, "jitter is one row: %zu", m.timeline(100, 1u << GFixes).size());
+        CHECK(m.total() == 1 && m.stats(kT0 + 10, 60)[GFixes].events == 1, "only written rows counted");
+        m.ingestLocated(kT0 + 11, 433.92e6, 54.7, 25.3, 120, {"a", "b", "c"});
+        CHECK(m.timeline(100, 1u << GFixes).size() == 2, "a third site is a second row");
+        m.ingestLocated(kT0, NAN, 1, 1, 1, {"a"});
+        m.ingestLocated(kT0, 1e300, 1, 1, 1, {"a"});
     }
 
     return testSummary("eye");

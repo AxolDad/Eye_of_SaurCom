@@ -15,12 +15,18 @@ void CrossFixer::add(const automation::Event& ev) {
     };
     Entry n{};
     if (!num("bearing_deg", n.bearing) || !num("lat", n.lat) || !num("lon", n.lon)) return;
-    if (!num("sigma_deg", n.sigma) || n.sigma <= 0) n.sigma = 5;
+    if (!num("sigma_deg", n.sigma)) n.sigma = 5;
+    // remote input is untrusted
+    if (n.sigma <= 0 || n.lat < -90 || n.lat > 90 || n.lon < -180 || n.lon > 180) return;
+    if (!std::isfinite(ev.freqHz) || ev.freqHz <= 0 || ev.freqHz > 1e12 || !std::isfinite(ev.time)) return;
+    if (std::fabs(n.bearing) > 720) return;
+    n.bearing = std::fmod(std::fmod(n.bearing, 360.0) + 360.0, 360.0);
     auto s = ev.f.find("site");
     if (s != ev.f.end()) n.site = s->second.text();
     n.time = ev.time; n.freqHz = ev.freqHz;
 
     std::lock_guard<std::mutex> lk(mu_);
+    e_.erase(std::remove_if(e_.begin(), e_.end(), [&](const Entry& o) { return o.time < n.time - kMaxAgeS; }), e_.end());
     // the newest bearing per site and (about) frequency replaces the older one
     for (Entry& o : e_)
         if (o.site == n.site && std::fabs(o.freqHz - n.freqHz) <= kFreqTolHz / 2) { if (n.time >= o.time) o = n; return; }

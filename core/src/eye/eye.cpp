@@ -118,26 +118,25 @@ void Overview::ingest(const au::Event& ev) {
     }
 }
 
-void Overview::ingestLocated(double time, double freqHz, double lat, double lon, double e95M, const std::vector<std::string>& sites) {
+void Overview::ingestLocated(double time, double freqHz, double lat, double lon, double e95M, const std::vector<std::string>& sitesIn) {
+    if (!std::isfinite(freqHz) || !std::isfinite(lat) || !std::isfinite(lon) || !std::isfinite(time)) return;
+    freqHz = std::clamp(freqHz, 0.0, 1e13);
+    e95M = std::isfinite(e95M) ? std::clamp(e95M, 0.0, 1e9) : 0.0;
     char buf[64];
     snprintf(buf, sizeof buf, "%lld", (long long)std::llround(freqHz / 1e3));
     const std::string ident = buf;
     snprintf(buf, sizeof buf, "%.3f MHz", freqHz / 1e6);
     const std::string label = buf;
+    std::vector<std::string> sites = sitesIn;
+    std::sort(sites.begin(), sites.end());
     std::string who;
     for (const std::string& s : sites) who += (who.empty() ? "" : ", ") + (s.empty() ? std::string("local") : s);
     snprintf(buf, sizeof buf, ", \xC2\xB1%lld m", (long long)std::llround(e95M));
     const std::string text = "located by " + who + buf;
 
     std::lock_guard<std::mutex> lk(mu_);
-    total_++;
     version_++;
     const int g = GFixes;
-    const int64_t sec = (int64_t)std::floor(time);
-    const size_t slot = (size_t)(((sec % kSlots) + kSlots) % kSlots);
-    if (slotSec_[slot] != sec) { slotSec_[slot] = sec; slotCount_[slot].fill(0); }
-    slotCount_[slot][(size_t)g]++;
-
     const std::string key = std::to_string(g) + "|" + ident;
     auto it = contacts_.find(key);
     const bool first = it == contacts_.end();
@@ -151,22 +150,32 @@ void Overview::ingestLocated(double time, double freqHz, double lat, double lon,
         it = contacts_.emplace(key, std::move(c)).first;
     }
     Contact& c = it->second;
-    const bool newText = text != c.text;
+    // a row only for a new contact, other sites, a position that moved noticeably or an error that changed noticeably
+    bool write = first || c.sites != sites;
+    if (!write) {
+        const double dy = (lat - c.lat) * 111320.0, dx = (lon - c.lon) * 111320.0 * std::cos(lat * 3.14159265358979 / 180);
+        const double moved = std::hypot(dx, dy);
+        write = moved > std::max(100.0, 0.25 * c.e95M) || std::fabs(e95M - c.e95M) > 0.25 * c.e95M;
+    }
     c.lastSeen = std::max(c.lastSeen, time);
-    c.events++;
     c.label = label;
     c.text = text;
     c.sites = sites;
-    std::sort(c.sites.begin(), c.sites.end());
     c.hasPos = true; c.lat = lat; c.lon = lon; c.posTime = time;
-    if (first || newText) {
-        Row row;
-        row.time = time; row.group = g; row.mode = c.mode; row.ident = ident; row.label = label; row.text = text;
-        row.freqHz = freqHz; row.first = first; row.hasPos = true; row.lat = lat; row.lon = lon;
-        row.seq = ++seq_;
-        rows_.push_back(std::move(row));
-        while (rows_.size() > lim_.maxRows) rows_.pop_front();
-    }
+    if (!write) return;
+    c.e95M = e95M;
+    c.events++;
+    total_++;
+    const int64_t sec = (int64_t)std::floor(time);
+    const size_t slot = (size_t)(((sec % kSlots) + kSlots) % kSlots);
+    if (slotSec_[slot] != sec) { slotSec_[slot] = sec; slotCount_[slot].fill(0); }
+    slotCount_[slot][(size_t)g]++;
+    Row row;
+    row.time = time; row.group = g; row.mode = c.mode; row.ident = ident; row.label = label; row.text = text;
+    row.freqHz = freqHz; row.first = first; row.hasPos = true; row.lat = lat; row.lon = lon;
+    row.seq = ++seq_;
+    rows_.push_back(std::move(row));
+    while (rows_.size() > lim_.maxRows) rows_.pop_front();
 }
 
 std::vector<Row> Overview::timeline(size_t max, uint32_t groupMask, const std::string& filter, const std::string& site) const {
