@@ -52,7 +52,8 @@ public:
     int audioOpen(int rateHz) override;
     bool audioRead(int id, std::string& pcm) override;
     void audioClose(int id) override;
-    size_t eventLines(uint64_t& cursor, std::vector<std::string>& lines, uint64_t& missed) override;
+    size_t eventLines(uint64_t& cursor, std::vector<std::string>& lines, size_t max, uint64_t& missed) override;
+    uint64_t eventHead() override;
     int handleExtra(const std::string& method, const std::string& path, const std::map<std::string, dect2::JsonVal>& body, std::string& json) override;
 
     // Resolves a mode id or number text ("fm", "dvbs", "ft8", "7") to a mode entry; nullptr when it is none.

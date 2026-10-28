@@ -35,7 +35,8 @@ struct Host : RemoteApiHost {
     int evListener = 0;   // feeds dect2::globalEventRing()
     Host() { evListener = automation::global().addListener([](const automation::Event& e) { globalEventRing().push(e); }, (1u << automation::kFamilies) - 1); }
     ~Host() override { if (evListener > 0) automation::global().removeListener(evListener); }
-    size_t eventLines(uint64_t& cursor, std::vector<std::string>& lines, uint64_t& missed) override { return globalEventRing().since(cursor, lines, 200, missed); }
+    size_t eventLines(uint64_t& cursor, std::vector<std::string>& lines, size_t max, uint64_t& missed) override { return globalEventRing().since(cursor, lines, max, missed); }
+    uint64_t eventHead() override { return globalEventRing().head(); }
     // ---- main-thread hand-over: the server's threads queue a job, tick() (every frame) runs it
     struct Job {
         std::function<bool(App&, std::string&)> fn;

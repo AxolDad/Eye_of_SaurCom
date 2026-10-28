@@ -510,7 +510,8 @@ void ServerHost::audioClose(int id) {
     applyMonitor();
 }
 
-size_t ServerHost::eventLines(uint64_t& cursor, std::vector<std::string>& lines, uint64_t& missed) { return globalEventRing().since(cursor, lines, 200, missed); }
+size_t ServerHost::eventLines(uint64_t& cursor, std::vector<std::string>& lines, size_t max, uint64_t& missed) { return globalEventRing().since(cursor, lines, max, missed); }
+uint64_t ServerHost::eventHead() { return globalEventRing().head(); }
 
 std::string ServerHost::indexHtml() { return kIndexHtml; }
 
