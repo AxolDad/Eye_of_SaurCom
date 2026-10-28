@@ -142,3 +142,7 @@ for Docker. If you set that up yourself, pass the card with `--gpu /dev/dri/rend
   still works, but every image layer is a full copy and takes more disk. LVM-thin, directory storage and ZFS 2.2 or newer don't have this
   problem.
 - **Anything about the page itself** (login, picture, sound): see the [Docker README](../docker/README.md). The container runs the same image.
+
+## Radios added later
+
+`/dev/bus/usb` is bound into the container as a directory, so a radio you plug into the node after the container has started shows up inside it without a restart. Eye of SaurCom then offers the new-radio notice (**Name it**, **Use in new receiver tab**, **Dismiss**). Radios plugged in before the program starts do not trigger it. Names and RTL-SDR serial backups are kept in `radios/` under `/config/.local/share/saurcom`, in the `/config` volume. See [docs/radios.md](../../docs/radios.md).

@@ -106,6 +106,7 @@ Everything above came from OnAir. This is what Eye of SaurCom built on top of it
 
 - **Trunking and scanning.** P25, DMR Tier III and NXDN Type C call following, several trunked systems scanned with conventional channels in one list, talkgroup names and call recording. sdrtrunk is the reference. [docs/trunking.md](docs/trunking.md), [docs/scanner.md](docs/scanner.md)
 - **Synchronous AM and a co-channel canceller** in the General receiver: SAM locks the station's own carrier so fading no longer distorts it, and the canceller rebuilds the near station and subtracts it so the one underneath comes up.
+- **Telling radios apart.** The radio list shows model, serial and USB port; you can name each radio, find one by unplugging and replugging it, get a notice when a new radio appears, and give look-alike RTL-SDR dongles unique serials, with a backup. [docs/radios.md](docs/radios.md)
 - **NFC / RFID sniffer** at 13.56 MHz, from nfc-laboratory's decoder. [docs/nfc.md](docs/nfc.md)
 - **Inmarsat-C:** EGC areas, the land-earth-station list, announcements and messages to ships.
 - **WiFi sensing.** Presence, motion, breathing and heart rate per room, from the CSI frames that [RuView](https://github.com/ruvnet/RuView)'s ESP32 firmware sends. *Tools > WiFi sensing*.
