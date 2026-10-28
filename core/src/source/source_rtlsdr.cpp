@@ -489,14 +489,14 @@ struct NativeEepromIo final : RtlEepromIo {
     bool read(uint32_t off, uint8_t* buf, size_t len, std::string& err) override {
         if (off > 255 || len > 256 - off) { err = "EEPROM range out of bounds"; return false; }
         const int r = native::rtl().read_eeprom(dev, buf, (uint8_t)off, (uint16_t)len);
-        if (r != 0) { err = "reading the EEPROM failed (librtlsdr code " + std::to_string(r) + (r == -3 ? ": this dongle has no EEPROM" : "") + ")"; return false; }
+        if (!rtlEepromReadOk(r)) { err = "reading the EEPROM failed (librtlsdr code " + std::to_string(r) + (r == -3 ? ": this dongle has no EEPROM" : "") + ")"; return false; }
         return true;
     }
     bool write(uint32_t off, const uint8_t* buf, size_t len, std::string& err) override {
         if (off > 255 || len > 256 - off) { err = "EEPROM range out of bounds"; return false; }
         std::vector<uint8_t> tmp(buf, buf + len);   // librtlsdr takes a non-const pointer
         const int r = native::rtl().write_eeprom(dev, tmp.data(), (uint8_t)off, (uint16_t)len);
-        if (r != 0) { err = "writing the EEPROM failed (librtlsdr code " + std::to_string(r) + ")"; return false; }
+        if (!rtlEepromWriteOk(r)) { err = "writing the EEPROM failed (librtlsdr code " + std::to_string(r) + ")"; return false; }
         return true;
     }
 };
@@ -509,7 +509,7 @@ std::unique_ptr<RtlEepromIo> openRtlEepromIo(const DeviceInfo& d, std::string& e
     auto& a = rtl();
     if (!a.ok) { err = "The RTL-SDR library (librtlsdr) is not available."; return nullptr; }
     if (!a.read_eeprom || !a.write_eeprom) { err = "This librtlsdr cannot read or write the EEPROM."; return nullptr; }
-    const char* stale = "The radio list is out of date: rescan, then try again.";
+    const char* stale = "The radio list changed; rescan and try again.";
     const uint32_t n = a.get_device_count();
     const uint32_t idx = (uint32_t)strtoul(d.nativeArgs.c_str(), nullptr, 10);
     if (idx >= n || idx >= 16) { err = stale; return nullptr; }
@@ -526,13 +526,22 @@ std::unique_ptr<RtlEepromIo> openRtlEepromIo(const DeviceInfo& d, std::string& e
     }
     const std::vector<std::string> paths = usbPathsInOrder(usbEnumerateFresh(), kRtlUsbIds, n);
     if (sameSerial > 1 && (d.usbPath.empty() || paths.size() != n)) {
-        err = "Several dongles have this serial and their USB ports cannot be read, so the right one cannot be told apart. Unplug the others and try again.";
+        err = "Can't tell these dongles apart here; unplug the others first.";
         return nullptr;
     }
     if (!d.usbPath.empty() && paths.size() == n && paths[idx] != d.usbPath) { err = stale; return nullptr; }
     auto io = std::make_unique<NativeEepromIo>();
     const int r = a.open(&io->dev, idx);
     if (r != 0 || !io->dev) { io->dev = nullptr; err = "RTL-SDR: cannot open the radio: " + native::usbErrorText(r); return nullptr; }
+    // opened by position: a plug or unplug since the checks above would have moved it. Look again before anything is written (the caller also
+    // compares the serial in the EEPROM with the one expected).
+    {
+        char vendor[256] = {0}, product[256] = {0}, serial[256] = {0};
+        const bool same = a.get_device_count() == n && a.get_device_usb_strings(idx, vendor, product, serial) == 0 && trimmed(serial, sizeof serial) == d.serial;
+        const std::vector<std::string> again = usbPathsInOrder(usbEnumerateFresh(), kRtlUsbIds, n);
+        const bool portSame = d.usbPath.empty() ? true : (again.size() == n && again[idx] == d.usbPath);
+        if (!same || !portSame || (sameSerial > 1 && d.usbPath.empty())) { err = stale; return nullptr; }   // (io closes the dongle)
+    }
     return io;
 }
 }  // namespace dect2

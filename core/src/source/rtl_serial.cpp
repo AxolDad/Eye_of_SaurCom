@@ -28,9 +28,9 @@ bool isDigits8(const std::string& s) {
 
 // One string descriptor [len][0x03][UTF-16LE] at `at`; false when it does not fit before 0x100 or is not one. `end` = offset after it.
 bool readDesc(const std::vector<uint8_t>& img, size_t at, std::string& text, size_t& end, std::string& err, const char* what) {
-    if (at + 2 > img.size()) { err = std::string("The EEPROM has no ") + what + " string."; return false; }
+    if (at + 2 > kRtlStringLimit) { err = std::string("The EEPROM has no ") + what + " string."; return false; }
     const size_t len = img[at];
-    if (len < 2 || (len & 1) || img[at + 1] != 0x03 || at + len > img.size()) { err = std::string("The ") + what + " string in the EEPROM is not a USB string descriptor."; return false; }
+    if (len < 2 || (len & 1) || img[at + 1] != 0x03 || at + len > kRtlStringLimit) { err = std::string("The ") + what + " string in the EEPROM is not a USB string descriptor."; return false; }
     text.clear();
     for (size_t i = at + 2; i + 1 < at + len; i += 2) text += (img[i + 1] == 0 && img[i] >= 0x20 && img[i] < 0x7F) ? (char)img[i] : '?';
     end = at + len;
@@ -69,6 +69,8 @@ bool readImage(RtlEepromIo& io, std::vector<uint8_t>& img, std::string& err) {
     return io.read(0, img.data(), img.size(), err);
 }
 
+bool isFactoryName(const std::string& s) { return s.empty() || s == "00000001" || s == "0"; }
+
 // Writes what differs (the span first, byte `flag` last when it differs) and reads the image back. what/backup build the failure texts.
 bool writeAndVerify(RtlEepromIo& io, const std::vector<uint8_t>& want, const std::vector<uint8_t>& have, size_t flag, const std::string& backup,
                     const char* failedText, const char* verifyText, std::string& err) {
@@ -83,10 +85,8 @@ bool writeAndVerify(RtlEepromIo& io, const std::vector<uint8_t>& want, const std
 }
 
 bool readFile(const std::string& path, std::vector<uint8_t>& out) {
-    std::ifstream f(u8file(path), std::ios::binary);
-    if (!f) return false;
-    out.assign(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
-    return true;
+    std::string e;
+    return rtlReadBackupFile(path, out, e);
 }
 
 // The backup: a temporary file next to it (mode 0600), flushed, renamed into place, read back and compared with the image.
@@ -178,7 +178,7 @@ bool rtlEepromSetSerial(std::vector<uint8_t>& img, const std::string& serial, st
     RtlEepromInfo info;
     if (!rtlEepromParse(img, info, err)) return false;
     const size_t newEnd = info.serialAt + kSerialDescLen, oldEnd = info.stringsEnd;
-    if (newEnd > kRtlEepromSize) { err = "The new serial does not fit in this dongle's EEPROM (the manufacturer and product names leave too little room)."; return false; }
+    if (newEnd > kRtlStringLimit) { err = "The new serial does not fit in this dongle's EEPROM (the manufacturer and product names leave too little room)."; return false; }
     for (size_t i = oldEnd; i < newEnd; i++)
         if (img[i] != 0x00 && img[i] != 0xFF) { err = "The EEPROM holds other data right after its strings, which the new serial would overwrite."; return false; }
     std::vector<uint8_t> out = img;
@@ -257,55 +257,104 @@ std::vector<std::string> rtlListBackups(const std::string& dir) {
     return out;
 }
 
+// ---- reading safely ----
+
+bool rtlReadStable(RtlEepromIo& io, std::vector<uint8_t>& img, std::string& err) {
+    std::vector<uint8_t> second;
+    std::string e;
+    if (!readImage(io, img, e) || !readImage(io, second, e)) { err = "The dongle's EEPROM could not be read (" + e + "). Nothing was written."; return false; }
+    if (!sameBytes(img, second)) { err = "The dongle's EEPROM reads differently each time (a bad USB connection?). Nothing was written."; return false; }
+    return true;
+}
+
+bool rtlReadBackupFile(const std::string& path, std::vector<uint8_t>& out, std::string& err) {
+    out.clear();
+    std::error_code ec;
+    const fs::path p = u8file(path);
+    const fs::file_status st = fs::status(p, ec);
+    if (ec || !fs::is_regular_file(st)) { err = "The backup " + path + " is not a regular file."; return false; }
+    const auto size = fs::file_size(p, ec);
+    if (ec || size != kRtlEepromSize) { err = "The backup " + path + " is not 256 bytes: it is not an EEPROM backup."; return false; }
+    std::ifstream f(p, std::ios::binary);
+    if (!f) { err = "Cannot read the backup file " + path + "."; return false; }
+    out.resize(kRtlEepromSize + 1);
+    f.read(reinterpret_cast<char*>(out.data()), (std::streamsize)out.size());   // one byte more than expected: a file that grew is caught
+    out.resize((size_t)f.gcount());
+    if (out.size() != kRtlEepromSize) { out.clear(); err = "The backup " + path + " is not 256 bytes: it is not an EEPROM backup."; return false; }
+    return true;
+}
+
 // ---- the write ----
 
-bool rtlWriteSerialIo(RtlEepromIo& io, const std::string& newSerial, const std::string& backupDir, time_t now, std::string& backupPath, std::string& err) {
+bool rtlWriteSerialIo(RtlEepromIo& io, const std::string& expectedSerial, const std::string& newSerial, const std::string& backupDir, time_t now,
+                      std::string& backupPath, std::string& err) {
     err.clear();
+    const std::string planned = backupPath;
     backupPath.clear();
     std::string rerr;
     std::vector<uint8_t> cur;
-    if (!readImage(io, cur, rerr)) { err = "The dongle's EEPROM could not be read (" + rerr + "). Nothing was written."; return false; }
+    if (!rtlReadStable(io, cur, err)) return false;
     RtlEepromInfo info;
     if (!rtlEepromParse(cur, info, rerr)) { err = "This dongle's EEPROM is not in the layout this tool knows (" + rerr + "). Nothing was written."; return false; }
+    if (info.serial != expectedSerial && !(!info.haveSerial && isFactoryName(expectedSerial))) {
+        err = "The radio list changed; rescan and try again. (The dongle that was opened has serial \"" + info.serial + "\", not \"" + expectedSerial + "\".) Nothing was written.";
+        return false;
+    }
     std::vector<uint8_t> want = cur;   // worked out before the backup, so a serial that cannot be written leaves no file behind
     if (!rtlEepromSetSerial(want, newSerial, rerr)) { err = rerr + " Nothing was written."; return false; }
     if (sameBytes(want, cur)) return true;   // the dongle already has it
-    const std::string bp = rtlBackupPath(backupDir, info.serial, now);
+    std::error_code ec;
+    if (!planned.empty() && fs::exists(u8file(planned), ec)) { err = "The backup file " + planned + " already exists. Try again. Nothing was written."; return false; }
+    const std::string bp = planned.empty() ? rtlBackupPath(backupDir, info.serial, now) : planned;
     if (!writeBackup(backupDir, bp, cur, err)) return false;
     backupPath = bp;
     return writeAndVerify(io, want, cur, 6, bp, "Writing to the dongle failed", "The write did not verify.", err);
 }
 
-bool rtlRestoreEepromIo(RtlEepromIo& io, const std::string& backupPath, std::string& err) {
+bool rtlRestoreEepromIo(RtlEepromIo& io, const std::string& backupFile, const std::string& backupDir, time_t now, std::string& safetyBackup, std::string& err) {
     err.clear();
+    safetyBackup.clear();
     std::vector<uint8_t> bk;
-    if (!readFile(backupPath, bk)) { err = "Cannot read the backup file " + backupPath + "."; return false; }
-    if (bk.size() != kRtlEepromSize) { err = "The backup file is " + std::to_string(bk.size()) + " bytes, not 256: it is not an EEPROM backup."; return false; }
-    if (bk[0] != 0x28 || bk[1] != 0x32) { err = "The backup file does not start with the RTL2832U header (28 32): it is not an EEPROM backup."; return false; }
-    std::vector<uint8_t> cur;
+    if (!rtlReadBackupFile(backupFile, bk, err)) return false;
+    RtlEepromInfo bi;
     std::string rerr;
-    if (!readImage(io, cur, rerr)) { err = "The dongle's EEPROM could not be read (" + rerr + "). Nothing was written."; return false; }
+    if (!rtlEepromParse(bk, bi, rerr)) { err = "The backup file is not a usable RTL-SDR EEPROM image (" + rerr + "). Nothing was written."; return false; }
+    std::vector<uint8_t> cur;
+    if (!rtlReadStable(io, cur, err)) return false;
+    RtlEepromInfo ci;
+    const bool curParses = rtlEepromParse(cur, ci, rerr);
+    if (cur[0] == 0x28 && cur[1] == 0x32 && (cur[2] != bk[2] || cur[3] != bk[3] || cur[4] != bk[4] || cur[5] != bk[5])) {
+        err = "The backup is from a different kind of dongle (its USB ID differs from this dongle's). Nothing was written.";
+        return false;
+    }
     if (sameBytes(cur, bk)) return true;
-    return writeAndVerify(io, bk, cur, 6, backupPath, "Restoring failed", "The restore did not verify.", err);
+    std::error_code ec;
+    const std::string sp = rtlBackupPath(backupDir, curParses ? ci.serial : std::string("unknown"), now);
+    if (!writeBackup(backupDir, sp, cur, err)) return false;
+    safetyBackup = sp;
+    return writeAndVerify(io, bk, cur, 6, sp, "Restoring failed", "The restore did not verify.", err);
 }
 
 bool rtlWriteSerial(const DeviceInfo& d, const std::string& newSerial, const std::string& backupDir, std::string& backupPath, std::string& err) {
+    const std::string planned = backupPath;
     backupPath.clear();
     if (!rtlIsRtl2832(d)) { err = "Only an RTL2832U dongle (RTL-SDR) can be given a serial here."; return false; }
     ClaimScope claim(d);
     if (!claim.ok) { err = claim.err; return false; }
     auto io = openRtlEepromIo(d, err);
     if (!io) return false;
-    return rtlWriteSerialIo(*io, newSerial, backupDir, time(nullptr), backupPath, err);
+    backupPath = planned;
+    return rtlWriteSerialIo(*io, d.serial, newSerial, backupDir, time(nullptr), backupPath, err);
 }
 
-bool rtlRestoreEeprom(const DeviceInfo& d, const std::string& backupPath, std::string& err) {
+bool rtlRestoreEeprom(const DeviceInfo& d, const std::string& backupFile, const std::string& backupDir, std::string& safetyBackup, std::string& err) {
+    safetyBackup.clear();
     if (!rtlIsRtl2832(d)) { err = "Only an RTL2832U dongle (RTL-SDR) can be restored here."; return false; }
     ClaimScope claim(d);
     if (!claim.ok) { err = claim.err; return false; }
     auto io = openRtlEepromIo(d, err);
     if (!io) return false;
-    return rtlRestoreEepromIo(*io, backupPath, err);
+    return rtlRestoreEepromIo(*io, backupFile, backupDir, time(nullptr), safetyBackup, err);
 }
 
 // ---- the name follows the dongle ----

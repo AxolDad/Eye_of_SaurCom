@@ -9,6 +9,7 @@
 #include <set>
 #ifndef _WIN32
 #include <sys/stat.h>
+#include <unistd.h>
 #endif
 
 using namespace dect2;
@@ -20,14 +21,17 @@ static void putStr(Img& img, size_t& at, const std::string& s) {
     img[at++] = 0x03;
     for (char c : s) { img[at++] = (uint8_t)c; img[at++] = 0; }
 }
-// 0x28 0x32, VID 0x0bda, PID 0x2838, serial in use, wakeup/IR byte 0x02, byte 8 = 0x00; strings from 0x09; padding 0xFF after (as a blank EEPROM)
+// rtl_eeprom's layout (gen_eeprom_from_conf): 0x28 0x32, VID 0x0bda, PID 0x2838, serial in use, byte 7 = 0x14 | IR + wakeup bits, byte 8 = 0x02, strings
+// from 0x09 (zero padding up to 78), byte 78 = length of the IR configuration followed by the IR configuration, zero after it.
 static Img realImage(const std::string& mfr = "Realtek", const std::string& prod = "RTL2838UHIDIR", const std::string& serial = "00000001", bool have = true) {
-    Img img(256, 0xFF);
+    Img img(256, 0x00);
     img[0] = 0x28; img[1] = 0x32; img[2] = 0xda; img[3] = 0x0b; img[4] = 0x38; img[5] = 0x28;
-    img[6] = have ? 0xA5 : 0x00; img[7] = 0x02; img[8] = 0x00;
+    img[6] = have ? 0xA5 : 0x00; img[7] = 0x14 | 0x03; img[8] = 0x02;
     size_t at = 9;
     putStr(img, at, mfr); putStr(img, at, prod);
     if (have) putStr(img, at, serial);
+    img[78] = 5; img[79] = 0xA1; img[80] = 0xB2; img[81] = 0xC3; img[82] = 0xD4; img[83] = 0xE5;   // a non-zero IR configuration
+    img[255] = 0x5A;
     return img;
 }
 
@@ -36,12 +40,15 @@ struct SimIo : RtlEepromIo {
     int failAfterBytes = -1;     // a write stops (with an error) once this many bytes have been written in all
     bool dropWrites = false;     // writes report success but change nothing (a dongle that does not take them)
     bool failRead = false;
+    bool unstable = false;       // every second full read differs in one byte
+    int fullReads = 0;
     int writeCalls = 0;
     size_t bytesWritten = 0;
     explicit SimIo(Img m) : mem(std::move(m)) {}
     bool read(uint32_t off, uint8_t* buf, size_t len, std::string& err) override {
         if (failRead || off + len > mem.size()) { err = "sim read error"; return false; }
         std::copy(mem.begin() + off, mem.begin() + off + len, buf);
+        if (unstable && len == mem.size() && (++fullReads % 2) == 0) buf[100] ^= 0x01;
         return true;
     }
     bool write(uint32_t off, const uint8_t* buf, size_t len, std::string& err) override {
@@ -129,10 +136,10 @@ int main() {
         Img shortSer = realImage("Realtek", "RTL2838UHIDIR", "12345");
         Img grown = shortSer;
         CHECK(rtlEepromSetSerial(grown, "48213907", err), "grows into the padding: %s", err.c_str());
-        Img longer = realImage("Realtek", "RTL2838UHIDIR", "123456789012"), shrunk = longer;
+        Img longer = realImage("Realtek", "RTL2838UHIDIR", "1234567890"), shrunk = longer;
         CHECK(rtlEepromSetSerial(shrunk, "48213907", err), "shrinks: %s", err.c_str());
         RtlEepromInfo i2; CHECK(rtlEepromParse(shrunk, i2, err) && i2.serial == "48213907", "shrunk parses");
-        bool tailZero = true; for (size_t i = i2.stringsEnd; i < i2.stringsEnd + 8; i++) tailZero &= shrunk[i] == 0x00;
+        bool tailZero = true; for (size_t i = i2.stringsEnd; i < i2.stringsEnd + 4; i++) tailZero &= shrunk[i] == 0x00;
         CHECK(tailZero, "freed bytes are zero");
         // data after the strings that is not padding is not overwritten
         Img data = shortSer; RtlEepromInfo i3; rtlEepromParse(data, i3, err);
@@ -144,9 +151,9 @@ int main() {
     {
         std::string err;
         Img full(256, 0xFF); full[0] = 0x28; full[1] = 0x32; full[6] = 0xA5; size_t at = 9;
-        putStr(full, at, std::string(58, 'm')); putStr(full, at, std::string(58, 'p')); putStr(full, at, "1");   // 9+118+118+4 = 249; needs 18 -> 263
+        putStr(full, at, std::string(14, 'm')); putStr(full, at, std::string(14, 'p')); putStr(full, at, "1");   // 9+30+30+4 = 73; needs 18 -> 87 > 78
         const Img keep = full; Img t = full;
-        RtlEepromInfo fi; CHECK(rtlEepromParse(full, fi, err) && fi.stringsEnd == 249, "overflow image parses (end %zu)", fi.stringsEnd);
+        RtlEepromInfo fi; CHECK(rtlEepromParse(full, fi, err) && fi.stringsEnd == 73, "overflow image parses (end %zu)", fi.stringsEnd);
         CHECK(!rtlEepromSetSerial(t, "48213907", err) && t == keep && has(err, "fit"), "overflow refused, image untouched: %s", err.c_str());
         Img r = realImage();
         CHECK(!rtlEepromSetSerial(r, "4821390A", err) && !err.empty(), "non-digit");
@@ -185,7 +192,7 @@ int main() {
         SimIo io(realImage());
         const Img orig = io.mem;
         std::string bp, err;
-        CHECK(rtlWriteSerialIo(io, "48213907", dir.string(), 1700000000, bp, err), "write: %s", err.c_str());
+        CHECK(rtlWriteSerialIo(io, "00000001", "48213907", dir.string(), 1700000000, bp, err), "write: %s", err.c_str());
         CHECK(fs::exists(bp) && readFile(bp) == orig && readFile(bp).size() == 256, "backup holds the original");
         CHECK(has(bp, "eeprom-backup-00000001-") && bp.size() > 4 && bp.substr(bp.size() - 4) == ".bin", "backup name: %s", bp.c_str());
         RtlEepromInfo info; rtlEepromParse(io.mem, info, err);
@@ -199,11 +206,11 @@ int main() {
         CHECK(!fs::exists(bp + ".tmp"), "no temp file left");
         // the same second again: a new file, the first is kept
         SimIo io2(realImage()); std::string bp2;
-        CHECK(rtlWriteSerialIo(io2, "48213908", dir.string(), 1700000000, bp2, err) && bp2 != bp && fs::exists(bp) && fs::exists(bp2), "a second backup does not replace the first");
+        CHECK(rtlWriteSerialIo(io2, "00000001", "48213908", dir.string(), 1700000000, bp2, err) && bp2 != bp && fs::exists(bp) && fs::exists(bp2), "a second backup does not replace the first");
         CHECK(rtlListBackups(dir.string()).size() == 2, "listed");
         // a serial that is already the dongle's: nothing written
         SimIo io3(io.mem); std::string bp3;
-        CHECK(rtlWriteSerialIo(io3, "48213907", dir.string(), 1700000100, bp3, err) && io3.writeCalls == 0, "same serial: no write");
+        CHECK(rtlWriteSerialIo(io3, "48213907", "48213907", dir.string(), 1700000100, bp3, err) && io3.writeCalls == 0, "same serial: no write");
         fs::remove_all(dir);
     }
     // ---- a write that fails at byte N: the backup stays, the restore hint is given, the restore works
@@ -214,12 +221,12 @@ int main() {
             const Img orig = io.mem;
             io.failAfterBytes = n;
             std::string bp, err;
-            CHECK(!rtlWriteSerialIo(io, "48213907", dir.string(), 1700000000, bp, err), "fails at %d", n);
+            CHECK(!rtlWriteSerialIo(io, "00000001", "48213907", dir.string(), 1700000000, bp, err), "fails at %d", n);
             CHECK(!bp.empty() && fs::exists(bp) && readFile(bp) == orig, "backup in place (n=%d)", n);
             CHECK(has(err, "Restore from backup") && has(err, bp.c_str()), "restore hint with the path (n=%d): %s", n, err.c_str());
             io.failAfterBytes = -1;
-            std::string rerr;
-            CHECK(rtlRestoreEepromIo(io, bp, rerr), "restore: %s", rerr.c_str());
+            std::string rerr, safety;
+            CHECK(rtlRestoreEepromIo(io, bp, dir.string(), 1700000200, safety, rerr), "restore: %s", rerr.c_str());
             CHECK(io.mem == orig, "restored to the original (n=%d)", n);
             fs::remove_all(dir);
         }
@@ -229,11 +236,12 @@ int main() {
         const fs::path dir = tmpDir("flag");
         SimIo io(realImage("Realtek", "RTL2838UHIDIR", "", false));
         const Img orig = io.mem;
-        io.failAfterBytes = 18;   // all 18 bytes of the descriptor are in, the flag is not
+        io.failAfterBytes = 17;   // the whole differing span (17 bytes: the trailing zero is unchanged) is in, the flag is not
         std::string bp, err;
-        CHECK(!rtlWriteSerialIo(io, "48213907", dir.string(), 1700000000, bp, err) && io.mem[6] == 0x00 && has(err, "Restore from backup"), "flag is written last: %s", err.c_str());
+        CHECK(!rtlWriteSerialIo(io, "00000001", "48213907", dir.string(), 1700000000, bp, err) && io.mem[6] == 0x00 && has(err, "Restore from backup"), "flag is written last: %s", err.c_str());
         io.failAfterBytes = -1;
-        CHECK(rtlRestoreEepromIo(io, bp, err) && io.mem == orig, "restored: %s", err.c_str());
+        std::string safety;
+        CHECK(rtlRestoreEepromIo(io, bp, dir.string(), 1700000200, safety, err) && io.mem == orig, "restored: %s", err.c_str());
         fs::remove_all(dir);
     }
     // ---- a dongle that accepts the write but does not keep it: "did not verify"
@@ -241,7 +249,7 @@ int main() {
         const fs::path dir = tmpDir("verify");
         SimIo io(realImage()); io.dropWrites = true;
         std::string bp, err;
-        CHECK(!rtlWriteSerialIo(io, "48213907", dir.string(), 1700000000, bp, err), "no verify");
+        CHECK(!rtlWriteSerialIo(io, "00000001", "48213907", dir.string(), 1700000000, bp, err), "no verify");
         CHECK(has(err, "The write did not verify.") && has(err, "Your original EEPROM is saved at ") && has(err, bp.c_str()) && has(err, "Use Restore from backup… to put it back."), "text: %s", err.c_str());
         fs::remove_all(dir);
     }
@@ -253,7 +261,7 @@ int main() {
         { std::ofstream f(blocker); f << "x"; }
         SimIo io(realImage());
         std::string bp, err;
-        CHECK(!rtlWriteSerialIo(io, "48213907", (blocker / "sub").string(), 1700000000, bp, err) && !err.empty(), "backup dir cannot be made");
+        CHECK(!rtlWriteSerialIo(io, "00000001", "48213907", (blocker / "sub").string(), 1700000000, bp, err) && !err.empty(), "backup dir cannot be made");
         CHECK(io.writeCalls == 0 && io.bytesWritten == 0 && io.mem == realImage(), "nothing written to the EEPROM");
         // a directory in the way of the backup file itself
         const fs::path dir2 = dir / "d2"; fs::create_directories(dir2);
@@ -261,7 +269,7 @@ int main() {
         fs::create_directories(taken); fs::create_directories(taken + "-2");
         // (the name is also taken by directories: another name is found, or the write is refused; either way not without a backup)
         std::string bp2, err2; SimIo io2(realImage());
-        const bool ok = rtlWriteSerialIo(io2, "48213907", dir2.string(), 1700000000, bp2, err2);
+        const bool ok = rtlWriteSerialIo(io2, "00000001", "48213907", dir2.string(), 1700000000, bp2, err2);
         CHECK(!ok ? io2.writeCalls == 0 : (!bp2.empty() && fs::is_regular_file(bp2) && readFile(bp2) == realImage()), "never written without a backup file");
         fs::remove_all(dir);
     }
@@ -270,11 +278,11 @@ int main() {
         const fs::path dir = tmpDir("noparse");
         Img foreign(256, 0xFF);
         SimIo io(foreign); std::string bp, err;
-        CHECK(!rtlWriteSerialIo(io, "48213907", dir.string(), 1700000000, bp, err) && io.writeCalls == 0 && bp.empty(), "blank EEPROM refused");
+        CHECK(!rtlWriteSerialIo(io, "00000001", "48213907", dir.string(), 1700000000, bp, err) && io.writeCalls == 0 && bp.empty(), "blank EEPROM refused");
         SimIo io2(realImage()); io2.failRead = true;
-        CHECK(!rtlWriteSerialIo(io2, "48213907", dir.string(), 1700000000, bp, err) && io2.writeCalls == 0, "unreadable refused");
+        CHECK(!rtlWriteSerialIo(io2, "00000001", "48213907", dir.string(), 1700000000, bp, err) && io2.writeCalls == 0, "unreadable refused");
         SimIo io3(realImage()); std::string bp3;
-        CHECK(!rtlWriteSerialIo(io3, "4821390x", dir.string(), 1700000000, bp3, err) && io3.writeCalls == 0 && bp3.empty(), "bad serial: no backup, no write");
+        CHECK(!rtlWriteSerialIo(io3, "00000001", "4821390x", dir.string(), 1700000000, bp3, err) && io3.writeCalls == 0 && bp3.empty(), "bad serial: no backup, no write");
         CHECK(!fs::exists(dir) || fs::is_empty(dir), "no file made");
         fs::remove_all(dir);
     }
@@ -282,19 +290,82 @@ int main() {
     {
         const fs::path dir = tmpDir("restore"); fs::create_directories(dir);
         auto put = [&](const char* n, const Img& d) { const std::string p = (dir / n).string(); std::ofstream f(p, std::ios::binary); f.write((const char*)d.data(), (std::streamsize)d.size()); return p; };
-        SimIo io(realImage("Realtek", "RTL2838UHIDIR", "48213907")); std::string err;
+        const fs::path safeDir = dir / "safe";
+        SimIo io(realImage("Realtek", "RTL2838UHIDIR", "48213907")); std::string err, safety;
         const Img before = io.mem;
-        CHECK(!rtlRestoreEepromIo(io, put("short.bin", Img(100, 0x28)), err) && io.writeCalls == 0, "short backup refused");
-        CHECK(!rtlRestoreEepromIo(io, put("big.bin", Img(300, 0x28)), err) && io.writeCalls == 0, "long backup refused");
+        auto R = [&](SimIo& d, const std::string& f) { safety.clear(); return rtlRestoreEepromIo(d, f, safeDir.string(), 1700000300, safety, err); };
+        CHECK(!R(io, put("short.bin", Img(100, 0x28))) && io.writeCalls == 0, "short backup refused");
+        CHECK(!R(io, put("big.bin", Img(300, 0x28))) && io.writeCalls == 0, "long backup refused");
         Img badh = realImage(); badh[0] = 0;
-        CHECK(!rtlRestoreEepromIo(io, put("badh.bin", badh), err) && io.writeCalls == 0, "bad header refused");
-        CHECK(!rtlRestoreEepromIo(io, (dir / "missing.bin").string(), err) && io.writeCalls == 0, "missing file");
-        CHECK(io.mem == before, "dongle untouched");
+        CHECK(!R(io, put("badh.bin", badh)) && io.writeCalls == 0, "bad header refused");
+        Img noparse = realImage(); noparse[10] = 0x04;   // header fine, strings broken
+        CHECK(!R(io, put("noparse.bin", noparse)) && io.writeCalls == 0 && has(err, "usable"), "a backup that does not parse is refused: %s", err.c_str());
+        Img otherModel = realImage(); otherModel[4] = 0x32;   // another PID
+        CHECK(!R(io, put("other.bin", otherModel)) && io.writeCalls == 0 && has(err, "different kind"), "a backup of another model is refused: %s", err.c_str());
+        CHECK(!R(io, (dir / "missing.bin").string()) && io.writeCalls == 0, "missing file");
+        CHECK(!R(io, dir.string()) && io.writeCalls == 0 && has(err, "regular file"), "a directory is refused: %s", err.c_str());
+#ifndef _WIN32
+        CHECK(!R(io, "/dev/zero") && io.writeCalls == 0 && has(err, "regular file"), "a device is refused: %s", err.c_str());
+        const std::string fifo = (dir / "fifo.bin").string();
+        if (mkfifo(fifo.c_str(), 0600) == 0) CHECK(!R(io, fifo) && io.writeCalls == 0 && has(err, "regular file"), "a FIFO is refused without opening it: %s", err.c_str());
+        const std::string link = (dir / "link.bin").string();
+        if (symlink("/dev/zero", link.c_str()) == 0) CHECK(!R(io, link) && io.writeCalls == 0, "a link to a device is refused");
+#endif
+        CHECK(io.mem == before && !fs::exists(safeDir), "dongle untouched and no safety copy for refusals");
+        SimIo flaky(before); flaky.unstable = true;
+        CHECK(!R(flaky, put("good0.bin", realImage())) && flaky.writeCalls == 0 && has(err, "differently"), "unstable reads refused: %s", err.c_str());
         const Img good = realImage();
-        CHECK(rtlRestoreEepromIo(io, put("good.bin", good), err) && io.mem == good, "restore: %s", err.c_str());
+        CHECK(R(io, put("good.bin", good)) && io.mem == good, "restore: %s", err.c_str());
+        CHECK(!safety.empty() && readFile(safety) == before, "the dongle's previous contents were saved first (%s)", safety.c_str());
         SimIo drop(realImage("Realtek", "RTL2838UHIDIR", "48213907")); drop.dropWrites = true;
-        CHECK(!rtlRestoreEepromIo(drop, put("good.bin", good), err) && has(err, "did not verify"), "restore verifies: %s", err.c_str());
+        CHECK(!R(drop, put("good.bin", good)) && has(err, "did not verify") && has(err, safety.c_str()), "restore verifies: %s", err.c_str());
+        // the safety copy fails: nothing is written
+        const fs::path blocked = dir / "blocked"; { std::ofstream f(blocked); f << "x"; }
+        SimIo io5(before);
+        safety.clear();
+        CHECK(!rtlRestoreEepromIo(io5, put("good.bin", good), (blocked / "sub").string(), 1700000300, safety, err) && io5.writeCalls == 0 && io5.mem == before, "no safety copy, no restore");
         fs::remove_all(dir);
+    }
+    // ---- reads that disagree, a dongle that is not the expected one, bytes 78..255, the IR configuration
+    {
+        const fs::path dir = tmpDir("ident");
+        std::string bp, err;
+        SimIo flaky(realImage()); flaky.unstable = true;
+        CHECK(!rtlWriteSerialIo(flaky, "00000001", "48213907", dir.string(), 1700000000, bp, err) && flaky.writeCalls == 0 && bp.empty() && has(err, "differently") && !fs::exists(dir), "two reads differ: no backup, no write: %s", err.c_str());
+        SimIo other(realImage("Realtek", "RTL2838UHIDIR", "77777777"));
+        CHECK(!rtlWriteSerialIo(other, "00000001", "48213907", dir.string(), 1700000000, bp, err) && other.writeCalls == 0 && has(err, "rescan") && !fs::exists(dir), "another dongle than expected: %s", err.c_str());
+        SimIo noflag(realImage("Realtek", "RTL2838UHIDIR", "", false));
+        CHECK(rtlWriteSerialIo(noflag, "00000001", "48213907", dir.string(), 1700000000, bp, err), "a dongle without the flag matches a factory default: %s", err.c_str());
+        fs::remove_all(dir);
+        // a planned backup path is the one made; an existing one is not replaced
+        SimIo io(realImage());
+        const std::string planned = rtlBackupPath(dir.string(), "00000001", 1700000000);
+        bp = planned;
+        CHECK(rtlWriteSerialIo(io, "00000001", "48213907", dir.string(), 1700000999, bp, err) && bp == planned && fs::exists(planned), "the planned path is used: %s", err.c_str());
+        SimIo io2(realImage()); bp = planned;
+        CHECK(!rtlWriteSerialIo(io2, "00000001", "48213909", dir.string(), 1700000999, bp, err) && io2.writeCalls == 0 && bp.empty(), "an existing planned file is not replaced");
+        // bytes 78..255 and the whole IR configuration survive
+        const Img orig = realImage();
+        CHECK(std::equal(orig.begin() + 78, orig.end(), io.mem.begin() + 78), "bytes 78..255 unchanged by the write");
+        Img viaSet = orig; std::string e2;
+        CHECK(rtlEepromSetSerial(viaSet, "48213907", e2) && std::equal(orig.begin() + 78, orig.end(), viaSet.begin() + 78) && viaSet[7] == orig[7] && viaSet[8] == orig[8], "set leaves 78..255 and bytes 7, 8");
+        // a serial that would cross 78 is refused: strings end at 73, 18 more bytes needed
+        Img tight(256, 0x00); tight[0] = 0x28; tight[1] = 0x32; tight[6] = 0xA5; size_t at = 9;
+        putStr(tight, at, std::string(14, 'm')); putStr(tight, at, std::string(14, 'p')); putStr(tight, at, "1");
+        tight[78] = 5; tight[79] = 0xA1;
+        const Img tightKeep = tight; Img t2 = tight; RtlEepromInfo ti;
+        CHECK(rtlEepromParse(tight, ti, e2) && ti.stringsEnd == 73, "tight image parses (end %zu)", ti.stringsEnd);
+        CHECK(!rtlEepromSetSerial(t2, "48213907", e2) && t2 == tightKeep && has(e2, "fit"), "crossing 78 is refused: %s", e2.c_str());
+        // strings that already run past 78 do not parse
+        Img longer(256, 0x00); longer[0] = 0x28; longer[1] = 0x32; longer[6] = 0xA5; at = 9;
+        putStr(longer, at, std::string(20, 'm')); putStr(longer, at, std::string(20, 'p')); putStr(longer, at, "1");
+        CHECK(!rtlEepromParse(longer, ti, e2), "strings that cross 78 do not parse");
+        fs::remove_all(dir);
+    }
+    // ---- what librtlsdr's calls return
+    {
+        CHECK(rtlEepromReadOk(1) && rtlEepromReadOk(0) && !rtlEepromReadOk(-1) && !rtlEepromReadOk(-3), "a read returns 1 on success, negative on error");
+        CHECK(rtlEepromWriteOk(0) && !rtlEepromWriteOk(-3) && !rtlEepromWriteOk(-2), "a write returns 0 on success, negative on error");
     }
     // ---- the real entry points refuse what they must before any hardware
     {
@@ -302,12 +373,12 @@ int main() {
         DeviceInfo hackrf; hackrf.kind = DeviceInfo::HackRF; hackrf.board = "HackRF One"; hackrf.serial = "0123";
         CHECK(!rtlIsRtl2832(hackrf) && !rtlWriteSerial(hackrf, "48213907", "/nonexistent", bp, err) && has(err, "RTL2832U"), "not an RTL2832U: %s", err.c_str());
         DeviceInfo soapy; soapy.kind = DeviceInfo::Soapy; soapy.board = "rtlsdr";
-        CHECK(!rtlIsRtl2832(soapy) && !rtlRestoreEeprom(soapy, "/nonexistent", err), "soapy refused");
+        CHECK(!rtlIsRtl2832(soapy) && !rtlRestoreEeprom(soapy, "/nonexistent", "/nonexistent", bp, err), "soapy refused");
         DeviceInfo rtl; rtl.kind = DeviceInfo::Native; rtl.board = "rtlsdr"; rtl.serial = "00000001"; rtl.nativeArgs = "0"; rtl.usbPath = "1-2";
         CHECK(rtlIsRtl2832(rtl), "native rtlsdr");
         CHECK(claimDevice(rtl, 2), "claimed by RX 2");
         CHECK(!rtlWriteSerial(rtl, "48213907", "/nonexistent", bp, err) && has(err, "in use by RX 2"), "claimed: %s", err.c_str());
-        CHECK(!rtlRestoreEeprom(rtl, "/nonexistent", err) && has(err, "in use by RX 2"), "restore claimed: %s", err.c_str());
+        CHECK(!rtlRestoreEeprom(rtl, "/nonexistent", "/nonexistent", bp, err) && has(err, "in use by RX 2"), "restore claimed: %s", err.c_str());
         releaseDevice(2);
         CHECK(!anyDeviceClaimed(), "the tool's claim does not linger after a refusal");
     }

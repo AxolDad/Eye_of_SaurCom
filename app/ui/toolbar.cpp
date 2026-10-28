@@ -109,7 +109,7 @@ static void toolbarSource(App& a, bool vertical, bool running) {
     }
     ImGui::SameLine();
     // not while a scan has the radio open: a radio in use may not be listed (or its limits not be readable), and the choice would move to another one
-    ImGui::BeginDisabled(a.scanner.progress().running);
+    ImGui::BeginDisabled(a.scanner.progress().running || rtlSerialBusy());
     if (iconFlat(Ic::Refresh, tr("Rescan for devices"))) refreshDevices(a), a.devIdx = std::min(a.devIdx, (int)a.devices.size() - 1);
     ImGui::EndDisabled();
     ImGui::EndDisabled();

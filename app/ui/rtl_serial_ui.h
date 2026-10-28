@@ -14,3 +14,5 @@ void rtlSerialRestoreRequest(App& a, int deviceIdx);
 void rtlSerialModal(App& a);
 // Wait for a running write before the radio libraries are torn down.
 void rtlSerialShutdown();
+// True while a write or restore runs: Rescan is off then.
+bool rtlSerialBusy();

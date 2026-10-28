@@ -12,8 +12,8 @@ bool claimDevice(const DeviceInfo& d, int owner, int* holder = nullptr);
 void releaseDevice(int owner);                          // everything the receiver holds
 int deviceHolder(const DeviceInfo& d);                  // 0 = free, else the receiver number
 constexpr int kSweepClaimBase = 1100;                   // sweep, station health and RFI tools: 1100 to 1199, one number per open tool
-constexpr int kHubClaimOwner = 1200;
-constexpr int kEepromClaimOwner = 1300;                // the RTL-SDR serial tool (core/.../rtl_serial.h) holds the dongle it writes under this number                    // the direction-finding hub's dongles (app/df)
+constexpr int kHubClaimOwner = 1200;                    // the direction-finding hub's dongles (app/df)
+constexpr int kEepromClaimOwner = 1300;                 // the RTL-SDR serial tool (core/.../rtl_serial.h) holds the dongle it writes under this number
 constexpr int kTxClaimOwner = 1000;                     // the transmitter (tx.h) holds its radio under this number; receivers are 1 to 99
 // The transmitter on a full-duplex radio (a PlutoSDR) shares the radio with a receiver: it holds it without excluding anyone, but the radio still counts
 // as open for anyDeviceClaimed() (so the background watch does not list it).

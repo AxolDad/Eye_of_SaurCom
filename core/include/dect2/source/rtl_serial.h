@@ -13,13 +13,15 @@ namespace dect2 {
 
 constexpr size_t kRtlEepromSize = 256;
 constexpr size_t kRtlSerialLen = 8;   // digits
+constexpr size_t kRtlStringLimit = 78;   // the strings end at or before this offset (rtl_eeprom.c)
 
 // The EEPROM of an RTL2832U dongle in the layout of librtlsdr's rtl_eeprom tool (rtl_eeprom.c; written here from the format, not copied):
 //   0x00 0x28, 0x01 0x32   header (a blank or foreign EEPROM does not have it)
 //   0x02..03 vendor id, 0x04..05 product id (little endian)
 //   0x06 0xA5 when the serial string is in use ("have_serial"), 0x07 remote-wakeup / IR flags, 0x08 not touched here
 //   0x09...  three USB string descriptors one after the other: manufacturer, product, serial. Each is [length][0x03][UTF-16LE text], length counting
-//            the two header bytes. All three must end before offset 0x100. Whatever follows (padding) is not interpreted.
+//            the two header bytes. All three must end at or before offset 78 (rtl_eeprom's limit): byte 78 is the length of the IR configuration
+//            and the IR configuration follows it, up to 0xFF. Bytes 78..255 are never changed by this tool.
 struct RtlEepromInfo {
     uint16_t vid = 0, pid = 0;
     bool haveSerial = false;            // byte 6 is 0xA5
@@ -29,8 +31,8 @@ struct RtlEepromInfo {
 };
 bool rtlEepromParse(const std::vector<uint8_t>& img, RtlEepromInfo& out, std::string& err);
 // The serial must be exactly 8 decimal digits. Manufacturer and product stay byte for byte; the serial descriptor is re-encoded, byte 6 becomes 0xA5.
-// Refused (img untouched) when the new strings would end after offset 0xFF, or would overwrite bytes after the old strings that are not padding
-// (0x00 or 0xFF). Bytes outside [0x09, end of strings) and byte 6 are never changed; when the serial gets shorter the freed bytes become 0x00.
+// Refused (img untouched) when the new strings would end after offset 78, or would overwrite bytes after the old strings that are not padding
+// (0x00 or 0xFF). Bytes outside [0x09, end of strings) and byte 6 are never changed (so 78..255 never); when the serial gets shorter the freed bytes become 0x00.
 bool rtlEepromSetSerial(std::vector<uint8_t>& img, const std::string& serial, std::string& err);
 
 // 8 digits, none of them in `taken` (serials of all attached radios of every kind), never 00000000 or 00000001. Deterministic for a seed.
@@ -54,17 +56,34 @@ std::string rtlBackupPath(const std::string& dir, const std::string& oldSerial, 
 // The directory and extension of the backups, newest first (file names only matching eeprom-backup-*.bin).
 std::vector<std::string> rtlListBackups(const std::string& dir);
 
-// The write, over any RtlEepromIo (rtlWriteSerial wraps it with the claim and the real device):
-//  1 read the whole image   2 parse it (refuse when it does not)   3 write the backup (0600, temp file + rename), read it back and compare
-//  4 compute the new image   5 write only the bytes that changed (the serial text, then byte 6 last)   6 read back and compare.
-// backupPath is set as soon as the backup exists. After step 3 every failure says where the original is and to use "Restore from backup…".
-bool rtlWriteSerialIo(RtlEepromIo& io, const std::string& newSerial, const std::string& backupDir, time_t now, std::string& backupPath, std::string& err);
-// Puts a backup file back: validates it (256 bytes, header 28 32), reads the current image, writes what differs, reads back and compares.
-bool rtlRestoreEepromIo(RtlEepromIo& io, const std::string& backupPath, std::string& err);
+// What librtlsdr's EEPROM calls return: rtlsdr_read_eeprom gives the result of its last 1-byte transfer (1 on success, negative on error), rtlsdr_write_eeprom
+// gives 0 on success and negative on error. The Rust port (saurcom_usb) follows both.
+inline bool rtlEepromReadOk(int r) { return r >= 0; }
+inline bool rtlEepromWriteOk(int r) { return r == 0; }
 
-// The same on a real radio (it claims the dongle under kEepromClaimOwner, device_claims.h), in this order: refuse unless RTL2832U, claim it (refused with "in use by RX n"), open, rtlWriteSerialIo, release.
+// Reads the image twice and requires both reads to be identical (a transient misread must never become a backup or a diff).
+bool rtlReadStable(RtlEepromIo& io, std::vector<uint8_t>& img, std::string& err);
+// A backup file chosen by the user: only a regular file of exactly 256 bytes is read (never a FIFO, a device or a huge file), with a bounded read.
+bool rtlReadBackupFile(const std::string& path, std::vector<uint8_t>& out, std::string& err);
+
+// The write, over any RtlEepromIo (rtlWriteSerial wraps it with the claim and the real device). expectedSerial is the serial the radio list shows for
+// the dongle; the EEPROM must say the same (a dongle without the serial flag: a factory default).
+//  1 read the whole image twice (identical)   2 parse it (refuse when it does not) and compare its serial   3 work out the new image (a dry run)
+//  4 write the backup (0600, temp file + rename), read it back and compare   5 write only the bytes that changed (the serial text, then byte 6 last)
+//  6 read back and compare.
+// backupPath: when set on entry, that is the file to make (it must not exist), else a name is made; it is set once the backup exists.
+// After step 4 every failure says where the original is and to use "Restore from backup…".
+bool rtlWriteSerialIo(RtlEepromIo& io, const std::string& expectedSerial, const std::string& newSerial, const std::string& backupDir, time_t now,
+                      std::string& backupPath, std::string& err);
+// Puts a backup file back. The file is read safely (rtlReadBackupFile), must parse as an RTL-SDR EEPROM and have the VID/PID the dongle has now.
+// The dongle's current contents are read twice and saved (a new backup in backupDir, its path in safetyBackup) before anything is written; then
+// what differs is written, and the dongle is read back and compared.
+bool rtlRestoreEepromIo(RtlEepromIo& io, const std::string& backupFile, const std::string& backupDir, time_t now, std::string& safetyBackup, std::string& err);
+
+// The same on a real radio (it claims the dongle under kEepromClaimOwner, device_claims.h; the key is the one receivers use for that DeviceInfo), in order:
+// refuse unless RTL2832U, claim it (refused with "in use by RX n"), open (openRtlEepromIo), rtlWriteSerialIo, release.
 bool rtlWriteSerial(const DeviceInfo& d, const std::string& newSerial, const std::string& backupDir, std::string& backupPath, std::string& err);
-bool rtlRestoreEeprom(const DeviceInfo& d, const std::string& backupPath, std::string& err);
+bool rtlRestoreEeprom(const DeviceInfo& d, const std::string& backupFile, const std::string& backupDir, std::string& safetyBackup, std::string& err);
 
 // After the dongle has its new serial: its name follows it. The label under row.key (a "usb:" key, or the "sn:" key of the old serial) is moved to
 // the "sn:" key of the new serial (unless that key already has a label); an old "sn:" label shared with another dongle stays where it is.

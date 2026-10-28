@@ -55,7 +55,7 @@ void startJob() {
     gFinished = false;
     radioWatchEepromBusy(true);   // no listing meanwhile (the claim inside the worker also keeps one from starting)
     gTh = std::thread([] {
-        if (gJob.restore) gJob.ok = dect2::rtlRestoreEeprom(gJob.dev, gJob.restoreFile, gJob.err);
+        if (gJob.restore) gJob.ok = dect2::rtlRestoreEeprom(gJob.dev, gJob.restoreFile, gJob.dir, gJob.backup, gJob.err);
         else gJob.ok = dect2::rtlWriteSerial(gJob.dev, gJob.serial, gJob.dir, gJob.backup, gJob.err);
         gFinished = true;
     });
@@ -128,6 +128,8 @@ void replugWarning() {
 
 void rtlSerialRequest(App& a, int idx) { open(a, idx, false); }
 void rtlSerialRestoreRequest(App& a, int idx) { open(a, idx, true); }
+
+bool rtlSerialBusy() { return S.phase == Phase::Working || S.phase == Phase::Restoring; }
 
 void rtlSerialShutdown() {
     if (gTh.joinable()) gTh.join();
@@ -217,7 +219,7 @@ void rtlSerialModal(App& a) {
         if (ImGui::Button(tr("Write the new serial"))) {
             gJob.restore = false;
             gJob.serial = S.serial;
-            gJob.backup.clear(); gJob.err.clear(); gJob.ok = false;
+            gJob.backup = S.planned; gJob.err.clear(); gJob.ok = false;   // the file shown is the file made
             S.phase = Phase::Working;
             startJob();
         }
@@ -230,7 +232,7 @@ void rtlSerialModal(App& a) {
     case Phase::Working:
     case Phase::Restoring: {
         ImGui::TextUnformatted(S.phase == Phase::Working ? tr("Writing the new serial…") : tr("Restoring the backup…"));
-        ImGui::TextDisabled("%s", tr("This takes a few seconds."));
+        ImGui::TextDisabled("%s", tr("This takes a few seconds, and up to a few minutes if the dongle does not answer."));
         const double t = ImGui::GetTime();
         ImGui::ProgressBar((float)(t - (long)t), ImVec2(300 * gUi, 0), "");
         ImGui::TextColored(kWarn, "%s", tr("Do not unplug the dongle while it is writing."));
@@ -244,7 +246,9 @@ void rtlSerialModal(App& a) {
             ImGui::TextDisabled("%s", tr("New serial:"));
             ImGui::SameLine();
             ImGui::TextUnformatted(gJob.serial.c_str());
-            ImGui::TextDisabled("%s", tr("The old contents are saved at:"));
+        }
+        if (!S.backup.empty()) {
+            ImGui::TextDisabled("%s", gJob.restore ? tr("What the dongle held before is saved at:") : tr("The old contents are saved at:"));
             ImGui::TextUnformatted(S.backup.c_str());
         }
         if (!S.doneNote.empty()) ImGui::TextColored(kWarn, "%s", S.doneNote.c_str());
