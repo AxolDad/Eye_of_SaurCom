@@ -6,15 +6,40 @@ from a browser, with picture and sound.
 
 ## Install
 
-On the Proxmox node, as root (the node's **Shell** in the web interface):
+You type one command on the Proxmox **node** (the server itself), not inside a container.
+
+1. In the Proxmox web interface, click the node's name in the tree on the left: the line above the numbered containers (for example
+   `raptor`).
+2. Click **>_ Shell** in the column next to it. A black terminal opens, logged in as root on the node.
+3. Paste this and press Enter:
+
+   ```sh
+   bash -c "$(curl -fsSL https://raw.githubusercontent.com/AxolDad/Eye_of_SaurCom/main/packaging/proxmox/saurcom-lxc.sh)"
+   ```
+
+4. It shows what it will do and asks `Go ahead? [y/N]`. Type `y`.
+5. Wait a few minutes: it downloads about 2 GB. At the end it prints the address and the login. **Write the password down**: it is random
+   unless you gave one with `--password`.
+
+## Logging in
+
+1. On any computer on your network, open the address the installer printed in a web browser: `https://<container address>:3001`. It
+   must start with `https://` and end with `:3001`. The address is also in the container's **Notes**, on its **Summary** page in Proxmox.
+2. The browser warns that the connection is not private, because the certificate is self-made. Choose **Advanced**, then **Continue**. It
+   asks only once.
+3. The browser asks for a user name and password. The user is `saurcom` (unless you gave `--user`); the password is the one the installer
+   printed.
+4. Click into the page once to turn the sound on.
+
+**Lost the password?** In the node's **Shell**, with your container's number in place of `120`:
 
 ```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/AxolDad/Eye_of_SaurCom/main/packaging/proxmox/saurcom-lxc.sh)"
+pct exec 120 -- grep SAURCOM_PASSWORD /opt/saurcom/.env
 ```
 
-The script shows what it will do and asks before changing anything. When it is done, it prints the address (`https://<container>:3001`) and
-the login. The password is random unless you give one. The certificate is self-signed, so the browser warns once. Browsers keep the sound off
-until you click the page once.
+**Not the Proxmox Console.** The container's **Console** in Proxmox asks for the container's own Linux login (`saurcom login:`). That is a
+different login and the web password does not work there. For a shell inside the container, run `pct enter 120` in the node's Shell instead
+(`exit` leaves it).
 
 With options, put `_` before them:
 
@@ -95,6 +120,14 @@ for Docker. If you set that up yourself, pass the card with `--gpu /dev/dri/rend
 ## Troubleshooting
 
 - **"the container has no network":** check the bridge, VLAN and `--ip`. With DHCP, the container needs a lease from your router.
+- **The page does not open:** use the `192.168.x.x` style address from the installer or the container's Notes, with `https://` and `:3001`.
+  `172.17.0.1` is Docker's address inside the container and does not work from outside. To check the app, run these in the node's Shell
+  (container 120 here):
+  - `pct exec 120 -- ip -4 -o addr show eth0`: the address to use.
+  - `pct exec 120 -- docker ps`: should list `saurcom` as `Up`. The first start after the install can take a few minutes.
+  - `pct exec 120 -- curl -sk -o /dev/null -w '%{http_code}\n' https://localhost:3001`: `401` means the page is up and waiting for the
+    login; `000` means it is not up yet (see `pct exec 120 -- journalctl -u saurcom -n 30`).
+- **"Login incorrect" at `saurcom login:`:** that is the Proxmox Console, not the web page. See [Logging in](#logging-in).
 - **A radio is not listed:**
   - Run `pct exec <ctid> -- lsusb`. If the radio is missing there, it is not plugged into this node, or a VM has it through USB
     passthrough.

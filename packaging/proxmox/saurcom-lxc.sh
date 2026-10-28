@@ -304,17 +304,51 @@ else
 fi
 
 # ---------------------------------------------------------------- done
+# The container's own IPv4 address on the network (eth0). Not `hostname -I`: that also lists Docker's internal 172.17.0.1, which only
+# exists inside the container. With DHCP the lease can take a few seconds.
 addr=""
 if [ "$DRY_RUN" != 1 ]; then
-    addr=$(pct exec "$CTID" -- hostname -I 2>/dev/null | awk '{print $1}' || true)
+    for _ in $(seq 1 15); do
+        addr=$(pct exec "$CTID" -- ip -4 -o addr show eth0 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -1 || true)
+        [ -n "$addr" ] && break
+        sleep 2
+    done
 fi
+url="https://${addr:-<container address>}:3001"
+
+# The address and how to get in, in the container's Notes (Summary page in the Proxmox web interface). The password stays out of the
+# notes: everyone who may look at this container in Proxmox could read them.
+node=$(hostname -s 2>/dev/null || echo node)
+notes="## Eye of SaurCom $VERSION
+
+Open **$url** in your web browser (not the Proxmox console).
+
+- Web login: \`$WEB_USER\` and the password the installer printed.
+- Lost it? On the node ($node > Shell): \`pct exec $CTID -- grep SAURCOM_PASSWORD /opt/saurcom/.env\`
+- The Proxmox **Console** asks for the container's own Linux login, which is not the web login. For a shell inside, run \`pct enter $CTID\` on the node.
+- Update: \`pct exec $CTID -- saurcom-update\`"
+run pct set "$CTID" --description "$notes"
+
 cat <<EOF
 
 ${G}${B}Eye of SaurCom is running in container $CTID.${N}
 
-  Open      ${B}https://${addr:-<container address>}:3001${N}   (self-signed certificate: the browser warns once)
-  Login     ${B}$WEB_USER${N} / ${B}$WEB_PASSWORD${N}   (kept in /opt/saurcom/.env in the container)
+  Open this in your web browser on any computer on your network (not in the Proxmox console):
+
+      ${B}$url${N}
+
+  The browser warns once that the connection is not private (the certificate is self-made): choose
+  Advanced, then Continue. Then it asks for a user name and password:
+
+      User      ${B}$WEB_USER${N}
+      Password  ${B}$WEB_PASSWORD${N}
+
+  Write the password down now. To see it again later, run this here on the node:
+      pct exec $CTID -- grep SAURCOM_PASSWORD /opt/saurcom/.env
+
   Sound     click into the page once; the sound button is in the sidebar on the left
+  Console   the Proxmox Console asks for the container's own Linux login, not this one; for a shell inside, run: pct enter $CTID
+  Notes     the address and these hints are also in the container's Notes (its Summary page in Proxmox)
 
   Update    pct exec $CTID -- saurcom-update            (the newest release)
             pct exec $CTID -- saurcom-update 0.3.1      (a given one)
