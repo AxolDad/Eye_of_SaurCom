@@ -344,14 +344,14 @@ bool txModeNeedsAudio(const TxModeSpec& m, const TxRequest& r) {
 
 bool txClaimRadio(const DeviceInfo& d, std::string& err) {
     txReleaseRadio();
-    if (d.txFullDuplex) return true;   // receiving and transmitting on the same radio is allowed: no claim
+    if (d.txFullDuplex) { holdDeviceShared(d, kTxClaimOwner); return true; }   // receiving and transmitting on the same radio is allowed: shared, but the radio counts as open
     int holder = 0;
     if (claimDevice(d, kTxClaimOwner, &holder)) return true;
     err = d.name + " is in use by " + deviceHolderText(holder) + ", and it cannot receive and transmit at the same time. Choose another radio for transmitting, or stop " +
           deviceHolderText(holder) + " first.";
     return false;
 }
-void txReleaseRadio() { releaseDevice(kTxClaimOwner); }
+void txReleaseRadio() { releaseDevice(kTxClaimOwner); releaseDeviceShared(kTxClaimOwner); }
 
 // ---------------------------------------------------------------- generators
 

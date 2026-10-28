@@ -52,11 +52,15 @@ RadioFindView gView;
 std::string gFlashKey;
 double gFlashUntil = 0;
 
-// the entry of a receiver's radio list at this USB port (radios only; -1 when none or the port is unknown)
-int indexByPath(const App& a, const std::string& path) {
-    if (path.empty()) return -1;
-    for (int i = 2; i < (int)a.devices.size(); i++) if (a.devices[i].isRadio() && a.devices[i].usbPath == path) return i;
-    return -1;
+// The entry of a receiver's list for a radio the USB walk saw: by port, else by the one-of-its-kind rule (core matchWalkRadios).
+// -1 when there is none or it cannot be told (see matchOf for the reason).
+WalkMatch matchOf(const App& a, const DeviceInfo& walkDev) {
+    const auto m = matchWalkRadios(a.devices, {walkDev});
+    return m.empty() ? WalkMatch() : m[0];
+}
+int entryOf(const App& a, const DeviceInfo& walkDev) {
+    const WalkMatch m = matchOf(a, walkDev);
+    return (m.how == WalkMatch::ByPath || m.how == WalkMatch::ByKind) && m.index >= 2 ? m.index : -1;
 }
 std::string atPort(const DeviceInfo& d) { return d.name + " \xC2\xB7 USB " + (d.usbPath.empty() ? std::string("?") : d.usbPath); }
 
@@ -72,9 +76,9 @@ void launch(bool wantList) {
         p.nodes = usbEnumerateFresh();                    // descriptors only: nothing is opened
         p.sig = radioUsbSignature(p.nodes);
         if (!wantList) return p;
-        if (!beginBackgroundListing()) { p.deferred = true; return p; }   // checked again here, atomically: a radio is claimed, so nothing is opened
-        p.radios = listRadios(p.err);                      // a Start now waits in claimDevice() until this ends
-        endBackgroundListing();
+        BackgroundListingScope listing;                    // checked again here, atomically; a Start now waits in claimDevice() until this ends
+        if (!listing.ok) { p.deferred = true; return p; }  // a radio is claimed: nothing is opened
+        p.radios = listRadios(p.err);
         p.listed = true;
         return p;
     });
@@ -82,11 +86,12 @@ void launch(bool wantList) {
 
 App* findApp() { return receiverById(gFindRx); }
 
-void pushNewRadioNotice(const DeviceInfo& walkDev, int idx, const App& sel, bool claimed) {
-    if (idx < 2) {   // the radios could not be listed (claimed) or the drivers did not list it: say what is known
-        std::string t = std::string(tr("New radio: ")) + atPort(walkDev);
-        t += claimed ? std::string(". ") + tr("Stop the receivers and press Rescan to see its serial and name it.")
-                     : std::string(". ") + tr("It is not in the radio list.");
+void pushNewRadioNotice(const DeviceInfo& walkDev, int idx, WalkMatch::How how, const App& sel, bool claimed) {
+    if (idx < 2) {   // the listing could not say which entry it is: say what is known, and only what is true
+        std::string t = std::string(tr("New radio: ")) + atPort(walkDev) + ". ";
+        if (how == WalkMatch::Ambiguous) t += tr("Choose it in the radio list.");
+        else if (claimed) t += tr("Stop the receivers and press Rescan to see its serial and name it.");
+        else t += tr("The radio drivers did not list it.");
         noticePush(t, {{tr("Dismiss"), nullptr, true}});
         return;
     }
@@ -106,8 +111,8 @@ void pushNewRadioNotice(const DeviceInfo& walkDev, int idx, const App& sel, bool
     noticePush(std::string(tr("New radio: ")) + shown, std::move(b));
 }
 
-// The radio that came back is known by its USB port; its entry in the receiver's list has the same port.
-void handleFound(const RadioFind& f, int idx) {
+// The radio that came back is known by its USB port; its entry in the receiver's list has the same port (or is the only one of its kind).
+void handleFound(const RadioFind& f, int idx, WalkMatch::How how, bool claimed) {
     gFindHandled = true;
     const std::string left = gView.left;
     gView = RadioFindView();
@@ -118,8 +123,10 @@ void handleFound(const RadioFind& f, int idx) {
     gView.devIdx = idx;
     if (idx < 2) {
         gView.back = atPort(back);
-        gView.note = std::string(tr("Found it at USB ")) + (back.usbPath.empty() ? "?" : back.usbPath) + ". " +
-                     tr("Press Rescan after stopping receivers to see its serial.");
+        const std::string where = std::string(tr("Found a ")) + back.name + tr(" at USB ") + (back.usbPath.empty() ? "?" : back.usbPath);
+        if (how == WalkMatch::Ambiguous) gView.note = where + "; " + tr("choose it in the radio list.");
+        else if (claimed) gView.note = where + ". " + tr("Press Rescan after stopping receivers to see its serial.");
+        else gView.note = where + ", " + tr("but the radio drivers did not list it.");
         return;
     }
     gView.back = radioShownName(*a, idx);
@@ -140,14 +147,16 @@ void flush(bool fresh) {
     const bool waiting = gListPending && !fresh && !noListing;   // a listing is on its way: it will say what the radio is
     if (gFind.state() == RadioFind::Found && !gFindHandled) {
         const App* a = findApp();
-        const int idx = a ? indexByPath(*a, gFind.returned().usbPath) : -1;
-        if (idx >= 2 || !waiting || !a) handleFound(gFind, idx);
+        const WalkMatch m = a ? matchOf(*a, gFind.returned()) : WalkMatch();
+        const int idx = (m.how == WalkMatch::ByPath || m.how == WalkMatch::ByKind) ? m.index : -1;
+        if (idx >= 2 || !waiting || !a) handleFound(gFind, idx, m.how, noListing && !fresh);
     }
     App* sel = receiverSelected();
     if (!sel) return;
     for (size_t i = 0; i < gPendingNew.size();) {
-        const int idx = indexByPath(*sel, gPendingNew[i].usbPath);
-        if (idx >= 2 || !waiting) { pushNewRadioNotice(gPendingNew[i], idx, *sel, noListing && !fresh); gPendingNew.erase(gPendingNew.begin() + (long)i); }
+        const WalkMatch m = matchOf(*sel, gPendingNew[i]);
+        const int idx = (m.how == WalkMatch::ByPath || m.how == WalkMatch::ByKind) ? m.index : -1;
+        if (idx >= 2 || !waiting) { pushNewRadioNotice(gPendingNew[i], idx, m.how, *sel, noListing && !fresh); gPendingNew.erase(gPendingNew.begin() + (long)i); }
         else i++;
     }
 }
@@ -162,7 +171,7 @@ void apply(App& first, Poll& p, double now) {
     if (gFind.state() == RadioFind::WaitReplug && !gLeftCaptured) {   // name the unplugged radio now, before a listing drops it from the list
         gLeftCaptured = true;
         const App* a = findApp();
-        const int i = a ? indexByPath(*a, gFind.left().usbPath) : -1;
+        const int i = a ? entryOf(*a, gFind.left()) : -1;
         gView.left = i >= 2 ? radioShownName(*a, i) : atPort(gFind.left());
     }
     gLastSig = p.sig;

@@ -2,6 +2,7 @@
 // a live polar plot of the bearing spectrum, history, a calibration wizard, array settings, a local map with the bearing lines and a position
 // fix from several bearings. Sources: a built-in simulator (demo, no hardware needed), an interleaved cf32 / SigMF recording, or bearings
 // read from a KrakenSDR DoA server JSON file. Nothing here talks to a radio: see docs/direction-finding.md for what is verified.
+#include "dect2/engine/device_claims.h"
 #include "../app.h"
 #include "../ui/typography.h"
 #include "../ui/scale.h"
@@ -37,8 +38,14 @@ struct HubSource : dect2::df::MultiChannelSource {
 };
 bool openHub(double hz) {
     gHub = dect2::df::Hub{};
+    dect2::releaseDevice(dect2::kHubClaimOwner);   // the old group is gone: its dongles are free
     auto info = dect2::df::findHub(dect2::df::listNativeRtl());
     if (info.empty()) return false;
+    for (auto& d : info) {   // the hub's dongles are claimed like a receiver's (a dongle a receiver has is refused; the radio watch leaves them alone)
+        dect2::DeviceInfo dev; dev.kind = dect2::DeviceInfo::Native; dev.board = "rtlsdr"; dev.serial = d.serial; dev.nativeArgs = std::to_string(d.index);
+        int holder = 0;
+        if (!dect2::claimDevice(dev, dect2::kHubClaimOwner, &holder)) { dect2::releaseDevice(dect2::kHubClaimOwner); return false; }
+    }
     std::vector<std::unique_ptr<dect2::df::RtlLink>> links;
     for (auto& d : info) { auto l = dect2::df::makeNativeRtlLink(d.index); if (!l) return false; links.push_back(std::move(l)); }
     dect2::df::HubStart hs; hs.freqHz = hz; hs.rateHz = 1.024e6; hs.gainTenthsDb = 200;

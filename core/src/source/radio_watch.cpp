@@ -2,6 +2,7 @@
 #include "dect2/source/radio_watch.h"
 #include "dect2/source/usb_diag.h"
 #include <algorithm>
+#include <cctype>
 #include <cstdio>
 
 namespace dect2 {
@@ -63,6 +64,46 @@ std::vector<DeviceInfo> usbRadioDevices(const std::vector<UsbNode>& nodes) {
         out.push_back(d);
     }
     std::sort(out.begin(), out.end(), [](const DeviceInfo& a, const DeviceInfo& b) { return a.usbPath < b.usbPath; });
+    return out;
+}
+
+namespace {
+// "RTL-SDR" -> "rtls", "SDRplay RSP" -> "sdrp": the first four letters of the id table's name, compared with a listed entry's board and name
+std::string kindToken(const std::string& board) {
+    std::string t;
+    for (unsigned char c : board) { if (isalnum(c)) t += (char)tolower(c); if (t.size() == 4) break; }
+    return t;
+}
+std::string alnumLower(const std::string& s) {
+    std::string t;
+    for (unsigned char c : s) if (isalnum(c)) t += (char)tolower(c);
+    return t;
+}
+bool sameKind(const DeviceInfo& listed, const DeviceInfo& walk) {
+    const std::string t = kindToken(walk.board);
+    return !t.empty() && alnumLower(listed.board + " " + listed.name).find(t) != std::string::npos;
+}
+}  // namespace
+
+std::vector<WalkMatch> matchWalkRadios(const std::vector<DeviceInfo>& list, const std::vector<DeviceInfo>& walk) {
+    std::vector<WalkMatch> out(walk.size());
+    std::vector<bool> usedByPath(list.size(), false);
+    for (size_t w = 0; w < walk.size(); w++) {
+        if (walk[w].usbPath.empty()) continue;
+        for (size_t i = 0; i < list.size(); i++)
+            if (list[i].isRadio() && list[i].usbPath == walk[w].usbPath) { out[w] = {WalkMatch::ByPath, (int)i}; usedByPath[i] = true; break; }
+    }
+    for (size_t w = 0; w < walk.size(); w++) {
+        if (out[w].how == WalkMatch::ByPath) continue;
+        int unmatchedWalk = 0;   // walk radios of this kind with no entry by port (this one included)
+        for (size_t v = 0; v < walk.size(); v++)
+            if (out[v].how != WalkMatch::ByPath && kindToken(walk[v].board) == kindToken(walk[w].board)) unmatchedWalk++;
+        std::vector<int> cand;   // listed entries of this kind that cannot say their port
+        for (size_t i = 0; i < list.size(); i++)
+            if (list[i].isRadio() && !list[i].isNetwork() && list[i].usbPath.empty() && sameKind(list[i], walk[w])) cand.push_back((int)i);
+        if (cand.empty()) continue;
+        out[w] = (unmatchedWalk == 1 && cand.size() == 1) ? WalkMatch{WalkMatch::ByKind, cand[0]} : WalkMatch{WalkMatch::Ambiguous, -1};
+    }
     return out;
 }
 

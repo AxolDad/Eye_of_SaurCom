@@ -3,6 +3,8 @@
 #include "dect2/common/threadpool.h"
 #include "dect2/dsp/dsp_compat.h"
 #include "dect2/dsp/spectrum.h"
+#include "dect2/engine/device_claims.h"
+#include <atomic>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -278,9 +280,16 @@ double calibrateSettle(SweepSource& src, double loHz, double hiHz, std::string& 
 IqSweepSource::IqSweepSource(const DeviceInfo& dev, const TuneSettings& base) : dev_(dev), base_(base) {}
 IqSweepSource::~IqSweepSource() { close(); }
 bool IqSweepSource::open(std::string& err) {
+    // The radio is claimed like a receiver's: a radio another receiver or tool has open is refused, and the background radio watch
+    // (which lists, and so opens, radios while nothing is claimed) leaves it alone.
+    static std::atomic<int> next{0};
+    const int owner = kSweepClaimBase + (next++ % 100);
+    int holder = 0;
+    if (!claimDevice(dev_, owner, &holder)) { err = dev_.name + " is in use by " + deviceHolderText(holder) + ". Stop it first, or choose another radio."; return false; }
+    owner_ = owner;
     src_ = makeSource(dev_);
-    if (!src_) { err = "no driver for this radio"; return false; }
-    if (!src_->start(base_, ring_, err)) { src_.reset(); return false; }
+    if (!src_) { err = "no driver for this radio"; releaseDevice(owner_); owner_ = 0; return false; }
+    if (!src_->start(base_, ring_, err)) { src_.reset(); releaseDevice(owner_); owner_ = 0; return false; }
     open_ = true;
     return true;
 }
@@ -288,6 +297,7 @@ void IqSweepSource::close() {
     if (src_ && open_) src_->stop();
     open_ = false;
     src_.reset();
+    if (owner_) { releaseDevice(owner_); owner_ = 0; }   // after the radio is stopped
 }
 bool IqSweepSource::retune(double hz, std::string& err) {
     if (!src_) { err = "not open"; return false; }

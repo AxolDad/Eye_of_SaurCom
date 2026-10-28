@@ -7,6 +7,7 @@ namespace dect2 {
 namespace {
 std::mutex gMu;
 std::map<std::string, int> gHeld;
+std::multimap<int, std::string> gShared;   // owner -> radio key: a transmitter that shares a full-duplex radio
 std::condition_variable gCv;
 bool gListing = false;   // a background listing is running (guarded by gMu)
 }
@@ -35,12 +36,24 @@ void releaseDevice(int owner) {
 
 bool anyDeviceClaimed() {
     std::lock_guard<std::mutex> lk(gMu);
-    return !gHeld.empty();
+    return !gHeld.empty() || !gShared.empty();
+}
+
+void holdDeviceShared(const DeviceInfo& d, int owner) {
+    const std::string k = deviceClaimKey(d);
+    if (k.empty()) return;
+    std::lock_guard<std::mutex> lk(gMu);
+    gShared.emplace(owner, k);
+}
+
+void releaseDeviceShared(int owner) {
+    std::lock_guard<std::mutex> lk(gMu);
+    gShared.erase(owner);
 }
 
 bool beginBackgroundListing() {
     std::lock_guard<std::mutex> lk(gMu);
-    if (!gHeld.empty() || gListing) return false;
+    if (!gHeld.empty() || !gShared.empty() || gListing) return false;
     gListing = true;
     return true;
 }
@@ -50,7 +63,9 @@ void endBackgroundListing() {
     gCv.notify_all();
 }
 
-std::string deviceHolderText(int holder) { return holder >= kTxClaimOwner ? "the transmitter" : "RX " + std::to_string(holder); }
+std::string deviceHolderText(int holder) {
+    return holder >= kHubClaimOwner ? "the direction-finding hub" : holder >= kSweepClaimBase ? "a sweep tool" : holder >= kTxClaimOwner ? "the transmitter" : "RX " + std::to_string(holder);
+}
 
 int deviceHolder(const DeviceInfo& d) {
     const std::string k = deviceClaimKey(d);

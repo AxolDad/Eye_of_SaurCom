@@ -46,7 +46,8 @@ const UsbId kRadios[] = {
     {0x3923, 0x7813, "USRP B2xx"}, {0x3923, 0x7814, "USRP B2xx"},
     {0x1df7, 0, "SDRplay RSP"},
     {0x16d0, 0x132e, "Fobos SDR"},                      // libfobos udev rules
-    {0x04b4, 0x00f1, "RX888"}, {0x04b4, 0x00f3, "RX888"},   // rx888_usb.h: the FX3 firmware running, and its boot loader
+    // 04b4:00f1 is the FX3 firmware of the RX888 but also of the LimeSDR-USB (rx888_usb.h): ambiguous, so it is a radio with a shared name
+    {0x04b4, 0x00f1, "RX888 / LimeSDR (FX3)"}, {0x04b4, 0x00f3, "RX888 (boot loader)"},
 };
 
 const char* radioOf(uint16_t vid, uint16_t pid) {

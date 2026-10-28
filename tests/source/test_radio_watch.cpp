@@ -231,6 +231,26 @@ int main() {
         g.feed(usbRadioDevices({node(0x0bda, 0x2838, "1-2"), node(0x1d50, 0x6089, "1-3"), node(0x0bda, 0x2838, "1-4")}), 2);
         CHECK(g.state() == RadioFind::Found && g.wrongRadio(), "another port: flagged");
     }
+    {   // matching a walk radio to a listed entry: by port, else the one-of-its-kind rule, else ambiguous
+        DeviceInfo fobos; fobos.kind = DeviceInfo::Native; fobos.board = "fobos"; fobos.name = "Fobos SDR (agile)"; fobos.serial = "F1";
+        DeviceInfo rtlA = rtl("A", "1-1"), plu; plu.kind = DeviceInfo::Native; plu.board = "sdrplay"; plu.name = "SDRplay RSP1A"; plu.serial = "S1";
+        DeviceInfo sound; sound.kind = DeviceInfo::Audio; sound.name = "Sound card";
+        const L list = {sound, rtlA, fobos, plu};
+        auto walkDev = [](const char* board, const char* path) { DeviceInfo d; d.kind = DeviceInfo::Native; d.board = board; d.name = board; d.usbPath = path; return d; };
+        auto m = matchWalkRadios(list, {walkDev("RTL-SDR", "1-1"), walkDev("Fobos SDR", "1-3"), walkDev("SDRplay RSP", "1-4")});
+        CHECK(m[0].how == WalkMatch::ByPath && m[0].index == 1, "by port");
+        CHECK(m[1].how == WalkMatch::ByKind && m[1].index == 2, "one Fobos, one Fobos entry without a port: %d", (int)m[1].how);
+        CHECK(m[2].how == WalkMatch::ByKind && m[2].index == 3, "one SDRplay likewise");
+        auto two = matchWalkRadios(list, {walkDev("Fobos SDR", "1-3"), walkDev("Fobos SDR", "1-5")});
+        CHECK(two[0].how == WalkMatch::Ambiguous && two[1].how == WalkMatch::Ambiguous, "two Fobos on the bus, one entry: ambiguous");
+        DeviceInfo fobos2 = fobos; fobos2.serial = "F2";
+        auto two2 = matchWalkRadios({fobos, fobos2}, {walkDev("Fobos SDR", "1-3")});
+        CHECK(two2[0].how == WalkMatch::Ambiguous, "one on the bus, two entries without ports: ambiguous");
+        auto none = matchWalkRadios(list, {walkDev("HackRF", "1-9")});
+        CHECK(none[0].how == WalkMatch::None && none[0].index == -1, "no HackRF entry: none");
+        auto path = matchWalkRadios({rtl("A", "1-1"), fobos}, {walkDev("RTL-SDR", "1-2")});
+        CHECK(path[0].how == WalkMatch::None, "an RTL on another port does not take the Fobos entry");
+    }
     {   // a claim blocks the background listing
         CHECK(backgroundListingAllowed(false, false) && !backgroundListingAllowed(true, false) && !backgroundListingAllowed(false, true), "decision");
         DeviceInfo d; d.kind = DeviceInfo::Native; d.board = "rtlsdr"; d.serial = "CLAIMTEST"; d.nativeArgs = "0";
@@ -240,6 +260,8 @@ int main() {
         releaseDevice(7);
         CHECK(!anyDeviceClaimed() && beginBackgroundListing(), "free: it may begin");
         CHECK(!beginBackgroundListing(), "one listing at a time");
+        { BackgroundListingScope sc; CHECK(!sc.ok, "the scope does not begin a second listing"); }
+        CHECK(!beginBackgroundListing(), "and does not end the first");
         std::atomic<bool> got{false};
         std::thread t([&] { got = claimDevice(d, 8); });   // a Start during the listing waits for it
         std::this_thread::sleep_for(std::chrono::milliseconds(150));
@@ -248,6 +270,12 @@ int main() {
         t.join();
         CHECK(got && anyDeviceClaimed(), "and goes through when it ends");
         releaseDevice(8);
+        { BackgroundListingScope sc; CHECK(sc.ok, "scope begins"); }
+        CHECK(beginBackgroundListing(), "the scope ended the listing"); endBackgroundListing();
+        holdDeviceShared(d, 5);
+        CHECK(anyDeviceClaimed() && !beginBackgroundListing(), "a shared hold (the transmitter on a Pluto) counts");
+        releaseDeviceShared(5);
+        CHECK(!anyDeviceClaimed(), "released");
     }
     return testSummary("radio_watch");
 }

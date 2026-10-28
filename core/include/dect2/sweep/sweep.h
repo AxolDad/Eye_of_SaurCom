@@ -132,6 +132,7 @@ public:
     void discard(double seconds) override;
 private:
     DeviceInfo dev_;
+    int owner_ = 0;                       // this source's number in the device claims (0 = none held)
     TuneSettings base_;
     std::unique_ptr<IqSource> src_;
     IqRing ring_{1u << 20};

@@ -26,6 +26,15 @@ std::string radioUsbSignature(const std::vector<UsbNode>& nodes);
 // so both sides of every comparison come from one source and a streaming radio is never touched.
 std::vector<DeviceInfo> usbRadioDevices(const std::vector<UsbNode>& nodes);
 
+// Which entry of a radio list is the radio the USB walk saw? By USB port when the entry has one. Kinds whose listing cannot say (SDRplay, a Fobos
+// among several) have an empty port: then, when exactly one walk radio of that kind has no entry by port and exactly one listed entry of that kind
+// has no port, they are the same radio. Anything else with candidates is Ambiguous (the user picks it in the list); no candidate is None.
+struct WalkMatch {
+    enum How { None, ByPath, ByKind, Ambiguous } how = None;
+    int index = -1;   // into the list passed in, for ByPath and ByKind
+};
+std::vector<WalkMatch> matchWalkRadios(const std::vector<DeviceInfo>& list, const std::vector<DeviceInfo>& walk);
+
 // May the background watch run the radio listing (which opens radios)? Not while a radio is claimed (a receiver or the transmitter has it) and not
 // while the EEPROM tool is working on a dongle.
 inline bool backgroundListingAllowed(bool anyClaimed, bool eepromBusy) { return !anyClaimed && !eepromBusy; }
