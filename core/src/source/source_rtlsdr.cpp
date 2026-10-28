@@ -423,8 +423,8 @@ void listRtl(std::vector<DeviceInfo>& out) {
     const uint32_t n = rtl().get_device_count();
     // librtlsdr numbers its dongles in libusb's order (rtlsdr_get_device_count walks libusb_get_device_list), but hides the libusb device and
     // the serial is not read without opening it: the i-th dongle is the i-th libusb device with a VID/PID from its table, and only when the
-    // two counts agree (see usbPathsInOrder). Identical dongles with the same serial are told apart by this.
-    const std::vector<std::string> paths = n ? usbPathsInOrder(usbEnumerate(), kRtlUsbIds, n) : std::vector<std::string>();
+    // two counts agree (the walk is a fresh one, right after the library's own count, so both see the same order) (see usbPathsInOrder). Identical dongles with the same serial are told apart by this.
+    const std::vector<std::string> paths = n ? usbPathsInOrder(usbEnumerateFresh(), kRtlUsbIds, n) : std::vector<std::string>();
     for (uint32_t i = 0; i < n && i < 16; i++) {
         char vendor[256] = {0}, product[256] = {0}, serial[256] = {0};
         rtl().get_device_usb_strings(i, vendor, product, serial);

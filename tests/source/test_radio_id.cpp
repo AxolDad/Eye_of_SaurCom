@@ -205,8 +205,18 @@ int main() {
     // one walk per listing: inside a scope every call returns the same snapshot, nested scopes included; outside, each call is a fresh walk
     // (a hotplug during the scope would not show, which is the point). The fresh-context order itself needs real hardware to check.
     {
+        const unsigned w0 = usbWalkCount();
+        usbEnumerate(); usbEnumerate();
+        CHECK(usbWalkCount() == w0 + 2, "outside a scope every call walks: %u", usbWalkCount() - w0);
+        const unsigned w1 = usbWalkCount();
         UsbWalkScope outer;
         const auto a = usbEnumerate();
+        usbEnumerate();
+        CHECK(usbWalkCount() == w1 + 1, "one scope, one walk: %u", usbWalkCount() - w1);
+        usbEnumerateFresh(); usbEnumerateFresh();
+        CHECK(usbWalkCount() == w1 + 3, "a fresh walk always walks, scope or not: %u", usbWalkCount() - w1);
+        usbEnumerate();
+        CHECK(usbWalkCount() == w1 + 3, "the scope snapshot is still reused afterwards");
         { UsbWalkScope inner; CHECK(usbEnumerate().size() == a.size(), "nested scope reuses the walk"); }
         const auto b = usbEnumerate();
         bool same = a.size() == b.size();

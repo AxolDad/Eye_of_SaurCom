@@ -1,6 +1,7 @@
 // USB port paths of radios (usb_path.h). Enumeration only.
 #include "dect2/source/usb_path.h"
 #include <cctype>
+#include <atomic>
 #include <mutex>
 
 #if !defined(__ANDROID__) && (defined(__linux__) || defined(__APPLE__) || defined(_WIN32))
@@ -39,11 +40,13 @@ std::string usbPathOf(libusb_device* dev) {
 }
 
 namespace {
+std::atomic<unsigned> gWalks{0};
 thread_local int tScopeDepth = 0;
 thread_local bool tHave = false;
 thread_local std::vector<UsbNode> tSnap;
 
 std::vector<UsbNode> walk() {
+    gWalks++;
     std::vector<UsbNode> out;
 #ifdef DECT2_USB_PATHS
 #ifdef _WIN32
@@ -82,6 +85,9 @@ std::vector<UsbNode> walk() {
     return out;
 }
 }  // namespace
+
+std::vector<UsbNode> usbEnumerateFresh() { return walk(); }
+unsigned usbWalkCount() { return gWalks.load(); }
 
 UsbWalkScope::UsbWalkScope() { if (tScopeDepth++ == 0) tHave = false; }
 UsbWalkScope::~UsbWalkScope() { if (--tScopeDepth == 0) { tHave = false; tSnap.clear(); } }

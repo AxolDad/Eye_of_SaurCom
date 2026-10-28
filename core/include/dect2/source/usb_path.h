@@ -33,6 +33,13 @@ struct UsbNode {
 // Nothing is opened. Empty if libusb is unavailable or on a platform without port numbers (Android hands radios over as descriptors).
 std::vector<UsbNode> usbEnumerate();
 
+// A walk that ignores any scope (and reads the USB tree now). For the radios matched by library order (RTL, Airspy, Airspy HF+): take it right
+// beside the library's own listing call, because a replug between the two walks changes the order while keeping the counts.
+std::vector<UsbNode> usbEnumerateFresh();
+
+// How many times libusb has been walked by this module in the whole process (for tests: reuse versus a fresh walk).
+unsigned usbWalkCount();
+
 // One listing = one USB walk: while a scope is alive on this thread, usbEnumerate() walks once and returns that snapshot to every later call.
 // Put one around a whole radio listing (listRadios, listNativeDevices). Scopes nest.
 class UsbWalkScope {
