@@ -734,6 +734,7 @@ double generalListenHz(const App& a);
 void generalRecallHz(App& a, double hz);          // general_ui.cpp: a memory's frequency: the dial on hz, the channel marker back on the dial              // general_ui.cpp: the general receiver's listening frequency (the dial plus its offset)
 void stationHealthWindow(App& a);                  // station_health_ui.cpp: the station and antenna health report (a.stationHealthOpen)
 void sweepWindow(App& a);                          // sweep_ui.cpp: the fast sweep scanner window (a.sweepOpen)
+void sweepPresetRange(App& a, double fromMhz, double toMhz);   // sweep_ui.cpp: open the sweep scanner set to this range (kept while a sweep runs)
 void scannerWindow(App& a);                        // scanner_ui.cpp: the scanner window (a.scannerOpen) and its scan loop, every frame (HIGHLY EXPERIMENTAL)
 void scannerButton(App& a);                        // a button that opens it (the classic interface's Scan tab)
 GLFWmonitor* monitorFor(int x, int y, int w, int h);   // widgets.cpp: the monitor holding most of the rectangle
@@ -820,6 +821,7 @@ std::string rateModeId(const App& a);
 std::string rateContext(const App& a);
 double savedSampleRate(const App& a);
 void saveSampleRate(App& a, double hz);
+void chooseSampleRate(App& a, double hz);   // toolbar_source.cpp: save the rate for this radio and mode and restart a running radio at it
 double modeMinSampleRate(const App& a);
 void sampleRateControl(App& a);
 std::string biasContext(const App& a);   // the prefs key of the antenna power for this mode on this radio ("" = none)
@@ -1036,6 +1038,15 @@ void channelWidthPopup(App& a);      // automatic or manual, where the mode allo
 void spectrumWaterfall(App& a, float& frac, bool drag);   // the spectrum on top of the waterfall, one panel
 void specFreqViewUpdate(const App& a);                                     // plots.cpp: keep linked frequency pan/zoom in sync with the radio
 void specFreqViewGet(double& loMhz, double& hiMhz);
+void specFreqViewSet(App& a, double loMhz, double hiMhz);                   // plots.cpp: show this range (clamped to the band), the Zoom slider follows
+// span_bar.cpp: the Span bar above the spectrum and waterfall (narrower / wider, typed span, presets, fit to a signal)
+float spanBarHeight();
+void spanBar(App& a, ImVec2 pos, float width);
+void spanSetSpan(App& a, double spanHz, double centreMhz);   // wider than the radio captures restarts it at a higher rate
+void spanStep(App& a, bool wider);                          // x2 / /2 about the middle of the view
+void spanShowWholeBand(App& a);
+void spanFitSignal(App& a, double mhz, double mhzPerPx);    // fit the view to the signal at mhz (mhzPerPx: the plot's scale, 0 = unknown)
+void spanContextItems(App& a, double mhz);                  // "Fit to this signal", "Show the whole band", "Wider x2", "Narrower x2"
 void specFreqViewWheel(App& a, float mouseNorm, float wheel, double& loMhz, double& hiMhz);
 bool specDbRangeKeys(App& a);                                              // Ctrl+arrows dB range (3D view has no spectrum plot hover)
 float specPlotBwBtnW();                                                    // plots.cpp: layout of corner controls (same frame)

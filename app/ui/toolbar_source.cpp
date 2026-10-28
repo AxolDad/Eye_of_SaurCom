@@ -105,7 +105,7 @@ static std::string mspsText(double hz) {
     if (!s.empty() && s.back() == '.') s.pop_back();
     return s + " Msps";
 }
-static void chooseSampleRate(App& a, double hz) {
+void chooseSampleRate(App& a, double hz) {
     saveSampleRate(a, hz);
     const bool restart = a.engine.running() && a.devices[a.devIdx].isRadio();
     const double old = a.tune.sampleRate;
