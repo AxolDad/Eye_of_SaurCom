@@ -1,6 +1,6 @@
 // Tools > Stations: the other installs this Eye listens to (the station network). A table of sites with the state of each link, and Add / Edit /
 // Remove. The sites, with their tokens, are kept in <data folder>/stations/sites.json (file mode 0600, like the watchlists); the links themselves
-// are core/src/net/station_link.cpp. The file is read and the links started by the first stationsTick(), a few frames into the run, and the links
+// are core/src/net/station_link.cpp. The file is read and the links started by stationsInit() at app start (main_start.cpp), and the links
 // are stopped in shutdownApp.
 #include "../app.h"
 #include "../platform/platform.h"
@@ -120,7 +120,7 @@ bool saveForm() {
 
 }  // namespace
 
-void stationsTick(App& a) {
+void stationsInit(App& a) {
     (void)a;
     if (S.started) return;
     S.started = true;

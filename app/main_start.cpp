@@ -78,6 +78,7 @@ void startApp(App& app, int argc, char** argv) {
     // the decoded results of the last run (each mode's lists, until its Clear), then saved every 30 s and at exit
     app.engine.setResultsDir(plat::dataDir() + "/results");
     appResultsLoad(app);
+    stationsInit(app);    // the station network: sites.json is read and the links started here, before the main loop (not from a window that may not be drawn)
     receiversInit(app);   // RX 2 ... that were open at the last exit
 }
 

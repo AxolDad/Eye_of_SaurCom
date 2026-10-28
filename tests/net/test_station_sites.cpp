@@ -49,6 +49,20 @@ int main() {
     CHECK(loadSites(path, out, err), "shape: %s", err.c_str());
     CHECK(out.size() == 1 && out[0].name == "A" && out[0].port == 8765, "bad port falls back, nameless skipped (%zu)", out.size());
 
+    // a repeated name: the first one is kept
+    { std::ofstream o(path, std::ios::binary | std::ios::trunc); o << "{\"sites\":[{\"name\":\"a\",\"host\":\"h1\"},{\"name\":\"a\",\"host\":\"h2\"},{\"name\":\"b\",\"host\":\"h3\"}]}"; }
+    CHECK(loadSites(path, out, err) && out.size() == 2 && out[0].host == "h1" && out[1].name == "b", "duplicate names (%zu)", out.size());
+
+    // a second save over an existing file: still private, no .tmp left behind
+#ifndef _WIN32
+    chmod(path.c_str(), 0644);
+#endif
+    CHECK(saveSites(path, in, err), "second save: %s", err.c_str());
+#ifndef _WIN32
+    CHECK(stat(path.c_str(), &st) == 0 && (st.st_mode & 0777) == 0600, "mode after overwrite %o", (unsigned)(st.st_mode & 0777));
+#endif
+    CHECK(!fs::exists(path + ".tmp"), "tmp file left behind");
+
     fs::remove_all(dir);
     return testSummary("station_sites");
 }

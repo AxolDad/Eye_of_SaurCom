@@ -295,6 +295,9 @@ bool loadSites(const std::string& path, std::vector<SiteConfig>& out, std::strin
         c.name = e.str("name");
         c.host = e.str("host");
         if (c.name.empty() || c.host.empty()) continue;
+        bool dup = false;   // the status is matched by name: the first of a repeated name wins
+        for (const SiteConfig& o : out) if (o.name == c.name) { dup = true; break; }
+        if (dup) continue;
         const double p = e.num("port", 8765);
         c.port = (p >= 1 && p <= 65535) ? (int)p : 8765;
         c.token = e.str("token");

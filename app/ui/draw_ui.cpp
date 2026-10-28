@@ -208,7 +208,6 @@ static void floatingWindows(App& a, ImVec2 disp) {
     dsnWindow(a);
     eyeTick(a);
     eyeWindow(a);
-    stationsTick(a);
     stationsWindow(a);
     radioToolsWindow(a);
     wifiSenseWindow(a);

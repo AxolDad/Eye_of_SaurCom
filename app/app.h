@@ -865,7 +865,7 @@ void feedsWindow(App& a);          // feeds_ui.cpp: the "Data feeds" window (Vie
 void webRadioWindow(App& a);       // web_radio_ui.cpp: internet radio stations (View > Internet radio)
 void dsnWindow(App& a);            // dsn_ui.cpp: NASA Deep Space Network Now (Tools > Deep Space Network)
 void eyeTick(App& a);              // eye_ui.cpp: feeds the Eye from the automation engine (every frame; hooks once)
-void stationsTick(App& a);         // stations_ui.cpp: reads sites.json and starts the links, once
+void stationsInit(App& a);         // stations_ui.cpp: reads sites.json and starts the links; once, at app start (main_start.cpp)
 void stationsWindow(App& a);       // stations_ui.cpp: Tools > Stations
 void eyeWindow(App& a);            // eye_ui.cpp: Tools > The Eye (Ctrl+E)
 void dsnDevOpen(App& a);           // dsn_ui.cpp: --dsn
