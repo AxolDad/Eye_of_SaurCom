@@ -50,4 +50,10 @@ private:
 
 StationLinks& globalLinks();
 
+// The saved sites (<dataDir>/stations/sites.json: {"sites":[{name,host,port,token,on}]}). The tokens are secrets, so saveSites writes the file with mode
+// 0600. loadSites: a missing file is an empty list and true; a corrupt one is an empty list, false and err. Entries without a name or host are skipped,
+// a port outside 1..65535 becomes 8765. Paths are UTF-8.
+bool loadSites(const std::string& path, std::vector<SiteConfig>& out, std::string& err);
+bool saveSites(const std::string& path, const std::vector<SiteConfig>& sites, std::string& err);
+
 }  // namespace dect2

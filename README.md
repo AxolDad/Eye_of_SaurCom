@@ -94,6 +94,7 @@ Everything above came from OnAir. This is what Eye of SaurCom built on top of it
 **Seeing it all**
 
 - **The Eye** (*Tools > The Eye*, Ctrl+E): everything the station decodes, from every mode, in one window. Live counts per kind of contact, a scope that places every aircraft, ship, APRS station, sonde and drone by bearing and distance from you, and one timeline of first sightings and messages. [docs/eye.md](docs/eye.md)
+- **Station network** (*Tools > Stations*): add other installs of the program on your network as sites, and what they decode joins your Eye, marked with the station's name. Bearings from two or more stations become a located fix. [docs/station-network.md](docs/station-network.md)
 
 **Talking back**
 

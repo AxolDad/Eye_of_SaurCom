@@ -31,6 +31,7 @@ int gTabFrame = -1;
 struct Panel { const char* name; bool App::*on; };
 const Panel kPanels[] = {
     {"The Eye", &App::eyeOpen},
+    {"Stations", &App::stationsOpen},
     {"Passes", &App::passesOpen}, {"SatNOGS transmitters", &App::satnogsOpen}, {"Direction finder", &App::dfOpen}, {"Interference hunter", &App::rfiOpen},
     {"Passive radar", &App::passiveRadarOpen}, {"Images", &App::galleryOpen}, {"Data feeds...", &App::feedsOpen}, {"Internet radio...", &App::webRadioOpen}, {"Deep Space Network", &App::dsnOpen}, {"NOTAMs and TFRs", &App::notamOpen}, {"Radio tools", &App::radioToolsOpen}, {"WiFi sensing...", &App::wifiSenseOpen},
     {"Messages...", &App::msgdbOpen}, {"Flight history...", &App::flightsOpen}, {"Protocol lab...", &App::protolabOpen}, {"Watchlists...", &App::watchlistOpen},

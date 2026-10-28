@@ -226,6 +226,7 @@ void sidebar(App& a) {
             if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr(tipText));
         };
         tool("The Eye", a.eyeOpen, N_("Everything this station decodes, from every mode, on one scope and one timeline (Ctrl+E)"));
+        tool("Stations", a.stationsOpen, N_("Other installs of this program whose decoded events join the Eye"));
         tool("Passes", a.passesOpen, "Satellite passes and automatic tuning");
         tool("Direction finder", a.dfOpen, N_("Bearing and position of a transmitter from an antenna array such as the KrakenSDR"));
         tool("Interference hunter", a.rfiOpen, N_("Watch a band for new interference, tell what kind it is, and walk to find it with a loud / quiet meter"));
@@ -412,6 +413,7 @@ static void viewMenu(App& a) {
     }
     if (ImGui::BeginMenu(tr("Tools"))) {
         ImGui::MenuItem(tr("The Eye"), "Ctrl+E", &a.eyeOpen);
+        ImGui::MenuItem(tr("Stations..."), nullptr, &a.stationsOpen);
         ImGui::Separator();
         if (ImGui::MenuItem(tr("Transcripts..."), nullptr, tx::windowOpen())) tx::windowOpen() = !tx::windowOpen();
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("What is said on the airband and other voice channels, as text: live captions, search, export. Off until you turn it on."));

@@ -2,6 +2,7 @@
 #include "dect2/automation/engine.h"
 #include "dect2/automation/json_mini.h"
 #include "dect2/common/thread_name.h"
+#include "dect2/common/u8file.h"
 #include "dect2/net/event_ring.h"
 #include "tcp_client.h"
 #include "ws_client.h"
@@ -10,6 +11,9 @@
 #include <cctype>
 #include <chrono>
 #include <condition_variable>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 #include <mutex>
 #include <thread>
 
@@ -268,6 +272,74 @@ void StationLinks::stop() {
 StationLinks& globalLinks() {
     static StationLinks g;
     return g;
+}
+
+}  // namespace dect2
+
+namespace dect2 {
+
+bool loadSites(const std::string& path, std::vector<SiteConfig>& out, std::string& err) {
+    out.clear();
+    err.clear();
+    std::ifstream f(u8file(path), std::ios::binary);
+    if (!f) return true;
+    std::stringstream ss;
+    ss << f.rdbuf();
+    automation::json::Value v;
+    if (!automation::json::parse(ss.str(), v, err)) return false;
+    const automation::json::Value* arr = v.get("sites");
+    if (!arr || arr->type != automation::json::Value::Arr) { err = "no \"sites\" list"; return false; }
+    for (const auto& e : arr->a) {
+        if (e.type != automation::json::Value::Obj) continue;
+        SiteConfig c;
+        c.name = e.str("name");
+        c.host = e.str("host");
+        if (c.name.empty() || c.host.empty()) continue;
+        const double p = e.num("port", 8765);
+        c.port = (p >= 1 && p <= 65535) ? (int)p : 8765;
+        c.token = e.str("token");
+        c.on = e.flag("on", true);
+        out.push_back(std::move(c));
+    }
+    return true;
+}
+
+bool saveSites(const std::string& path, const std::vector<SiteConfig>& sites, std::string& err) {
+    namespace fs = std::filesystem;
+    using J = automation::json::Value;
+    err.clear();
+    J root = J::object();
+    J arr = J::array();
+    for (const SiteConfig& c : sites) {
+        J o = J::object();
+        o.set("name", J::string(c.name));
+        o.set("host", J::string(c.host));
+        o.set("port", J::number(c.port));
+        o.set("token", J::string(c.token));
+        o.set("on", J::boolean(c.on));
+        arr.push(std::move(o));
+    }
+    root.set("sites", std::move(arr));
+    std::error_code ec;
+    const fs::path p = u8file(path);
+    if (p.has_parent_path()) fs::create_directories(p.parent_path(), ec);
+    // write to a new file that is private from the start, then rename over the old one: the tokens are never readable by others, even briefly
+    const fs::path tmp = fs::path(p).concat(".tmp");
+    fs::remove(tmp, ec);
+    {
+        std::ofstream o(tmp, std::ios::binary | std::ios::trunc);
+        if (!o) { err = "cannot write " + path; return false; }
+        o.close();
+        fs::permissions(tmp, fs::perms::owner_read | fs::perms::owner_write, fs::perm_options::replace, ec);
+        std::ofstream w(tmp, std::ios::binary | std::ios::trunc);
+        w << automation::json::dump(root, true) << "\n";
+        w.flush();
+        if (!w) { err = "cannot write " + path; return false; }
+    }
+    fs::rename(tmp, p, ec);
+    if (ec) { err = "cannot replace " + path + ": " + ec.message(); fs::remove(tmp, ec); return false; }
+    fs::permissions(p, fs::perms::owner_read | fs::perms::owner_write, fs::perm_options::replace, ec);
+    return true;
 }
 
 }  // namespace dect2

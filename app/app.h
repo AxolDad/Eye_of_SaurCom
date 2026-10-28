@@ -409,6 +409,7 @@ struct App {
     bool feedsOpen = false;   // View > Data feeds: the window (feeds_ui.cpp)
     bool webRadioOpen = false;   // View > Internet radio (web_radio_ui.cpp)
     bool dsnOpen = false;        // Tools > Deep Space Network (dsn_ui.cpp)
+    bool stationsOpen = false;  // Tools > Stations (stations_ui.cpp): the other installs whose events join the Eye
     bool eyeOpen = false;        // Tools > The Eye (eye_ui.cpp): everything decoded, across modes, on one scope and timeline
     bool notamOpen = false;      // Tools > NOTAMs and TFRs (adsb/notam_app.cpp)
     bool radioToolsOpen = false; // Tools > Radio tools (radio_tools_ui.cpp)
@@ -864,6 +865,8 @@ void feedsWindow(App& a);          // feeds_ui.cpp: the "Data feeds" window (Vie
 void webRadioWindow(App& a);       // web_radio_ui.cpp: internet radio stations (View > Internet radio)
 void dsnWindow(App& a);            // dsn_ui.cpp: NASA Deep Space Network Now (Tools > Deep Space Network)
 void eyeTick(App& a);              // eye_ui.cpp: feeds the Eye from the automation engine (every frame; hooks once)
+void stationsTick(App& a);         // stations_ui.cpp: reads sites.json and starts the links, once
+void stationsWindow(App& a);       // stations_ui.cpp: Tools > Stations
 void eyeWindow(App& a);            // eye_ui.cpp: Tools > The Eye (Ctrl+E)
 void dsnDevOpen(App& a);           // dsn_ui.cpp: --dsn
 void radioToolsWindow(App& a);     // radio_tools_ui.cpp: Tools > Radio tools (a.radioToolsOpen); also feeds the drive log, every frame
