@@ -11,8 +11,12 @@ namespace dect2 {
 
 // {"type":..,"time":..,"mode":..,"freq":..,"f":{...}} on one line.
 std::string eventToJson(const automation::Event& e);
-// Parses one line. False (err set) for bad JSON, a missing type, an "f" that is not an object or holds nested values.
-// Strings are cut at automation::kMaxFieldText.
+// Parses one line (from another station: untrusted). False (err set) for bad JSON, a missing type, a time that is not a finite number, an "f"
+// that is not an object or holds nested values. String field values are cut at automation::kMaxFieldText; the type, the mode and field names at
+// kMaxEventName bytes (on a UTF-8 character boundary); at most kMaxEventFields fields are kept (the first by name); a time more than
+// kMaxEventTimeOffSec from this computer's clock becomes 0 (unknown); freq is clamped to 0 .. kMaxEventFreqHz (not finite: 0).
+constexpr size_t kMaxEventName = 64, kMaxEventFields = 64;
+constexpr double kMaxEventTimeOffSec = 86400, kMaxEventFreqHz = 1e12;
 bool eventFromJson(const std::string& line, automation::Event& out, std::string& err);
 
 // Fixed-size ring of serialised events. Every pushed event gets the next sequence number (head() counts them).

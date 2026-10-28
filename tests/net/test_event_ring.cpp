@@ -9,7 +9,7 @@ using automation::Event;
 int main() {
     {   // round trip
         Event e("adsb.aircraft");
-        e.at(1700000000.25, "ADS-B", 1090e6).num("alt", 35000).str("call", "BAW12\"A\n").flag("onGround", false);
+        e.at(std::floor(automation::wallNow()) - 3.25, "ADS-B", 1090e6).num("alt", 35000).str("call", "BAW12\"A\n").flag("onGround", false);
         std::string line = eventToJson(e);
         CHECK(line.find('\n') == std::string::npos, "one line");
         Event o; std::string err;
@@ -41,6 +41,38 @@ int main() {
         std::string big(5000, 'z');
         CHECK(eventFromJson("{\"type\":\"x\",\"f\":{\"s\":\"" + big + "\"}}", o, err), "long string parses");
         CHECK(o.f["s"].s.size() == automation::kMaxFieldText, "cut to %zu", o.f["s"].s.size());
+    }
+    {   // untrusted input from another station: names, field count, time and frequency are bounded
+        Event o; std::string err;
+        const double now = automation::wallNow();
+        const std::string longName(200, 'n');
+        std::string line = "{\"type\":\"" + longName + "\",\"mode\":\"" + longName + "\",\"time\":" + std::to_string(now) + ",\"f\":{\"" + longName + "\":1";
+        for (int i = 0; i < 100; i++) line += ",\"k" + std::to_string(1000 + i) + "\":" + std::to_string(i);
+        line += "}}";
+        CHECK(eventFromJson(line, o, err), "long names parse: %s", err.c_str());
+        CHECK(o.type.size() == kMaxEventName && o.mode.size() == kMaxEventName, "type and mode cut to 64 (%zu, %zu)", o.type.size(), o.mode.size());
+        CHECK(o.f.size() == kMaxEventFields, "at most 64 fields (%zu)", o.f.size());
+        bool keysOk = true;
+        for (const auto& kv : o.f) keysOk = keysOk && kv.first.size() <= kMaxEventName;
+        CHECK(keysOk, "field names cut to 64");
+        CHECK(std::fabs(o.time - now) < 1e-3, "a time near this clock is kept");
+        // a UTF-8 name is not cut in the middle of a character: 63 ASCII bytes, then a two byte letter that would end at byte 65
+        const std::string u = std::string(63, 'a') + "\xc3\xa9" + "zz";
+        CHECK(eventFromJson("{\"type\":\"" + u + "\"}", o, err) && o.type == std::string(63, 'a'), "cut on a character boundary (%zu)", o.type.size());
+        // time: more than a day off this clock in either direction is unknown (0); a non-finite one is refused
+        CHECK(eventFromJson("{\"type\":\"x\",\"time\":" + std::to_string(now + 2 * 86400) + "}", o, err) && o.time == 0, "a far-future time becomes 0 (%f)", o.time);
+        CHECK(eventFromJson("{\"type\":\"x\",\"time\":" + std::to_string(now - 2 * 86400) + "}", o, err) && o.time == 0, "a far-past time becomes 0");
+        CHECK(eventFromJson("{\"type\":\"x\",\"time\":" + std::to_string(now + 3600) + "}", o, err) && std::fabs(o.time - now - 3600) < 1e-3, "an hour off is kept");
+        // JSON has no Inf / NaN, and a number that overflows to one (1e999) is already refused by the parser: eventFromJson's own finite-time
+        // check is the second line, for a parser that would let one through
+        CHECK(!eventFromJson("{\"type\":\"x\",\"time\":1e999}", o, err), "an infinite time is refused");
+        CHECK(!eventFromJson("{\"type\":\"x\",\"time\":-1e999}", o, err), "a negative infinite time is refused");
+        CHECK(!eventFromJson("{\"type\":\"x\",\"time\":NaN}", o, err), "a NaN time is refused");
+        // freq clamped to 0 .. 1e12
+        CHECK(eventFromJson("{\"type\":\"x\",\"freq\":5e15}", o, err) && o.freqHz == kMaxEventFreqHz, "freq clamped to 1e12 (%g)", o.freqHz);
+        CHECK(eventFromJson("{\"type\":\"x\",\"freq\":-5}", o, err) && o.freqHz == 0, "a negative freq becomes 0");
+        CHECK(eventFromJson("{\"type\":\"x\",\"freq\":1e300}", o, err) && o.freqHz == kMaxEventFreqHz, "a huge freq is clamped (%g)", o.freqHz);
+        CHECK(eventFromJson("{\"type\":\"x\",\"freq\":433.92e6}", o, err) && o.freqHz == 433.92e6, "a normal freq is kept");
     }
     {   // ring overrun
         EventRing r(4);

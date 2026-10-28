@@ -18,7 +18,7 @@ void CrossFixer::add(const automation::Event& ev) {
     if (!num("sigma_deg", n.sigma)) n.sigma = 5;
     // remote input is untrusted
     if (n.sigma <= 0 || n.lat < -90 || n.lat > 90 || n.lon < -180 || n.lon > 180) return;
-    if (!std::isfinite(ev.freqHz) || ev.freqHz <= 0 || ev.freqHz > 1e12 || !std::isfinite(ev.time)) return;
+    if (!std::isfinite(ev.freqHz) || ev.freqHz <= 0 || ev.freqHz > 1e12 || !std::isfinite(ev.time) || ev.time <= 0) return;   // time 0: unknown (eventFromJson sets it for a clock far off), cannot be matched
     if (std::fabs(n.bearing) > 720) return;
     n.bearing = std::fmod(std::fmod(n.bearing, 360.0) + 360.0, 360.0);
     auto s = ev.f.find("site");

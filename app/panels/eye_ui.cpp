@@ -415,6 +415,7 @@ void eyeTick(App& a) {
         if (e.type == "df.bearing") {
             static dect2::df::CrossFixer fixer;   // has its own mutex
             fixer.add(e);
+            if (!(e.time > 0)) return;   // an unknown time (ignored by add()) must not judge the age of the others
             for (const auto& f : fixer.fixes(e.time))
                 ey::global().ingestLocated(f.time, f.freqHz, f.fix.lat, f.fix.lon, f.fix.e95.semiMajorM, f.sites);
             return;

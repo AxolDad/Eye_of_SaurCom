@@ -95,5 +95,13 @@ int main() {
         cf.add(bearing("b", kT0, 433.92e6, b_la, b_lo, bb - 360));   // wraps
         CHECK(cf.fixes(kT0).size() == 1, "negative bearing wraps");
     }
+    {   // time 0 (unknown: eventFromJson sets it for a remote clock more than a day off) is ignored, so it can neither pair nor age the others
+        CrossFixer cf;
+        cf.add(bearing("", kT0, 433.92e6, a_la, a_lo, ba));
+        cf.add(bearing("b", 0, 433.92e6, b_la, b_lo, bb));
+        CHECK(cf.fixes(kT0 + 1).empty(), "a bearing with time 0 makes no fix");
+        cf.add(bearing("b", kT0 + 1, 433.92e6, b_la, b_lo, bb));
+        CHECK(cf.fixes(kT0 + 2).size() == 1, "the same site with a real time does");
+    }
     return testSummary("xfix");
 }
