@@ -52,7 +52,7 @@ bool fromMaidenhead(const std::string& in, double& latDeg, double& lonDeg, doubl
     return true;
 }
 
-bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg) {
+bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg, bool checkRange) {
     struct Group { std::vector<double> n; char hemi = 0; bool neg = false; };
     std::vector<Group> g(1);
     auto close = [&] { if (!g.back().n.empty()) g.emplace_back(); };
@@ -63,6 +63,7 @@ bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg) {
             const double v = std::strtod(text.c_str() + i, &e);
             if (e == text.c_str() + i) return false;
             if (g.back().n.size() == 3) close();   // a fourth number starts the longitude
+            else if (c == '-' && g.back().n.size() == 1 && !g.back().hemi) close();   // "52.1 -1.3": a minus after a lone number starts the longitude
             if (g.back().n.empty() && (c == '-')) g.back().neg = true;
             else if (c == '-') return false;       // a minus sign on minutes or seconds
             g.back().n.push_back(std::fabs(v));
@@ -96,7 +97,7 @@ bool parseCoordinates(const std::string& text, double& latDeg, double& lonDeg) {
     const bool lonFirst = g[0].hemi == 'E' || g[0].hemi == 'W' || g[1].hemi == 'N' || g[1].hemi == 'S';
     if (lonFirst && ((g[0].hemi == 'N' || g[0].hemi == 'S') || (g[1].hemi == 'E' || g[1].hemi == 'W'))) return false;   // two latitudes
     latDeg = lonFirst ? v[1] : v[0]; lonDeg = lonFirst ? v[0] : v[1];
-    return std::fabs(latDeg) <= 90 && std::fabs(lonDeg) <= 180;
+    return !checkRange || (std::fabs(latDeg) <= 90 && std::fabs(lonDeg) <= 180);
 }
 
 std::string toDms(double deg, bool isLat) {
