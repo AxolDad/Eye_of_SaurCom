@@ -1,20 +1,24 @@
 #include "dect2/net/event_ring.h"
 #include "dect2/automation/json_mini.h"
+#include <cmath>
 
 namespace dect2 {
 
 namespace aj = automation::json;
 
+// NaN and Inf have no JSON form (json::dump would write nan/inf and the line would not parse): send null instead.
+static aj::Value finiteOrNull(double d) { return std::isfinite(d) ? aj::Value::number(d) : aj::Value(); }
+
 std::string eventToJson(const automation::Event& e) {
     aj::Value v = aj::Value::object();
     v.set("type", aj::Value::string(e.type));
-    v.set("time", aj::Value::number(e.time));
+    v.set("time", finiteOrNull(e.time));
     v.set("mode", aj::Value::string(e.mode));
-    v.set("freq", aj::Value::number(e.freqHz));
+    v.set("freq", finiteOrNull(e.freqHz));
     aj::Value f = aj::Value::object();
     for (const auto& kv : e.f) {
         switch (kv.second.t) {
-        case automation::Value::Num: f.set(kv.first, aj::Value::number(kv.second.n)); break;
+        case automation::Value::Num: f.set(kv.first, finiteOrNull(kv.second.n)); break;
         case automation::Value::Str: f.set(kv.first, aj::Value::string(kv.second.s)); break;
         case automation::Value::Bool: f.set(kv.first, aj::Value::boolean(kv.second.b)); break;
         default: f.set(kv.first, aj::Value()); break;

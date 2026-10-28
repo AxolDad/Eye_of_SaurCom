@@ -1,6 +1,7 @@
 // EventRing and events as JSON lines: round trip, rejects, truncation, overrun accounting, site-tagged events skipped.
 #include "../common/test_util.h"
 #include "dect2/net/event_ring.h"
+#include <cmath>
 
 using namespace dect2;
 using automation::Event;
@@ -18,6 +19,16 @@ int main() {
         CHECK(o.f["alt"].t == automation::Value::Num && o.f["alt"].n == 35000, "num");
         CHECK(o.f["call"].t == automation::Value::Str && o.f["call"].s == "BAW12\"A\n", "str");
         CHECK(o.f["onGround"].t == automation::Value::Bool && !o.f["onGround"].b, "bool");
+    }
+    {   // NaN / Inf have no JSON form: they go out as null and the event still parses (null time/freq read back as 0)
+        Event e("t");
+        e.at(NAN, "m", INFINITY).num("bad", NAN).num("inf", -INFINITY).num("ok", 2);
+        std::string line = eventToJson(e);
+        Event o; std::string err;
+        CHECK(eventFromJson(line, o, err), "non-finite line parses: %s [%s]", err.c_str(), line.c_str());
+        CHECK(o.type == "t" && o.time == 0 && o.freqHz == 0, "null time/freq -> 0");
+        CHECK(o.f["bad"].t == automation::Value::Null && o.f["inf"].t == automation::Value::Null, "non-finite field -> Null");
+        CHECK(o.f["ok"].t == automation::Value::Num && o.f["ok"].n == 2, "finite field kept");
     }
     {   // rejects
         Event o; std::string err;
