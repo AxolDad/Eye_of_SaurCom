@@ -39,7 +39,8 @@ LABEL org.opencontainers.image.title="Eye of SaurCom" \
       org.opencontainers.image.licenses="GPL-3.0-or-later"
 
 # The settings of the base image (docker image inspect ghcr.io/linuxserver/baseimage-selkies:ubuntunoble): a single-layer image does
-# not inherit them, so check this list when the base changes. Changed here: START_DOCKER, TITLE. Added: the last four.
+# not inherit them, so check this list when the base changes. Changed here: START_DOCKER, TITLE. Added: the last four (SAURCOM_CONTAINER:
+# the app updates through the request file in /config, app/panels/update_ui.cpp).
 ENV PATH=/lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     HOME=/config \
     LANGUAGE=en_US.UTF-8 \
@@ -61,7 +62,7 @@ ENV PATH=/lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bi
     TITLE="Eye of SaurCom" \
     SELKIES_UI_TITLE="Eye of SaurCom" \
     MAX_RES=3840x2160 \
-    SAURCOM_NO_UPDATE_CHECK=1
+    SAURCOM_CONTAINER=docker
 
 EXPOSE 3000 3001
 VOLUME /config

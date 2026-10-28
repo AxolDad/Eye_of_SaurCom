@@ -29,8 +29,26 @@ Every release is also published ready-made, for x86-64 and arm64: use `ghcr.io/a
 `saurcom` above and skip the build.
 
 The image installs the release `.deb` of the version named in the `Dockerfile` (`SAURCOM_VERSION`). For another release:
-`docker build --build-arg SAURCOM_VERSION=0.2.7 -t saurcom packaging/docker`. The in-app update check is off (`SAURCOM_NO_UPDATE_CHECK`):
-an update installed inside a container is lost when the container is recreated, so build the new version instead.
+`docker build --build-arg SAURCOM_VERSION=0.2.7 -t saurcom packaging/docker`.
+
+## Updates
+
+The app cannot replace its own image, so in the container (`SAURCOM_CONTAINER=docker` in the `Dockerfile`) the version button in the top
+bar does not download anything itself. When a newer release is out it shows **Update now**, and that writes a request file into the config
+volume, `/config/.saurcom-update/request`. A helper outside the container, `saurcom-update`, reads it, pulls the new image, recreates the
+container and writes its progress to `/config/.saurcom-update/status`, which the app shows ("Downloading the new version…",
+"Restarting…", then "Updated to 0.3.1" or the error). The app needs no network port and no Docker socket for this.
+**Install updates automatically (at 04:00)** in the same window writes `/config/.saurcom-update/auto`; the helper's daily timer reads it.
+
+- **Proxmox** ([../proxmox](../proxmox/README.md)): the helper is installed there. Nothing to do.
+- **Plain Docker**: there is no helper, so after 30 seconds the button shows how to update by hand. With the ready-made image
+  (`image: ghcr.io/axoldad/saurcom:latest`), that is `docker compose pull && docker compose up -d` next to `compose.yaml`; with a build of
+  your own, build the new version. To get the button working on a Linux host with systemd, set the host up like the Proxmox container:
+  `/opt/saurcom/.env` with `SAURCOM_IMAGE=ghcr.io/axoldad/saurcom:<version>`, a `compose.yaml` there with `image: ${SAURCOM_IMAGE}` and
+  `./config:/config` (owned by uid 1000), and `/usr/local/sbin/saurcom-up` running `docker compose up -d` in that folder. Then copy
+  `packaging/proxmox/saurcom-update` to `/usr/local/bin/` and run it once as root: it installs its units and updates.
+
+An update installed by hand inside a running container is lost when the container is recreated: change the image instead.
 
 ## Radios
 

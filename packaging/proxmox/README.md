@@ -96,11 +96,45 @@ an unprivileged container cannot create device files, and a bound `/dev/bus/usb`
 `saurcom-up` writes `compose.devices.yaml` with the graphics chip and serial ports present at each start. The service `saurcom` runs it when
 the container boots.
 
+## Updates
+
+Update from inside the app, in the browser. When a newer release is out, the version button in the top bar turns yellow
+(`update 0.3.1`). Click it, then **Update now**. The window shows the progress: "Downloading the new version…" while Eye of SaurCom keeps
+running, then "Restarting…". The page drops for about half a minute while the app's container is recreated, and reconnects by itself.
+Afterwards the window says "Updated to 0.3.1".
+
+- **Automatic updates:** tick **Install updates automatically (at 04:00)** in the same window. Every night at 04:00 (the node's time zone,
+  plus up to 30 minutes) a newer release is installed by itself. It is off until you tick it.
+- **If something goes wrong:** the new image is downloaded before anything is stopped, so a failed download leaves the running version
+  alone. If the new version does not start, the previous one is started again. Either way the window shows what happened, and the log is
+  in `/opt/saurcom/config/.saurcom-update/log` (`/config/.saurcom-update/log` inside the app).
+- **From a shell** it still works as before: `pct exec <ctid> -- saurcom-update`, or `saurcom-update 0.3.1` for a given release.
+
+How it works: the button writes the wanted version into `/opt/saurcom/config/.saurcom-update/request`. The systemd unit
+`saurcom-update.path` in the Proxmox container sees the file and starts `saurcom-update.service`, which runs `saurcom-update --request`. It
+reads only a version from the file (digits and dots), never runs what is in it, writes each step to `status` next to it and removes the
+request. `saurcom-update-auto.timer` runs `saurcom-update --auto`, which updates only when the app's `auto` file holds `1` and a newer
+release exists. A lock keeps two updates from running at once. The app's container gets no network port and no Docker socket for this.
+
+### Containers set up before the update button
+
+A container made by an older `saurcom-lxc.sh` has an older `saurcom-update` that knows nothing of the button. There, **Update now** waits 30
+seconds, then shows the command below. Run it once in the node's **Shell**, with your container's number in place of `120`:
+
+```sh
+pct exec 120 -- bash -c 'curl -fsSL https://raw.githubusercontent.com/AxolDad/Eye_of_SaurCom/main/packaging/proxmox/saurcom-update -o /usr/local/bin/saurcom-update && chmod 755 /usr/local/bin/saurcom-update && saurcom-update'
+```
+
+It replaces `saurcom-update` with the new one and runs it. That updates Eye of SaurCom to the newest release and installs the units behind
+the button. From then on, the button and the automatic updates work, and every later `saurcom-update` refreshes those units. The old command
+alone (`pct exec 120 -- saurcom-update`) still updates, but it runs the old script, so it does not add the button's units.
+
 ## Afterwards
 
 ```sh
-pct exec <ctid> -- saurcom-update              # the newest release
+pct exec <ctid> -- saurcom-update              # the newest release (the app's Update now button does the same)
 pct exec <ctid> -- saurcom-update 0.3.1        # a given one
+pct exec <ctid> -- cat /opt/saurcom/config/.saurcom-update/log   # what the updates did
 pct exec <ctid> -- cat /opt/saurcom/config/saurcom.log
 pct exec <ctid> -- lsusb                       # the radios the container sees
 pct exec <ctid> -- systemctl restart saurcom   # e.g. after changing /opt/saurcom/.env (login, graphics chip, serial ports)
