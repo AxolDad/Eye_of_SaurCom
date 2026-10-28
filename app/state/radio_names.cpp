@@ -8,6 +8,7 @@
 #include <ctime>
 #include <filesystem>
 #include "dect2/common/u8file.h"
+#include "dect2/source/rtl_serial.h"
 
 namespace radionames {
 namespace {
@@ -45,6 +46,12 @@ std::string labelFor(const std::string& key) { return key.empty() ? std::string(
 bool setName(const std::string& key, const std::string& name, std::string& err) {
     if (key.empty()) { err = "this source cannot be named"; return false; }
     gLabels.set(key, dect2::cleanRadioName(name));
+    gGen++;
+    return gLabels.save(path(), err);
+}
+
+bool carryLabel(const dect2::RadioRow& row, const std::string& newSerial, std::string& err) {
+    if (!dect2::rtlCarryLabel(gLabels, row, newSerial)) return true;
     gGen++;
     return gLabels.save(path(), err);
 }

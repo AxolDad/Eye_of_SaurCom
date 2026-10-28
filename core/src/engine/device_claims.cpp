@@ -65,7 +65,7 @@ void endBackgroundListing() {
 }
 
 std::string deviceHolderText(int holder) {
-    return holder >= kHubClaimOwner ? "the direction-finding hub" : holder >= kSweepClaimBase ? "a sweep tool" : holder >= kTxClaimOwner ? "the transmitter" : "RX " + std::to_string(holder);
+    return holder >= kEepromClaimOwner ? "the RTL-SDR serial tool" : holder >= kHubClaimOwner ? "the direction-finding hub" : holder >= kSweepClaimBase ? "a sweep tool" : holder >= kTxClaimOwner ? "the transmitter" : "RX " + std::to_string(holder);
 }
 
 int deviceHolder(const DeviceInfo& d) {

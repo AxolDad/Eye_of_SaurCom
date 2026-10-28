@@ -2,6 +2,7 @@
 #include "receivers.h"
 #include "rxbar.h"
 #include "radio_watch.h"
+#include "../ui/rtl_serial_ui.h"
 #include "../ui/notices.h"
 #include "adsb/adsb_acars.h"
 #include "transcribe/transcribe_app.h"
@@ -370,6 +371,7 @@ void receiversFrame(App& first, ImVec2 disp) {
 }
 
 void receiversShutdown(App& first) {
+    rtlSerialShutdown();    // a running EEPROM write finishes first
     radioWatchShutdown();   // before the engines and the radio libraries go
     tx::shutdown();
     for (int id = 2; id <= kMaxReceivers; id++) if (App* r = gExtra[id - 2].get()) {

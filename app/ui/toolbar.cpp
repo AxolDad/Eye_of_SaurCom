@@ -5,6 +5,7 @@
 #include "touch.h"
 #include "radio_name_ui.h"
 #include "radio_find_ui.h"
+#include "rtl_serial_ui.h"
 #include "../state/radio_watch.h"
 #include "../state/radio_names.h"
 #include "dect2/engine/rate_choice.h"
@@ -116,15 +117,18 @@ static void toolbarSource(App& a, bool vertical, bool running) {
     if (iconFlat(Ic::Search, tr("Find this radio: unplug it and plug it back in, and it is chosen in the list"))) radioFindStart(a);   // allowed while receiving: only the USB ports are looked at
     radioNameModal(a);
     radioFindModal(a);
+    rtlSerialModal(a);
     radioMessagesUi(a, vertical);
     {   // two radios with one serial: names follow the USB port
         const std::string sw = sharedSerialWarning(a);
         if (!sw.empty()) {
-            if (vertical) { ImGui::PushTextWrapPos(0.0f); ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.25f, 1), "%s", sw.c_str()); ImGui::PopTextWrapPos(); }
+            if (vertical) { ImGui::PushTextWrapPos(0.0f); ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.25f, 1), "%s", sw.c_str()); ImGui::PopTextWrapPos(); rtlSerialWarningButton(a, true); }
             else {
                 ImGui::SameLine(0, 6 * gUi);
                 ImGui::TextColored(ImVec4(0.9f, 0.7f, 0.28f, 1), "(!)");
                 if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(420 * gUi); ImGui::TextUnformatted(sw.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
+                ImGui::SameLine(0, 4 * gUi);
+                rtlSerialWarningButton(a, true);
             }
         }
     }

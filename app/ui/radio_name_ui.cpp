@@ -1,6 +1,7 @@
 #include "radio_name_ui.h"
 #include "../app.h"
 #include "../state/radio_names.h"
+#include "rtl_serial_ui.h"
 #include <cstring>
 
 namespace {
@@ -78,5 +79,6 @@ void radioNameField(App& a, bool vertical) {
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Your own name for this radio, up to 64 characters. Shown in the radio list instead of the model and serial."));
     if (!gFieldErr.empty()) ImGui::TextColored(ImVec4(1.f, 0.45f, 0.4f, 1), "%s", gFieldErr.c_str());
     const std::string sw = sharedSerialWarning(a);
-    if (!sw.empty()) { ImGui::PushTextWrapPos(vertical ? 0.0f : 380 * gUi); ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.25f, 1), "%s", sw.c_str()); ImGui::PopTextWrapPos(); }
+    if (!sw.empty()) { ImGui::PushTextWrapPos(vertical ? 0.0f : 380 * gUi); ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.25f, 1), "%s", sw.c_str()); ImGui::PopTextWrapPos(); rtlSerialWarningButton(a, true); }
+    rtlSerialButtons(a);
 }

@@ -20,6 +20,9 @@ std::string labelFor(const std::string& key);   // "" when none
 // The user's name for one radio (cleaned of control characters and cut to 64 bytes; empty removes it). Writes the file. False and err on a write error.
 bool setName(const std::string& key, const std::string& name, std::string& err);
 
+// After a dongle got a new serial: its name (under row.key) moves to the key of the new serial, and the file is saved. False and err on a write error.
+bool carryLabel(const dect2::RadioRow& row, const std::string& newSerial, std::string& err);
+
 // One row per entry of devices (same order). Only radios get a key; other sources have an empty key and are shown by their own name.
 // Looks at the labels, moves a label from the "sn:" to the "usb:" key when a serial has become shared, and saves when it did.
 std::vector<dect2::RadioRow> rowsFor(const std::vector<dect2::DeviceInfo>& devices);
