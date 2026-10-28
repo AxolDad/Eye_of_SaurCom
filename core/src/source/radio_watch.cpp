@@ -51,6 +51,8 @@ std::string radioUsbSignature(const std::vector<UsbNode>& nodes) {
     return s;
 }
 
+namespace { std::string tagOfName(const std::string& n); }
+
 std::vector<DeviceInfo> usbRadioDevices(const std::vector<UsbNode>& nodes) {
     std::vector<DeviceInfo> out;
     for (const auto& n : nodes) {
@@ -58,7 +60,7 @@ std::vector<DeviceInfo> usbRadioDevices(const std::vector<UsbNode>& nodes) {
         if (!nm) continue;
         DeviceInfo d;
         d.kind = (n.vid == 0x1d50 && (n.pid == 0x6089 || n.pid == 0xcc15 || n.pid == 0x604b)) ? DeviceInfo::HackRF : DeviceInfo::Native;
-        d.board = nm;
+        d.board = tagOfName(nm);
         d.name = nm;
         d.usbPath = n.path;
         out.push_back(d);
@@ -68,20 +70,43 @@ std::vector<DeviceInfo> usbRadioDevices(const std::vector<UsbNode>& nodes) {
 }
 
 namespace {
-// "RTL-SDR" -> "rtls", "SDRplay RSP" -> "sdrp": the first four letters of the id table's name, compared with a listed entry's board and name
-std::string kindToken(const std::string& board) {
-    std::string t;
-    for (unsigned char c : board) { if (isalnum(c)) t += (char)tolower(c); if (t.size() == 4) break; }
-    return t;
+std::string lowerS(const std::string& s) { std::string t = s; for (auto& c : t) c = (char)tolower((unsigned char)c); return t; }
+// The kind id of a walk radio: the board string its listing carries ("rtlsdr", "airspyhf", "lime", ...); HackRF listings say "HackRF One", "HackRF Pro".
+std::string tagOfName(const std::string& n) {
+    const std::string l = lowerS(n);
+    if (l.rfind("hackrf", 0) == 0) return "hackrf";
+    if (l.rfind("rtl-sdr", 0) == 0) return "rtlsdr";
+    if (l.rfind("airspy hf", 0) == 0) return "airspyhf";
+    if (l.rfind("airspy", 0) == 0) return "airspy";
+    if (l.rfind("bladerf", 0) == 0) return "bladerf";
+    if (l.rfind("limesdr", 0) == 0) return "lime";
+    if (l.rfind("plutosdr", 0) == 0) return "pluto";
+    if (l.rfind("usrp", 0) == 0) return "usrp";
+    if (l.rfind("sdrplay", 0) == 0) return "sdrplay";
+    if (l.rfind("fobos", 0) == 0) return "fobos";
+    if (l.rfind("rx888 / limesdr", 0) == 0) return "rx888|lime";   // 04b4:00f1 is the FX3 firmware of both
+    if (l.rfind("rx888", 0) == 0) return "rx888";
+    return l;
 }
-std::string alnumLower(const std::string& s) {
-    std::string t;
-    for (unsigned char c : s) if (isalnum(c)) t += (char)tolower(c);
-    return t;
+bool boardIs(const std::string& tag, const std::string& lb) {   // does a listed entry's board (lower case) belong to this kind?
+    if (tag == "hackrf") return lb.rfind("hackrf", 0) == 0;
+    if (tag == "pluto") return lb == "pluto" || lb == "plutosdr";
+    if (tag == "usrp") return lb == "usrp" || lb == "uhd";
+    if (tag == "lime") return lb == "lime" || lb == "limesdr";
+    return lb == tag;
 }
 bool sameKind(const DeviceInfo& listed, const DeviceInfo& walk) {
-    const std::string t = kindToken(walk.board);
-    return !t.empty() && alnumLower(listed.board + " " + listed.name).find(t) != std::string::npos;
+    const std::string lb = lowerS(listed.board);
+    size_t p = 0;
+    const std::string& t = walk.board;
+    while (p <= t.size()) {
+        const size_t e = t.find('|', p);
+        const std::string alt = t.substr(p, e == std::string::npos ? std::string::npos : e - p);
+        if (!alt.empty() && boardIs(alt, lb)) return true;
+        if (e == std::string::npos) break;
+        p = e + 1;
+    }
+    return false;
 }
 }  // namespace
 
@@ -97,7 +122,7 @@ std::vector<WalkMatch> matchWalkRadios(const std::vector<DeviceInfo>& list, cons
         if (out[w].how == WalkMatch::ByPath) continue;
         int unmatchedWalk = 0;   // walk radios of this kind with no entry by port (this one included)
         for (size_t v = 0; v < walk.size(); v++)
-            if (out[v].how != WalkMatch::ByPath && kindToken(walk[v].board) == kindToken(walk[w].board)) unmatchedWalk++;
+            if (out[v].how != WalkMatch::ByPath && walk[v].board == walk[w].board) unmatchedWalk++;
         std::vector<int> cand;   // listed entries of this kind that cannot say their port
         for (size_t i = 0; i < list.size(); i++)
             if (list[i].isRadio() && !list[i].isNetwork() && list[i].usbPath.empty() && sameKind(list[i], walk[w])) cand.push_back((int)i);
@@ -105,6 +130,15 @@ std::vector<WalkMatch> matchWalkRadios(const std::vector<DeviceInfo>& list, cons
         out[w] = (unmatchedWalk == 1 && cand.size() == 1) ? WalkMatch{WalkMatch::ByKind, cand[0]} : WalkMatch{WalkMatch::Ambiguous, -1};
     }
     return out;
+}
+
+WalkMatch matchWalkRadio(const std::vector<DeviceInfo>& list, const std::vector<DeviceInfo>& walk, const DeviceInfo& dev) {
+    std::vector<DeviceInfo> w = walk;
+    size_t at = w.size();
+    for (size_t i = 0; i < w.size(); i++) if (w[i].board == dev.board && w[i].usbPath == dev.usbPath && w[i].name == dev.name) { at = i; break; }
+    if (at == w.size()) w.push_back(dev);   // it has left the bus: judged with the ones that are there
+    const auto m = matchWalkRadios(list, w);
+    return m[at];
 }
 
 // ---- RadioFind

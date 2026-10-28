@@ -41,16 +41,18 @@ bool openHub(double hz) {
     dect2::releaseDevice(dect2::kHubClaimOwner);   // the old group is gone: its dongles are free
     auto info = dect2::df::findHub(dect2::df::listNativeRtl());
     if (info.empty()) return false;
+    struct ReleaseOnFailure { bool keep = false; ~ReleaseOnFailure() { if (!keep) dect2::releaseDevice(dect2::kHubClaimOwner); } } cleanup;   // every failure below lets the dongles go
     for (auto& d : info) {   // the hub's dongles are claimed like a receiver's (a dongle a receiver has is refused; the radio watch leaves them alone)
         dect2::DeviceInfo dev; dev.kind = dect2::DeviceInfo::Native; dev.board = "rtlsdr"; dev.serial = d.serial; dev.nativeArgs = std::to_string(d.index);
         int holder = 0;
-        if (!dect2::claimDevice(dev, dect2::kHubClaimOwner, &holder)) { dect2::releaseDevice(dect2::kHubClaimOwner); return false; }
+        if (!dect2::claimDevice(dev, dect2::kHubClaimOwner, &holder)) return false;
     }
     std::vector<std::unique_ptr<dect2::df::RtlLink>> links;
     for (auto& d : info) { auto l = dect2::df::makeNativeRtlLink(d.index); if (!l) return false; links.push_back(std::move(l)); }
     dect2::df::HubStart hs; hs.freqHz = hz; hs.rateHz = 1.024e6; hs.gainTenthsDb = 200;
     if (!dect2::df::startHub(std::move(links), hs, gHub)) return false;
     gHubLabel = dect2::df::hubLabel(info);
+    cleanup.keep = true;
     return true;
 }
 enum Geometry { GeoUca, GeoUla, NumGeo };

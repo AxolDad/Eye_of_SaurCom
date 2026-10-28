@@ -54,10 +54,7 @@ double gFlashUntil = 0;
 
 // The entry of a receiver's list for a radio the USB walk saw: by port, else by the one-of-its-kind rule (core matchWalkRadios).
 // -1 when there is none or it cannot be told (see matchOf for the reason).
-WalkMatch matchOf(const App& a, const DeviceInfo& walkDev) {
-    const auto m = matchWalkRadios(a.devices, {walkDev});
-    return m.empty() ? WalkMatch() : m[0];
-}
+WalkMatch matchOf(const App& a, const DeviceInfo& walkDev) { return matchWalkRadio(a.devices, gLastWalk, walkDev); }   // judged with the whole walk
 int entryOf(const App& a, const DeviceInfo& walkDev) {
     const WalkMatch m = matchOf(a, walkDev);
     return (m.how == WalkMatch::ByPath || m.how == WalkMatch::ByKind) && m.index >= 2 ? m.index : -1;

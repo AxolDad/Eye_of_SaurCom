@@ -42,7 +42,8 @@ bool anyDeviceClaimed() {
 void holdDeviceShared(const DeviceInfo& d, int owner) {
     const std::string k = deviceClaimKey(d);
     if (k.empty()) return;
-    std::lock_guard<std::mutex> lk(gMu);
+    std::unique_lock<std::mutex> lk(gMu);
+    gCv.wait(lk, [] { return !gListing; });   // not while the radios are being listed
     gShared.emplace(owner, k);
 }
 

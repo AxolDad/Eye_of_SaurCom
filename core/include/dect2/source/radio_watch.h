@@ -35,6 +35,10 @@ struct WalkMatch {
 };
 std::vector<WalkMatch> matchWalkRadios(const std::vector<DeviceInfo>& list, const std::vector<DeviceInfo>& walk);
 
+// The match for one walk radio `dev`, judged with the whole walk (so two Fobos on the bus are Ambiguous for each, and one that has left is judged with
+// the ones still there). This is the call shape the app uses.
+WalkMatch matchWalkRadio(const std::vector<DeviceInfo>& list, const std::vector<DeviceInfo>& walk, const DeviceInfo& dev);
+
 // May the background watch run the radio listing (which opens radios)? Not while a radio is claimed (a receiver or the transmitter has it) and not
 // while the EEPROM tool is working on a dongle.
 inline bool backgroundListingAllowed(bool anyClaimed, bool eepromBusy) { return !anyClaimed && !eepromBusy; }
