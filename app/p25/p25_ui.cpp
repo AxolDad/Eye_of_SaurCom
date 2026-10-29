@@ -974,7 +974,9 @@ void followView(App& a) {
         ImGui::SameLine();
         chg |= ImGui::Checkbox("ESK", &T.ctl.edacs.esk);
         if (chg) { T.ctl.edacs.mode = md; saveTables(); }
-        if (T.ctl.edacs.grants() == 0 && T.ctl.edacs.messages() > 20)
+        // an idle system sends no assignments: warn only when the chosen set makes sense of almost nothing (a real standard system's
+        // control channel, idle, still has its site ID every few frames)
+        if (T.ctl.edacs.grants() == 0 && T.ctl.edacs.messages() > 20 && T.ctl.edacs.understood() * 10 < T.ctl.edacs.messages())
             ImGui::TextColored(pal::warnAmber(), "%s", tr("No call assignment understood yet: if calls are being made, try the other message set or ESK."));
         if (T.ctl.edacs.sysId() >= 0) kvRow(a, "system", "%04X", T.ctl.edacs.sysId());
         if (T.ctl.edacs.site() >= 0) kvRow(a, "site", "%d", T.ctl.edacs.site());

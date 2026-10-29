@@ -59,6 +59,15 @@ std::vector<uint8_t> lead(int n, unsigned seed) { std::vector<uint8_t> b; for (i
 } // namespace
 
 int main() {
+    {   // frames this receiver decoded from real recordings (SigIDWiki "EDACS_96.mp3" and "EDACS96_Sound.mp3", 9600 bit/s control channels:
+        // every message passed the BCH as received); the recordings are not redistributed, only these messages. In the standard set
+        // they are the site ID messages (MT-A 7, MT-B 7, MT-D 8..B) of sites 1 and 2.
+        const edacs::Message a = edacs::parse(0xFD04101, 0xFC40002, edacs::Mode::Standard);
+        const edacs::Message b = edacs::parse(0xFD41102, 0xFC40003, edacs::Mode::Standard);
+        CHECK(a.kind == edacs::Message::SiteId && a.site == 1 && a.ccLcn == 4, "real frame FD04101: kind %d site %d LCN %d", (int)a.kind, a.site, a.ccLcn);
+        CHECK(b.kind == edacs::Message::SiteId && b.site == 2 && b.ccLcn == 1, "real frame FD41102: kind %d site %d LCN %d", (int)b.kind, b.site, b.ccLcn);
+    }
+
     // ---------------------------------------------------------------- BCH(40,28)
     CHECK(edacs::bchGenerator() == gfMul(0x43, 0x57) && edacs::bchGenerator() == 0x1539, "the generator %X = m1 m3", edacs::bchGenerator());
     {

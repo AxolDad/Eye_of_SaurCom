@@ -106,6 +106,31 @@ int matching(const std::vector<std::vector<char>>& got, int chan, int* firstIdx)
 } // namespace
 
 int main() {
+    {   // bursts from real Phase 2 voice channels: SigIDWiki "Phase2vicpol.mp3" and "APCO25P2voice.mp3" (discriminator audio), sliced to dibits
+        // by a symbol slicer of our own (the recordings are not redistributed: only these 160-dibit timeslots, in hex, two dibits per digit).
+        // The S-ISCH, the I-ISCH slot numbers and the DUIDs of those recordings decode with these tables; these unscrambled FACCH bursts
+        // carry MAC_END_PTT, which passes RS(63,35) and CRC-12 (the second one only after the RS corrects it).
+        struct Real { const char* hex; int tg; const char* src; };
+        const Real r[] = {
+            {"D70058C00000000000300000000FFFFFF0FFD55DDF5F554E42A3D892FB5EBD58B962704C2949581B", 3411, "Phase2vicpol.mp3"},
+            {"D70058C00000000000300000000FFFFBF0FFD55DCF5E454E42A3D892FB5EBD58B962704C2949581B", 3411, "Phase2vicpol.mp3 (errors)"},
+            {"D70058400000000000300000000FFFFFF7FFD55DDF5F5594288BCE4D8E862D397F4B6E4E10280A3F", 32101, "APCO25P2voice.mp3"},
+        };
+        static const uint8_t zero[320] = {};
+        for (const Real& x : r) {
+            uint8_t d[kBurstDibits];
+            for (int k = 0; k < 80; k++) {
+                const char ch = x.hex[k];
+                const int v = ch <= '9' ? ch - '0' : ch - 'A' + 10;
+                d[2 * k] = (uint8_t)(v >> 2); d[2 * k + 1] = (uint8_t)(v & 3);
+            }
+            Burst b;
+            burstParse(d, zero, b);
+            CHECK(b.duid == 15 && b.macOk && b.mac.opcode == kMacEndPtt && b.mac.tg == x.tg && b.mac.src == 0xFFFFFF,
+                  "real burst %s: DUID %d, MAC ok %d, opcode %d, TG %d, source %X", x.src, b.duid, (int)b.macOk, b.mac.opcode, b.mac.tg, (unsigned)b.mac.src);
+        }
+    }
+
     // ---------------------------------------------------------------- DUID: SDRTrunk's codewords through OP25's table
     {
         static const uint8_t sdr[16] = {0x00, 0x17, 0x2E, 0x39, 0x4B, 0x5C, 0x65, 0x72, 0x8D, 0x9A, 0xA3, 0xB4, 0xC6, 0xD1, 0xE8, 0xFF};

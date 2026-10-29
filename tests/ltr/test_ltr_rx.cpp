@@ -105,6 +105,16 @@ int main() {
         ltr::Word r;
         CHECK(ltr::parseWord(b.data(), r) && ltr::checkWord(r) == 1, "hand vector does not check");
     }
+    {   // words this receiver decoded from a real recording (SigIDWiki "Ltrtx.mp3", an LTR repeater ending a transmission; the recording is
+        // not redistributed, only these fields and the check bits as received): our checksum gives the transmitted check bits
+        struct Real { int area, go, home, id, fr, chk; };
+        const Real r[] = {{0, 5, 5, 4, 1, 0x3A}, {0, 5, 5, 4, 2, 0x7E}, {0, 5, 5, 4, 3, 0x3D}, {0, 31, 5, 4, 5, 0x06}};
+        for (const Real& x : r) {
+            ltr::Word w; w.area = x.area; w.gotoCh = x.go; w.home = x.home; w.id = x.id; w.freeCh = x.fr; w.chk = x.chk;
+            CHECK(ltr::checksum(w) == x.chk && ltr::checkWord(w) == 1, "real word %s go-to %d free %d: checksum %02X, received %02X", ltr::talkgroup(w).c_str(), x.go, x.fr,
+                  ltr::checksum(w), x.chk);
+        }
+    }
     {   // our checksum against SDRTrunk's code on every combination of a spread of field values; the inbound (inverted) word too
         unsigned st = 99;
         int n = 0, bad = 0;

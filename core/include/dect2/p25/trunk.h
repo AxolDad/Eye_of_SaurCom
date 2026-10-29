@@ -331,10 +331,11 @@ public:
     int site() const { return site_; }
     uint64_t grants() const { return n_; }
     uint64_t messages() const { return msgs_; }
+    uint64_t understood() const { return known_; }   // frames the message set made sense of (any kind, not only grants)
     void reset() { sysId_ = site_ = -1; }
 private:
     int sysId_ = -1, site_ = -1;
-    uint64_t n_ = 0, msgs_ = 0;
+    uint64_t n_ = 0, msgs_ = 0, known_ = 0;
 };
 
 // LTR: the subaudible words into calls. A word (area, go-to, home, id, free) with an id of a call says that talkgroup area-home-id talks

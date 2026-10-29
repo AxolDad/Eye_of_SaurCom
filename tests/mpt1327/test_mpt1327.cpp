@@ -233,6 +233,40 @@ int main() {
         decodeAddress(makeGtc(5, 1234, 0, 3, 2003), g); CHECK(gtcKind(g) == CallKind::Normal, "normal");
     }
 
+    // --- codewords decoded by this decoder from real recordings (SigIDWiki MPT 1327 sample files; the recordings are not redistributed,
+    //     only these 64-bit codewords taken from them): the check bits pass, the fields read as SDRTrunk's positions say
+    {
+        struct Real { uint64_t cw; const char* type; int pfix, ident1, chan, other; const char* src; };
+        const Real r[] = {
+            {0x8E007464026F66A9ull, "MAINT", 14, 14, 2, 3, "Mobile-close.mp3: MAINT disconnect (OPER 3) on channel 2"},
+            {0x800464652020C1CAull, "MAINT", 0, 140, 288, 1, "MPT1327_423.6_1.mp3: MAINT pressel off (OPER 1) on channel 288"},
+            {0xA40844680AAAFA9Bull, "CLEAR", -1, -1, 288, 264, "MPT1327_423.6_1.mp3: CLEAR channel 288, back to 264"},
+            {0xDA0300023301E5D7ull, "GTC", 90, 96, 4, 3264, "MPT1327_442MHz.mp3: GTC 90/96 from 3264 to channel 4"},
+            {0x8E00AC2001C0EAA7ull, "ACK", 14, 21, -1, 14, "Mobile-call.mp3: ACK"},
+            {0x8E00AC4001C855ECull, "AHY", 14, 21, -1, -1, "Mobile-call.mp3: AHY"},
+            {0x8EFFF45801C13B0Bull, "AHYQ", 14, 8190, -1, -1, "Mobile-call.mp3: AHYQ to TSCI"},
+            {0x8A2124725878BF9Dull, "BCAST", -1, -1, -1, 2, "MPTsnapshotsound.mp3: BCAST call maintenance parameters"},
+            {0x8E804C7010000F93ull, "BCAST", -1, -1, -1, 3, "Pitlaptop2.wav: BCAST registration parameters"},
+            {0x968E4C708B0137A9ull, "BCAST", -1, -1, -1, 5, "MPT1327_Sound.mp3: BCAST vote now advice"},
+            {0x80000C6C2608807Eull, "MOVE", 0, 1, -1, -1, "MPT1327_Sound.mp3: MOVE"},
+        };
+        for (const Real& x : r) {
+            Message m;
+            const bool ok = valid(x.cw) && decodeAddress(x.cw, m) && m.type == x.type;
+            bool fields = ok;
+            if (ok && x.pfix >= 0) fields &= m.called.pfix == x.pfix && m.called.ident == x.ident1;
+            if (ok && x.chan >= 0) fields &= m.channel == x.chan;
+            if (ok && m.type == "MAINT") fields &= m.oper == x.other;
+            if (ok && m.type == "CLEAR") fields &= m.cont == x.other;
+            if (ok && m.type == "GTC") fields &= m.caller.ident == x.other && !m.dataCall;
+            if (ok && m.type == "ACK") fields &= m.caller.ident == x.other;
+            if (ok && m.type == "BCAST") fields &= m.sysdef == x.other;
+            const std::string st = sdrType(x.cw);
+            const bool sdr = st == x.type || (st == "AHOY" && std::string(x.type).rfind("AHY", 0) == 0) || st == "?";
+            CHECK(ok && fields && sdr, "real codeword %s: type %s (SDRTrunk %s)", x.src, m.type.c_str(), st.c_str());
+        }
+    }
+
     // --- the French variant (SYNC 0xB433, SYNT 0x4BCC: SDRTrunk SyncPattern MPT1327_CONTROL_FRENCH / MPT1327_TRAFFIC_FRENCH)
     {
         CHECK(kSyncFrench == 0xB433 && kSyntFrench == 0x4BCC && (uint16_t)~kSyncFrench == kSyntFrench, "French sync words");

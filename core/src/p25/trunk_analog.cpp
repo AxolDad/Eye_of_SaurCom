@@ -110,6 +110,7 @@ bool EdacsModel::onFrame(uint32_t m1, uint32_t m2, Grant& g, int* dropLcn, std::
     if (dropLcn) *dropLcn = -1;
     const edacs::Mode md = mode == 1 ? edacs::Mode::Extended : edacs::Mode::Standard;
     const edacs::Message m = edacs::parse(m1, m2, md, esk ? edacs::kEsk : 0);
+    if (m.kind != edacs::Message::Unknown) known_++;
     if (text) *text = edacs::describe(m, md);
     using M = edacs::Message;
     switch (m.kind) {
