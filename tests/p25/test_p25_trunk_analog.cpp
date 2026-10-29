@@ -259,7 +259,8 @@ int main() {
         c.mpt.channels.parse("17,169.5\n", 1023);
         c.onMpt("ALH", 0, 0, -1, -1, false, false, 0.7);
         c.onMpt("GTC", 5, 1235, 2004, 17, false, false, 1.0);
-        r = find(c.takeActions(), Action::Retune);
+        a = c.takeActions();   // kept: find() points into it
+        r = find(a, Action::Retune);
         CHECK(r && std::fabs(r->freqHz - 169.5e6) < 1, "the table overrides the formula");
         c.onMpt("GTC", 5, 1300, 2005, 18, true, false, 1.1);
         CHECK(last(c)->note.find("data call") != std::string::npos && !last(c)->followed, "a data GTC is logged: %s", last(c)->note.c_str());
