@@ -311,6 +311,7 @@ int main(int argc, char** argv) {
         layoutTick(app, !app.touchUi && !o.shotPath);   // per-mode window positions (desktop; not in --shot runs)
         workspaceSessionTick(app);   // every few seconds: the last-session file (crash restore)
         discordTick(app);
+        stationTick(app);   // Follow the GPS, also while a map is full screen or the window is minimised
         {
             paceFrame(window, app, o, frameNext, lastInputT);
             glfwPollEvents();

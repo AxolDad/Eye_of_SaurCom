@@ -6,6 +6,7 @@
 #include "dect2/geo/maidenhead.h"
 #include "dect2/source/rig_setup.h"
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -142,12 +143,14 @@ void pollLocate(App& a) {
 }
 
 // follow the GPS: runs every frame, window open or not
+double nowSec() { return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
+
 void followTick(App& a) {
     if (!S.follow || !S.active) return;
     GpsFix f;
     if (!currentFix(f)) return;   // no fix never moves the station
     const StationPos cur = stationPos();
-    const double now = ImGui::GetTime();
+    const double now = nowSec();
     if (!dect2::geo::followShouldMove(cur.valid(), cur.lat, cur.lon, f.lat, f.lon, now, S.lastApply)) return;
     if (setStationPos(a, posFromFix(f))) S.lastApply = now;
 }
@@ -182,7 +185,7 @@ void currentBlock() {
 
 void fieldsBlock(App& a) {
     const unsigned g = stationGeneration();
-    if (g != S.gen) { S.gen = g; fillFields(stationPos()); S.applyErr.clear(); }
+    if (g != S.gen && !ImGui::IsAnyItemActive()) { S.gen = g; fillFields(stationPos()); S.applyErr.clear(); }
     const float w = 130 * gUi;
     double lat = NAN, lon = NAN, alt = NAN, ant = NAN;
     bool eLat, eLon, eAlt, eAnt;
@@ -306,10 +309,14 @@ bool stationPasteBox(App& a, char* buf, size_t n, const char* id, float width) {
 
 void stationOpenPage(App& a) { a.myStationOpen = true; }
 
-void myStationWindow(App& a) {
+// every loop of the main program, drawn or not (a full-screen map, a minimised window): the GPS keeps the station where the vehicle is
+void stationTick(App& a) {
     load();
     pollLocate(a);
     followTick(a);
+}
+
+void myStationWindow(App& a) {
     if (!a.myStationOpen) return;
     ImGui::SetNextWindowSize(ImVec2(560 * gUi, 640 * gUi), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin(trw("My station"), &a.myStationOpen, ImGuiWindowFlags_NoCollapse)) { ImGui::End(); return; }

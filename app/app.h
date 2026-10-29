@@ -907,6 +907,7 @@ void stationsInit(App& a);         // stations_ui.cpp: reads sites.json and star
 void stationsWindow(App& a);       // stations_ui.cpp: Tools > Stations
 void eyeWindow(App& a);            // eye_ui.cpp: Tools > The Eye (Ctrl+E)
 void dsnDevOpen(App& a);           // dsn_ui.cpp: --dsn
+void stationTick(App& a);          // ui/station_ui.cpp: every loop of the main program: Follow the GPS, the Locate answer
 void myStationWindow(App& a);      // ui/station_ui.cpp: Tools > My station (a.myStationOpen); also follows the GPS every frame
 void stationChip(App& a);          // ui/station_ui.cpp: the toolbar chip with the position; a click opens My station
 void radioToolsWindow(App& a);     // radio_tools_ui.cpp: Tools > Radio tools (a.radioToolsOpen); also feeds the drive log, every frame

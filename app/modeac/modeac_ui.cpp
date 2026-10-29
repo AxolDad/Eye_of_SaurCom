@@ -216,7 +216,7 @@ void summary(const App& a, std::string& l1, std::string& l2) {
 
 void tuner(App& a, bool& retune) {
     double la, lo;
-    receiverLocation(la, lo);    // loads the antenna position the ADS-B screen keeps
+    receiverLocation(la, lo);
     ImGui::TextDisabled("Band");
     ImGui::SetNextItemWidth(std::min(220 * gUi, ImGui::GetContentRegionAvail().x));
     const bool std1090 = std::fabs(a.freqMhz - 1090.0) < 0.001;
@@ -264,13 +264,13 @@ void synth(App& a, bool& changed) {
 void tick(App& a) {
     double la, lo;
     receiverLocation(la, lo);
-    a.tune.synth.modeVal[2] = S.refLat; a.tune.synth.modeVal[3] = S.refLon;   // the simulated traffic flies around the antenna position
+    a.tune.synth.modeVal[2] = la; a.tune.synth.modeVal[3] = lo;   // the simulated traffic flies around the antenna position
     const bool run = a.engine.running();
     if (run) {
         if (!M.wasRunning) { M.pushedLat = M.pushedLon = 1e9; M.pushedConfirm = -1; }
-        if (receiverLocationSet() && (M.pushedLat != S.refLat || M.pushedLon != S.refLon)) {
-            a.engine.modeac().setReference(S.refLat, S.refLon);
-            M.pushedLat = S.refLat; M.pushedLon = S.refLon;
+        if (receiverLocationSet() && (M.pushedLat != la || M.pushedLon != lo)) {
+            a.engine.modeac().setReference(la, lo);
+            M.pushedLat = la; M.pushedLon = lo;
         }
         if (M.pushedConfirm != M.confirm) { a.engine.modeac().setConfirm(M.confirm); M.pushedConfirm = M.confirm; }
     }

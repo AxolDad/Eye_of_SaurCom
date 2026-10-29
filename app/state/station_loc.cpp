@@ -66,7 +66,7 @@ bool setStationPos(App& a, const StationPos& in, std::string* err) {
     if (!std::isnan(in.altM) && !dect2::geo::validAlt(in.altM)) return fail(err, "height above sea level must be -500 to 9000 m");
     if (!std::isnan(in.antM) && !(in.antM >= 0 && in.antM <= 1000)) return fail(err, "antenna height must be 0 to 1000 m");
     StationPos n = in;
-    if (n.source.empty()) n.source = "typed";
+    if (n.source.empty() || n.source == "env") n.source = "typed";   // the environment value is never saved as such: saving it makes it the user's own
     if (std::isnan(n.antM) && G.pos.valid()) n.antM = G.pos.antM;
     if (std::isnan(n.altM) && G.pos.valid() && dect2::geo::distanceM(G.pos.lat, G.pos.lon, n.lat, n.lon) < 5000.0) n.altM = G.pos.altM;
     G.pos = n;
@@ -82,10 +82,10 @@ bool setStationPos(App& a, const StationPos& in, std::string* err) {
     return true;
 }
 
-void setReceiverLocation(App& a, double lat, double lon, const char* source) {
+bool setReceiverLocation(App& a, double lat, double lon, const char* source) {
     StationPos p;
     p.lat = lat; p.lon = lon; p.source = source ? source : "map";
-    setStationPos(a, p);
+    return setStationPos(a, p);
 }
 
 std::string stationSourceLabel(const std::string& s) {

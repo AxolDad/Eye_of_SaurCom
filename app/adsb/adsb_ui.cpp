@@ -92,6 +92,7 @@ void setReference(App& a, double lat, double lon, const char* source) {
 // the antenna position as two numbers, its height, the paste box and the Locate button: in the Tuner section and in the map's "position" menu.
 // The position itself is the station's (state/station_loc.cpp); the My station page has the rest (GPS, antenna height above ground).
 void positionFields(App& a) {
+    loadState();   // this copy of the position is taken from the station, whichever mode opened first
     static char paste[256] = "";
     if (!receiverLocationSet()) {
         ImGui::PushTextWrapPos(0);
@@ -99,20 +100,37 @@ void positionFields(App& a) {
         ImGui::PopTextWrapPos();
     }
     stationPasteBox(a, paste, sizeof paste, "##adsbpaste", std::max(80.f * gUi, ImGui::GetContentRegionAvail().x));
+    // latitude and longitude apply when the field is left (or Enter): half-typed numbers are not positions, and the heights stay as they are
+    static double la = 0, lo = 0;
+    static bool editLat = false, editLon = false;
+    if (!editLat) la = S.refLat;
+    if (!editLon) lo = S.refLon;
+    auto moveTo = [&](double nlat, double nlon) {
+        dect2::geo::StationPos p = stationPos();
+        if (!p.valid()) p = dect2::geo::StationPos();
+        p.lat = std::max(-90.0, std::min(90.0, nlat)); p.lon = std::max(-180.0, std::min(180.0, nlon));
+        p.source = "typed";
+        setStationPos(a, p);
+    };
     ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));   // no wider than the side panel
-    double la = S.refLat, lo = S.refLon;
-    bool ch = ImGui::InputDouble("##alat", &la, 0, 0, "%.4f N");
+    ImGui::InputDouble("##alat", &la, 0, 0, "%.4f N");
+    if (ImGui::IsItemActive()) editLat = true;
+    if (ImGui::IsItemDeactivated()) { editLat = false; if (ImGui::IsItemDeactivatedAfterEdit()) moveTo(la, lo); }
     ImGui::SameLine(0, 4 * gUi);
     ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));   // no wider than the side panel
-    ch |= ImGui::InputDouble("##alon", &lo, 0, 0, "%.4f E");
-    if (ch) setReference(a, la, lo);
+    ImGui::InputDouble("##alon", &lo, 0, 0, "%.4f E");
+    if (ImGui::IsItemActive()) editLon = true;
+    if (ImGui::IsItemDeactivated()) { editLon = false; if (ImGui::IsItemDeactivatedAfterEdit()) moveTo(la, lo); }
     ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));
     double al = S.refAltM;
+    const bool fromEnv = stationSource() == "env";
+    ImGui::BeginDisabled(!receiverLocationSet() || fromEnv);   // the height belongs to a saved position: an environment one is not saved from here
     if (ImGui::InputDouble("##aalt", &al, 0, 0, "%.0f m")) {
         dect2::geo::StationPos p = stationPos();
         if (p.valid()) { p.altM = std::max(-500.0, std::min(9000.0, al)); setStationPos(a, p); }
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Height of the antenna above sea level, metres (the pass planner's look angles and Doppler)");
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s", fromEnv ? tr("This position comes from the container; set your own first.") : "Height of the antenna above sea level, metres (the pass planner's look angles and Doppler)");
     ImGui::SameLine(0, 4 * gUi);
     if (ImGui::Button(S.locBusy ? "Locating..." : "Locate (Wi-Fi)") && !S.locBusy) { plat::locateStart(); S.locBusy = 1; S.locMsg = "asking the location service..."; }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Ask the system for this computer's position (Wi-Fi positioning). macOS asks for permission the first time.");

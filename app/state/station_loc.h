@@ -15,7 +15,7 @@ struct App;
 void receiverLocation(double& lat, double& lon);   // the position; a placeholder (25.25, 55.36) until one is set, so maps still open
 bool receiverLocationSet();                         // a real position is set (saved, or from the environment)
 double receiverAltitudeM();                         // its height above sea level, metres (0 until known)
-void setReceiverLocation(App& a, double lat, double lon, const char* source = "map");   // move it (saved), e.g. Tools > Map's "Use as my location"
+bool setReceiverLocation(App& a, double lat, double lon, const char* source = "map");   // move it (saved), e.g. Tools > Map's "Use as my location"
 void receiverPositionFields(App& a);               // its fields (latitude, longitude, altitude), the paste box and the Locate button (adsb_ui.cpp)
 
 // ---- the station position itself ----

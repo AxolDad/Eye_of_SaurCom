@@ -19,6 +19,7 @@ namespace {
 
 struct State {
     bool loaded = false;
+    unsigned gen = 0;   // station position generation S.lat / S.lon were taken from
     double lat = 25.25, lon = 55.36;       // the receiver's position, shared with the ADS-B screen's setting
     bool haveRef = false;
     double pushedLat = 1e9, pushedLon = 1e9;
@@ -33,8 +34,14 @@ State S;
 bool live(const App& a) { return a.rx.standard == 67; }
 
 void loadState() {
+    const unsigned g = stationGeneration();
+    if (S.loaded && g != S.gen) {   // the station moved (My station, Follow the GPS, the ADS-B screen): take the new position
+        S.gen = g;
+        if (receiverLocationSet()) { receiverLocation(S.lat, S.lon); S.haveRef = true; S.map.lat = S.lat; S.map.lon = S.lon; snprintf(S.posText, sizeof S.posText, "%.5f, %.5f", S.lat, S.lon); }
+    }
     if (S.loaded) return;
     S.loaded = true;
+    S.gen = g;
     plat::Prefs& d = plat::prefs();
     if (receiverLocationSet()) { receiverLocation(S.lat, S.lon); S.haveRef = true; }
     S.map.zoom = (int)d.getI("flarmZoom", 10);
@@ -64,13 +71,11 @@ ImU32 typeColour(int t) {
     }
 }
 
-void setPosition(App& a, double lat, double lon) {
-    S.lat = std::max(-90.0, std::min(90.0, lat)); S.lon = std::max(-180.0, std::min(180.0, lon));
-    S.haveRef = true;
-    setReceiverLocation(a, S.lat, S.lon, "typed");   // the one station position (state/station_loc.cpp), saved there
-    S.map.lat = S.lat; S.map.lon = S.lon;
-    snprintf(S.posText, sizeof S.posText, "%.5f, %.5f", S.lat, S.lon);
-    savePrefs(a);
+bool setPosition(App& a, double lat, double lon, const char* source) {
+    // the one station position (state/station_loc.cpp), saved there; this screen takes it back from there (loadState) when it changed
+    if (!setReceiverLocation(a, std::max(-90.0, std::min(90.0, lat)), std::max(-180.0, std::min(180.0, lon)), source)) return false;
+    loadState();
+    return true;
 }
 
 void positionControls(App& a) {
@@ -81,8 +86,8 @@ void positionControls(App& a) {
     ImGui::SameLine(0, 5 * gUi);
     if (ImGui::Button("Set") || enter) {
         double la, lo;
-        if (parseCoordinates(S.posText, la, lo)) { setPosition(a, la, lo); S.msg = "position set"; }
-        else if (fromMaidenhead(S.posText, la, lo)) { setPosition(a, la, lo); S.msg = "position set from the locator"; }
+        if (parseCoordinates(S.posText, la, lo)) S.msg = setPosition(a, la, lo, "typed") ? "position set" : "not a usable position (0, 0 is no place)";
+        else if (fromMaidenhead(S.posText, la, lo)) S.msg = setPosition(a, la, lo, "locator") ? "position set from the locator" : "not a usable position";
         else S.msg = "not a position: try 54.687, 25.280 or a locator such as KO24";
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Where your antenna is (decimal degrees, degrees minutes seconds, or a Maidenhead locator). FLARM sends only the low bits of a position;\n"

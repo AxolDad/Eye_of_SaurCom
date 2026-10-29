@@ -164,11 +164,9 @@ static void exportHeard() {
 void dabTransmittersTab(App& a) {
     if (!S.loaded) load();
     // the antenna position: the one the map modes share (set in the ADS-B tuner, or below)
-    if (!S.haveRef) {
-        S.refLat = 0; S.refLon = 0;
-        S.haveRef = receiverLocationSet();
-        if (S.haveRef) receiverLocation(S.refLat, S.refLon);
-    }
+    S.refLat = 0; S.refLon = 0;
+    S.haveRef = receiverLocationSet();   // every frame: the station may have moved
+    if (S.haveRef) receiverLocation(S.refLat, S.refLon);
     dabTiiCollect(a);
     const DabTelemetry& d = a.rx.dab;
     const bool on = a.engine.running() && d.state == 2;
