@@ -199,6 +199,13 @@ int main() {
         CHECK(sw.step(2.0, true, false) == -1 && sw.step(3.0, true, false) == -1 && sw.step(3.5, false, false) == -1, "a busy group keeps the receiver");
         CHECK(sw.step(4.3, false, false) == 2 && sw.step(5.0, false, true) == -1 && sw.step(9.0, false, true) == -1, "on a call it does not move");
         CHECK(sw.step(10.5, false, false) == 0, "it wraps round");
+        LtrSweep busy;   // a group that stays busy holds the sweep at most maxStaySec
+        busy.setPlan(p);
+        busy.step(20.0, false, false);
+        bool moved = false; double at = 0;
+        for (double t = 20.25; t < 40 && !moved; t += 0.25) if (busy.step(t, true, false) >= 0) { moved = true; at = t; }
+        CHECK(moved && at >= 20.0 + busy.maxStaySec - 0.01 && at <= 20.0 + busy.maxStaySec + 0.3, "a busy group is left after %.1f s (moved %d)", at - 20.0, (int)moved);
+        CHECK(busy.step(at + 0.25, false, true) == -1 && busy.step(at + 30, false, true) == -1, "but never while this radio is on a call there");
         LtrSweep one;
         one.setPlan(planCoverage(f, 400e3, 50e3));
         CHECK(!one.sweeping() && one.step(0, false, false) == 0 && one.step(5, false, false) == -1, "all inside one capture: no sweep");

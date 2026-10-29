@@ -83,11 +83,39 @@ int main() {
         CHECK(c.phase2SeedGen() == g0 + 1, "the same identity does not re-seed");
         feed(c, gen::netSts(0xBEE01, 0x3A1, 0x1001, 0x70), 2.5);
         CHECK(c.phase2SeedGen() == g0 + 2, "a changed WACN re-seeds the running Phase 2 radios");
-        Controller d;   // an old held grant is dropped
+        Controller d;   // an old held grant is not followed, but logged once as missed
         feed(d, gen::idenUpTdma(3, 3, 770000000, 12500, -30000000), 0);
         feed(d, gen::grpVGrant(4, 0x3005, 1301, 556), 1.0);
         feed(d, gen::netSts(0xBEE00, 0x3A1, 0x1001, 0x70), 9.0);
-        CHECK(d.log.records().empty(), "a Phase 2 grant held for more than 3 s is dropped");
+        CHECK(d.log.records().size() == 1 && d.log.records()[0].missed && !d.log.records()[0].followed && d.log.records()[0].tg == 1301 &&
+              d.log.records()[0].note == "missed (waiting for the system ID)", "a Phase 2 grant held for more than 3 s is logged as missed (%zu rows)", d.log.records().size());
+    }
+    // ---- an encrypted call found out by the voice radio: logged once, the radio released, its grant updates do not follow it again
+    {
+        Controller c;
+        setupSite(c, 0);
+        FollowConfig fc; fc.hangSec = 2;
+        c.follower.setConfig(fc);
+        c.setVoiceRadios(1);
+        feed(c, gen::grpVGrant(0, 0x1010, 4401, 77), 1.0);   // no E bit in the grant
+        auto a = c.takeActions();
+        CHECK(count(a, Action::Retune) == 1 && c.log.records().size() == 1, "the call is followed");
+        const uint64_t id = c.log.records().back().id;
+        c.onEncrypted(id, 1.5);   // the voice radio hears it is encrypted
+        c.tick(1.6);
+        a = c.takeActions();
+        CHECK(count(a, Action::ReleaseRadio) == 1 && c.log.byId(id)->encrypted && !c.log.byId(id)->active, "released and marked encrypted");
+        int retunes = 0;
+        for (int k = 0; k < 4; k++) {   // the updates keep coming while the call lasts
+            feed(c, gen::grpVGrantUpd(0x1010, 4401, 0x1010, 4401), 2.0 + k);
+            c.tick(2.1 + k);
+            retunes += count(c.takeActions(), Action::Retune);
+        }
+        CHECK(retunes == 0 && c.log.records().size() == 1, "updates of the encrypted call: %d retunes, %zu rows (want 0, 1)", retunes, c.log.records().size());
+        feed(c, gen::grpVGrant(0, 0x1010, 4401, 78), 12.0);   // after a gap: a new call of that talkgroup is followed
+        CHECK(c.log.records().size() == 2 && count(c.takeActions(), Action::Retune) == 1, "a later new call is followed");
+        feed(c, gen::grpVGrant(0, 0x1011, 4402, 79), 12.1);   // another talkgroup is not affected
+        CHECK(c.log.records().size() == 3, "another talkgroup is logged");
     }
     // ---- grants, calls, the follow cycle inside a wide capture
     {

@@ -31,6 +31,7 @@ void Follower::reset() {
     for (const Slot& s : voice_) if (s.used) rec.push_back(s.callId);
     for (const auto& d : dropped_) if (d.first.used) rec.push_back(d.first.callId);
     slots_.clear();
+    enc_.clear();
     for (Slot& v : voice_) v = Slot();   // the radios stay linked, their calls are forgotten
     dropped_.clear();
     out_.clear();
@@ -120,8 +121,31 @@ void Follower::onControlSeen(double now) {
     }
 }
 
+void Follower::onEncrypted(uint64_t callId, double now, CallLog& log) {
+    CallRecord* r = log.byId(callId);
+    if (!r) return;
+    if (!r->encrypted) { r->encrypted = true; r->note = "encrypted (no sound): the radio was released"; }
+    bool have = false;
+    for (EncMark& m : enc_)
+        if (m.kind == r->kind && m.dmr == r->dmr && m.group == r->group && m.tg == r->tg && m.slot == r->slot && std::fabs(m.freqHz - r->freqHz) < 1) { m.lastSec = now; have = true; }
+    if (!have) { EncMark m; m.kind = r->kind; m.dmr = r->dmr; m.group = r->group; m.tg = r->tg; m.slot = r->slot; m.freqHz = r->freqHz; m.lastSec = now; enc_.push_back(m); }
+    onTerminator(callId, now);
+}
+
 void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double now, CallLog& log) {
     lastNow_ = now;
+    // an encrypted call already released: its updates are absorbed while they keep coming; a gap, or the talkgroup on another channel, is a
+    // new call
+    const double gap = std::max(3.0, cfg_.hangSec);
+    for (auto it = enc_.begin(); it != enc_.end();) {
+        if (now - it->lastSec > gap) { it = enc_.erase(it); continue; }
+        if (it->kind == g.kind && it->dmr == g.dmr && it->group == g.group && it->tg == g.tg) {
+            if (it->slot == g.slot && (g.freqHz <= 0 || std::fabs(it->freqHz - g.freqHz) < 1)) { it->lastSec = now; return; }
+            it = enc_.erase(it);
+            continue;
+        }
+        ++it;
+    }
     // a repeat of a call that is running?
     for (size_t i = log.records().size(); i-- > 0;) {
         CallRecord& r = const_cast<CallRecord&>(log.records()[i]);

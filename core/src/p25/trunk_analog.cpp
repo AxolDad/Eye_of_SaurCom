@@ -216,16 +216,18 @@ void LtrSweep::setPlan(const std::vector<CoverageGroup>& g) {
     if (same) return;
     plan_ = g;
     idx_ = -1;
-    since_ = -1e9;
+    since_ = entered_ = -1e9;
 }
 
 int LtrSweep::step(double now, bool active, bool following) {
     if (plan_.empty()) return -1;
-    if (idx_ < 0) { idx_ = 0; since_ = now; return 0; }
-    if (following || active) { since_ = now; return -1; }   // a busy group keeps the receiver: it stops on the active one
-    if (plan_.size() < 2 || now - since_ < dwellSec) return -1;
+    if (idx_ < 0) { idx_ = 0; since_ = entered_ = now; return 0; }
+    if (following) { since_ = now; return -1; }   // on a call there: it stays
+    // a busy group keeps the receiver (it stops on the active one), but not for ever: the other groups are looked at too
+    if (active && now - entered_ < maxStaySec) { since_ = now; return -1; }
+    if (plan_.size() < 2 || (!active && now - since_ < dwellSec)) return -1;
     idx_ = (idx_ + 1) % (int)plan_.size();
-    since_ = now;
+    since_ = entered_ = now;
     return idx_;
 }
 

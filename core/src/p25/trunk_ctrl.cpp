@@ -2,6 +2,7 @@
 #include "dect2/p25/trunk.h"
 #include <algorithm>
 #include <cmath>
+#include <ctime>
 
 namespace dect2 {
 namespace trunk {
@@ -93,11 +94,25 @@ void Controller::onTsbk(const p25::Tsbk& t, int nac, double now) {
         }
         now_.push_back(g);
     }
+    // never followed with a wrong scrambling seed: a grant that waited too long is logged as missed
+    auto missed = [&](const P2Pending& p) {
+        CallRecord r;
+        r.wallTime = (int64_t)time(nullptr);
+        r.startSec = r.lastSec = p.t;
+        r.dmr = false; r.group = p.g.group; r.tg = p.g.tg; r.src = p.g.src; r.channel = p.g.channel; r.freqHz = p.g.freqHz; r.slot = p.g.slot;
+        r.p25p2 = true; r.kind = SysKind::P25; r.label = p.g.label; r.emergency = p.g.emergency; r.encrypted = p.g.encrypted;
+        r.missed = true; r.note = "missed (waiting for the system ID)";
+        log.add(r);
+    };
     if (phase2Ready() && !p2Pending_.empty()) {
-        for (const P2Pending& p : p2Pending_) if (now - p.t < 3.0) now_.push_back(p.g);
+        for (const P2Pending& p : p2Pending_) { if (now - p.t < 3.0) now_.push_back(p.g); else missed(p); }
         p2Pending_.clear();
     }
-    for (auto i = p2Pending_.begin(); i != p2Pending_.end();) i = now - i->t > 3.0 ? p2Pending_.erase(i) : std::next(i);
+    for (auto i = p2Pending_.begin(); i != p2Pending_.end();) {
+        if (now - i->t <= 3.0) { ++i; continue; }
+        missed(*i);
+        i = p2Pending_.erase(i);
+    }
     dispatch(now_, now);
 }
 

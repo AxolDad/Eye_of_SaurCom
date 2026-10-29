@@ -587,9 +587,7 @@ void noteVoiceRadio(App& v, uint64_t id) {
     dect2::trunk::CallRecord* r = T.ctl.log.byId(id);
     if (!r) return;
     if (live(v) && v.rx.p25.now.active && v.rx.p25.now.encrypted && (v.rx.p25.now.dst < 0 || v.rx.p25.now.dst == r->tg) && !r->encrypted) {
-        r->encrypted = true;
-        r->note = "encrypted (no sound): the radio was released";
-        T.ctl.onTerminator(id, nowSec());   // nothing of it can be heard: the radio goes back to work
+        T.ctl.onEncrypted(id, nowSec());   // logged once, the radio goes back to work, its updates are not followed again
     }
     if (liveEdacs(v) && v.rx.edacs.provoice && !r->provoice && std::fabs(v.rx.edacs.channelHz - r->freqHz) < 2500) {
         r->provoice = true;
@@ -767,8 +765,7 @@ void trunkTick(App& a) {
         // only this call's own voice counts: the channel may already carry another talkgroup's call (its grant was not heard here)
         auto ours = [&](long long dst) { return r && (dst < 0 || dst == r->tg); };
         if (p25 && r && t.now.active && t.now.encrypted && ours(t.now.dst)) {   // a hop to an encrypted call: logged, the radio comes back
-            if (CallRecord* w = T.ctl.log.byId(id)) { w->encrypted = true; w->note = "encrypted (no sound): the radio came back"; }
-            T.ctl.onTerminator(id, now);
+            T.ctl.onEncrypted(id, now);
         } else if (p25) voice = t.now.active && t.now.kind == 0 && ours(t.now.dst);
         else if (dmr) voice = r && r->slot >= 0 && r->slot < 2 && a.rx.dmr.slot[r->slot].active && a.rx.dmr.slot[r->slot].state == 1 && ours(a.rx.dmr.slot[r->slot].dst ? (long long)a.rx.dmr.slot[r->slot].dst : -1);   // 0: not decoded yet
         else voice = a.rx.nxdn.now.active && a.rx.nxdn.now.kind == 0 && ours(a.rx.nxdn.now.dst);

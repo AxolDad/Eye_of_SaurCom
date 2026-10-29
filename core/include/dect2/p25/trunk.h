@@ -212,6 +212,9 @@ public:
     // The slice (or the hopped radio) hears voice from the call, or its terminator
     void onVoice(uint64_t callId, double now);
     void onTerminator(uint64_t callId, double now);
+    // a followed call turned out to be encrypted: it is marked in the log (once), its radio is released, and the grant updates that keep
+    // coming for it (same talkgroup, channel and slot) neither retune a radio nor add rows until they stop for a while (a new call)
+    void onEncrypted(uint64_t callId, double now, CallLog& log);
     // Time passes: ends calls, returns the radio, rotates through control channel candidates
     void tick(double now, CallLog& log);
     std::vector<Action> takeActions();
@@ -236,6 +239,9 @@ public:
     void reset();
 
 private:
+    struct EncMark { SysKind kind = SysKind::P25; bool dmr = false, group = true; int tg = -1, slot = -1; double freqHz = 0, lastSec = 0; };
+    std::vector<EncMark> enc_;   // encrypted calls whose updates are still coming
+
     struct Slot { uint64_t callId = 0; int prio = 0; double freqHz = 0, startSec = 0, lastSec = 0; bool used = false, hopped = false; };
     std::vector<Slot> slots_;
     std::vector<Slot> voice_;          // one per voice radio
@@ -371,6 +377,7 @@ std::vector<CoverageGroup> planCoverage(std::vector<double> freqs, double spanHz
 class LtrSweep {
 public:
     double dwellSec = 1.2;             // on a quiet group (about 7 words' time)
+    double maxStaySec = 8.0;           // a busy group keeps the sweep at most this long (unless this radio is on a call there)
     void setPlan(const std::vector<CoverageGroup>& g);
     const std::vector<CoverageGroup>& plan() const { return plan_; }
     // the group to tune to now, or -1 to stay where it is. active: a repeater of the current group sent a good word just now;
@@ -382,6 +389,7 @@ private:
     std::vector<CoverageGroup> plan_;
     int idx_ = -1;
     double since_ = -1e9;
+    double entered_ = -1e9;
 };
 
 // MPT 1327: GTC (go to channel) on the control channel into grants. The called address (prefix / ident) is the talkgroup, the caller's
@@ -444,6 +452,7 @@ public:
     std::vector<Action> takeActions() { return follower.takeActions(); }
     void onVoice(uint64_t callId, double now) { follower.onVoice(callId, now); }
     void onTerminator(uint64_t callId, double now) { follower.onTerminator(callId, now); }
+    void onEncrypted(uint64_t callId, double now) { follower.onEncrypted(callId, now, log); }
     // the calls on radios that go away end at once (their RecordStop is in the next takeActions)
     void setVoiceRadios(int n) { follower.setVoiceRadios(n); follower.endDropped(log); }
     void dropVoiceRadio(int k, const char* why) { follower.dropVoiceRadio(k, why); follower.endDropped(log); }
