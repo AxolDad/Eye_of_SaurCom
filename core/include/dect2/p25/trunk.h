@@ -336,17 +336,20 @@ private:
 };
 
 // LTR: the subaudible words into calls. A word (area, go-to, home, id, free) with an id of a call says that talkgroup area-home-id talks
-// on repeater go-to; the turn-off word (go-to 31) ends it. The check bits are not verified (their algorithm is not public), so a call needs
-// the same word twice within 2 s.
+// on repeater go-to; the turn-off word (go-to 31) ends it. Only words whose checksum matched get here (SDRTrunk CRCLTR, ltr_proto.h).
+// Passport: a call word (type 0 / 2, or 1 with an LCN below 1792) puts the 16-bit group on that LCN; type 1 with LCN 2047 ends it. The LCN
+// becomes a frequency through the user's table, or else the site's band from the idle words (base + LCN x 12.5 kHz, SDRTrunk PassportBand).
 class LtrModel {
 public:
-    ChannelTable repeaters;
+    ChannelTable repeaters;      // LTR repeater numbers, or Passport LCNs
     // a grant in g (true), or *endedTg >= 0: the turn-off of that talkgroup
     bool onWord(int area, int gotoCh, int home, int id, int freeCh, double now, Grant& g, int* endedTg);
+    bool onPassport(int dcc, int lcn, int site, int group, int type, int freeCh, double now, Grant& g, int* endedTg);
+    int passportBand() const { return band_; }
     uint64_t grants() const { return n_; }
-    void reset() { seen_.clear(); }
+    void reset() { band_ = -1; }
 private:
-    std::map<int, double> seen_;   // area / go-to / home / id -> when that word was last heard
+    int band_ = -1;
     uint64_t n_ = 0;
 };
 
@@ -392,6 +395,7 @@ public:
     void onNxdnAssignment(int callType, int src, int dst, int channel, int ccOption, double nowSec);
     void onEdacs(uint32_t m1, uint32_t m2, double nowSec);                          // one control channel frame (its two messages)
     void onLtr(int area, int gotoCh, int home, int id, int freeCh, double nowSec);  // one word heard by the monitoring receiver
+    void onPassport(int dcc, int lcn, int site, int group, int type, int freeCh, double nowSec);   // one Passport word
     void onMpt(const std::string& type, int calledPfix, int calledIdent, int callerIdent, int channel, bool dataCall, bool traffic, double nowSec);
     void onControlSeen(double nowSec);   // a good control channel message that is not a grant (keeps the follower's control lock)
     void setCapture(double centerHz, double spanHz) { follower.setCapture(centerHz, spanHz); }

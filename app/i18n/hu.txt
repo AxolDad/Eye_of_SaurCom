@@ -3464,6 +3464,11 @@ The formula gives every channel; list here only the channels that do not follow 
 EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: a hívások logikai csatornaszámokhoz (LCN 1-31) vannak rendelve.
 Narrowband (EDACS NB, 4800 bit/s)	Keskenysávú (EDACS NB, 4800 bit/s)
 LTR has no control channel: start this receiver on a busy repeater of the system (the home repeater of the talkgroups you follow). The data under its voice says which repeater each call is on.	Az LTR-nek nincs vezérlőcsatornája: indítsa ezt a vevőt a rendszer egy forgalmas átjátszóján (a követett beszélgetőcsoportok saját átjátszóján). A hangja alatti adat megmondja, melyik átjátszón van az egyes hívás.
+Message set	Üzenetkészlet
+Standard / networked	Szabványos / hálózatos
+Extended addressing (EA)	Kiterjesztett címzés (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	Még nincs értelmezett híváskiosztás: ha folynak hívások, próbálja a másik üzenetkészletet vagy az ESK-t.
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: a fenti lista a telephely csatornaszámait (LCN) várja. A benne nem szereplő csatornák a telephely sávjából számolódnak, amint egy üresjárati szó megmondta, melyik sáv az.
 MPT 1327: channel n is on base + n x spacing; list the channels that are not.	MPT 1327: az n. csatorna az alap + n x osztás frekvencián van; sorolja fel azokat a csatornákat, amelyek nem.
 base MHz	alap MHz
 spacing kHz	osztás kHz

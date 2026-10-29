@@ -23,22 +23,19 @@ void controlView(App& a) {
     ImGui::Spacing();
     ImGui::Text("Lock: %s", t.locked ? "yes" : "no");
     ImGui::Text("Good frames: %llu   Bad frames: %llu", (unsigned long long)t.blocksOk, (unsigned long long)t.blocksBad);
-    ImGui::Text("Messages: %llu checked by their BCH, %llu on agreeing copies only, %llu refused", (unsigned long long)t.bchOk, (unsigned long long)t.copiesOnly, (unsigned long long)t.msgBad);
-    if (t.sysId >= 0) ImGui::Text("System ID: %04X, site %d", t.sysId, t.site); else ImGui::TextDisabled("System ID: not heard yet");
+    ImGui::Text("Messages: %llu passed the BCH check, %llu after correcting it, %llu refused", (unsigned long long)t.bchOk, (unsigned long long)t.bchFixed, (unsigned long long)t.msgBad);
     ImGui::Text("Level: %.0f dBFS, data swing %.0f Hz, %s polarity%s", t.levelDb, t.deviationHz, t.inverted ? "inverted" : "normal", t.narrow ? ", narrowband 4800 bit/s" : "");
     if (t.voice.carrier && !t.locked) ImGui::Text("Working channel: %s%s", t.provoice ? "ProVoice (digital voice, no decoder)" : "FM voice", t.lsd ? ", low-speed data" : "");
     ImGui::Spacing();
     ImGui::TextUnformatted("Data words (28 bits)");
-    if (ImGui::BeginTable("edword", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit)) {
+    if (ImGui::BeginTable("edword", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit)) {
         ImGui::TableSetupColumn("Word");
         ImGui::TableSetupColumn("Count");
-        ImGui::TableSetupColumn("Meaning", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableHeadersRow();
         for (const dect2::EdacsWordCount& w : t.words) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn(); ImGui::Text("%07X", w.word);
             ImGui::TableNextColumn(); ImGui::Text("%llu", (unsigned long long)w.count);
-            ImGui::TableNextColumn(); ImGui::TextUnformatted(dect2::edacs::describe(dect2::edacs::parse(w.word)).c_str());
         }
         ImGui::EndTable();
     }
@@ -60,16 +57,19 @@ void receiver(App& a) {
 void list(App& a) {
     if (!live(a)) return;
     const dect2::EdacsTelemetry& t = a.rx.edacs;
+    const dect2::edacs::Mode md = trunkEdacsMode() == 1 ? dect2::edacs::Mode::Extended : dect2::edacs::Mode::Standard;
     if (ImGui::BeginTable("edmsg", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit)) {
-        ImGui::TableSetupColumn("Message A");
-        ImGui::TableSetupColumn("Message B");
+        ImGui::TableSetupColumn("Message");
+        ImGui::TableSetupColumn("Words");
         ImGui::TableSetupColumn("Copy errors");
         ImGui::TableSetupColumn("Time (s)");
         ImGui::TableHeadersRow();
         for (const dect2::EdacsFrame& f : t.frames) {
             ImGui::TableNextRow();
-            ImGui::TableNextColumn(); ImGui::TextUnformatted(f.okA ? dect2::edacs::describe(dect2::edacs::parse(f.msgA)).c_str() : "-");
-            ImGui::TableNextColumn(); ImGui::TextUnformatted(f.okB ? dect2::edacs::describe(dect2::edacs::parse(f.msgB)).c_str() : "-");
+            ImGui::TableNextColumn();
+            if (f.okA && f.okB) ImGui::TextUnformatted(dect2::edacs::describe(dect2::edacs::parse(f.msgA, f.msgB, md, trunkEdacsEsk() ? dect2::edacs::kEsk : 0), md).c_str());
+            else ImGui::TextDisabled("BCH check failed");
+            ImGui::TableNextColumn(); ImGui::Text("%07X %07X", f.msgA, f.msgB);
             ImGui::TableNextColumn(); ImGui::Text("%d / %d", f.errA, f.errB);
             ImGui::TableNextColumn(); ImGui::Text("%.1f", f.timeSec);
         }

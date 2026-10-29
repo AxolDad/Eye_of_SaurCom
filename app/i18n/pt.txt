@@ -3461,6 +3461,11 @@ The formula gives every channel; list here only the channels that do not follow 
 EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: as chamadas são atribuídas a números de canal lógico (LCN 1 a 31).
 Narrowband (EDACS NB, 4800 bit/s)	Banda estreita (EDACS NB, 4800 bit/s)
 LTR has no control channel: start this receiver on a busy repeater of the system (the home repeater of the talkgroups you follow). The data under its voice says which repeater each call is on.	O LTR não tem canal de controlo: inicie este recetor num repetidor ocupado do sistema (o repetidor de origem dos grupos que segue). Os dados sob a voz dizem em que repetidor está cada chamada.
+Message set	Conjunto de mensagens
+Standard / networked	Padrão / em rede
+Extended addressing (EA)	Endereçamento estendido (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	Nenhuma atribuição de chamada entendida ainda: se há chamadas, tente o outro conjunto de mensagens ou ESK.
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: a lista acima recebe os números de canal (LCN) do site. Os canais que não estão nela são calculados a partir da banda do site, assim que uma palavra de repouso disser qual é.
 MPT 1327: channel n is on base + n x spacing; list the channels that are not.	MPT 1327: o canal n está em base + n x espaçamento; liste os canais que não estão.
 base MHz	base MHz
 spacing kHz	espaçamento kHz

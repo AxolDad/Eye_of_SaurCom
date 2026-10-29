@@ -3501,6 +3501,11 @@ The formula gives every channel; list here only the channels that do not follow 
 EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS：通话被分配到逻辑信道号（LCN 1 到 31）。
 Narrowband (EDACS NB, 4800 bit/s)	窄带（EDACS NB，4800 bit/s）
 LTR has no control channel: start this receiver on a busy repeater of the system (the home repeater of the talkgroups you follow). The data under its voice says which repeater each call is on.	LTR 没有控制信道：请在系统中一个繁忙的中继器（您所跟随通话组的归属中继器）上启动此接收机。其语音下的数据会说明每个通话在哪个中继器上。
+Message set	消息集
+Standard / networked	标准 / 联网
+Extended addressing (EA)	扩展寻址 (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	尚未理解任何通话分配：如果正在通话，请尝试另一种消息集或 ESK。
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport：上面的列表填写站点的信道号 (LCN)。列表中没有的信道，在空闲字给出频段后，按站点的频段计算。
 MPT 1327: channel n is on base + n x spacing; list the channels that are not.	MPT 1327：信道 n 位于 基准 + n x 间隔；请列出不符合的信道。
 base MHz	基准 MHz
 spacing kHz	间隔 kHz

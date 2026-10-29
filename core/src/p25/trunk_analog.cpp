@@ -121,22 +121,38 @@ bool EdacsModel::onFrame(uint32_t m1, uint32_t m2, Grant& g, int* dropLcn, std::
 // ------------------------------------------------------------------------------------------------ LTR
 
 bool LtrModel::onWord(int area, int gotoCh, int home, int id, int freeCh, double now, Grant& g, int* endedTg) {
-    (void)freeCh;
+    (void)now;
     if (endedTg) *endedTg = -1;
     if (!ltr::isCallId(id) || home < 1 || home > 20) return false;
     if (gotoCh == ltr::kTurnOff) { if (endedTg) *endedTg = ltr::tgNumber(area, home, id); return false; }
-    if (gotoCh < 1 || gotoCh > 20) return false;
-    const int key = ((area * 32 + gotoCh) * 32 + home) * 256 + id;
-    const auto it = seen_.find(key);
-    const bool twice = it != seen_.end() && now - it->second < 2.0;
-    seen_[key] = now;
-    if (seen_.size() > 512) for (auto i = seen_.begin(); i != seen_.end();) i = now - i->second > 2.0 ? seen_.erase(i) : std::next(i);
-    if (!twice) return false;
+    if (gotoCh < 1 || gotoCh > 20 || freeCh > 20) return false;   // LTRStandardMessageProcessor: a call has go-to 1 - 20, free 0 - 20
     g = Grant();
     g.kind = SysKind::Ltr;
     g.group = true; g.tg = ltr::tgNumber(area, home, id); g.channel = gotoCh; g.freqHz = repeaters.freq(gotoCh); g.slot = -1;
     g.explicitUpdate = true;   // every word repeats: a running call is only refreshed
     g.label = ltr::tgText(g.tg);
+    n_++;
+    return true;
+}
+
+bool LtrModel::onPassport(int dcc, int lcn, int site, int group, int type, int freeCh, double now, Grant& g, int* endedTg) {
+    (void)now;
+    if (endedTg) *endedTg = -1;
+    ltr::PassportWord p;
+    p.dcc = dcc; p.lcn = lcn; p.site = site; p.group = group; p.type = type; p.freeCh = freeCh;
+    const ltr::PassportKind k = ltr::passportKind(p);
+    if (k == ltr::PassportKind::Idle) { band_ = p.siteBand(); return false; }
+    if (k == ltr::PassportKind::CallEnd) { if (endedTg) *endedTg = group; return false; }
+    if (k != ltr::PassportKind::CallStart && k != ltr::PassportKind::Data) return false;
+    if (lcn < 1 || lcn >= 1792) return false;
+    g = Grant();
+    g.kind = SysKind::Ltr;
+    g.group = true; g.tg = group; g.channel = lcn; g.slot = -1;
+    g.freqHz = repeaters.freq(lcn);
+    if (g.freqHz <= 0 && band_ >= 0) g.freqHz = ltr::passportFreqHz(band_, lcn);
+    g.dataCall = k == ltr::PassportKind::Data;
+    g.explicitUpdate = true;
+    g.label = std::to_string(group);
     n_++;
     return true;
 }
@@ -171,6 +187,15 @@ void Controller::onLtr(int area, int gotoCh, int home, int id, int freeCh, doubl
     Grant g;
     int ended = -1;
     if (ltr.onWord(area, gotoCh, home, id, freeCh, now, g, &ended)) dispatch({g}, now);
+    if (ended >= 0)
+        for (const CallRecord& r : log.records()) if (r.active && r.kind == SysKind::Ltr && r.tg == ended) follower.onTerminator(r.id, now);
+}
+
+void Controller::onPassport(int dcc, int lcn, int site, int group, int type, int freeCh, double now) {
+    onControlSeen(now);
+    Grant g;
+    int ended = -1;
+    if (ltr.onPassport(dcc, lcn, site, group, type, freeCh, now, g, &ended)) dispatch({g}, now);
     if (ended >= 0)
         for (const CallRecord& r : log.records()) if (r.active && r.kind == SysKind::Ltr && r.tg == ended) follower.onTerminator(r.id, now);
 }

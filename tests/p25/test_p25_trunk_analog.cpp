@@ -110,27 +110,52 @@ int main() {
         c.ltr.repeaters.parse("1,460.0125\n2,460.0375\n3,460.0625\n5,460.1125\n", 20);
         c.setCapture(460.0125e6, 0);
         c.setVoiceRadios(1);
-        c.onLtr(0, 5, 3, 17, 2, 0.0);   // once: not yet a call (the words have no checked check bits)
-        CHECK(c.log.records().empty() && count(c.takeActions(), Action::Retune) == 0, "one word is not a call");
-        c.onLtr(0, 3, 3, 99, 2, 0.1);   // other words in between
-        c.onLtr(0, 5, 3, 17, 2, 0.3);
+        c.onLtr(0, 5, 3, 17, 2, 0.0);   // one word (its checksum matched in the receiver) is a call
         auto a = c.takeActions();
         const Action* r = find(a, Action::Retune);
         const CallRecord* rec = last(c);
         CHECK(rec && rec->kind == SysKind::Ltr && rec->tg == ltr::tgNumber(0, 3, 17) && rec->label == "0-03-017" && r && r->radio == 0 && std::fabs(r->freqHz - 460112500) < 1,
-              "the same word twice: talkgroup %s on repeater 5", rec ? rec->label.c_str() : "");
-        CHECK(c.log.records().size() == 1, "the other word was heard once only: %zu calls", c.log.records().size());
+              "talkgroup %s on repeater 5", rec ? rec->label.c_str() : "");
         c.onLtr(0, 5, 3, 17, 2, 0.6);
         CHECK(c.log.records().size() == 1 && last(c)->active, "a repeat keeps the call");
         c.onLtr(0, ltr::kTurnOff, 3, 17, 2, 0.8);   // the turn-off
         c.tick(0.81);
         a = c.takeActions();
         CHECK(!last(c)->active && count(a, Action::ReleaseRadio) == 1, "the turn-off word ends the call at once");
-        c.onLtr(0, 4, 3, 18, 2, 1.0); c.onLtr(0, 4, 3, 18, 2, 1.2);   // repeater 4 is not in the table
+        c.onLtr(0, 4, 3, 18, 2, 1.0);   // repeater 4 is not in the table
         CHECK(last(c)->note.find("not in your channel list") != std::string::npos, "repeater 4 missing: %s", last(c)->note.c_str());
-        c.onLtr(0, 5, 3, 254, 2, 1.3); c.onLtr(0, 5, 3, 254, 2, 1.4);   // a callsign ID word is no call
-        c.onLtr(0, 5, 3, 255, 2, 1.3); c.onLtr(0, 5, 3, 255, 2, 1.4);   // idle
-        CHECK(c.log.records().size() == 2, "ids 254 / 255 are no calls (%zu records)", c.log.records().size());
+        c.onLtr(0, 5, 3, 254, 2, 1.3);   // a callsign ID word is no call
+        c.onLtr(0, 5, 3, 255, 2, 1.3);   // idle
+        c.onLtr(0, 5, 3, 40, 25, 1.4);   // free 25 is out of range (LTRStandardMessageProcessor): no call
+        CHECK(c.log.records().size() == 2, "ids 254 / 255 and a bad free channel are no calls (%zu records)", c.log.records().size());
+    }
+    // ---------------------------------------------------------------- Passport
+    {
+        Controller c;
+        c.follower.setConfig(fc);
+        c.ltr.repeaters.parse("77,451.5000\n", 2047);
+        c.setCapture(460.0e6, 0);
+        c.setVoiceRadios(1);
+        c.onPassport(0, 120, 9, 4321, 0, 81, 0.0);   // LCN 120: not in the table, the band is not known yet
+        CHECK(last(c) && last(c)->note.find("not in your channel list") != std::string::npos, "no band yet: %s", last(c) ? last(c)->note.c_str() : "");
+        c.onPassport(0, 1792, 9, 6, 1, 81, 0.5);     // idle: site band 6 (460 MHz)
+        CHECK(c.ltr.passportBand() == 6, "band %d", c.ltr.passportBand());
+        c.onPassport(0, 2047, 9, 4321, 1, 81, 0.6);  // the end of group 4321
+        c.tick(0.61); c.takeActions();
+        c.onPassport(0, 77, 9, 1234, 0, 81, 1.0);    // in the table
+        auto a = c.takeActions();
+        const Action* r = find(a, Action::Retune);
+        CHECK(last(c) && last(c)->tg == 1234 && last(c)->label == "1234" && r && std::fabs(r->freqHz - 451.5e6) < 1, "group 1234 on LCN 77 from the table");
+        c.onPassport(0, 2047, 9, 1234, 1, 81, 1.5);
+        c.tick(1.51); a = c.takeActions();
+        CHECK(!last(c)->active && count(a, Action::ReleaseRadio) == 1, "the Passport call end word ends the call");
+        c.onPassport(0, 100, 9, 555, 1, 81, 2.0);    // type 1, LCN < 1792: a call; from the band: 460 MHz + 100 x 12.5 kHz
+        a = c.takeActions();
+        r = find(a, Action::Retune);
+        CHECK(last(c) && last(c)->tg == 555 && r && std::fabs(r->freqHz - 461.25e6) < 1, "group 555 on LCN 100 from the band plan");
+        c.onPassport(0, 100, 9, 556, 1, 2042, 2.5);  // free 2042: a talkgroup assignment, no call
+        c.onPassport(0, 100, 9, 557, 6, 81, 2.6);    // radio ID: no call
+        CHECK(last(c)->tg == 555, "assignment / radio ID made a call");
     }
     // ---------------------------------------------------------------- MPT 1327
     {

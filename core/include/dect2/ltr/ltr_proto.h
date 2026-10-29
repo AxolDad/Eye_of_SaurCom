@@ -1,10 +1,13 @@
-// LTR word format and test-signal generator, clean-room from public descriptions:
-//  - Word: 40 bits, MSB first: 9-bit sync 0x158 (a "10" start and a 7-bit Barker code), then 24 information bits
-//    AREA 1, GO-TO 5, HOME 5, ID 8, FREE 5, then 7 check bits (US 6,529,486 B1 describes this word for an LTR-compatible system).
-//  - 300 bit/s subaudible NRZ below 150 Hz (same patent's background section).
-//  - Talkgroup text A-HH-GGG, special ids 240-247 tokens, 253 busy, 254 callsign ID, 255 idle (RadioReference wiki).
-// NOT established from non-code public sources, so left out: the check-bit algorithm (the received check bits are shown, never verified),
-// and the meaning of the GO-TO / FREE codes beyond the 1 - 20 repeater numbers. Polarity of the FM data is not known: both are accepted.
+// LTR and Passport word formats and the test-signal generator.
+//  - LTR word (standard and LTR-Net share it): 40 bits, MSB first: 9-bit sync 0x158, AREA 1, GO-TO 5, HOME 5, GROUP 8, FREE 5, then a
+//    7-bit checksum. Field positions, the checksum table and the message types (idle when go-to == free and group 255, call end on go-to
+//    31) are from SDRTrunk (GPL-3, Dennis Sheirer): module/decode/ltrstandard/LTRStandardMessageProcessor.java, message/LTRMessage.java,
+//    edac/CRCLTR.java. The inbound status word (ISW, sent by mobiles) is the whole word inverted with a normal or inverted checksum.
+//  - Passport word: 68 bits: sync 0x158, DCC 2, LCN 11, SITE 7, GROUP 16 (RADIO ID 23 = SITE + GROUP), TYPE 4, FREE 11, checksum 8
+//    (bits 9 - 59 XORed through a table; a residual of 0 passes). Fields, table, message types and band plan from SDRTrunk:
+//    module/decode/passport/PassportMessage.java, PassportBand.java, edac/CRCPassport.java.
+//  - 300 bit/s subaudible NRZ below 150 Hz; talkgroup text A-HH-GGG, ids 240 - 247 tokens, 253 busy, 254 callsign ID, 255 idle.
+// Polarity of the FM data is not known in advance: both are accepted.
 #pragma once
 #include "dect2/common/ring.h"
 #include <cstdint>
@@ -21,8 +24,11 @@ struct Word {
     int area = 0, gotoCh = 0, home = 1, id = 255, freeCh = 31, chk = 0;
 };
 
-std::vector<uint8_t> encodeWord(const Word& w);                       // 40 bits, MSB first; chk is written as given
-bool parseWord(const uint8_t* bits40, Word& w);                        // false when the sync is not 0x158
+int checksum(const Word& w);                                           // the 7-bit checksum of the 24 information bits (SDRTrunk CRCLTR)
+std::vector<uint8_t> encodeWord(const Word& w, bool isw = false);       // 40 bits, MSB first, with the real checksum; isw: inverted (mobile)
+bool parseWord(const uint8_t* bits40, Word& w);                        // false when the sync is not 0x158; chk as received
+// 0 the checksum fails, 1 it matches, 2 it matches inverted (allowed in an inbound word: SDRTrunk accepts both there)
+int checkWord(const Word& w);
 bool plausible(const Word& w);                                         // home 1-20, go-to 0-20 or 29-31, free 0-20 or 31
 std::string talkgroup(const Word& w);                                  // "A-HH-GGG"
 std::string kindOf(int id);                                            // "idle", "callsign ID", "busy", "token" or ""
@@ -31,6 +37,25 @@ inline int tgNumber(int area, int home, int id) { return area * 100000 + home * 
 std::string tgText(int number);                                        // the number back as "A-HH-GGG"
 constexpr int kTurnOff = 31;                                           // go-to 31: the turn-off word sent as a transmission ends
 inline bool isCallId(int id) { return id >= 1 && id <= 239; }          // ids 240 and up are tokens, busy, callsign and idle
+
+// ---- Passport (68-bit words on the same 300 bit/s subaudible channel)
+constexpr int kPassportBits = 68;
+struct PassportWord {
+    int dcc = 0, lcn = 0, site = 0, group = 0, type = 0, freeCh = 0, chk = 0;
+    int radioId() const { return (site << 16) | group; }   // bits 22 - 44
+    int siteBand() const { return group & 0xF; }            // bits 41 - 44, in an idle word
+    int neighborBand() const { return (group >> 8) & 0xF; } // bits 33 - 36, in an idle word
+};
+enum class PassportKind { Unknown, CallStart, TgAssign, Idle, CallEnd, Page, RadioId, Data, Register };
+int passportChecksum(const PassportWord& p);                           // the 8-bit checksum of bits 9 - 59
+std::vector<uint8_t> encodePassport(const PassportWord& p);            // 68 bits with the real checksum
+bool parsePassport(const uint8_t* bits68, PassportWord& p);            // false when the sync is not 0x158; chk as received
+bool passportOk(const PassportWord& p);                                 // the residual is 0, or an error in the last two check bits (SDRTrunk)
+PassportKind passportKind(const PassportWord& p);
+const char* passportKindName(PassportKind k);
+double passportBandBaseHz(int band);                                    // SDRTrunk PassportBand: 0 when the band has no base
+inline double passportFreqHz(int band, int lcn) { const double b = passportBandBaseHz(band); return b > 0 && lcn > 0 && lcn < 1792 ? b + lcn * 12500.0 : 0; }
+const char* passportBandName(int band);
 
 // Test signal: FM at fs with the subaudible data (bit 1 = higher frequency) of the bits, optionally with a voice-band tone and noise.
 // devHz: deviation of the data; voiceHz/voiceDevHz: a tone riding on top (0 = none); the carrier sits offsetHz from 0 Hz.

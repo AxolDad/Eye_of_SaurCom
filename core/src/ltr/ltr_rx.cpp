@@ -1,5 +1,7 @@
-// LTR receiver: FM front end at 9600 Hz, 150 Hz low pass, decimate to 2400 Hz (8 samples per bit), integrate-and-dump slicing at every
-// phase, and a search for the 9-bit sync in both polarities. Neighbouring phases that hit the same word are merged (the middle one is used).
+// LTR / Passport receiver: FM front end, 150 Hz low pass, decimate to 2400 Hz (8 samples per bit), integrate-and-dump slicing at every
+// phase, and a search for the 9-bit sync 0x158 in both polarities, 40 bits back (an LTR word) and 68 bits back (a Passport word). A word
+// is taken only when its checksum matches (SDRTrunk CRCLTR / CRCPassport, see ltr_proto.h). Neighbouring phases that hit the same word
+// are merged (the middle one is used).
 #include "dect2/ltr/ltr_rx.h"
 #include "dect2/dsp/analog_voice.h"
 #include "dect2/dsp/fm_front.h"
@@ -10,6 +12,7 @@
 #include <cmath>
 #include <ctime>
 #include <map>
+#include <string>
 #include <mutex>
 
 namespace dect2 {
@@ -53,51 +56,67 @@ struct LtrReceiver::Impl {
     int dcount = 0;
     uint64_t n = 0;                        // 2400 Hz sample counter
     double ring[512] = {};                  // last samples
-    uint64_t reg[kSps] = {};               // last 40 bits per phase (hard decisions)
-    struct Hit { uint64_t n; uint64_t word; bool inv; };
-    std::vector<Hit> hits;
-    uint64_t suppressUntil = 0, firstHit = 0;
-    double lastGoodSec = -1e9, lastPub = 0;
+    uint64_t lo[kSps] = {}, hi[kSps] = {};   // the last 128 bits per phase (hard decisions), newest in bit 0 of lo
+    struct Hit { uint64_t n; uint64_t lo, hi; bool inv; };
+    struct Det { int bits; std::vector<Hit> hits; uint64_t suppressUntil = 0, firstHit = 0; };
+    Det det[2] = {{ltr::kWordBits, {}, 0, 0}, {ltr::kPassportBits, {}, 0, 0}};   // 0 LTR, 1 Passport
+    double lastGoodSec = -1e9, lastPub = 0, lastLtrSec = -1e9, lastPassSec = -1e9;
     std::map<int, LtrRepeater> rep;
 
     double timeSec() const { return (double)n / (kWork / kDecim); }
 
     void clearState() {
         fm.reset(); lp[0].clear(); lp[1].clear(); env.clear(); voice.reset();
-        n = 0; dcount = 0; for (auto& r : ring) r = 0; for (auto& r : reg) r = 0;
-        hits.clear(); suppressUntil = firstHit = 0; lastGoodSec = -1e9; lastPub = 0; rep.clear();
+        n = 0; dcount = 0; for (auto& r : ring) r = 0; for (auto& r : lo) r = 0; for (auto& r : hi) r = 0;
+        for (auto& d : det) { d.hits.clear(); d.suppressUntil = d.firstHit = 0; }
+        lastGoodSec = lastLtrSec = lastPassSec = -1e9; lastPub = 0; rep.clear();
         const uint64_t s = tel.seq;
         tel = LtrTelemetry();
         tel.seq = s + 1; tel.inputRate = fs; tel.centerHz = centreHz; tel.channelHz = centreHz + offHz; tel.state = rateSet ? 1 : 0;
     }
 
-    void handle(const Hit& h) {
-        uint64_t w = h.word & ((1ULL << 40) - 1);
-        if (h.inv) w = ~w & ((1ULL << 40) - 1);
-        uint8_t bits[ltr::kWordBits];
-        for (int i = 0; i < ltr::kWordBits; i++) bits[i] = (uint8_t)((w >> (39 - i)) & 1);
-        ltr::Word word;
-        if (!ltr::parseWord(bits, word)) return;
-        tel.syncs++;
-        if (env.range() < kMinRangeHz) return;
-        // eye check: every bit of the word, integrated over its 8 samples, must sit clearly on one side of the threshold
-        {
-            const double thr = env.mid(), half = 0.5 * env.range();
-            for (int i = 0; i < ltr::kWordBits; i++) {
-                const uint64_t last = h.n - 1 - (uint64_t)(ltr::kWordBits - 1 - i) * kSps;
-                double sum = 0;
-                for (int k = 0; k < kSps; k++) sum += ring[(last - (uint64_t)k) & 511];
-                if (std::fabs(sum / kSps - thr) < 0.15 * half) return;
-            }
+    // every bit of the word, integrated over its 8 samples, must sit clearly on one side of the threshold
+    bool eyeOk(const Hit& h, int nb) const {
+        const double thr = env.mid(), half = 0.5 * env.range();
+        for (int i = 0; i < nb; i++) {
+            const uint64_t last = h.n - 1 - (uint64_t)(nb - 1 - i) * kSps;
+            double sum = 0;
+            for (int k = 0; k < kSps; k++) sum += ring[(last - (uint64_t)k) & 511];
+            if (std::fabs(sum / kSps - thr) < 0.15 * half) return false;
         }
-        if (!ltr::plausible(word)) { tel.blocksBad++; return; }
+        return true;
+    }
+
+    void addMessage(const LtrMessage& m) {
+        if (tel.messages.size() >= kLtrLogMax) tel.messages.pop_back();
+        tel.messages.insert(tel.messages.begin(), m);
+        tel.blocksOk++;
+        tel.dataValid = true;
+        lastGoodSec = m.timeSec;
+    }
+
+    void addWord(LtrWordRec& wr) {
+        wr.seq = ++gWordSeq;
+        tel.words.push_back(wr);
+        if (tel.words.size() > kLtrWordMax) tel.words.erase(tel.words.begin(), tel.words.end() - (long)kLtrWordMax);
+    }
+
+    bool handleLtr(const uint8_t* bits, const Hit& h) {
+        ltr::Word word;
+        if (!ltr::parseWord(bits, word)) return false;
+        tel.syncs++;
+        if (env.range() < kMinRangeHz || !eyeOk(h, ltr::kWordBits)) return false;
+        const int c = ltr::checkWord(word);
+        if (c == 0) { if (timeSec() - lastPassSec > 10) tel.blocksBad++; return false; }   // the first 40 bits of a Passport word are no LTR word
+        lastLtrSec = timeSec();
         LtrMessage m;
         m.wallTime = (int64_t)std::time(nullptr);
         m.timeSec = timeSec();
         m.area = word.area; m.gotoCh = word.gotoCh; m.home = word.home; m.id = word.id; m.freeCh = word.freeCh; m.chk = word.chk;
-        m.plausible = true;
+        m.inbound = c == 2;
         m.talkgroup = ltr::talkgroup(word);
-        m.kind = ltr::kindOf(word.id);
+        // LTRStandardMessageProcessor: go-to 31 ends a call; go-to == free with group 255 is the idle word
+        m.kind = word.gotoCh == ltr::kTurnOff ? "call end" : (word.gotoCh == word.freeCh && word.id == 255) ? "idle" : ltr::kindOf(word.id);
         auto touch = [&](int ch, int which) {
             if (ch < 1 || ch > 20) return;
             LtrRepeater& r = rep[ch];
@@ -108,17 +127,51 @@ struct LtrReceiver::Impl {
         tel.repeaters.clear();
         for (auto& kv : rep) tel.repeaters.push_back(kv.second);
         tel.area = word.area;
-        if (tel.messages.size() >= kLtrLogMax) tel.messages.pop_back();
-        tel.messages.insert(tel.messages.begin(), m);
-        tel.blocksOk++;
-        tel.dataValid = true;
-        lastGoodSec = m.timeSec;
+        tel.passport = false;
+        addMessage(m);
         LtrWordRec wr;
-        wr.seq = ++gWordSeq; wr.area = word.area; wr.gotoCh = word.gotoCh; wr.home = word.home; wr.id = word.id; wr.freeCh = word.freeCh; wr.timeSec = m.timeSec;
-        tel.words.push_back(wr);
-        if (tel.words.size() > kLtrWordMax) tel.words.erase(tel.words.begin(), tel.words.end() - (long)kLtrWordMax);
+        wr.area = word.area; wr.gotoCh = word.gotoCh; wr.home = word.home; wr.id = word.id; wr.freeCh = word.freeCh; wr.timeSec = m.timeSec;
+        addWord(wr);
         if (word.gotoCh == ltr::kTurnOff) { tel.turnOffs++; tel.turnOffArea = word.area; tel.turnOffHome = word.home; tel.turnOffId = word.id; }
-        if (log) log("LTR " + m.talkgroup + (m.kind.empty() ? "" : " " + m.kind));
+        if (log) log("LTR " + m.talkgroup + (m.kind.empty() ? "" : " " + m.kind) + (m.inbound ? " (inbound)" : ""));
+        return true;
+    }
+
+    bool handlePassport(const uint8_t* bits, const Hit& h) {
+        ltr::PassportWord p;
+        if (!ltr::parsePassport(bits, p)) return false;
+        if (env.range() < kMinRangeHz || !eyeOk(h, ltr::kPassportBits)) return false;
+        if (!ltr::passportOk(p)) { if (timeSec() - lastLtrSec > 10) tel.blocksBad++; return false; }
+        lastPassSec = timeSec();
+        const ltr::PassportKind k = ltr::passportKind(p);
+        LtrMessage m;
+        m.wallTime = (int64_t)std::time(nullptr);
+        m.timeSec = timeSec();
+        m.passport = true;
+        m.dcc = p.dcc; m.lcn = p.lcn; m.site = p.site; m.group = p.group; m.type = p.type; m.freeCh = p.freeCh; m.chk = p.chk;
+        m.kind = ltr::passportKindName(k);
+        if (k == ltr::PassportKind::RadioId) m.talkgroup = "radio " + std::to_string(p.radioId());
+        else if (k != ltr::PassportKind::Idle) m.talkgroup = std::to_string(p.group);
+        if (k == ltr::PassportKind::Idle) { tel.passportSite = p.site; tel.passportDcc = p.dcc; tel.passportBand = p.siteBand(); }
+        tel.passport = true;
+        addMessage(m);
+        LtrWordRec wr;
+        wr.passport = true; wr.dcc = p.dcc; wr.lcn = p.lcn; wr.site = p.site; wr.group = p.group; wr.type = p.type; wr.freeCh = p.freeCh; wr.timeSec = m.timeSec;
+        addWord(wr);
+        if (k == ltr::PassportKind::CallEnd) { tel.turnOffs++; tel.turnOffGroup = p.group; }
+        if (log) log("Passport " + m.kind + (m.talkgroup.empty() ? "" : " " + m.talkgroup) + (k == ltr::PassportKind::CallStart ? " LCN " + std::to_string(p.lcn) : ""));
+        return true;
+    }
+
+    bool handle(int kind, const Hit& h) {
+        const int nb = det[kind].bits;
+        uint8_t bits[ltr::kPassportBits];
+        for (int i = 0; i < nb; i++) {
+            const int back = nb - 1 - i;   // how many bits before the newest
+            const int b = back < 64 ? (int)((h.lo >> back) & 1) : (int)((h.hi >> (back - 64)) & 1);
+            bits[i] = (uint8_t)(b ^ (h.inv ? 1 : 0));
+        }
+        return kind == 0 ? handleLtr(bits, h) : handlePassport(bits, h);
     }
 
     void sample(double s) {
@@ -128,20 +181,27 @@ struct LtrReceiver::Impl {
         double sum = 0;
         for (int k = 0; k < kSps; k++) sum += ring[(n - (uint64_t)k) & 511];
         const int ph = (int)(n % kSps);
-        reg[ph] = (reg[ph] << 1) | (sum / kSps > thr ? 1ULL : 0ULL);
+        hi[ph] = (hi[ph] << 1) | (lo[ph] >> 63);
+        lo[ph] = (lo[ph] << 1) | (sum / kSps > thr ? 1ULL : 0ULL);
         n++;
-        if (n > 400 && n >= suppressUntil) {
-            const uint32_t top = (uint32_t)((reg[ph] >> 31) & 0x1FF);
-            if (top == ltr::kSync || top == (~ltr::kSync & 0x1FF)) {
-                if (hits.empty()) firstHit = n;
-                hits.push_back({n, reg[ph], top != ltr::kSync});
+        for (int kind = 0; kind < 2; kind++) {
+            Det& d = det[kind];
+            if (n > (uint64_t)(d.bits + 10) * kSps && n >= d.suppressUntil) {
+                const int back = d.bits - 9;   // the sync's lowest bit
+                const uint32_t top = back + 9 <= 64 ? (uint32_t)((lo[ph] >> back) & 0x1FF)
+                                                    : (uint32_t)((((hi[ph] << (64 - back)) | (lo[ph] >> back)) & 0x1FF));
+                if (top == ltr::kSync || top == (~ltr::kSync & 0x1FF)) {
+                    if (d.hits.empty()) d.firstHit = n;
+                    d.hits.push_back({n, lo[ph], hi[ph], top != ltr::kSync});
+                }
             }
-        }
-        if (!hits.empty() && n >= firstHit + kSps / 2) {   // the hits of the neighbouring phases are in
-            const Hit h = hits[hits.size() / 2];
-            hits.clear();
-            suppressUntil = n + 38 * kSps;   // the next word is at least 40 bits away
-            handle(h);
+            if (!d.hits.empty() && n >= d.firstHit + kSps / 2) {   // the hits of the neighbouring phases are in
+                const Hit h = d.hits[d.hits.size() / 2];
+                d.hits.clear();
+                // after a good word the next one is at least a word away; after a bad one look again at once (it may have been a
+                // sync pattern inside the data, with the real word about to follow)
+                d.suppressUntil = handle(kind, h) ? n + (uint64_t)(d.bits - 2) * kSps : n + kSps;
+            }
         }
     }
 

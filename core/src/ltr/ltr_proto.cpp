@@ -1,4 +1,7 @@
-// LTR word encode / parse and the test-signal modulator (see ltr_proto.h for the sources and what is not established).
+// LTR and Passport word encode / parse / check and the test-signal modulator (see ltr_proto.h for the sources).
+// The checksum tables and the Passport message types and band plan are ported from SDRTrunk (GPL-3, Copyright Dennis Sheirer):
+// src/main/java/io/github/dsheirer/edac/CRCLTR.java, edac/CRCPassport.java, module/decode/passport/PassportMessage.java and
+// PassportBand.java. This file is GPL-3 like the rest of Eye of SaurCom.
 #include "dect2/ltr/ltr_proto.h"
 #include <algorithm>
 #include <cmath>
@@ -9,15 +12,35 @@ namespace dect2::ltr {
 static void put(std::vector<uint8_t>& b, uint32_t v, int n) { for (int i = n - 1; i >= 0; i--) b.push_back((v >> i) & 1); }
 static uint32_t get(const uint8_t* b, int& p, int n) { uint32_t v = 0; for (int i = 0; i < n; i++) v = (v << 1) | (b[p++] & 1); return v; }
 
-std::vector<uint8_t> encodeWord(const Word& w) {
+// CRCLTR.sCHECKSUMS: the value XORed in for each set bit 9 - 32 (area, go-to 4..0, home 4..0, group 7..0, free 4..0)
+static const uint8_t kLtrChk[24] = {0x38, 0x1C, 0x0E, 0x46, 0x23, 0x51, 0x68, 0x75, 0x7A, 0x3D, 0x1F, 0x4F,
+                                    0x26, 0x52, 0x29, 0x15, 0x0B, 0x45, 0x62, 0x31, 0x19, 0x0D, 0x07, 0x43};
+
+static uint32_t info24(const Word& w) {
+    return ((uint32_t)(w.area & 1) << 23) | ((uint32_t)(w.gotoCh & 31) << 18) | ((uint32_t)(w.home & 31) << 13) | ((uint32_t)(w.id & 255) << 5) |
+           (uint32_t)(w.freeCh & 31);
+}
+
+int checksum(const Word& w) {
+    const uint32_t v = info24(w);
+    int c = 0;
+    for (int i = 0; i < 24; i++) if ((v >> (23 - i)) & 1) c ^= kLtrChk[i];
+    return c;
+}
+
+int checkWord(const Word& w) {
+    const int c = checksum(w);
+    if (c == w.chk) return 1;
+    if ((c ^ 127) == w.chk) return 2;
+    return 0;
+}
+
+std::vector<uint8_t> encodeWord(const Word& w, bool isw) {
     std::vector<uint8_t> b;
     put(b, kSync, 9);
-    put(b, (uint32_t)w.area, 1);
-    put(b, (uint32_t)w.gotoCh, 5);
-    put(b, (uint32_t)w.home, 5);
-    put(b, (uint32_t)w.id, 8);
-    put(b, (uint32_t)w.freeCh, 5);
-    put(b, (uint32_t)w.chk, 7);
+    put(b, info24(w), 24);
+    put(b, (uint32_t)checksum(w), 7);
+    if (isw) for (auto& x : b) x ^= 1;
     return b;
 }
 
@@ -31,6 +54,95 @@ bool parseWord(const uint8_t* b, Word& w) {
     w.freeCh = (int)get(b, p, 5);
     w.chk = (int)get(b, p, 7);
     return true;
+}
+
+// ---- Passport
+
+// CRCPassport.sCHECKSUMS: bits 9 - 59 (DCC 1..0, LCN 10..0, SITE 6..0, GROUP 15..0, TYPE 3..0, FREE 10..0)
+static const uint8_t kPassChk[51] = {
+    0x6E, 0xBF, 0xD6, 0xE3, 0xF8, 0x7C, 0x3E, 0x97, 0xC2, 0xE9, 0x75, 0x3B, 0x94, 0x4A, 0xAD, 0x57, 0xA2, 0xD9, 0x6D, 0x37, 0x92, 0xC1, 0x61, 0x31, 0x19, 0x0D,
+    0x07, 0x8A, 0xCD, 0x67, 0xBA, 0xD5, 0x6B, 0xBC, 0x5E, 0xA7, 0xDA, 0xE5, 0x73, 0xB0, 0x58, 0x2C, 0x16, 0x83, 0xC8, 0x64, 0x32, 0x91, 0x49, 0x25, 0x13};
+
+static uint64_t passInfo(const PassportWord& p) {   // bits 9 - 59 as a 51-bit number, bit 9 the MSB
+    return ((uint64_t)(p.dcc & 3) << 49) | ((uint64_t)(p.lcn & 0x7FF) << 38) | ((uint64_t)(p.site & 0x7F) << 31) | ((uint64_t)(p.group & 0xFFFF) << 15) |
+           ((uint64_t)(p.type & 0xF) << 11) | (uint64_t)(p.freeCh & 0x7FF);
+}
+
+int passportChecksum(const PassportWord& p) {
+    const uint64_t v = passInfo(p);
+    int c = 0;
+    for (int i = 0; i < 51; i++) if ((v >> (50 - i)) & 1) c ^= kPassChk[i];
+    return c;
+}
+
+std::vector<uint8_t> encodePassport(const PassportWord& p) {
+    std::vector<uint8_t> b;
+    put(b, kSync, 9);
+    const uint64_t v = passInfo(p);
+    for (int i = 50; i >= 0; i--) b.push_back((uint8_t)((v >> i) & 1));
+    put(b, (uint32_t)passportChecksum(p), 8);
+    return b;
+}
+
+bool parsePassport(const uint8_t* b, PassportWord& w) {
+    int p = 0;
+    if (get(b, p, 9) != kSync) return false;
+    w.dcc = (int)get(b, p, 2);
+    w.lcn = (int)get(b, p, 11);
+    w.site = (int)get(b, p, 7);
+    w.group = (int)get(b, p, 16);
+    w.type = (int)get(b, p, 4);
+    w.freeCh = (int)get(b, p, 11);
+    w.chk = (int)get(b, p, 8);
+    return true;
+}
+
+bool passportOk(const PassportWord& p) {
+    // CRCPassport.check() after correct(): a residual of 0 passes. correct() flips check bits 66 / 67 for residuals 1, 2 and 3 (which then
+    // pass); its other cases (136, 138, 139, 140, 142, 153) flip check bits too but leave a residual of 137 or 152, which check() refuses.
+    const int r = passportChecksum(p) ^ p.chk;
+    return r >= 0 && r <= 3;
+}
+
+PassportKind passportKind(const PassportWord& p) {   // PassportMessage.getMessageType()
+    switch (p.type) {
+    case 0: case 2: return PassportKind::CallStart;
+    case 1:
+        if (p.freeCh == 2042) return PassportKind::TgAssign;
+        if (p.lcn < 1792) return PassportKind::CallStart;
+        if (p.lcn == 1792 || p.lcn == 1793) return PassportKind::Idle;
+        if (p.lcn == 2047) return PassportKind::CallEnd;
+        return PassportKind::Unknown;
+    case 5: return PassportKind::Page;
+    case 6: return PassportKind::RadioId;
+    case 9: return PassportKind::Data;
+    case 11: return PassportKind::Register;
+    default: return PassportKind::Unknown;
+    }
+}
+
+const char* passportKindName(PassportKind k) {
+    switch (k) {
+    case PassportKind::CallStart: return "call";
+    case PassportKind::TgAssign: return "talkgroup assignment";
+    case PassportKind::Idle: return "idle";
+    case PassportKind::CallEnd: return "call end";
+    case PassportKind::Page: return "page";
+    case PassportKind::RadioId: return "radio ID";
+    case PassportKind::Data: return "data";
+    case PassportKind::Register: return "registration";
+    default: return "unknown";
+    }
+}
+
+double passportBandBaseHz(int band) {   // PassportBand: 800, 900, 400, 420 ... 490, CAN, NTIA, reserved, 216, reserved, 700
+    static const double base[16] = {800e6, 900e6, 400e6, 420e6, 440e6, 450e6, 460e6, 470e6, 480e6, 490e6, 0, 0, 0, 216e6, 0, 700e6};
+    return band >= 0 && band < 16 ? base[band] : 0;
+}
+
+const char* passportBandName(int band) {
+    static const char* n[16] = {"800", "900", "400", "420", "440", "450", "460", "470", "480", "490", "CAN", "NTIA", "reserved", "216", "reserved", "700"};
+    return band >= 0 && band < 16 ? n[band] : "unknown";
 }
 
 bool plausible(const Word& w) {

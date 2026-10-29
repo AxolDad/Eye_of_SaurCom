@@ -150,12 +150,13 @@ int main() {
     // ---------------------------------------------------------------- LTR
     {
         const double rate = 240000, off = -50000, rep1 = 460.0125e6, rep5 = 460.1125e6;
-        // the monitoring receiver is on repeater 1, busy with another call (1-01-050 on repeater 1); its words also say 0-03-017 talks on repeater 5
+        // the monitoring receiver is on repeater 1; its words say 0-03-017 talks on repeater 5, then repeater 1 gets busy with another call
+        // (0-01-050 on repeater 1), which finds the one voice radio taken
         std::vector<uint8_t> bits;
         for (int i = 0; i < 40; i++) bits.push_back((uint8_t)(i & 1));
         for (int k = 0; k < 60; k++) {
             ltr::Word w; w.area = 0; w.freeCh = 2;
-            if (k % 2 == 0 || k > 13) { w.gotoCh = 1; w.home = 1; w.id = 50; } else { w.gotoCh = 5; w.home = 3; w.id = 17; }
+            if (k % 2 == 1 || k > 13) { w.gotoCh = 1; w.home = 1; w.id = 50; } else { w.gotoCh = 5; w.home = 3; w.id = 17; }
             const auto e = ltr::encodeWord(w);
             bits.insert(bits.end(), e.begin(), e.end());
             for (int i = 0; i < 12; i++) bits.push_back((uint8_t)((i * 3 + k) & 1));

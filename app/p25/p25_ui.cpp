@@ -513,7 +513,7 @@ int applyNxdnChannels(const std::string& text, std::string* err = nullptr) {
     return n;
 }
 int applyEdacsChannels(const std::string& text, std::string* err = nullptr) { return T.ctl.edacs.lcns.parse(text, 31, err); }
-int applyLtrChannels(const std::string& text, std::string* err = nullptr) { return T.ctl.ltr.repeaters.parse(text, 20, err); }
+int applyLtrChannels(const std::string& text, std::string* err = nullptr) { return T.ctl.ltr.repeaters.parse(text, 2047, err); }   // LTR repeaters 1 - 20, Passport LCNs
 int applyMptChannels(const std::string& text, std::string* err = nullptr) {
     const int n = T.ctl.mpt.channels.parse(text, 1023, err);
     T.ctl.mpt.channels.setFormula(T.mptBaseMhz * 1e6, T.mptSpacingKhz * 1e3);
@@ -529,6 +529,8 @@ void saveTables() {   // the lists belong to the system, not to a receiver: kept
     plat::prefs().setD("trunkMptBase", T.mptBaseAuto ? 0.0 : T.mptBaseMhz);
     plat::prefs().setD("trunkMptSpacing", T.mptSpacingKhz);
     plat::prefs().setI("trunkEdacsNarrow", T.edacsNarrow ? 1 : 0);
+    plat::prefs().setI("trunkEdacsMode", T.ctl.edacs.mode);
+    plat::prefs().setI("trunkEdacsEsk", T.ctl.edacs.esk ? 1 : 0);
 }
 
 // The analog modes' receivers: the narrowband setting and whether they may play (setAnalogVoice). Runs every frame, following or not.
@@ -548,10 +550,10 @@ void analogSound(App& a) {
 dect2::trunk::VoiceHeard analogHeard(const App& v, dect2::trunk::VoiceWatch& w, const dect2::trunk::CallRecord& r) {
     using namespace dect2::trunk;
     auto on = [&](double hz) { return hz > 0 && std::fabs(hz - r.freqHz) < 2500; };
-    if (liveEdacs(v)) { const auto& t = v.rx.edacs; return analogVoiceHeard(w, r.id, on(t.channelHz), t.voice.carrier, t.blocksOk, true, v.rx.seq); }
+    if (liveEdacs(v)) { const auto& t = v.rx.edacs; return analogVoiceHeard(w, r.id, on(t.channelHz), t.voice.carrier, t.eot, true, v.rx.seq); }   // the end-of-transmission dotting
     if (liveLtr(v)) {
         const auto& t = v.rx.ltr;
-        const bool ours = t.turnOffId >= 0 && dect2::ltr::tgNumber(t.turnOffArea, t.turnOffHome, t.turnOffId) == r.tg;
+        const bool ours = t.passport ? t.turnOffGroup == r.tg : t.turnOffId >= 0 && dect2::ltr::tgNumber(t.turnOffArea, t.turnOffHome, t.turnOffId) == r.tg;
         return analogVoiceHeard(w, r.id, on(t.channelHz), t.voice.carrier, t.turnOffs, ours, v.rx.seq);
     }
     if (liveMpt(v)) { const auto& t = v.rx.mpt1327; return analogVoiceHeard(w, r.id, on(t.channelHz), t.voice.carrier, t.clears, true, v.rx.seq); }
@@ -591,6 +593,8 @@ void trunkTick(App& a) {
         T.mptChannels = plat::prefs().getS("trunkMptChannels", "");
         applyMptChannels(T.mptChannels);
         T.edacsNarrow = plat::prefs().getI("trunkEdacsNarrow", 0) != 0;
+        T.ctl.edacs.mode = (int)plat::prefs().getI("trunkEdacsMode", 0);
+        T.ctl.edacs.esk = plat::prefs().getI("trunkEdacsEsk", 0) != 0;
     }
     analogSound(a);
     // a control receiver left on a Phase 2 voice channel (following switched off while it was there): back to Phase 1, so a control channel decodes
@@ -640,8 +644,12 @@ void trunkTick(App& a) {
     if (!a.rx.dmr.csbks.empty() && a.rx.dmr.csbks.back().seq < sn.csbk) sn.csbk = 0;
     if (!a.rx.nxdn.grants.empty() && a.rx.nxdn.grants.back().seq < sn.nxdn) sn.nxdn = 0;
     // the analog systems: what the control receiver decoded (its own sequence numbers are unique across receivers)
-    if (edacs) for (const dect2::EdacsMsgRec& m : a.rx.edacs.msgs) { if (m.seq <= sn.edacs) continue; sn.edacs = m.seq; T.ctl.onEdacs(m.data, now); }
-    if (ltr) for (const dect2::LtrWordRec& w : a.rx.ltr.words) { if (w.seq <= sn.ltr) continue; sn.ltr = w.seq; T.ctl.onLtr(w.area, w.gotoCh, w.home, w.id, w.freeCh, now); }
+    if (edacs) for (const dect2::EdacsMsgRec& m : a.rx.edacs.msgs) { if (m.seq <= sn.edacs) continue; sn.edacs = m.seq; T.ctl.onEdacs(m.m1, m.m2, now); }
+    if (ltr) for (const dect2::LtrWordRec& w : a.rx.ltr.words) {
+        if (w.seq <= sn.ltr) continue;
+        sn.ltr = w.seq;
+        if (w.passport) T.ctl.onPassport(w.dcc, w.lcn, w.site, w.group, w.type, w.freeCh, now); else T.ctl.onLtr(w.area, w.gotoCh, w.home, w.id, w.freeCh, now);
+    }
     if (mpt) for (const dect2::MptMsgRec& m : a.rx.mpt1327.msgs) {
         if (m.seq <= sn.mpt) continue;
         sn.mpt = m.seq;
@@ -875,17 +883,36 @@ void followView(App& a) {
         ImGui::TextDisabled("%s", tr("EDACS: calls are assigned to logical channel numbers (LCN 1 to 31)."));
         channelListUi("edacs", T.edacsChannels, (int)T.ctl.edacs.lcns.size(), applyEdacsChannels, "EDACS channels");
         if (ImGui::Checkbox(tr("Narrowband (EDACS NB, 4800 bit/s)"), &T.edacsNarrow)) saveTables();
-        if (T.ctl.edacs.sysId() >= 0) kvRow(a, "system", "%04X, site %d", T.ctl.edacs.sysId(), T.ctl.edacs.site());
+        // the system's message set: dsd-fme's -fh / -fH / -fe / -fE (its auto detection was removed as unreliable)
+        int md = T.ctl.edacs.mode;
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(tr("Message set"));
+        ImGui::SameLine();
+        bool chg = ImGui::RadioButton(tr("Standard / networked"), &md, 0);
+        ImGui::SameLine();
+        chg |= ImGui::RadioButton(tr("Extended addressing (EA)"), &md, 1);
+        ImGui::SameLine();
+        chg |= ImGui::Checkbox("ESK", &T.ctl.edacs.esk);
+        if (chg) { T.ctl.edacs.mode = md; saveTables(); }
+        if (T.ctl.edacs.grants() == 0 && T.ctl.edacs.messages() > 20)
+            ImGui::TextColored(pal::warnAmber(), "%s", tr("No call assignment understood yet: if calls are being made, try the other message set or ESK."));
+        if (T.ctl.edacs.sysId() >= 0) kvRow(a, "system", "%04X", T.ctl.edacs.sysId());
+        if (T.ctl.edacs.site() >= 0) kvRow(a, "site", "%d", T.ctl.edacs.site());
         const dect2::EdacsTelemetry& et = a.rx.edacs;
-        ImGui::TextDisabled("%llu calls assigned; messages: %llu checked by their BCH, %llu on agreeing copies only, %llu refused",
-                            (unsigned long long)T.ctl.edacs.grants(), (unsigned long long)et.bchOk, (unsigned long long)et.copiesOnly, (unsigned long long)et.msgBad);
+        ImGui::TextDisabled("%llu calls assigned; messages: %llu passed the BCH check, %llu after correcting it, %llu refused",
+                            (unsigned long long)T.ctl.edacs.grants(), (unsigned long long)et.bchOk, (unsigned long long)et.bchFixed, (unsigned long long)et.msgBad);
     }
     if (liveLtr(a)) {
         ImGui::PushTextWrapPos(0);
         ImGui::TextDisabled("%s", tr("LTR has no control channel: start this receiver on a busy repeater of the system (the home repeater of the talkgroups you follow). The data under its voice says which repeater each call is on."));
         ImGui::PopTextWrapPos();
         channelListUi("ltr", T.ltrChannels, (int)T.ctl.ltr.repeaters.size(), applyLtrChannels, "LTR repeaters");
-        ImGui::TextDisabled("%llu calls heard (talkgroups are area-home-id, kept in the list as area x 100000 + home x 1000 + id)", (unsigned long long)T.ctl.ltr.grants());
+        if (a.rx.ltr.passport) {
+            ImGui::PushTextWrapPos(0);
+            ImGui::TextDisabled("%s", tr("Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is."));
+            ImGui::PopTextWrapPos();
+            ImGui::TextDisabled("%llu calls heard (talkgroups are the 16-bit group numbers)", (unsigned long long)T.ctl.ltr.grants());
+        } else ImGui::TextDisabled("%llu calls heard (talkgroups are area-home-id, kept in the list as area x 100000 + home x 1000 + id)", (unsigned long long)T.ctl.ltr.grants());
     }
     if (liveMpt(a)) {
         ImGui::TextDisabled("%s", tr("MPT 1327: channel n is on base + n x spacing; list the channels that are not."));
@@ -1112,6 +1139,9 @@ void summary(const App& a, std::string& l1, std::string& l2) {
 // The trunking follower is shared by P25, DMR Tier III and NXDN Type C: the DMR and NXDN tabs tick it and shows the same panel (talkgroups, now talking, call log).
 void trunkFollowTick(App& a) { trunkTick(a); }
 void trunkFollowPanel(App& a) { followView(a); }
+
+int trunkEdacsMode() { return T.ctl.edacs.mode; }
+bool trunkEdacsEsk() { return T.ctl.edacs.esk; }
 
 void trunkVoiceTick(App& v) {
     if (live(v)) appcodec::voiceCodecTick(v.rx.p25.phase2 ? "ambe2" : "imbe");   // the user's codec plug-in, as the mode's own tick does (Phase 2: AMBE+2)

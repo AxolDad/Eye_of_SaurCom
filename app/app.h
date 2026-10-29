@@ -943,6 +943,8 @@ void txShutdown();                 // stops a running transmission (the radio go
 bool txActive();
 void trunkFollowTick(App& a);    // the trunking follower of P25, DMR Tier III, NXDN Type C, EDACS, LTR and MPT 1327 (app/p25/p25_ui.cpp)
 void trunkFollowPanel(App& a);
+int trunkEdacsMode();             // the EDACS message set the follower reads (0 standard / networked, 1 EA)
+bool trunkEdacsEsk();
 void trunkScanFollow(App& a, bool on, bool enter);   // the scanner on a trunked system's entry (app/p25/p25_ui.cpp)
 bool trunkCallNow(std::string* what);                // a followed call is running; what: its talkgroup and name
 // Voice radios (docs/trunking.md, "Several radios"): receivers linked to the follower's control receiver that take the calls outside its capture
