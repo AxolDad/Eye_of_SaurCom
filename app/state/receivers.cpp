@@ -71,6 +71,18 @@ void freshMode(App& a) {
     a.freqMhz = d ? rxbar::tuneInRange(def, d->minFreqHz / 1e6, d->maxFreqHz / 1e6) : def;
 }
 
+// a.devices[i] is in use: a receiver (or a tool) has it open, or another open receiver has it chosen without having started yet
+// (claims are only taken at Start, so RX 1 sitting stopped on the HackRF would otherwise hand the HackRF to the new tab too)
+bool radioTaken(const App& a, int i) {
+    const DeviceInfo& d = a.devices[(size_t)i];
+    if (deviceHolder(d)) return true;
+    const std::string k = deviceClaimKey(d);
+    if (k.empty()) return false;
+    for (App* o : receiversAll())
+        if (o != &a && o->devIdx >= 2 && o->devIdx < (int)o->devices.size() && deviceClaimKey(o->devices[(size_t)o->devIdx]) == k) return true;
+    return false;
+}
+
 void sampleCpu() {
 #ifndef _WIN32
     static double lastCpu = 0, lastWall = 0;
@@ -119,12 +131,12 @@ App* create(int id) {
         PrefScope ps(id);
         const std::string name = plat::prefs().getS("devName", ""), key = plat::prefs().getS("devKey", "");
         const int saved = findRadio(a, key, name);   // by key first, then by the internal name
-        if (saved >= 2 && !deviceHolder(a.devices[saved])) pick = saved;
+        if (saved >= 2 && !radioTaken(a, saved)) pick = saved;
         bool anyRadio = false;
         for (int i = 2; i < (int)a.devices.size(); i++) {
             if (!a.devices[i].isRadio()) continue;
             anyRadio = true;
-            if (pick == 0 && !deviceHolder(a.devices[i])) pick = i;
+            if (pick == 0 && !radioTaken(a, i)) pick = i;
         }
         a.devIdx = pick;
         a.rxNoRadio = pick != 0 ? 0 : anyRadio ? 1 : 2;   // the test signal: say why (statusBar), never silently
