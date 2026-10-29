@@ -39,7 +39,17 @@ VoiceHeard dmrVoiceHeard(VoiceWatch& w, uint64_t callId, int tg, int slot, const
     return VoiceHeard::Nothing;
 }
 
-bool isTrunkFamily(int family) { return family == 50 || family == 9 || family == 38; }
+VoiceHeard analogVoiceHeard(VoiceWatch& w, uint64_t callId, bool onChannel, bool carrier, uint64_t endCount, bool endIsOurs, uint64_t seq) {
+    if (!fresh(w, callId, seq)) return VoiceHeard::Nothing;
+    if (!onChannel) return VoiceHeard::Nothing;   // still on the way there: what it reports is another channel's
+    if (!w.heard || endCount < w.endBase) w.endBase = endCount;   // before the voice (or after a receiver reset) nothing ends the call
+    if (w.heard && endCount > w.endBase && endIsOurs) return VoiceHeard::Ended;
+    if (carrier) { w.heard = true; return VoiceHeard::Voice; }
+    return VoiceHeard::Nothing;
+}
+
+bool isTrunkFamily(int family) { return family == 50 || family == 9 || family == 38 || isAnalogTrunkFamily(family); }
+bool isAnalogTrunkFamily(int family) { return family == 127 || family == 129 || family == 130; }
 
 bool controlMayFeed(const RxState& r, const RxState* owner) {
     if (!r.running || r.voiceFor || !isTrunkFamily(r.family)) return false;

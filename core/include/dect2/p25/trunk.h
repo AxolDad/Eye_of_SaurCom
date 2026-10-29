@@ -1,4 +1,5 @@
-// Trunking follower for P25 (TIA-102) and, as far as the public specs allow, DMR Tier III (ETSI TS 102 361-4). Receive only.
+// Trunking follower for P25 Phase 1 and 2 (TIA-102), and, as far as the public specs allow, DMR Tier III (ETSI TS 102 361-4), NXDN Type C,
+// EDACS, LTR and MPT 1327. Receive only.
 //
 // Pieces, all plain logic with no DSP and no threads of their own (the interface thread drives them):
 //   SystemModel     what the control channel says: site (WACN, system, RFSS, site, NAC), the channel identifier table, adjacent sites, the
@@ -22,7 +23,13 @@ namespace trunk {
 
 // ------------------------------------------------------------------------------------------------ system model
 
+// The system a call belongs to
+enum class SysKind { P25 = 0, Dmr = 1, Nxdn = 2, Edacs = 3, Ltr = 4, Mpt1327 = 5 };
+const char* sysKindName(SysKind k);
+inline bool analogKind(SysKind k) { return k == SysKind::Edacs || k == SysKind::Ltr || k == SysKind::Mpt1327; }
+
 struct Grant {
+    SysKind kind = SysKind::P25;
     bool dmr = false;
     bool group = true;
     int tg = -1, src = -1;       // talkgroup (or called unit), calling unit
@@ -35,6 +42,9 @@ struct Grant {
     int algId = -1;              // when known
     int priority = 4;            // service options priority (1 high ... 7 low; 4 default)
     bool explicitUpdate = false; // came from an update message (a repeat of a running call), not a new grant
+    bool provoice = false;       // EDACS: the call is ProVoice (digital voice): logged, no decoder for it
+    bool dataCall = false;       // MPT 1327: a data call (no speech)
+    std::string label;           // the talkgroup as the system writes it (EDACS AFS "02-071", LTR "0-05-123", MPT 1327 "5/1234"); empty: the number
 };
 
 struct IdenInfo {
@@ -131,6 +141,9 @@ struct CallRecord {
     int tg = -1, src = -1;
     int channel = -1; double freqHz = 0; int slot = -1;
     bool emergency = false, encrypted = false;
+    SysKind kind = SysKind::P25;
+    std::string label;           // the talkgroup as the system writes it (empty: the number)
+    bool provoice = false;       // EDACS ProVoice: logged as ProVoice, no decoder for its voice
     bool followed = false;       // a slice or the radio was on it
     bool missed = false;         // not followed because it needed a wider capture or a second radio
     std::string note;            // why it was not followed: lockout, encrypted, busy, out of span ...
@@ -280,6 +293,74 @@ private:
     uint64_t n_ = 0;
 };
 
+// ------------------------------------------------------------------------------------------------ analog trunking (EDACS, LTR, MPT 1327)
+
+// The user's channel table: a channel number (EDACS LCN, LTR repeater number, MPT 1327 channel) -> frequency. Typed or pasted as CSV
+// "LCN,frequency" (one per line; also "LCN=frequency", tabs, semicolons or spaces between; the frequency in MHz, or in Hz when it is above
+// 6000; a header row and # comments are skipped). MPT 1327 also has a formula: base + number x spacing for numbers not in the table.
+class ChannelTable {
+public:
+    int parse(const std::string& text, int maxNumber, std::string* err = nullptr, int* skipped = nullptr);   // replaces the table; rows taken
+    std::string csv() const;                     // "LCN,frequency MHz" lines
+    void set(int n, double hz) { if (hz > 0) t_[n] = hz; else t_.erase(n); }
+    double freq(int n) const;                    // 0 unknown
+    void setFormula(double baseHz, double spacingHz) { base_ = baseHz; spacing_ = spacingHz; }
+    double baseHz() const { return base_; }
+    double spacingHz() const { return spacing_; }
+    bool known() const { return !t_.empty() || (base_ > 0 && spacing_ > 0); }
+    size_t size() const { return t_.size(); }
+    const std::map<int, double>& entries() const { return t_; }
+    void clear() { t_.clear(); base_ = spacing_ = 0; }
+private:
+    std::map<int, double> t_;
+    double base_ = 0, spacing_ = 0;
+};
+
+// EDACS: the control channel's messages (dect2/edacs/edacs_proto.h) into grants. Group calls carry the 11-bit AFS group, individual calls
+// the 14-bit LID of the called radio (the caller's LID follows in the frame's second message).
+class EdacsModel {
+public:
+    ChannelTable lcns;
+    // one message (28 data bits) of the control channel: a grant in g (true); text: the message in words
+    bool onMessage(uint32_t data28, Grant& g, std::string* text = nullptr);
+    int sysId() const { return sysId_; }
+    int site() const { return site_; }
+    uint64_t grants() const { return n_; }
+    uint64_t messages() const { return msgs_; }
+    void reset() { sysId_ = site_ = -1; lastIndiv_ = Grant(); haveIndiv_ = false; }
+private:
+    int sysId_ = -1, site_ = -1;
+    uint64_t n_ = 0, msgs_ = 0;
+    Grant lastIndiv_;
+    bool haveIndiv_ = false;
+};
+
+// LTR: the subaudible words into calls. A word (area, go-to, home, id, free) with an id of a call says that talkgroup area-home-id talks
+// on repeater go-to; the turn-off word (go-to 31) ends it. The check bits are not verified (their algorithm is not public), so a call needs
+// the same word twice within 2 s.
+class LtrModel {
+public:
+    ChannelTable repeaters;
+    // a grant in g (true), or *endedTg >= 0: the turn-off of that talkgroup
+    bool onWord(int area, int gotoCh, int home, int id, int freeCh, double now, Grant& g, int* endedTg);
+    uint64_t grants() const { return n_; }
+    void reset() { seen_.clear(); }
+private:
+    std::map<int, double> seen_;   // area / go-to / home / id -> when that word was last heard
+    uint64_t n_ = 0;
+};
+
+// MPT 1327: GTC (go to channel) on the control channel into grants. The called address (prefix / ident) is the talkgroup, the caller's
+// ident the source. Channel numbers become frequencies through the user's table or base + number x spacing.
+class MptModel {
+public:
+    ChannelTable channels;
+    bool onMessage(const std::string& type, int calledPfix, int calledIdent, int callerIdent, int channel, bool dataCall, bool traffic, Grant& g);
+    uint64_t grants() const { return n_; }
+private:
+    uint64_t n_ = 0;
+};
+
 // ------------------------------------------------------------------------------------------------ controller
 
 struct ControllerStatus {
@@ -300,12 +381,18 @@ public:
     Follower follower;
     DmrModel dmr;
     NxdnModel nxdn;
+    EdacsModel edacs;
+    LtrModel ltr;
+    MptModel mpt;
 
     // From the P25 receiver: a good TSBK (nac = the NID's), or a failed one (counts toward the success rate)
     void onTsbk(const p25::Tsbk& t, int nac, double nowSec);
     void onTsbkBad(double nowSec);
     void onDmrCsbk(int opcode, int fid, const uint8_t data[8], double nowSec);
     void onNxdnAssignment(int callType, int src, int dst, int channel, int ccOption, double nowSec);
+    void onEdacs(uint32_t data28, double nowSec);                                   // one control channel message
+    void onLtr(int area, int gotoCh, int home, int id, int freeCh, double nowSec);  // one word heard by the monitoring receiver
+    void onMpt(const std::string& type, int calledPfix, int calledIdent, int callerIdent, int channel, bool dataCall, bool traffic, double nowSec);
     void onControlSeen(double nowSec);   // a good control channel message that is not a grant (keeps the follower's control lock)
     void setCapture(double centerHz, double spanHz) { follower.setCapture(centerHz, spanHz); }
     void tick(double nowSec);

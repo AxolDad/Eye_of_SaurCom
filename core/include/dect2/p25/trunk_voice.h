@@ -22,6 +22,7 @@ struct VoiceWatch {
     uint64_t callId = 0;
     bool heard = false;
     uint64_t seq = 0;
+    uint64_t endBase = 0;        // analog channels: the end signalling count when the call's voice was first heard
 };
 
 enum class VoiceHeard { Nothing, Voice, Ended };
@@ -32,10 +33,17 @@ VoiceHeard nxdnVoiceHeard(VoiceWatch& w, uint64_t callId, int tg, const NxdnCall
 // DMR: the call's time slot (0 or 1). Ended only on the Terminator with LC (base stations repeat it through the hang time); the call flag
 // clearing for another reason (a fade, a data burst) only stops keeping the call, which then ends on the hang time.
 VoiceHeard dmrVoiceHeard(VoiceWatch& w, uint64_t callId, int tg, int slot, const DmrSlot slots[2], uint64_t seq);
+// An analog traffic channel (EDACS, LTR, MPT 1327) carries no talkgroup in its voice: onChannel says the receiver decodes the call's
+// channel (its telemetry's channel frequency is the call's), carrier that the squelch is open there. endCount counts the channel's end
+// signalling (EDACS: data frames, the unkey / drop burst; LTR: turn-off words; MPT 1327: CLEAR codewords after SYNT) and endIsOurs says
+// the last one was this call's (LTR: the turn-off's talkgroup; the others: true). Voice while the carrier is up; Ended when the count
+// grew after the carrier was heard on the call's channel.
+VoiceHeard analogVoiceHeard(VoiceWatch& w, uint64_t callId, bool onChannel, bool carrier, uint64_t endCount, bool endIsOurs, uint64_t seq);
 
 // ------------------------------------------------------------------------------------------------ the app's rules for linked receivers
 
-bool isTrunkFamily(int family);   // P25 (50), DMR (9), NXDN (38): the app's mode families the follower serves
+bool isTrunkFamily(int family);   // P25 (50), DMR (9), NXDN (38), MPT 1327 (127), LTR (129), EDACS (130): the mode families the follower serves
+bool isAnalogTrunkFamily(int family);   // MPT 1327, LTR, EDACS: FM voice
 // A voice radio's decoder plays only while it carries a followed call (never an unfollowed channel), and never against the user's mute
 inline bool voiceRadioMuted(bool userMuted, uint64_t callOnRadio) { return userMuted || callOnRadio == 0; }
 // A receiver that takes over the follower from another one (prevOwner != 0) starts from its latest message: what it stored before

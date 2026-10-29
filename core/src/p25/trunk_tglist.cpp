@@ -157,7 +157,7 @@ int TalkgroupList::importCsv(const std::string& text, std::string* err, int* ski
             if (bad <= 3 && err) { char b[96]; snprintf(b, sizeof b, "line %d: no valid talkgroup number\n", line); msgs += b; }
             continue;
         }
-        if (id <= 0 || id > 0xFFFF) { bad++; if (bad <= 3) { char b[96]; snprintf(b, sizeof b, "line %d: talkgroup %d is out of range\n", line, id); msgs += b; } continue; }
+        if (id <= 0 || id > 0xFFFFFF) { bad++; if (bad <= 3) { char b[96]; snprintf(b, sizeof b, "line %d: talkgroup %d is out of range\n", line, id); msgs += b; } continue; }
         TgEntry e;
         e.id = id; e.alpha = get(cAlpha); e.mode = get(cMode); e.desc = get(cDesc); e.tag = get(cTag); e.category = get(cCat); e.list = get(cList);
         int p = 0;
@@ -222,8 +222,8 @@ std::string CallLog::exportCsv(const TalkgroupList* names) const {
         const double dur = r.active ? std::max(r.durSec, r.lastSec - r.startSec) : r.durSec;
         char d[24];
         snprintf(d, sizeof d, "%.1f", dur);
-        o += std::string(t) + "," + (r.tg < 0 ? "" : std::to_string(r.tg)) + "," + csvField(e ? e->alpha : "") + "," + (r.src < 0 ? "" : std::to_string(r.src)) + "," + d + "," + fr + "," +
-             (r.slot < 0 ? "" : std::to_string(r.slot + 1)) + "," + (r.dmr ? "DMR" : "P25") + (r.group ? " group" : " unit") + "," + (r.encrypted ? "encrypted" : "clear") + "," +
+        o += std::string(t) + "," + (r.tg < 0 ? "" : std::to_string(r.tg)) + "," + csvField(e ? e->alpha : r.label) + "," + (r.src < 0 ? "" : std::to_string(r.src)) + "," + d + "," + fr + "," +
+             (r.slot < 0 ? "" : std::to_string(r.slot + 1)) + "," + (r.dmr ? "DMR" : sysKindName(r.kind)) + (r.group ? " group" : " unit") + "," + (r.encrypted ? "encrypted" : "clear") + "," +
              (r.emergency ? "1" : "0") + "," + (r.followed ? "1" : "0") + "," + csvField(r.note) + "," + csvField(r.audioPath) + "\n";
     }
     return o;

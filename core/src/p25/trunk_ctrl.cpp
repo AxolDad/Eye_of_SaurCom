@@ -13,6 +13,7 @@ bool DmrModel::onCsbk(int opcode, int fid, const uint8_t d[8], double, Grant& g)
     if (fid != 0) return false;   // manufacturer CSBKs (Connect Plus, Capacity Plus and the like are not public): not interpreted
     if (opcode != ops_.tvGrant && opcode != ops_.pvGrant && opcode != ops_.btvGrant) return false;
     g = Grant();
+    g.kind = SysKind::Dmr;
     g.dmr = true; g.tdma = true;
     g.channel = (d[0] << 4) | (d[1] >> 4);
     g.slot = (d[1] >> 3) & 1;
@@ -31,6 +32,7 @@ double NxdnModel::channelFreq(int ch) const { auto it = ch_.find(ch); return it 
 bool NxdnModel::onAssignment(int callType, int src, int dst, int channel, int ccOption, Grant& g) {
     if (channel < 0 || channel > 1023) return false;
     g = Grant();
+    g.kind = SysKind::Nxdn;
     g.channel = channel;
     g.tg = dst; g.src = src;
     g.group = callType == 0 || callType == 1;

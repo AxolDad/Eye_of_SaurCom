@@ -125,7 +125,7 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     // a repeat of a call that is running?
     for (size_t i = log.records().size(); i-- > 0;) {
         CallRecord& r = const_cast<CallRecord&>(log.records()[i]);
-        if (!r.active || r.tg != g.tg || r.group != g.group || r.dmr != g.dmr) continue;
+        if (!r.active || r.tg != g.tg || r.group != g.group || r.dmr != g.dmr || r.kind != g.kind) continue;
         if (g.freqHz > 0 && r.freqHz > 0 && std::fabs(g.freqHz - r.freqHz) > 1 && g.slot == r.slot) {   // the call moved: the old one ends
             r.active = false;
             r.durSec = r.lastSec - r.startSec;
@@ -145,6 +145,7 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     rec.startSec = rec.lastSec = now;
     rec.active = true; rec.dmr = g.dmr; rec.group = g.group; rec.tg = g.tg; rec.src = g.src;
     rec.channel = g.channel; rec.freqHz = g.freqHz; rec.slot = g.slot; rec.emergency = g.emergency; rec.encrypted = g.encrypted;
+    rec.kind = g.kind; rec.label = g.label; rec.provoice = g.provoice;
     const uint64_t id = log.add(rec).id;
     log.trim(2000);
     CallRecord* rp = log.byId(id);   // trim moves records: look it up again
@@ -155,7 +156,13 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     };
     if (g.encrypted) { skip("encrypted: not followed", false); return; }
     if (!d.follow) { skip(d.reason, false); return; }
-    if (g.freqHz <= 0) { skip("channel frequency not known yet (no identifier update heard)", false); return; }
+    if (g.provoice) { skip("ProVoice (EDACS digital voice): logged, there is no ProVoice decoder", false); return; }
+    if (g.dataCall) { skip("data call: no speech to follow", false); return; }
+    if (g.freqHz <= 0) {
+        skip(g.kind == SysKind::P25 && !g.dmr ? "channel frequency not known yet (no identifier update heard)"
+                                               : "channel " + std::to_string(g.channel) + " is not in your channel list", false);
+        return;
+    }
     const int prio = d.priority;
     auto lowest = [&](bool hoppedOnly, bool anyOnly) -> Slot* {
         Slot* v = nullptr;

@@ -340,7 +340,7 @@ int main() {
                                 "1201,4B1,\"Fire Disp\",D,\"Fire, dispatch\",Fire Dispatch,Metro Fire\r\n"
                                 "1202,4B2,Fire Tac 1,DE,\"Quote \"\"x\"\" here\",Fire Tac,Metro Fire\r\n"
                                 "abc,,bad row,D,,,\r\n"
-                                "70000,,out of range,D,,,\r\n"
+                                "16777216,,out of range,D,,,\r\n"
                                 "\r\n"
                                 "1203,,PD,T,,Law Dispatch,Metro PD\r\n";
         std::string err; int skipped = 0;
