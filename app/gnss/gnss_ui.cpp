@@ -317,7 +317,7 @@ void mapView(App& a, ImVec2 size) {
     adsbmap::draw(S.map, size);
     if (S.map.lat != lat0 || S.map.lon != lon0) S.mapFollow = false;
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     if (S.fixes.size() > 1) {   // the trail of fixes: on a fixed antenna it shows the scatter of the solution
         for (const auto& fp : S.fixes) dl->AddCircleFilled(adsbmap::project(fp.lat, fp.lon), 1.8f * gUi, IM_COL32(120, 200, 255, 110));
     }

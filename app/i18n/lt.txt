@@ -3495,3 +3495,5 @@ Your location is not set.	Tavo vieta nenustatyta.
 Your location is not set: opens My station	Tavo vieta nenustatyta: atidaro Mano stotį
 Your location is not set: the site is a placeholder.	Tavo vieta nenustatyta: vieta yra laikina.
 or right-click the map: I'm here	arba dešiniuoju mygtuku ant žemėlapio: Aš čia
+height (m)	aukštis (m)
+latitude must be -90 to 90 and longitude -180 to 180	platuma turi būti nuo -90 iki 90, ilguma nuo -180 iki 180

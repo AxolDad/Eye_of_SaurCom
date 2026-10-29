@@ -193,18 +193,19 @@ void fieldsBlock(App& a) {
     const bool okLon = readNumber(S.lon, lon, eLon) && !eLon && lon >= -180 && lon <= 180;
     const bool okAlt = readNumber(S.alt, alt, eAlt) && (eAlt || dect2::geo::validAlt(alt));
     const bool okAnt = readNumber(S.ant, ant, eAnt) && (eAnt || (ant >= 0 && ant <= 1000));
-    auto row = [&](const char* label, char* buf, size_t n, bool ok, const char* hint, const char* id) {
+    // empty while no position is set (never the placeholder), with a hint in the box; an empty box is not an error to shout about
+    auto row = [&](const char* label, char* buf, size_t n, bool ok, const char* hint, const char* id, const char* ph) {
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(label);
         ImGui::SameLine(190 * gUi);
         ImGui::SetNextItemWidth(w);
-        ImGui::InputText(id, buf, n);
-        if (!ok) { ImGui::SameLine(0, 8 * gUi); ImGui::TextColored(pal::badRed(), "%s", hint); }
+        ImGui::InputTextWithHint(id, ph, buf, n);
+        if (!ok && buf[0]) { ImGui::SameLine(0, 8 * gUi); ImGui::TextColored(pal::badRed(), "%s", hint); }
     };
-    row(tr("Latitude (north +)"), S.lat, sizeof S.lat, okLat, tr("a number from -90 to 90"), "##stlat");
-    row(tr("Longitude (east +)"), S.lon, sizeof S.lon, okLon, tr("a number from -180 to 180"), "##stlon");
-    row(tr("Height above sea level (m)"), S.alt, sizeof S.alt, okAlt, tr("metres, -500 to 9000"), "##stalt");
-    row(tr("Antenna above ground (m)"), S.ant, sizeof S.ant, okAnt, tr("metres, 0 to 1000"), "##stant");
+    row(tr("Latitude (north +)"), S.lat, sizeof S.lat, okLat, tr("a number from -90 to 90"), "##stlat", tr("latitude"));
+    row(tr("Longitude (east +)"), S.lon, sizeof S.lon, okLon, tr("a number from -180 to 180"), "##stlon", tr("longitude"));
+    row(tr("Height above sea level (m)"), S.alt, sizeof S.alt, okAlt, tr("metres, -500 to 9000"), "##stalt", tr("unknown"));
+    row(tr("Antenna above ground (m)"), S.ant, sizeof S.ant, okAnt, tr("metres, 0 to 1000"), "##stant", tr("unknown"));
     const bool all = okLat && okLon && okAlt && okAnt;
     ImGui::BeginDisabled(!all);
     if (ImGui::Button(tr("Apply"))) {

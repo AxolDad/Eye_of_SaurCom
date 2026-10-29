@@ -3478,3 +3478,5 @@ Your location is not set.	A sua localização não está definida.
 Your location is not set: opens My station	A sua localização não está definida: abre A minha estação
 Your location is not set: the site is a placeholder.	A sua localização não está definida: o local é provisório.
 or right-click the map: I'm here	ou clique direito no mapa: Estou aqui
+height (m)	altura (m)
+latitude must be -90 to 90 and longitude -180 to 180	a latitude deve ser de -90 a 90 e a longitude de -180 a 180

@@ -236,7 +236,7 @@ void mapView(App& a) {
     adsbmap::draw(S.map, size);
     if (S.map.lat != lat0 || S.map.lon != lon0) S.mapFollow = false;
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     npos = 0;
     size_t nLines = 0;
     if (on && contactlines::options().lines) {   // who talks to whom: the directed messages between two stations

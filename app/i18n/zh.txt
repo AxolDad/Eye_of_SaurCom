@@ -3518,3 +3518,5 @@ Your location is not set.	你的位置未设置。
 Your location is not set: opens My station	你的位置未设置：打开“我的电台”
 Your location is not set: the site is a placeholder.	你的位置未设置：观测点为临时位置。
 or right-click the map: I'm here	或右键点击地图：我在这里
+height (m)	高度 (m)
+latitude must be -90 to 90 and longitude -180 to 180	纬度须在 -90 到 90 之间，经度须在 -180 到 180 之间

@@ -3495,3 +3495,5 @@ Your location is not set.	Twoja lokalizacja nie jest ustawiona.
 Your location is not set: opens My station	Twoja lokalizacja nie jest ustawiona: otwiera Moją stację
 Your location is not set: the site is a placeholder.	Twoja lokalizacja nie jest ustawiona: miejsce jest tymczasowe.
 or right-click the map: I'm here	lub prawy klik na mapie: Jestem tutaj
+height (m)	wysokość (m)
+latitude must be -90 to 90 and longitude -180 to 180	szerokość musi być od -90 do 90, a długość od -180 do 180

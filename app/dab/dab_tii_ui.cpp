@@ -208,7 +208,7 @@ void dabTransmittersTab(App& a) {
         const ImVec2 p0 = ImGui::GetCursorScreenPos();
         adsbmap::draw(S.map, size);
         ImDrawList* dl = ImGui::GetWindowDrawList();
-        dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+        adsbmap::pushMapClip(dl);   // the map without the controls' band
         const ImVec2 me = adsbmap::project(S.refLat, S.refLon);
         const ImVec2 mouse = ImGui::GetIO().MousePos;
         const bool inMap = ImGui::IsMouseHoveringRect(p0, ImVec2(p0.x + size.x, p0.y + size.y));

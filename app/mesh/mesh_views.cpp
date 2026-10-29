@@ -21,7 +21,7 @@ void mapView(App& a, ImVec2 size) {
     adsbmap::draw(S.map, size);
     if (S.map.lat != lat0 || S.map.lon != lon0) S.mapFit = false;
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     const ImVec2 mouse = ImGui::GetIO().MousePos;
     ImVec2 click; const bool clicked = adsbmap::clickedAt(click);
     const dect2::MeshNode* tip = nullptr; float tipD = 14 * gUi;

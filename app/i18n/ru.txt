@@ -3478,3 +3478,5 @@ Your location is not set.	Ваше местоположение не задан�
 Your location is not set: opens My station	Ваше местоположение не задано: открывает Мою станцию
 Your location is not set: the site is a placeholder.	Ваше местоположение не задано: пункт наблюдения временный.
 or right-click the map: I'm here	или правый щелчок по карте: Я здесь
+height (m)	высота (м)
+latitude must be -90 to 90 and longitude -180 to 180	широта должна быть от -90 до 90, а долгота от -180 до 180

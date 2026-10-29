@@ -3481,3 +3481,5 @@ Your location is not set.	A helyed nincs megadva.
 Your location is not set: opens My station	A helyed nincs megadva: megnyitja a Saját állomás oldalt
 Your location is not set: the site is a placeholder.	A helyed nincs megadva: a helyszín csak helykitöltő.
 or right-click the map: I'm here	vagy jobb klikk a térképre: Itt vagyok
+height (m)	magasság (m)
+latitude must be -90 to 90 and longitude -180 to 180	a szélesség -90 és 90, a hosszúság -180 és 180 között legyen

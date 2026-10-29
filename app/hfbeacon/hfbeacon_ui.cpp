@@ -352,7 +352,7 @@ void mapView(App& a) {
     const ImVec2 size(ImGui::GetContentRegionAvail().x, std::max(160 * gUi, ImGui::GetContentRegionAvail().y));
     adsbmap::draw(S.map, size);
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     double rl, ro; receiverLocation(rl, ro);
     const ImVec2 h = adsbmap::project(rl, ro);
     int drawn = 0;

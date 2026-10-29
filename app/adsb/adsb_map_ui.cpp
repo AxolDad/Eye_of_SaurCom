@@ -117,6 +117,7 @@ void drawPlane(ImDrawList* dl, ImVec2 c, float headingDeg, float r, ImU32 fill, 
 // away than any 1090 MHz signal carries (500 nm; real ranges end near 250). Then lat/lon get the middle of the aircraft (median, so one
 // bad fix does not pull it), which is within about 100 nm of the receiver: good enough for the map, not for exact ranges.
 bool positionLooksWrong(const AdsbTelemetry& t, double& lat, double& lon, double& nearestNm) {
+    if (!receiverLocationSet()) return false;   // no position at all: the map says "Set your location"; the placeholder is never "your" position
     std::vector<double> las, los;
     nearestNm = 1e9;
     for (const auto& ac : t.aircraft) {
@@ -328,7 +329,7 @@ void mapView(App& a, ImVec2 size) {
     if (wrongRef && S.map.followStation) { S.map.lat = areaLat; S.map.lon = areaLon; }   // show the aircraft, not an empty map around the wrong antenna
     adsbmap::draw(S.map, size);   // opens at the station, follows it until dragged; right-click: I'm here (adsb_map.cpp)
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     // the antenna (none while no position is set: it would sit on the placeholder; the map has the "Set your location" button then)
     if (receiverLocationSet()) {
         const ImVec2 h = adsbmap::project(S.refLat, S.refLon);

@@ -593,6 +593,10 @@ void dish(App& a) {
     ImGui::Separator();
     ImGui::TextDisabled("Look angle to a geostationary satellite (spherical Earth, no refraction)");
     ImGui::SetNextItemWidth(100 * gUi);
+    {   // my position is the station's (My station), taken again when it moves; the boxes stay editable for a dish somewhere else
+        static unsigned gen = 0;
+        if (receiverLocationSet() && gen != stationGeneration()) { gen = stationGeneration(); receiverLocation(S.latMine, S.lonMine); }
+    }
     ImGui::InputDouble("Your latitude", &S.latMine, 0.1, 1.0, "%.4f");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(100 * gUi);

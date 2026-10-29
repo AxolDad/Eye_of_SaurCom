@@ -354,7 +354,7 @@ void mapView(App& a) {
         if (S.clickSets == 0) { S.in.txLat = la; S.in.txLon = lo; S.txMine = false; } else { S.probe = true; S.pLat = la; S.pLon = lo; }
     }
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     Result res; bool have = false;
     { std::lock_guard<std::mutex> lk(S.mu); if (S.result.valid) { res = S.result; have = true; } }
     if (have) {

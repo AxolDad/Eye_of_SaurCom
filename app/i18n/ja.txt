@@ -3495,3 +3495,5 @@ Your location is not set.	現在地が未設定です。
 Your location is not set: opens My station	現在地が未設定です: マイステーションを開きます
 Your location is not set: the site is a placeholder.	現在地が未設定です: 観測地は仮の位置です。
 or right-click the map: I'm here	または地図を右クリック: ここにいる
+height (m)	高さ (m)
+latitude must be -90 to 90 and longitude -180 to 180	緯度は -90 から 90、経度は -180 から 180 にしてください

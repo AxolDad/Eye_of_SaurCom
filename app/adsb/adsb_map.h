@@ -19,11 +19,16 @@ struct View {
     bool followStation = true;         // false once the user dragged the map
     bool centreReq = false;            // "Centre on me" was pressed: applied at the start of the next draw(), as a move by the user
     double homeKm = 0;                 // on the first centring, zoom to show about this many km across (0: keep the screen's zoom)
+    bool tileLine = false;             // the map has tileControls() (with Centre on me); fullCorner() then adds no second one
+    float bandH = 0;                   // the band at the top that holds the map's controls (measured by tileControls / fullCorner each frame)
 };
 
 // Draw the map into the next `size` of the current window and handle dragging (pan), the wheel (zoom around the pointer). Returns true when
 // the pointer is over the map. The projection below works after this call.
+// The top of the rectangle is a band for the map's controls (View::bandH, measured as they are drawn): the map itself starts under it, so
+// the controls never sit on aircraft labels or markers. Screens clip their markers with pushMapClip() (the map without the band).
 bool draw(View& v, ImVec2 size);
+void pushMapClip(ImDrawList* dl);              // dl->PushClipRect of the map area of the last draw() (pop it with dl->PopClipRect())
 ImVec2 project(double lat, double lon);        // screen position
 void unproject(ImVec2 p, double& lat, double& lon);   // the other way: where on Earth a screen position is
 bool clickedAt(ImVec2& p);                     // the map was clicked (not dragged); where

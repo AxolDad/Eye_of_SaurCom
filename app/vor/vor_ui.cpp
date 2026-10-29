@@ -211,7 +211,7 @@ void fixMap(App& a, ImVec2 size, const dect2::NavStation* st[2], const dect2::Na
     const ImVec2 p0 = ImGui::GetCursorScreenPos();
     adsbmap::draw(S.map, size);
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     for (const auto& s : S.db) {   // the list's stations in view
         const ImVec2 q = adsbmap::project(s.lat, s.lon);
         if (q.x < p0.x || q.y < p0.y || q.x > p0.x + size.x || q.y > p0.y + size.y) continue;

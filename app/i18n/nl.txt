@@ -3495,3 +3495,5 @@ Your location is not set.	Je locatie is niet ingesteld.
 Your location is not set: opens My station	Je locatie is niet ingesteld: opent Mijn station
 Your location is not set: the site is a placeholder.	Je locatie is niet ingesteld: de plaats is een tijdelijke.
 or right-click the map: I'm here	of rechtsklik op de kaart: Ik ben hier
+height (m)	hoogte (m)
+latitude must be -90 to 90 and longitude -180 to 180	breedte moet -90 tot 90 zijn en lengte -180 tot 180

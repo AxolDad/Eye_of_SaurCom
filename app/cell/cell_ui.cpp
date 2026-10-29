@@ -460,7 +460,7 @@ void mapView(App& a) {
     adsbmap::draw(S.map, sz);
     adsbmap::fullCorner(p0, sz);
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + sz.x, p0.y + sz.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     if (haveRx) {
         const ImVec2 q = adsbmap::project(rLat, rLon);
         dl->AddRectFilled(ImVec2(q.x - 4 * gUi, q.y - 4 * gUi), ImVec2(q.x + 4 * gUi, q.y + 4 * gUi), IM_COL32(255, 255, 255, 230));

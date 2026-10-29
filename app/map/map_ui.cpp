@@ -276,7 +276,7 @@ void mapView(App& a) {
         else { S.selLayer = -1; double la, lo; adsbmap::unproject(click, la, lo); lo = std::fmod(lo + 540, 360) - 180; place(la, lo, false); }
     }
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     double rl, ro; receiverLocation(rl, ro);
     const ImVec2 h = adsbmap::project(rl, ro);   // the receiver: a ringed dot
     drawLayers(dl, p0, size);

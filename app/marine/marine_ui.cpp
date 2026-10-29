@@ -325,7 +325,7 @@ void dscDetail(App& a, const DscCall* c, ImVec2 size) {
     adsbmap::draw(S.map, ImVec2(ImGui::GetContentRegionAvail().x, mh));
     const ImVec2 q = adsbmap::project(c->lat, c->lon);
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + ImGui::GetContentRegionAvail().x + 1, p0.y + mh), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     const ImU32 col = c->distress ? IM_COL32(235, 70, 70, 255) : IM_COL32(110, 205, 120, 255);
     dl->AddCircleFilled(q, 6 * gUi, col);
     dl->AddCircle(q, 11 * gUi, col, 24, 2.f);
@@ -939,7 +939,7 @@ void mapView(App& a) {
     const ImVec2 p0 = ImGui::GetCursorScreenPos();
     adsbmap::draw(S.map, sz);
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + sz.x, p0.y + sz.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     std::map<std::string, std::vector<const dect2::marine::DscFix*>> by;
     for (const auto& f : S.fixes) if (!S.bandOnly || f.distress) by[f.mmsi].push_back(&f);
     const ImVec2 mp = ImGui::GetIO().MousePos;

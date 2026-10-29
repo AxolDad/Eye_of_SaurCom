@@ -112,24 +112,49 @@ void positionFields(App& a) {
         p.source = "typed";
         setStationPos(a, p);
     };
-    ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));   // no wider than the side panel
-    ImGui::InputDouble("##alat", &la, 0, 0, "%.4f N");
-    if (ImGui::IsItemActive()) editLat = true;
-    if (ImGui::IsItemDeactivated()) { editLat = false; if (ImGui::IsItemDeactivatedAfterEdit()) moveTo(la, lo); }
-    ImGui::SameLine(0, 4 * gUi);
-    ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));   // no wider than the side panel
-    ImGui::InputDouble("##alon", &lo, 0, 0, "%.4f E");
-    if (ImGui::IsItemActive()) editLon = true;
-    if (ImGui::IsItemDeactivated()) { editLon = false; if (ImGui::IsItemDeactivatedAfterEdit()) moveTo(la, lo); }
-    ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));
-    double al = S.refAltM;
     const bool fromEnv = stationSource() == "env";
-    ImGui::BeginDisabled(!receiverLocationSet() || fromEnv);   // the height belongs to a saved position: an environment one is not saved from here
-    if (ImGui::InputDouble("##aalt", &al, 0, 0, "%.0f m")) {
-        dect2::geo::StationPos p = stationPos();
-        if (p.valid()) { p.altM = std::max(-500.0, std::min(9000.0, al)); setStationPos(a, p); }
+    if (receiverLocationSet()) {
+        ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));   // no wider than the side panel
+        ImGui::InputDouble("##alat", &la, 0, 0, "%.4f N");
+        if (ImGui::IsItemActive()) editLat = true;
+        if (ImGui::IsItemDeactivated()) { editLat = false; if (ImGui::IsItemDeactivatedAfterEdit()) moveTo(la, lo); }
+        ImGui::SameLine(0, 4 * gUi);
+        ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));   // no wider than the side panel
+        ImGui::InputDouble("##alon", &lo, 0, 0, "%.4f E");
+        if (ImGui::IsItemActive()) editLon = true;
+        if (ImGui::IsItemDeactivated()) { editLon = false; if (ImGui::IsItemDeactivatedAfterEdit()) moveTo(la, lo); }
+        ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));
+        double al = S.refAltM;
+        ImGui::BeginDisabled(fromEnv);   // the height belongs to a saved position: an environment one is not saved from here
+        if (ImGui::InputDouble("##aalt", &al, 0, 0, "%.0f m")) {
+            dect2::geo::StationPos p = stationPos();
+            if (p.valid()) { p.altM = std::max(-500.0, std::min(9000.0, al)); setStationPos(a, p); }
+        }
+        ImGui::EndDisabled();
+    } else {
+        // no position: empty boxes with hints (the placeholder the maps open at is never shown or saved as yours); applied once both
+        // numbers are there, when a box is left
+        static char tLat[32] = "", tLon[32] = "";
+        bool done = false;
+        ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));
+        ImGui::InputTextWithHint("##alatn", tr("latitude"), tLat, sizeof tLat, ImGuiInputTextFlags_CharsDecimal);
+        done |= ImGui::IsItemDeactivatedAfterEdit();
+        ImGui::SameLine(0, 4 * gUi);
+        ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));
+        ImGui::InputTextWithHint("##alonn", tr("longitude"), tLon, sizeof tLon, ImGuiInputTextFlags_CharsDecimal);
+        done |= ImGui::IsItemDeactivatedAfterEdit();
+        if (done && tLat[0] && tLon[0]) {
+            char* e1 = nullptr; char* e2 = nullptr;
+            const double nla = std::strtod(tLat, &e1), nlo = std::strtod(tLon, &e2);
+            if (e1 && !*e1 && e2 && !*e2 && dect2::geo::validPos(nla, nlo)) { moveTo(nla, nlo); tLat[0] = tLon[0] = 0; }
+            else S.locMsg = tr("latitude must be -90 to 90 and longitude -180 to 180");
+        }
+        ImGui::SetNextItemWidth(std::min(110 * gUi, ImGui::GetContentRegionAvail().x));
+        static char tAlt[8] = "";
+        ImGui::BeginDisabled(true);   // the height belongs to a position: set one first
+        ImGui::InputTextWithHint("##aaltn", tr("height (m)"), tAlt, sizeof tAlt);
+        ImGui::EndDisabled();
     }
-    ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s", fromEnv ? tr("This position comes from the container; set your own first.") : "Height of the antenna above sea level, metres (the pass planner's look angles and Doppler)");
     ImGui::SameLine(0, 4 * gUi);
     if (ImGui::Button(S.locBusy ? "Locating..." : "Locate (Wi-Fi)") && !S.locBusy) { plat::locateStart(); S.locBusy = 1; S.locMsg = "asking the location service..."; }

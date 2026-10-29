@@ -277,6 +277,7 @@ ImTextureID shownTexture(int z, int x, int y) {
 
 // the transform of the map as last drawn
 ImVec2 gOrigin, gSize;
+ImVec2 gTop, gTopSize;   // the whole rectangle the screen gave draw() (the controls' band and the map)
 double gCx = 0, gCy = 0;   // the centre in world pixels
 int gZoom = 7;
 bool gClicked = false, gAny = false;
@@ -512,6 +513,15 @@ bool draw(View& v, ImVec2 size) {
     v.zoom = std::max(kMinZoom, std::min(kMaxZoom, v.zoom));
     v.lat = std::max(-84.0, std::min(84.0, v.lat));
     ImDrawList* dl = ImGui::GetWindowDrawList();
+    // the controls' band at the top: an opaque strip, the map under it
+    gTop = ImGui::GetCursorScreenPos(); gTopSize = size;
+    const float bh = std::max(0.f, std::min(v.bandH, size.y * 0.5f));
+    if (bh > 0) {
+        dl->AddRectFilled(gTop, ImVec2(gTop.x + size.x, gTop.y + bh), u32(panelColour(), 245));
+        dl->AddLine(ImVec2(gTop.x, gTop.y + bh - 1), ImVec2(gTop.x + size.x, gTop.y + bh - 1), u32(scheme().grid));
+        ImGui::SetCursorScreenPos(ImVec2(gTop.x, gTop.y + bh));
+        size.y -= bh;
+    }
     const ImVec2 p0 = ImGui::GetCursorScreenPos();
     ImGui::SetNextItemAllowOverlap();   // the screens put buttons on the map afterwards: they must get the clicks, not the map under them
     ImGui::InvisibleButton("##map", size, ImGuiButtonFlags_MouseButtonLeft);
@@ -608,6 +618,16 @@ bool draw(View& v, ImVec2 size) {
         dl->AddText(ImVec2(p0.x + 8, p0.y + size.y - 2 * ImGui::GetTextLineHeightWithSpacing() - 6), u32(gScheme.label), ellipsize(m, size.x - 16).c_str());
     }
     return hov;
+}
+
+void pushMapClip(ImDrawList* dl) { dl->PushClipRect(gOrigin, ImVec2(gOrigin.x + gSize.x, gOrigin.y + gSize.y), true); }
+
+// the controls just drawn (the last item is on their bottom line) set the band for the next frame; controls drawn above the map (a header
+// line) need none
+static void measureBand() {
+    if (!gView) return;
+    const float b = ImGui::GetItemRectMax().y - gTop.y;
+    gView->bandH = b > 0 && b < gTopSize.y * 0.5f ? b + 6 * gUi : 0.f;
 }
 
 void legend(float mapWidth, const char* fmt, ...) {
@@ -883,9 +903,12 @@ void fullCorner(ImVec2 p0, ImVec2 size) {
     const ImVec2 keep = ImGui::GetCursorScreenPos();
     const bool full = gFullCtx.body || gFullOn;
     const float w = full ? ImGui::CalcTextSize(gFullOn ? tr("Exit full screen") : tr("Full screen")).x + 2 * ImGui::GetStyle().FramePadding.x : 0.f;
-    const float wc = ImGui::CalcTextSize(tr("Centre on me")).x + 2 * ImGui::GetStyle().FramePadding.x;   // "Centre on me" left of it
-    ImGui::SetCursorScreenPos(ImVec2(p0.x + size.x - w - (full ? 6 * gUi : 0.f) - wc - 8 * gUi, p0.y + 8 * gUi));
-    centreOnMeButton();
+    if (!gView || !gView->tileLine) {   // "Centre on me" left of it, for the maps without the tile controls' line
+        const float wc = ImGui::CalcTextSize(tr("Centre on me")).x + 2 * ImGui::GetStyle().FramePadding.x;
+        ImGui::SetCursorScreenPos(ImVec2(p0.x + size.x - w - (full ? 6 * gUi : 0.f) - wc - 8 * gUi, p0.y + 8 * gUi));
+        centreOnMeButton();
+        measureBand();
+    }
     if (!full) { ImGui::SetCursorScreenPos(keep); return; }
     ImGui::SetCursorScreenPos(ImVec2(p0.x + size.x - w - 8 * gUi, p0.y + 8 * gUi));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.06f, 0.07f, 0.08f, 0.85f));
@@ -898,6 +921,7 @@ void fullCorner(ImVec2 p0, ImVec2 size) {
 
 void tileControls(const char* privacy, bool fullBtn) {
     init();
+    if (gView) gView->tileLine = true;
     const float lineBottom = ImGui::GetItemRectMax().y;   // the screen's last button (before the station controls add items of their own)
     stationControls();
     // a line of their own under the screen's buttons when they would run past the map's right edge (a narrow map, a large display scale)
@@ -932,6 +956,7 @@ void tileControls(const char* privacy, bool fullBtn) {
         }
         ImGui::PopStyleColor();
     }
+    measureBand();
 }
 
 bool fullButton(bool on, const char* what) {

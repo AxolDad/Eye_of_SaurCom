@@ -137,7 +137,7 @@ void mapView(App& a, const dect2::FlarmTelemetry& t) {
     const ImVec2 p0 = ImGui::GetCursorScreenPos();
     adsbmap::draw(S.map, size);
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     if (S.haveRef) {
         const ImVec2 q = adsbmap::project(S.lat, S.lon);
         dl->AddCircleFilled(q, 5 * gUi, IM_COL32(240, 240, 240, 255));
