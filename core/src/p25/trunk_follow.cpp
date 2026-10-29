@@ -140,11 +140,21 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
         for (Slot& s : voice_) if (s.used && s.callId == r.id) s.lastSec = now;
         return;
     }
+    if (g.noPreempt) {   // seen once only: it may take a free slice or radio, never one a running call has
+        bool freeRes = false;
+        if (inSpan(g.freqHz) && !(g.tdma && !g.dmr)) {
+            for (const Slot& x : slots_) freeRes |= !x.used;
+            freeRes |= (int)slots_.size() < std::max(1, cfg_.maxSlices);
+        }
+        for (const Slot& v : voice_) freeRes |= !v.used;
+        if (voice_.empty()) { bool busy = false; for (const Slot& x : slots_) busy |= x.used; freeRes |= !busy; }
+        if (!freeRes) return;   // not logged yet: the next word confirms it
+    }
     CallRecord rec;
     rec.wallTime = (int64_t)time(nullptr);
     rec.startSec = rec.lastSec = now;
     rec.active = true; rec.dmr = g.dmr; rec.group = g.group; rec.tg = g.tg; rec.src = g.src;
-    rec.channel = g.channel; rec.freqHz = g.freqHz; rec.slot = g.slot; rec.emergency = g.emergency; rec.encrypted = g.encrypted;
+    rec.channel = g.channel; rec.freqHz = g.freqHz; rec.slot = g.slot; rec.p25p2 = g.kind == SysKind::P25 && g.tdma && !g.dmr; rec.emergency = g.emergency; rec.encrypted = g.encrypted;
     rec.kind = g.kind; rec.label = g.label; rec.provoice = g.provoice;
     const uint64_t id = log.add(rec).id;
     log.trim(2000);

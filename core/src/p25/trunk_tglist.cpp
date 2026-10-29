@@ -123,6 +123,29 @@ TalkgroupList::Decision TalkgroupList::decide(int tg) const {
     return d;
 }
 
+// A talkgroup written the way its system writes it: LTR "A-HH-GGG" (area x 100000 + home x 1000 + id), EDACS AFS "AA-FFS" (agency 4 bits,
+// fleet 4, subfleet 3: the number the follower uses), MPT 1327 "prefix/ident" (prefix x 8192 + ident). False: not one of these.
+static bool parseNative(const std::string& s, int& id) {
+    int a = 0, b = 0, c = 0;
+    char d1 = 0, d2 = 0;
+    int n = 0;
+    if (sscanf(s.c_str(), "%d-%d-%d%n", &a, &b, &c, &n) == 3 && n == (int)s.size()) {
+        if (a < 0 || a > 1 || b < 1 || b > 20 || c < 0 || c > 255) return false;
+        id = a * 100000 + b * 1000 + c; return true;
+    }
+    if (sscanf(s.c_str(), "%d-%d%n", &a, &b, &n) == 2 && n == (int)s.size() && s.find('-') == 2 && s.size() == 6) {
+        const int f = b / 10, sf = b % 10;
+        if (a < 0 || a > 15 || f > 15 || sf > 7) return false;
+        id = (a << 7) | (f << 3) | sf; return true;
+    }
+    if (sscanf(s.c_str(), "%d%c%d%n", &a, &d1, &b, &n) == 3 && d1 == '/' && n == (int)s.size()) {
+        if (a < 0 || a > 127 || b < 1 || b > 8191) return false;
+        id = a * 8192 + b; return true;
+    }
+    (void)d2;
+    return false;
+}
+
 int TalkgroupList::importCsv(const std::string& text, std::string* err, int* skipped, bool merge) {
     std::vector<std::string> f;
     size_t pos = 0;
@@ -150,7 +173,7 @@ int TalkgroupList::importCsv(const std::string& text, std::string* err, int* ski
         auto get = [&](int c) { return idx[c] >= 0 && (size_t)idx[c] < f.size() ? trim(f[(size_t)idx[c]]) : std::string(); };
         int id = 0;
         bool ok = false;
-        if (idx[cDec] >= 0 && !get(cDec).empty()) ok = parseInt(get(cDec), 10, id);
+        if (idx[cDec] >= 0 && !get(cDec).empty()) ok = parseInt(get(cDec), 10, id) || parseNative(get(cDec), id);
         else if (idx[cHex] >= 0 && !get(cHex).empty()) ok = parseInt(get(cHex), 16, id);
         if (!ok) {
             bad++;

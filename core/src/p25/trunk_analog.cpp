@@ -1,6 +1,7 @@
 // Analog trunked systems for the shared follower (trunk.h): the user's channel tables, and EDACS, LTR and MPT 1327 control data into grants.
 #include "dect2/edacs/edacs_proto.h"
 #include "dect2/ltr/ltr_proto.h"
+#include <algorithm>
 #include "dect2/mpt1327/mpt1327_proto.h"
 #include "dect2/p25/trunk.h"
 #include <cctype>
@@ -29,7 +30,7 @@ const char* sysKindName(SysKind k) {
 
 int ChannelTable::parse(const std::string& text, int maxNumber, std::string* err, int* skipped) {
     t_.clear();
-    int n = 0, bad = 0, lineNo = 0;
+    int n = 0, bad = 0, lineNo = 0, single = 0;
     std::string msgs;
     std::istringstream in(text);
     std::string line;
@@ -39,6 +40,24 @@ int ChannelTable::parse(const std::string& text, int maxNumber, std::string* err
         if (!line.empty() && (unsigned char)line[0] == 0xEF && line.size() >= 3) line.erase(0, 3);   // a UTF-8 byte order mark
         const bool pairs = line.find('=') != std::string::npos;   // "1=851.0125 2=851.2625": several pairs on a line
         for (char& c : line) if (c == ',' || c == ';' || c == '\t' || c == '=' || c == '\r' || c == '"') c = ' ';
+        // "851.0125MHz", "851.0125 MHz": the unit is dropped
+        for (size_t u = 0; u + 3 <= line.size(); u++)
+            if (std::tolower((unsigned char)line[u]) == 'm' && std::tolower((unsigned char)line[u + 1]) == 'h' && std::tolower((unsigned char)line[u + 2]) == 'z') line.replace(u, 3, "   ");
+        {   // a single column of frequencies (a RadioReference site listing): channel numbers 1, 2, 3 ... in order
+            std::istringstream one(line);
+            std::string tok, more;
+            if (one >> tok && !(one >> more) && tok.find('.') != std::string::npos) {
+                char* e = nullptr;
+                double f = std::strtod(tok.c_str(), &e);
+                if (!*e) {
+                    if (f < 6000) f *= 1e6;
+                    const int num = ++single;
+                    if (num <= maxNumber && f > 1e6 && f < 6e9) { t_[num] = f; n++; }
+                    else { bad++; if (bad <= 3) msgs += "line " + std::to_string(lineNo) + ": frequency out of range\n"; }
+                    continue;
+                }
+            }
+        }
         std::istringstream w(line);
         std::string a, b;
         bool first = true;
@@ -123,6 +142,9 @@ bool EdacsModel::onFrame(uint32_t m1, uint32_t m2, Grant& g, int* dropLcn, std::
 bool LtrModel::onWord(int area, int gotoCh, int home, int id, int freeCh, double now, Grant& g, int* endedTg) {
     (void)now;
     if (endedTg) *endedTg = -1;
+    const int64_t key = ((((int64_t)area * 32 + gotoCh) * 32 + home) * 256 + id) * 32 + freeCh;
+    const bool repeated = key == last_;
+    last_ = key;
     if (!ltr::isCallId(id) || home < 1 || home > 20) return false;
     if (gotoCh == ltr::kTurnOff) { if (endedTg) *endedTg = ltr::tgNumber(area, home, id); return false; }
     if (gotoCh < 1 || gotoCh > 20 || freeCh > 20) return false;   // LTRStandardMessageProcessor: a call has go-to 1 - 20, free 0 - 20
@@ -131,6 +153,7 @@ bool LtrModel::onWord(int area, int gotoCh, int home, int id, int freeCh, double
     g.group = true; g.tg = ltr::tgNumber(area, home, id); g.channel = gotoCh; g.freqHz = repeaters.freq(gotoCh); g.slot = -1;
     g.explicitUpdate = true;   // every word repeats: a running call is only refreshed
     g.label = ltr::tgText(g.tg);
+    g.noPreempt = !repeated;
     n_++;
     return true;
 }
@@ -138,6 +161,9 @@ bool LtrModel::onWord(int area, int gotoCh, int home, int id, int freeCh, double
 bool LtrModel::onPassport(int dcc, int lcn, int site, int group, int type, int freeCh, double now, Grant& g, int* endedTg) {
     (void)now;
     if (endedTg) *endedTg = -1;
+    const int64_t key = (((((int64_t)1 << 40) | ((int64_t)dcc << 38)) | ((int64_t)lcn << 27) | ((int64_t)site << 20)) ^ ((int64_t)group << 4) ^ type) * 2048 + freeCh;
+    const bool repeated = key == last_;
+    last_ = key;
     ltr::PassportWord p;
     p.dcc = dcc; p.lcn = lcn; p.site = site; p.group = group; p.type = type; p.freeCh = freeCh;
     const ltr::PassportKind k = ltr::passportKind(p);
@@ -153,8 +179,53 @@ bool LtrModel::onPassport(int dcc, int lcn, int site, int group, int type, int f
     g.dataCall = k == ltr::PassportKind::Data;
     g.explicitUpdate = true;
     g.label = std::to_string(group);
+    g.noPreempt = !repeated;
     n_++;
     return true;
+}
+
+std::vector<CoverageGroup> planCoverage(std::vector<double> f, double span, double mainOff, double guard) {
+    std::sort(f.begin(), f.end());
+    f.erase(std::unique(f.begin(), f.end(), [](double a, double b) { return std::fabs(a - b) < 1; }), f.end());
+    const double half = std::max(0.0, span / 2 - guard);
+    auto inside = [&](double x, double mainHz) { return std::fabs(x - (mainHz - mainOff)) <= half + 1; };
+    std::vector<CoverageGroup> out;
+    size_t i = 0;
+    while (i < f.size()) {
+        // the lowest repeater left must be in the group; the main channel is the one whose capture holds the most repeaters from it up
+        size_t best = i, bestEnd = i + 1;
+        for (size_t m = i; m < f.size() && f[m] - f[i] <= 2 * half + std::fabs(mainOff) + 1; m++) {
+            if (!inside(f[i], f[m])) continue;
+            size_t e = i;
+            while (e < f.size() && inside(f[e], f[m])) e++;
+            if (e > bestEnd || (e == bestEnd && m == i)) { best = m; bestEnd = e; }
+        }
+        CoverageGroup g;
+        g.mainHz = f[best];
+        for (size_t k = i; k < bestEnd; k++) if (k != best) g.others.push_back(f[k]);
+        out.push_back(g);
+        i = bestEnd;
+    }
+    return out;
+}
+
+void LtrSweep::setPlan(const std::vector<CoverageGroup>& g) {
+    bool same = g.size() == plan_.size();
+    for (size_t i = 0; same && i < g.size(); i++) same = g[i].mainHz == plan_[i].mainHz && g[i].others == plan_[i].others;
+    if (same) return;
+    plan_ = g;
+    idx_ = -1;
+    since_ = -1e9;
+}
+
+int LtrSweep::step(double now, bool active, bool following) {
+    if (plan_.empty()) return -1;
+    if (idx_ < 0) { idx_ = 0; since_ = now; return 0; }
+    if (following || active) { since_ = now; return -1; }   // a busy group keeps the receiver: it stops on the active one
+    if (plan_.size() < 2 || now - since_ < dwellSec) return -1;
+    idx_ = (idx_ + 1) % (int)plan_.size();
+    since_ = now;
+    return idx_;
 }
 
 // ------------------------------------------------------------------------------------------------ MPT 1327
@@ -203,6 +274,7 @@ bool MptModel::onMessage(const std::string& type, int pfix, int ident, int calle
 // ------------------------------------------------------------------------------------------------ controller
 
 void Controller::onEdacs(uint32_t m1, uint32_t m2, double now) {
+    adopt(SysKind::Edacs);
     onControlSeen(now);
     Grant g;
     int drop = -1;
@@ -212,6 +284,7 @@ void Controller::onEdacs(uint32_t m1, uint32_t m2, double now) {
 }
 
 void Controller::onLtr(int area, int gotoCh, int home, int id, int freeCh, double now) {
+    adopt(SysKind::Ltr);
     onControlSeen(now);
     Grant g;
     int ended = -1;
@@ -221,6 +294,7 @@ void Controller::onLtr(int area, int gotoCh, int home, int id, int freeCh, doubl
 }
 
 void Controller::onPassport(int dcc, int lcn, int site, int group, int type, int freeCh, double now) {
+    adopt(SysKind::Ltr);
     onControlSeen(now);
     Grant g;
     int ended = -1;
@@ -230,6 +304,7 @@ void Controller::onPassport(int dcc, int lcn, int site, int group, int type, int
 }
 
 void Controller::onMpt(const std::string& type, int pfix, int ident, int caller, int channel, bool dataCall, bool traffic, double now) {
+    adopt(SysKind::Mpt1327);
     onControlSeen(now);
     Grant g;
     if (mpt.onMessage(type, pfix, ident, caller, channel, dataCall, traffic, g)) dispatch({g}, now);

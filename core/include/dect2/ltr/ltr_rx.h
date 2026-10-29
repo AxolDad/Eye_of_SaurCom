@@ -8,6 +8,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace dect2 {
 
@@ -32,6 +33,9 @@ public:
     void setMuted(bool m);
     void setSilent(bool s);
     void setAudioTap(std::function<void(const float* mono48k, size_t n)> cb);   // tests
+    // Also decode the subaudible words of these other channels inside the capture (offsets from the radio's centre, like setSignalOffset):
+    // every repeater of an LTR system the radio's bandwidth covers is watched at once. Their words come in the same telemetry, tagged by hz.
+    void setWatch(const std::vector<double>& offsetsHz);
 private:
     struct Impl;
     std::unique_ptr<Impl> p_;

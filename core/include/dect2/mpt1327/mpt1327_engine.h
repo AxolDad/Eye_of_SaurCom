@@ -37,7 +37,8 @@ struct MptMsgRec {
 
 struct MptChannelRow {
     int channel = 0;
-    bool controlChannel = false;   // announced by a BCAST (as a control channel of a system), otherwise allocated by a GTC
+    bool controlChannel = false;   // announced by BCAST SYSDEF 0 (a control channel of this site); adjacent sites are not counted
+    bool own = false;              // a control channel whose low 4 bits match the Aloha's CHAN4: the channel this receiver is on
     uint32_t count = 0;            // times seen
     double lastT = 0;
     std::string called, caller;    // of the last GTC for it

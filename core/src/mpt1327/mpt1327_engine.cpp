@@ -39,6 +39,7 @@ struct MptReceiver::Impl {
     uint64_t seenMessages = 0;
     MptTelemetry snap;
     std::map<int, MptChannelRow> chans;
+    int ownChan4 = -1;                     // the Aloha's CHAN4: low 4 bits of this control channel's number
     std::function<void(const std::string&)> log;
 
     void emit(const std::string& s) { if (log) log(s); }
@@ -51,6 +52,7 @@ struct MptReceiver::Impl {
         powSum = 0; powN = 0;
         seenMessages = 0;
         chans.clear();
+        ownChan4 = -1;
         snap = MptTelemetry();
         snap.seq = seq;
         snap.inputRate = rate;
@@ -64,6 +66,7 @@ struct MptReceiver::Impl {
         audio.clear(); hz.clear();
         const mpt1327::Stats& st = dec.stats();
         for (const mpt1327::Event& e : dec.takeEvents()) {
+            if (!e.traffic && e.msg.chan4 >= 0) ownChan4 = e.msg.chan4;
             MptMessageRow r;
             r.t = e.t;
             r.type = e.msg.type;
@@ -89,11 +92,11 @@ struct MptReceiver::Impl {
                 c.count++;
                 c.lastT = e.t;
                 if (e.msg.type == "GTC") { c.called = r.called; c.caller = r.caller; }
-                else c.controlChannel = true;
+                else if (e.msg.type == "BCAST" && e.msg.sysdef == 0) c.controlChannel = true;   // never an adjacent site's (SYSDEF 4)
             }
         }
         snap.channels.clear();
-        for (const auto& kv : chans) snap.channels.push_back(kv.second);
+        for (auto& kv : chans) { kv.second.own = kv.second.controlChannel && ownChan4 >= 0 && (kv.second.channel & 15) == ownChan4; snap.channels.push_back(kv.second); }
         snap.good = st.good;
         snap.bad = st.bad;
         snap.messages = st.messages;

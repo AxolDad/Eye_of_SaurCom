@@ -57,7 +57,7 @@ void AnalogVoice::push(const float* hz, size_t n) {
     st_.enabled = en;
     const double step = rate_ / 48000.0;   // input samples per output sample
     for (size_t i = 0; i < n; i++) {
-        const double x = hz[i];
+        const double x = std::isfinite(hz[i]) ? hz[i] : 0.0;   // a NaN would stay in the filters and open the squelch
         const double h = hf_[1].run(hf_[0].run(x));
         noisePow_ += noiseA_ * (h * h - noisePow_);
         double v = lp_[1].run(lp_[0].run(hp_[1].run(hp_[0].run(x))));

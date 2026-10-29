@@ -35,7 +35,7 @@ struct Grant {
     int tg = -1, src = -1;       // talkgroup (or called unit), calling unit
     int channel = -1;            // P25: identifier + channel; DMR: the logical channel number
     double freqHz = 0;           // 0 when the identifier update / channel table for it is not known yet
-    int slot = 0;                // TDMA (P25 Phase 2 channel type or DMR): 0 or 1; -1 not TDMA
+    int slot = -1;               // TDMA (P25 Phase 2 channel type or DMR): 0 or 1; -1 not TDMA
     bool tdma = false;
     bool emergency = false;
     bool encrypted = false;      // reported only
@@ -44,6 +44,7 @@ struct Grant {
     bool explicitUpdate = false; // came from an update message (a repeat of a running call), not a new grant
     bool provoice = false;       // EDACS: the call is ProVoice (digital voice): logged, no decoder for it
     bool dataCall = false;       // MPT 1327: a data call (no speech)
+    bool noPreempt = false;      // LTR / Passport: a word seen once only: it may start a call on a free radio, never take one from a running call
     std::string label;           // the talkgroup as the system writes it (EDACS AFS "02-071", LTR "0-05-123", MPT 1327 "5/1234"); empty: the number
 };
 
@@ -140,6 +141,7 @@ struct CallRecord {
     bool dmr = false, group = true;
     int tg = -1, src = -1;
     int channel = -1; double freqHz = 0; int slot = -1;
+    bool p25p2 = false;          // a P25 Phase 2 (TDMA) call: its voice is AMBE+2, not IMBE
     bool emergency = false, encrypted = false;
     SysKind kind = SysKind::P25;
     std::string label;           // the talkgroup as the system writes it (empty: the number)
@@ -337,6 +339,7 @@ private:
 
 // LTR: the subaudible words into calls. A word (area, go-to, home, id, free) with an id of a call says that talkgroup area-home-id talks
 // on repeater go-to; the turn-off word (go-to 31) ends it. Only words whose checksum matched get here (SDRTrunk CRCLTR, ltr_proto.h).
+// A word seen once may start a call on a free radio; it takes a radio from a running call only when the next word repeats it.
 // Passport: a call word (type 0 / 2, or 1 with an LCN below 1792) puts the 16-bit group on that LCN; type 1 with LCN 2047 ends it. The LCN
 // becomes a frequency through the user's table, or else the site's band from the idle words (base + LCN x 12.5 kHz, SDRTrunk PassportBand).
 class LtrModel {
@@ -347,10 +350,37 @@ public:
     bool onPassport(int dcc, int lcn, int site, int group, int type, int freeCh, double now, Grant& g, int* endedTg);
     int passportBand() const { return band_; }
     uint64_t grants() const { return n_; }
-    void reset() { band_ = -1; }
+    void reset() { band_ = -1; last_ = -1; }
 private:
     int band_ = -1;
+    int64_t last_ = -1;          // the previous word (its fields as one key): a grant seen on two consecutive words may preempt
     uint64_t n_ = 0;
+};
+
+// LTR coverage. LTR has no control channel: a repeater sends its words only while it is busy. So every repeater of the system is watched:
+// those inside the radio's capture at once (LtrReceiver::setWatch), and when they do not all fit, the capture sweeps through groups of
+// them, dwelling long enough for a few words (one every 0.17 s) on each and staying while one of the group is busy.
+struct CoverageGroup {
+    double mainHz = 0;                 // the channel the receiver decodes (the radio's centre is mainHz - mainOffsetHz)
+    std::vector<double> others;        // the other repeaters inside that capture
+};
+// freqs: the repeaters; a channel is inside when it is within spanHz / 2 - guardHz of the radio's centre
+std::vector<CoverageGroup> planCoverage(std::vector<double> freqs, double spanHz, double mainOffsetHz, double guardHz = 15000);
+
+class LtrSweep {
+public:
+    double dwellSec = 1.2;             // on a quiet group (about 7 words' time)
+    void setPlan(const std::vector<CoverageGroup>& g);
+    const std::vector<CoverageGroup>& plan() const { return plan_; }
+    // the group to tune to now, or -1 to stay where it is. active: a repeater of the current group sent a good word just now;
+    // following: the receiver is on a call (it does not move then)
+    int step(double now, bool active, bool following);
+    int current() const { return idx_; }
+    bool sweeping() const { return plan_.size() > 1; }
+private:
+    std::vector<CoverageGroup> plan_;
+    int idx_ = -1;
+    double since_ = -1e9;
 };
 
 // MPT 1327: GTC (go to channel) on the control channel into grants. The called address (prefix / ident) is the talkgroup, the caller's
@@ -402,6 +432,12 @@ public:
     void onPassport(int dcc, int lcn, int site, int group, int type, int freeCh, double nowSec);   // one Passport word
     void onMpt(const std::string& type, int calledPfix, int calledIdent, int callerIdent, int channel, bool dataCall, bool traffic, double nowSec);
     void onControlSeen(double nowSec);   // a good control channel message that is not a grant (keeps the follower's control lock)
+    // One talkgroup list per system: tgs is the list of the system being followed (LTR 3017, EDACS 3017 and P25 3017 are not the same
+    // talkgroup). Each system's messages select its list; the first system seen keeps the list that was there.
+    void selectSystem(SysKind k);
+    SysKind system() const { return cur_; }
+    bool systemChosen() const { return curSet_; }
+    TalkgroupList& listOf(SysKind k) { return k == cur_ ? tgs : others_[k]; }
     void setCapture(double centerHz, double spanHz) { follower.setCapture(centerHz, spanHz); }
     void tick(double nowSec);
     std::vector<Action> takeActions() { return follower.takeActions(); }
@@ -412,6 +448,11 @@ public:
     void dropVoiceRadio(int k, const char* why) { follower.dropVoiceRadio(k, why); follower.endDropped(log); }
     void endVoiceCalls(const char* why) { follower.endVoiceCalls(log, why); }
     ControllerStatus status(double nowSec) const;
+    // P25 Phase 2 bursts are scrambled with WACN, system and NAC: a Phase 2 grant waits (at most 3 s) until all three are known
+    bool phase2Ready() const { const SiteInfo& s = sys.site(); return s.wacn >= 0 && s.sysId >= 0 && s.nac >= 0; }
+    size_t phase2Waiting() const { return p2Pending_.size(); }
+    // goes up each time the known WACN / system / NAC change: a radio on a Phase 2 call is seeded again
+    uint64_t phase2SeedGen() const { return p2Gen_; }
     std::vector<std::string> messages;   // newest last, at most 200
     void clear();
 
@@ -421,6 +462,14 @@ public:
 private:
     uint64_t good_ = 0, bad_ = 0;
     double lastGood_ = -1e9;
+    SysKind cur_ = SysKind::P25;
+    bool curSet_ = false;
+    std::map<SysKind, TalkgroupList> others_;   // the lists of the systems not followed now
+    void adopt(SysKind k) { if (!curSet_) { cur_ = k; curSet_ = true; } else if (k != cur_) selectSystem(k); }
+    struct P2Pending { Grant g; double t; };
+    std::vector<P2Pending> p2Pending_;
+    uint64_t p2Gen_ = 0;
+    int p2Wacn_ = -1, p2Sys_ = -1, p2Nac_ = -1;
     void pushMsg(const std::string& s);
     void dispatch(const std::vector<Grant>& gs, double now);
 };

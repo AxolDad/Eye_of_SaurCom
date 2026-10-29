@@ -3477,17 +3477,20 @@ Load file	Įkelti failą
 The formula gives every channel; list here only the channels that do not follow it.	Formulė duoda kiekvieną kanalą; čia nurodykite tik kanalus, kurie jos nesilaiko.
 EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: pokalbiai priskiriami loginiams kanalų numeriams (LCN 1-31).
 Narrowband (EDACS NB, 4800 bit/s)	Siaura juosta (EDACS NB, 4800 bit/s)
-LTR has no control channel: start this receiver on a busy repeater of the system (the home repeater of the talkgroups you follow). The data under its voice says which repeater each call is on.	LTR neturi valdymo kanalo: paleiskite šį imtuvą ant užimto sistemos retransliatoriaus (sekamų pokalbių grupių namų retransliatoriaus). Duomenys po jo balsu nurodo, kuriame retransliatoriuje vyksta kiekvienas pokalbis.
+LTR has no control channel: each repeater sends its data only while it is busy. Every repeater in your list that fits in the radio's bandwidth is watched at once; when they do not all fit, the radio sweeps through them.	LTR neturi valdymo kanalo: kiekvienas kartotuvas siunčia duomenis tik kai yra užimtas. Visi jūsų sąrašo kartotuvai, telpantys į radijo juostos plotį, stebimi vienu metu; jei visi netelpa, radijas juos apeina paeiliui.
+List the system's repeaters above: each one is watched for calls.	Aukščiau išvardykite sistemos kartotuvus: kiekvienas stebimas dėl pokalbių.
+Sweeping %d repeaters: %d at a time, group %d of %d	Apeinami %d kartotuvai: po %d vienu metu, grupė %d iš %d
+Watching %d of %d repeaters	Stebima %d iš %d kartotuvų
 Message set	Pranešimų rinkinys
 Standard / networked	Standartinis / tinklinis
 Extended addressing (EA)	Išplėstinis adresavimas (EA)
 No call assignment understood yet: if calls are being made, try the other message set or ESK.	Dar nesuprastas nė vienas pokalbio priskyrimas: jei kalbama, išbandykite kitą pranešimų rinkinį arba ESK.
 Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: aukščiau esantis sąrašas priima vietos kanalų numerius (LCN). Sąraše nesantys kanalai apskaičiuojami iš vietos juostos, kai tik laisvumo žodis pasako, kuri tai juosta.
-MPT 1327: channel n is on base + n x spacing; list the channels that are not.	MPT 1327: kanalas n yra ties baze + n x žingsniu; nurodykite kanalus, kurie ten nėra.
+MPT 1327: channel n is on channel 1 + (n - 1) x spacing; list the channels that are not.	MPT 1327: kanalas n yra ties 1 kanalu + (n - 1) x žingsnis; išvardykite kanalus, kuriems tai netinka.
 Group idents (from, to)	Grupių identai (nuo, iki)
 MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 nenurodo, ar identas yra grupė, ar radijo stotis: tai nustato jūsų sistemos parko planas. Skambučiai šio intervalo identams registruojami kaip grupiniai, kiti – kaip skambučiai vienai stočiai.
-base MHz	bazė MHz
+channel 1 MHz	1 kanalas MHz
 spacing kHz	žingsnis kHz
 The base was worked out from the control channel's broadcast of its own number: check it.	Bazė apskaičiuota iš valdymo kanalo savo numerio transliacijos: patikrinkite.
-Enter the base frequency (channel 0) of your system, or list its channels below.	Įveskite sistemos bazinį dažnį (kanalas 0) arba žemiau nurodykite jos kanalus.
+Enter the channel 1 frequency of your system, or list its channels below.	Įveskite savo sistemos 1 kanalo dažnį arba žemiau išvardykite jos kanalus.
 A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	Magistralinės sistemos valdymo kanalas (P25, DMR Tier III, NXDN Type C, EDACS, LTR arba MPT 1327): skeneris seka jo pokalbius\nsu sekimo pokalbių grupių sąrašu ir kanalų lentelėmis ir eina toliau, jei per laukimo laiką pokalbio nebuvo

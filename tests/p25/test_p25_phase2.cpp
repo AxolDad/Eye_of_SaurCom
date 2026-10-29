@@ -230,6 +230,15 @@ int main() {
         burstBuild(kSacch, nullptr, nullptr, macWithUser(kMacActive, 700001, 5005, 0, false), scr.bits(11), dib);
         burstParse(dib, scr.bits(11), b);
         CHECK(b.macOk && b.mac.msgOpcode == 2 && b.mac.tg == 700001 && !b.mac.group, "MAC_ACTIVE unit to unit voice channel user");
+        {   // the voice channel user message after other MAC messages (OP25 decode_mac_msg walks the list by mac_msg_len)
+            std::vector<uint8_t> v = {(uint8_t)(kMacActive << 5), 0x08, 0x03, 0x00, 0x30, 0, 0, 0, 0, 0};   // null-avoid (3 bytes), then op 0x30 (5 bytes)
+            v.resize(4);
+            v.insert(v.end(), {0x30, 0x11, 0x22, 0x33, 0x44});
+            v.insert(v.end(), {0x01, 0x40, 0x0B, 0xB9, 0x00, 0x13, 0x88});   // group voice channel user: svc 0x40, TG 3001, source 5000
+            MacPdu m;
+            CHECK(macParse(v.data(), (int)v.size(), m) && m.tg == 3001 && m.src == 5000 && m.svcOpts == 0x40 && m.group && m.msgOpcode == 0x30,
+                  "the voice channel user as the third MAC message: tg %d src %d", m.tg, m.src);
+        }
     }
     {   // the encryption sync, with three hexbits wrong
         uint8_t essB[16], essA[28], mi[9] = {9, 8, 7, 6, 5, 4, 3, 2, 1}, mo[9];

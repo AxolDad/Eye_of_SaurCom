@@ -84,7 +84,7 @@ struct MacPdu {
     int svcOpts = 0;             // the voice channel user message's service options (0x80 emergency, 0x40 encrypted)
     int colorCode = -1;          // END_PTT
     uint8_t mi[9] = {};
-    int msgOpcode = -1;          // first MAC message of ACTIVE / IDLE / HANGTIME, -1 none
+    int msgOpcode = -1;          // the first non-null MAC message of ACTIVE / IDLE / HANGTIME, -1 none (all of them are walked for the voice user)
 };
 std::vector<uint8_t> macPtt(int src, int tg, int algId = kAlgClear, int keyId = 0, const uint8_t* mi9 = nullptr);
 std::vector<uint8_t> macEndPtt(int src, int tg, int colorCode);

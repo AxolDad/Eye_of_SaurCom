@@ -60,6 +60,35 @@ int main() {
         feed(c, gen::idenUpTdma(5, 4, 770000000, 12500, 0), 1);   // type 4: four slots
         CHECK(c.sys.channelFreq(0x5001) == 0, "a four-slot channel type is not placed");
     }
+    // ---- Phase 1 against Phase 2 calls; a Phase 2 grant waits for the system identity (the burst scrambling seed)
+    {
+        Controller c;
+        feed(c, gen::idenUp(1, 851006250, 12500, -45000000, 12500), 0);
+        feed(c, gen::idenUpTdma(3, 3, 770000000, 12500, -30000000), 0);
+        c.setVoiceRadios(1);
+        feed(c, gen::grpVGrant(4, 0x1010, 1201, 555), 1.0);   // FDMA: Phase 1, IMBE
+        CHECK(!c.log.records().empty() && !c.log.records().back().p25p2 && c.log.records().back().slot == -1, "a Phase 1 grant is not marked Phase 2 (IMBE)");
+        const size_t n0 = c.log.records().size();
+        feed(c, gen::grpVGrant(4, 0x3005, 1301, 556), 1.1);   // TDMA, but WACN / system / NAC not heard yet
+        CHECK(c.log.records().size() == n0 && c.phase2Waiting() == 1 && !c.phase2Ready(), "a Phase 2 grant before NET_STS waits (%zu records)", c.log.records().size());
+        bool said = false;
+        for (const auto& m : c.messages) said |= m.find("waits for the system ID") != std::string::npos;
+        CHECK(said, "the wait is said in the messages");
+        const uint64_t g0 = c.phase2SeedGen();
+        feed(c, gen::netSts(0xBEE00, 0x3A1, 0x1001, 0x70), 1.5);
+        CHECK(c.phase2Ready() && c.phase2SeedGen() == g0 + 1, "the identity is known");
+        CHECK(c.log.records().size() == n0 + 1 && c.log.records().back().p25p2 && c.log.records().back().slot == 1 && c.log.records().back().tg == 1301,
+              "the held Phase 2 grant is followed once the identity is known");
+        feed(c, gen::netSts(0xBEE00, 0x3A1, 0x1001, 0x70), 2.0);
+        CHECK(c.phase2SeedGen() == g0 + 1, "the same identity does not re-seed");
+        feed(c, gen::netSts(0xBEE01, 0x3A1, 0x1001, 0x70), 2.5);
+        CHECK(c.phase2SeedGen() == g0 + 2, "a changed WACN re-seeds the running Phase 2 radios");
+        Controller d;   // an old held grant is dropped
+        feed(d, gen::idenUpTdma(3, 3, 770000000, 12500, -30000000), 0);
+        feed(d, gen::grpVGrant(4, 0x3005, 1301, 556), 1.0);
+        feed(d, gen::netSts(0xBEE00, 0x3A1, 0x1001, 0x70), 9.0);
+        CHECK(d.log.records().empty(), "a Phase 2 grant held for more than 3 s is dropped");
+    }
     // ---- grants, calls, the follow cycle inside a wide capture
     {
         Controller c;

@@ -39,6 +39,11 @@ int main() {
         ChannelTable v;
         CHECK(v.parse("1=451.0125 2=451.0375, 3=451.0625\n7,452.5,Fire dispatch\n", 4095) == 4 && std::fabs(v.freq(2) - 451037500) < 1 && std::fabs(v.freq(7) - 452500000) < 1,
               "the older LCN=MHz pairs and extra columns");
+        ChannelTable sc;   // a single column of frequencies is channels 1, 2, 3 ...; "MHz" after a number is dropped
+        CHECK(sc.parse("851.0125\n851.5125 MHz\n852.0125MHz\n", 31) == 3 && std::fabs(sc.freq(1) - 851012500) < 1 && std::fabs(sc.freq(2) - 851512500) < 1 &&
+              std::fabs(sc.freq(3) - 852012500) < 1, "single column with units");
+        ChannelTable su;
+        CHECK(su.parse("1,851.0125 MHz\n2,851.5125MHz\n", 31) == 2 && std::fabs(su.freq(2) - 851512500) < 1, "pairs with units");
         ChannelTable u;
         CHECK(u.parse(t.csv(), 31) == 4 && std::fabs(u.freq(3) - 852012500) < 1, "the table round trips through its CSV");
         u.setFormula(160e6, 12500);
@@ -128,6 +133,75 @@ int main() {
         c.onLtr(0, 5, 3, 255, 2, 1.3);   // idle
         c.onLtr(0, 5, 3, 40, 25, 1.4);   // free 25 is out of range (LTRStandardMessageProcessor): no call
         CHECK(c.log.records().size() == 2, "ids 254 / 255 and a bad free channel are no calls (%zu records)", c.log.records().size());
+    }
+    // ---------------------------------------------------------------- LTR: a word seen once does not take a busy radio
+    {
+        Controller c;
+        c.follower.setConfig(fc);
+        c.ltr.repeaters.parse("1,460.0125\n2,460.0375\n5,460.1125\n", 20);
+        c.setCapture(460.0125e6, 0);
+        c.setVoiceRadios(1);
+        c.tgs.upsert(ltr::tgNumber(0, 3, 17)).priority = 5;
+        c.tgs.upsert(ltr::tgNumber(0, 3, 18)).priority = 1;
+        c.onLtr(0, 5, 3, 17, 2, 0.0);   // once, the radio is free: it starts
+        CHECK(c.log.records().size() == 1 && count(c.takeActions(), Action::Retune) == 1, "a single word starts a call on a free radio");
+        c.onLtr(0, 2, 3, 18, 1, 0.2);   // a higher priority talkgroup, once: it must not take the busy radio
+        CHECK(c.log.records().size() == 1 && count(c.takeActions(), Action::Retune) == 0 && last(c)->active && last(c)->tg == ltr::tgNumber(0, 3, 17),
+              "a single word does not preempt (%zu calls)", c.log.records().size());
+        c.onLtr(0, 2, 3, 18, 1, 0.4);   // the next word repeats it: confirmed, it preempts
+        auto a = c.takeActions();
+        CHECK(c.log.records().size() == 2 && last(c)->tg == ltr::tgNumber(0, 3, 18) && count(a, Action::Retune) == 1, "two consecutive words preempt");
+        c.onPassport(0, 100, 9, 4000, 0, 81, 0.6);   // Passport works the same way: once, the radio busy
+        CHECK(c.log.records().size() == 2, "a single Passport word does not preempt");
+    }
+    // ---------------------------------------------------------------- one talkgroup list per system; native talkgroup forms in CSV
+    {
+        Controller c;
+        c.selectSystem(SysKind::P25);
+        c.tgs.upsert(3017).lockout = true;      // P25 talkgroup 3017
+        c.selectSystem(SysKind::Ltr);
+        CHECK(c.tgs.find(3017) == nullptr, "the LTR list does not have P25's 3017");
+        c.ltr.repeaters.parse("3,460.0625\n", 20);
+        c.setVoiceRadios(1);
+        c.onLtr(0, 3, 3, 17, 2, 0.0);           // LTR 0-03-017 is 3017 too: not locked out
+        CHECK(!c.log.records().empty() && c.log.records().back().followed, "LTR 3017 is not P25's locked-out 3017");
+        c.selectSystem(SysKind::P25);
+        CHECK(c.tgs.find(3017) && c.tgs.find(3017)->lockout, "back on P25 its list is there");
+        c.onEdacs(0, 0, 0.1);                   // an EDACS frame selects the EDACS list
+        CHECK(c.system() == SysKind::Edacs && c.tgs.find(3017) == nullptr, "EDACS has its own list");
+        TalkgroupList l;
+        std::string err; int sk = 0;
+        const int n = l.importCsv("Decimal,Alpha Tag\n0-03-017,LTR one\n05-045,EDACS AFS\n5/1234,MPT unit\n1201,P25\nx-y,bad\n", &err, &sk, false);
+        CHECK(n == 4 && sk == 1 && l.find(3017) && l.find((5 << 7) | (4 << 3) | 5) && l.find(5 * 8192 + 1234) && l.find(1201),
+              "native forms: %d read, %d skipped (%s)", n, sk, err.c_str());
+    }
+    // ---------------------------------------------------------------- LTR coverage: watch what fits, sweep the rest
+    {
+        // five repeaters within 100 kHz: one capture of 400 kHz holds them all
+        std::vector<double> f = {460.0125e6, 460.0375e6, 460.0625e6, 460.0875e6, 460.1125e6};
+        auto p = planCoverage(f, 400e3, 50e3);
+        CHECK(p.size() == 1 && p[0].others.size() == 4, "five close repeaters: %zu groups", p.size());
+        // twelve repeaters over 5 MHz: groups, every repeater in exactly one, each inside its capture
+        std::vector<double> g;
+        for (int i = 0; i < 12; i++) g.push_back(460.0e6 + i * 450e3);
+        p = planCoverage(g, 400e3, 50e3);
+        size_t total = 0; bool inside = true;
+        for (const auto& x : p) { total += 1 + x.others.size(); for (double o : x.others) inside &= std::fabs(o - (x.mainHz - 50e3)) <= 185e3 + 1; }
+        CHECK(p.size() == 12 && total == 12 && inside, "twelve spread repeaters: %zu groups, %zu repeaters", p.size(), total);
+        std::vector<double> h = {460.0e6, 460.1e6, 461.0e6, 461.05e6, 462.0e6};
+        p = planCoverage(h, 400e3, 0);
+        total = 0; for (const auto& x : p) total += 1 + x.others.size();
+        CHECK(p.size() == 3 && total == 5, "three clusters: %zu groups", p.size());
+        LtrSweep sw;
+        sw.setPlan(p);
+        CHECK(sw.sweeping() && sw.step(0.0, false, false) == 0, "the sweep starts on group 0");
+        CHECK(sw.step(0.5, false, false) == -1 && sw.step(1.3, false, false) == 1, "a quiet group is left after the dwell");
+        CHECK(sw.step(2.0, true, false) == -1 && sw.step(3.0, true, false) == -1 && sw.step(3.5, false, false) == -1, "a busy group keeps the receiver");
+        CHECK(sw.step(4.3, false, false) == 2 && sw.step(5.0, false, true) == -1 && sw.step(9.0, false, true) == -1, "on a call it does not move");
+        CHECK(sw.step(10.5, false, false) == 0, "it wraps round");
+        LtrSweep one;
+        one.setPlan(planCoverage(f, 400e3, 50e3));
+        CHECK(!one.sweeping() && one.step(0, false, false) == 0 && one.step(5, false, false) == -1, "all inside one capture: no sweep");
     }
     // ---------------------------------------------------------------- Passport
     {

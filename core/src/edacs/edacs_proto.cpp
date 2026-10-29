@@ -1,4 +1,5 @@
-// EDACS frame, BCH(40,28), majority vote, messages and test signals, derived from dsd-fme (ISC licence; edacs_proto.h names the files).
+// EDACS frame, BCH(40,28), majority vote, messages and test signals. Message layouts after DSD-FME edacs-fme.c (ISC); the BCH and the vote
+// are an independent implementation (see edacs_proto.h).
 #include "dect2/edacs/edacs_proto.h"
 #include <cmath>
 #include <cstdio>
@@ -6,10 +7,10 @@
 
 namespace dect2::edacs {
 
-// ------------------------------------------------------------------------------------------------ BCH (dsd-fme src/edacs-bch3.c)
+// ------------------------------------------------------------------------------------------------ BCH (independent: Lin and Costello)
 
 uint32_t bchGenerator() {
-    // gen_poly() of edacs-bch3.c: GF(2^6) from x^6 + x + 1, t = 2: the product of (x - alpha^j) over the cyclotomic cosets of 1 .. 2t
+    // the textbook generator: GF(2^6) from x^6 + x + 1, t = 2: the product of (x - alpha^j) over the cyclotomic cosets of 1 .. 2t
     static const uint32_t g = [] {
         int exp[63], x = 1;
         for (int i = 0; i < 63; i++) { exp[i] = x; x <<= 1; if (x & 64) x ^= 0x43; }
@@ -88,7 +89,7 @@ std::vector<uint8_t> encodeFrame(uint32_t msgA, uint32_t msgB) {
     return b;
 }
 
-uint64_t vote(const uint8_t* b, int& dis) {   // dsd-fme edacsVoteFr
+uint64_t vote(const uint8_t* b, int& dis) {   // bit-by-bit majority of the three copies (the middle one inverted)
     uint64_t v = 0;
     dis = 0;
     for (int i = 0; i < kMsgBits; i++) {

@@ -163,6 +163,7 @@ bool decodeAddress(uint64_t cw, Message& m) {
             if (func == 4) {   // BCAST: SYSDEF in bits 2 .. 6, SYS in bits 7 .. 21 (section 5.5.4.5)
                 const uint32_t sysdef = field(cw, 2, 5);
                 m.sys = (int)field(cw, 7, 15);
+                m.sysdef = (int)sysdef;
                 if (sysdef == 0 || sysdef == 1 || sysdef == 4) {
                     m.channel = (int)field(cw, 31, 10);
                     snprintf(b, sizeof b, "%s, system %d, control channel %d", sysdef == 0 ? "control channel announced" : sysdef == 1 ? "control channel withdrawn" : "adjacent site control channel", m.sys, m.channel);
@@ -190,6 +191,7 @@ bool decodeAddress(uint64_t cw, Message& m) {
         m.called = {pfix, ident1};
         if (type == 0) {
             m.type = kAloha[func];
+            m.chan4 = (int)field(cw, 31, 4);
             snprintf(b, sizeof b, "%s, control channel (low 4 bits) %u", kAlohaText[func], (unsigned)field(cw, 31, 4));
             m.detail = b;
         } else if (type == 1) {

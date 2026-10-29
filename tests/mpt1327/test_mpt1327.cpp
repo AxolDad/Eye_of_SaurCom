@@ -309,6 +309,11 @@ int main() {
                 if (c.channel == 3 && c.controlChannel) ctl = true;
             }
             CHECK(gtc17 && ctl, "channel table: GTC channel 17 %d, announced control channel 3 %d", (int)gtc17, (int)ctl);
+            // only this site's own control channel counts: BCAST SYSDEF 0 for channel 3, whose low 4 bits match the Aloha's CHAN4 (3);
+            // the adjacent site's control channel 9 (SYSDEF 4) is never taken as a control channel of this site
+            bool adj = false, own3 = false;
+            for (const MptChannelRow& c : t.channels) { if (c.channel == 9 && (c.controlChannel || c.own)) adj = true; if (c.channel == 3 && c.own) own3 = true; }
+            CHECK(own3 && !adj, "own control channel 3 %d, adjacent channel 9 counted %d", (int)own3, (int)adj);
             CHECK(!t.rows.empty() && t.rows[0].type == "GTC" && t.rows[0].called == "5/1234", "first row");
             CHECK(mpt1327Summary(t).find("system 20001") != std::string::npos, "summary: %s", mpt1327Summary(t).c_str());
         }

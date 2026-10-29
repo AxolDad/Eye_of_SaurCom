@@ -62,6 +62,12 @@ struct LtrReceiver::Impl {
     Det det[2] = {{ltr::kWordBits, {}, 0, 0}, {ltr::kPassportBits, {}, 0, 0}};   // 0 LTR, 1 Passport
     double lastGoodSec = -1e9, lastPub = 0, lastLtrSec = -1e9, lastPassSec = -1e9;
     std::map<int, LtrRepeater> rep;
+    uint64_t polCount[2] = {0, 0};   // normal-checksum words heard in each polarity (the outbound one is the larger)
+    std::vector<std::unique_ptr<LtrReceiver>> watch;   // the other repeaters inside the capture
+    std::vector<double> watchOff;
+    std::vector<uint64_t> watchOk;                      // good words of each watched repeater already merged
+    uint64_t mergedSeq = 0;                             // the last watched word merged into tel.words
+    std::map<long long, double> lastWordAt;             // channel (Hz, rounded) -> time of its last good word
 
     double timeSec() const { return (double)n / (kWork / kDecim); }
 
@@ -69,7 +75,7 @@ struct LtrReceiver::Impl {
         fm.reset(); lp[0].clear(); lp[1].clear(); env.clear(); voice.reset();
         n = 0; dcount = 0; for (auto& r : ring) r = 0; for (auto& r : lo) r = 0; for (auto& r : hi) r = 0;
         for (auto& d : det) { d.hits.clear(); d.suppressUntil = d.firstHit = 0; }
-        lastGoodSec = lastLtrSec = lastPassSec = -1e9; lastPub = 0; rep.clear();
+        lastGoodSec = lastLtrSec = lastPassSec = -1e9; lastPub = 0; rep.clear(); polCount[0] = polCount[1] = 0; lastWordAt.clear();
         const uint64_t s = tel.seq;
         tel = LtrTelemetry();
         tel.seq = s + 1; tel.inputRate = fs; tel.centerHz = centreHz; tel.channelHz = centreHz + offHz; tel.state = rateSet ? 1 : 0;
@@ -97,6 +103,7 @@ struct LtrReceiver::Impl {
 
     void addWord(LtrWordRec& wr) {
         wr.seq = ++gWordSeq;
+        lastWordAt[std::llround(wr.hz)] = wr.timeSec;
         tel.words.push_back(wr);
         if (tel.words.size() > kLtrWordMax) tel.words.erase(tel.words.begin(), tel.words.end() - (long)kLtrWordMax);
     }
@@ -106,7 +113,13 @@ struct LtrReceiver::Impl {
         if (!ltr::parseWord(bits, word)) return false;
         tel.syncs++;
         if (env.range() < kMinRangeHz || !eyeOk(h, ltr::kWordBits)) return false;
-        const int c = ltr::checkWord(word);
+        int c = ltr::checkWord(word);
+        // The repeater's outbound words (OSW) carry the normal checksum; SDRTrunk (CRCLTR.check) accepts the inverted one only on an
+        // inbound word (ISW: the whole word inverted, sent by a mobile). The outbound polarity is learned from the normal-checksum words;
+        // an inverted checksum counts only on a word of the other polarity.
+        if (c == 1) polCount[h.inv ? 1 : 0]++;
+        const int osw = polCount[0] == polCount[1] ? -1 : polCount[1] > polCount[0] ? 1 : 0;
+        if (c == 2 && (osw < 0 || (int)h.inv == osw)) c = 0;
         if (c == 0) { if (timeSec() - lastPassSec > 10) tel.blocksBad++; return false; }   // the first 40 bits of a Passport word are no LTR word
         lastLtrSec = timeSec();
         LtrMessage m;
@@ -114,6 +127,7 @@ struct LtrReceiver::Impl {
         m.timeSec = timeSec();
         m.area = word.area; m.gotoCh = word.gotoCh; m.home = word.home; m.id = word.id; m.freeCh = word.freeCh; m.chk = word.chk;
         m.inbound = c == 2;
+        m.hz = centreHz + offHz;
         m.talkgroup = ltr::talkgroup(word);
         // LTRStandardMessageProcessor: go-to 31 ends a call; go-to == free with group 255 is the idle word
         m.kind = word.gotoCh == ltr::kTurnOff ? "call end" : (word.gotoCh == word.freeCh && word.id == 255) ? "idle" : ltr::kindOf(word.id);
@@ -131,6 +145,7 @@ struct LtrReceiver::Impl {
         addMessage(m);
         LtrWordRec wr;
         wr.area = word.area; wr.gotoCh = word.gotoCh; wr.home = word.home; wr.id = word.id; wr.freeCh = word.freeCh; wr.timeSec = m.timeSec;
+        wr.hz = m.hz;
         addWord(wr);
         if (word.gotoCh == ltr::kTurnOff) { tel.turnOffs++; tel.turnOffArea = word.area; tel.turnOffHome = word.home; tel.turnOffId = word.id; }
         if (log) log("LTR " + m.talkgroup + (m.kind.empty() ? "" : " " + m.kind) + (m.inbound ? " (inbound)" : ""));
@@ -148,6 +163,7 @@ struct LtrReceiver::Impl {
         m.wallTime = (int64_t)std::time(nullptr);
         m.timeSec = timeSec();
         m.passport = true;
+        m.hz = centreHz + offHz;
         m.dcc = p.dcc; m.lcn = p.lcn; m.site = p.site; m.group = p.group; m.type = p.type; m.freeCh = p.freeCh; m.chk = p.chk;
         m.kind = ltr::passportKindName(k);
         if (k == ltr::PassportKind::RadioId) m.talkgroup = "radio " + std::to_string(p.radioId());
@@ -156,7 +172,7 @@ struct LtrReceiver::Impl {
         tel.passport = true;
         addMessage(m);
         LtrWordRec wr;
-        wr.passport = true; wr.dcc = p.dcc; wr.lcn = p.lcn; wr.site = p.site; wr.group = p.group; wr.type = p.type; wr.freeCh = p.freeCh; wr.timeSec = m.timeSec;
+        wr.passport = true; wr.hz = m.hz; wr.dcc = p.dcc; wr.lcn = p.lcn; wr.site = p.site; wr.group = p.group; wr.type = p.type; wr.freeCh = p.freeCh; wr.timeSec = m.timeSec;
         addWord(wr);
         if (k == ltr::PassportKind::CallEnd) { tel.turnOffs++; tel.turnOffGroup = p.group; }
         if (log) log("Passport " + m.kind + (m.talkgroup.empty() ? "" : " " + m.talkgroup) + (k == ltr::PassportKind::CallStart ? " LCN " + std::to_string(p.lcn) : ""));
@@ -214,6 +230,9 @@ struct LtrReceiver::Impl {
         tel.snrDb = 0;
         tel.voice = voice.state();
         voice.markReported();
+        tel.watching = 1 + (int)watch.size();
+        tel.busyHz.clear();
+        for (const auto& kv : lastWordAt) if (timeSec() - kv.second < 1.5) tel.busyHz.push_back((double)kv.first);
         tel.seq++;
     }
 };
@@ -230,11 +249,22 @@ void LtrReceiver::configure(double inputRateHz) {
     p_->lp[0].lowpass(150.0, kWork, 0.5412);
     p_->lp[1].lowpass(150.0, kWork, 1.3066);
     p_->clearState();
+    for (auto& w : p_->watch) w->configure(inputRateHz);
+    p_->watchOk.assign(p_->watch.size(), 0);
 }
 void LtrReceiver::setSignalOffset(double hz) { std::lock_guard<std::mutex> lk(p_->mu); p_->offHz = hz; p_->fm.setOffset(hz); p_->tel.channelHz = p_->centreHz + hz; }
-void LtrReceiver::setCenterHz(double hz) { std::lock_guard<std::mutex> lk(p_->mu); p_->centreHz = hz; p_->tel.centerHz = hz; p_->tel.channelHz = hz + p_->offHz; }
+void LtrReceiver::setCenterHz(double hz) {
+    std::lock_guard<std::mutex> lk(p_->mu);
+    p_->centreHz = hz; p_->tel.centerHz = hz; p_->tel.channelHz = hz + p_->offHz;
+    for (auto& w : p_->watch) w->setCenterHz(hz);
+}
 bool LtrReceiver::ready() const { return p_->rateSet; }
-void LtrReceiver::reset() { std::lock_guard<std::mutex> lk(p_->mu); p_->clearState(); }
+void LtrReceiver::reset() {
+    std::lock_guard<std::mutex> lk(p_->mu);
+    p_->clearState();
+    for (auto& w : p_->watch) w->reset();
+    p_->watchOk.assign(p_->watch.size(), 0);
+}
 void LtrReceiver::clearMessages() {
     std::lock_guard<std::mutex> lk(p_->mu);
     p_->tel.messages.clear(); p_->tel.repeaters.clear(); p_->rep.clear(); p_->tel.dataValid = false; p_->tel.seq++;
@@ -250,7 +280,53 @@ void LtrReceiver::feed(const cf32* x, size_t n) {
         const double y = p_->lp[1].run(p_->lp[0].run(d));
         if (++p_->dcount == kDecim) { p_->dcount = 0; p_->sample(y); }
     }
+    // the watched repeaters: their words join this receiver's, in sequence order (the numbers are shared, so the order is the order heard)
+    if (!p_->watch.empty()) {
+        bool added = false;
+        for (auto& w : p_->watch) {
+            w->feed(x, n);
+            LtrTelemetry wt;
+            if (!w->telemetry(wt, 0)) continue;
+            for (const LtrWordRec& r : wt.words) if (r.seq > p_->mergedSeq) {
+                p_->tel.words.push_back(r);
+                p_->lastWordAt[std::llround(r.hz)] = p_->timeSec();
+                added = true;
+            }
+            const size_t k = (size_t)(&w - p_->watch.data());
+            if (wt.blocksOk > p_->watchOk[k]) {   // its newest messages (newest first) since the last merge
+                const size_t fresh = std::min<size_t>((size_t)(wt.blocksOk - p_->watchOk[k]), wt.messages.size());
+                for (size_t i = fresh; i-- > 0;) p_->tel.messages.insert(p_->tel.messages.begin(), wt.messages[i]);
+                p_->tel.blocksOk += wt.blocksOk - p_->watchOk[k];
+                p_->watchOk[k] = wt.blocksOk;
+                p_->tel.dataValid = true;
+                p_->lastGoodSec = p_->timeSec();
+            }
+        }
+        if (added) {
+            std::sort(p_->tel.words.begin(), p_->tel.words.end(), [](const LtrWordRec& a, const LtrWordRec& b) { return a.seq < b.seq; });
+            if (p_->tel.words.size() > kLtrWordMax) p_->tel.words.erase(p_->tel.words.begin(), p_->tel.words.end() - (long)kLtrWordMax);
+            p_->mergedSeq = p_->tel.words.back().seq;
+        }
+        if (p_->tel.messages.size() > kLtrLogMax) p_->tel.messages.resize(kLtrLogMax);
+    }
     if (p_->timeSec() - p_->lastPub >= 0.25) { p_->lastPub = p_->timeSec(); p_->publish(); }
+}
+
+void LtrReceiver::setWatch(const std::vector<double>& offsetsHz) {
+    std::lock_guard<std::mutex> lk(p_->mu);
+    if (offsetsHz == p_->watchOff) return;
+    p_->watchOff = offsetsHz;
+    p_->watch.clear();
+    p_->watchOk.assign(offsetsHz.size(), 0);
+    for (double o : offsetsHz) {
+        auto r = std::make_unique<LtrReceiver>();
+        r->configure(p_->fs);
+        r->setCenterHz(p_->centreHz);
+        r->setSignalOffset(o);
+        r->setVoice(false);
+        r->setSilent(true);
+        p_->watch.push_back(std::move(r));
+    }
 }
 bool LtrReceiver::telemetry(LtrTelemetry& out, uint64_t lastSeq) {
     std::lock_guard<std::mutex> lk(p_->mu);

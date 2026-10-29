@@ -61,26 +61,58 @@ void Controller::dispatch(const std::vector<Grant>& gs, double now) {
     }
 }
 
+void Controller::selectSystem(SysKind k) {
+    if (curSet_ && k == cur_) return;
+    if (curSet_) others_[cur_] = std::move(tgs);
+    auto it = others_.find(k);
+    if (it != others_.end()) { tgs = std::move(it->second); others_.erase(it); } else tgs = TalkgroupList();
+    cur_ = k; curSet_ = true;
+}
+
 void Controller::onTsbk(const p25::Tsbk& t, int nac, double now) {
+    adopt(SysKind::P25);
     good_++;
     lastGood_ = now;
     follower.onControlSeen(now);
     std::vector<Grant> gs;
     pushMsg(sys.onTsbk(t, nac, now, &gs));
     if (sys.site().valid && sys.site().ccHz > 0) follower.setControlChannel(sys.site().ccHz, sys.controlCandidates());
-    dispatch(gs, now);
+    const SiteInfo& si = sys.site();
+    if (phase2Ready() && (si.wacn != p2Wacn_ || si.sysId != p2Sys_ || si.nac != p2Nac_)) { p2Wacn_ = si.wacn; p2Sys_ = si.sysId; p2Nac_ = si.nac; p2Gen_++; }
+    // a Phase 2 grant before the system identity is known would be followed with the wrong scrambling: hold it
+    std::vector<Grant> now_;
+    for (const Grant& g : gs) {
+        if (g.kind == SysKind::P25 && g.tdma && !g.dmr && !phase2Ready()) {
+            bool known = false;
+            for (P2Pending& p : p2Pending_) if (p.g.tg == g.tg && p.g.group == g.group && std::fabs(p.g.freqHz - g.freqHz) < 1 && p.g.slot == g.slot) { p.g = g; p.t = now; known = true; }
+            if (!known) {
+                p2Pending_.push_back({g, now});
+                pushMsg((g.group ? "TG " : "unit ") + std::to_string(g.tg) + ": Phase 2 call waits for the system ID (WACN, system and NAC from NET_STS_BCST)");
+            }
+            continue;
+        }
+        now_.push_back(g);
+    }
+    if (phase2Ready() && !p2Pending_.empty()) {
+        for (const P2Pending& p : p2Pending_) if (now - p.t < 3.0) now_.push_back(p.g);
+        p2Pending_.clear();
+    }
+    for (auto i = p2Pending_.begin(); i != p2Pending_.end();) i = now - i->t > 3.0 ? p2Pending_.erase(i) : std::next(i);
+    dispatch(now_, now);
 }
 
 void Controller::onTsbkBad(double) { bad_++; }
 
 void Controller::onDmrCsbk(int opcode, int fid, const uint8_t data[8], double now) {
     Grant g;
+    adopt(SysKind::Dmr);
     onControlSeen(now);
     if (dmr.onCsbk(opcode, fid, data, now, g)) dispatch({g}, now);
 }
 
 void Controller::onNxdnAssignment(int callType, int src, int dst, int channel, int ccOption, double now) {
     Grant g;
+    adopt(SysKind::Nxdn);
     onControlSeen(now);
     if (nxdn.onAssignment(callType, src, dst, channel, ccOption, g)) dispatch({g}, now);
 }
@@ -117,6 +149,8 @@ void Controller::clear() {
     messages.clear();
     good_ = bad_ = 0;
     lastGood_ = -1e9;
+    p2Pending_.clear();
+    p2Wacn_ = p2Sys_ = p2Nac_ = -1;
 }
 
 } // namespace trunk

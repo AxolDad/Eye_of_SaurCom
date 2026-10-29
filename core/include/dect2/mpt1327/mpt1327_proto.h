@@ -43,6 +43,8 @@ struct Message {
     bool dataCall = false;  // GTC: a data call (the audio is muted), not speech
     int oper = -1;          // MAINT: OPER (0 pressel on, 1 pressel off, 2 periodic, 3 disconnect, 4 spare, 5 reserved, 6 clear down others, 7 disable)
     int cont = -1;          // CLEAR: the control channel to go back to (0: system-dependent)
+    int sysdef = -1;        // BCAST: SYSDEF (0 announce control channel, 1 withdraw, 2 / 3 parameters, 4 adjacent site, 5 vote now)
+    int chan4 = -1;         // ALH: the low 4 bits of this control channel's own number (section 5.5.1)
     uint64_t cw = 0;
 };
 // MAINT's OPER: 3 (disconnect, end of channel use) ends the call on the channel; 6 / 7 are the TSC's selective clear down and disable

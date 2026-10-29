@@ -20,6 +20,7 @@ struct LtrMessage {
     bool inbound = false;                                      // LTR: the inverted checksum matched (an inbound word from a mobile)
     std::string talkgroup;                                     // LTR A-HH-GGG; Passport the group number
     std::string kind;                                          // LTR: idle, call end, callsign ID, busy, token or empty; Passport: its message type
+    double hz = 0;                                             // the channel it was heard on
 };
 
 // One word for the trunking follower: the sequence number is unique across receivers (the follower remembers the last one taken)
@@ -29,6 +30,7 @@ struct LtrWordRec {
     int area = 0, gotoCh = 0, home = 0, id = 0, freeCh = 0;
     int dcc = 0, lcn = 0, site = 0, group = 0, type = 0;   // Passport
     double timeSec = 0;
+    double hz = 0;                 // the channel it was heard on (the main one, or a repeater watched inside the capture)
 };
 
 struct LtrRepeater {
@@ -58,6 +60,8 @@ struct LtrTelemetry {
     int turnOffGroup = -1;                  // Passport: the group of the last call end word
     double channelHz = 0;                   // the channel decoded (the radio's centre + the offset)
     AnalogVoiceState voice;
+    int watching = 1;                       // channels decoded at once: the main one plus the repeaters watched inside the capture
+    std::vector<double> busyHz;             // channels with a good word in the last 1.5 s (the main one included)
 };
 
 constexpr size_t kLtrWordMax = 96;

@@ -211,6 +211,59 @@ int main() {
         CHECK(t.blocksOk == 0, "noise only: %llu good words", (unsigned long long)t.blocksOk);
         std::printf("noise only: good %llu bad %llu\n", (unsigned long long)t.blocksOk, (unsigned long long)t.blocksBad);
     }
+    {   // two other repeaters inside the capture are watched at the same time as the main channel
+        std::vector<ltr::Word> w1(1), w2(1), w3(1);
+        w1[0].gotoCh = 1; w1[0].home = 1; w1[0].id = 11; w1[0].freeCh = 3;
+        w2[0].gotoCh = 2; w2[0].home = 2; w2[0].id = 22; w2[0].freeCh = 3;
+        w3[0].gotoCh = 4; w3[0].home = 4; w3[0].id = 44; w3[0].freeCh = 3;
+        const auto s1 = ltr::modulate(stream(w1, 6), fs, off, 600.0, 0.3f, 1000.0, 1500.0);
+        const auto s2 = ltr::modulate(stream(w2, 6), fs, off + 100000, 600.0, 0.3f, 1200.0, 1500.0);
+        const auto s3 = ltr::modulate(stream(w3, 6), fs, off - 120000, 600.0, 0.3f);
+        std::vector<cf32> sum(std::max({s1.size(), s2.size(), s3.size()}), cf32(0, 0));
+        for (size_t i = 0; i < s1.size(); i++) sum[i] += s1[i];
+        for (size_t i = 0; i < s2.size(); i++) sum[i] += s2[i];
+        for (size_t i = 0; i < s3.size(); i++) sum[i] += s3[i];
+        LtrReceiver rx;
+        rx.configure(fs);
+        rx.setCenterHz(460e6);
+        rx.setSignalOffset(off);
+        rx.setWatch({off + 100000, off - 120000});
+        for (size_t i = 0; i < sum.size() + (size_t)(fs * 0.3); i += 4096) {
+            std::vector<cf32> blk(4096, cf32(0, 0));
+            for (size_t k = 0; k < 4096 && i + k < sum.size(); k++) blk[k] = sum[i + k];
+            rx.feed(blk.data(), blk.size());
+        }
+        LtrTelemetry t;
+        rx.telemetry(t, 0);
+        int n1 = 0, n2 = 0, n3 = 0;
+        uint64_t prev = 0; bool ordered = true;
+        for (const auto& r : t.words) {
+            ordered &= r.seq > prev; prev = r.seq;
+            if (r.id == 11 && std::fabs(r.hz - (460e6 + off)) < 1) n1++;
+            if (r.id == 22 && std::fabs(r.hz - (460e6 + off + 100000)) < 1) n2++;
+            if (r.id == 44 && std::fabs(r.hz - (460e6 + off - 120000)) < 1) n3++;
+        }
+        CHECK(n1 >= 5 && n2 >= 5 && n3 >= 5 && ordered && t.watching == 3, "watched: main %d, +100 kHz %d, -120 kHz %d, ordered %d, watching %d", n1, n2, n3, (int)ordered, t.watching);
+        std::printf("watch: main %d, +100 kHz %d, -120 kHz %d words\n", n1, n2, n3);
+    }
+    {   // an inverted checksum counts only on an inbound word (the other polarity than the repeater's outbound words), as SDRTrunk's CRCLTR
+        std::vector<uint8_t> b2;
+        for (int i = 0; i < 40; i++) b2.push_back((uint8_t)(i & 1));
+        auto add = [&](std::vector<uint8_t> e) { b2.insert(b2.end(), e.begin(), e.end()); for (int i = 0; i < 12; i++) b2.push_back((uint8_t)(i & 1)); };
+        ltr::Word o; o.gotoCh = 4; o.home = 4; o.id = 40; o.freeCh = 6;
+        for (int k = 0; k < 4; k++) add(ltr::encodeWord(o));                            // outbound words: the polarity is learned
+        ltr::Word x; x.gotoCh = 7; x.home = 7; x.id = 71; x.freeCh = 6;
+        auto bad = ltr::encodeWord(x); for (int i = 33; i < 40; i++) bad[i] ^= 1;      // outbound polarity, inverted checksum: refused
+        add(bad);
+        ltr::Word y; y.gotoCh = 8; y.home = 8; y.id = 81; y.freeCh = 6;
+        auto isw = ltr::encodeWord(y); for (int i = 33; i < 40; i++) isw[i] ^= 1; for (auto& v : isw) v ^= 1;   // inbound: accepted
+        add(isw);
+        add(ltr::encodeWord(o));
+        const LtrTelemetry t = run(ltr::modulate(b2, fs, off, 600.0, 0.5f), fs, off, 0);
+        bool gotX = false, gotY = false;
+        for (const auto& m : t.messages) { if (m.id == 71) gotX = true; if (m.id == 81 && m.inbound) gotY = true; }
+        CHECK(!gotX && gotY, "inverted checksum: outbound taken %d, inbound taken %d", (int)gotX, (int)gotY);
+    }
     {   // Passport words through the receiver: idle (site 9, band 460), a call on LCN 77 for group 1234, its end; both polarities
         std::vector<ltr::PassportWord> pw(3);
         pw[0].lcn = 1792; pw[0].site = 9; pw[0].group = 6; pw[0].type = 1; pw[0].freeCh = 81; pw[0].dcc = 2;

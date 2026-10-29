@@ -285,6 +285,26 @@ std::vector<uint8_t> macWithUser(int opcode, int tg, int src, int svc, bool grou
 
 std::vector<uint8_t> macIdle() { return {(uint8_t)(kMacIdle << 5), 0x00}; }
 
+// MAC message lengths in bytes by opcode (b1b2 << 6 | mco), 0 unknown: OP25 (GPL-3) lib/p25p2_tdma.cc mac_msg_len
+const uint8_t kMacMsgLen[256] = {
+     0,  7,  8,  7,  0, 16,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0, 14, 15,  0,  0, 15,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     5,  7,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     9,  7,  9,  0,  9,  8,  9,  0, 10, 10,  9,  0, 10,  0,  0,  0,
+     0,  0,  0,  0,  9,  7,  0,  0, 10,  0,  7,  0, 10,  8, 14,  7,
+     9,  9,  0,  0,  9,  0,  0,  9, 10,  0,  7, 10, 10,  7,  0,  9,
+     9, 29,  9,  9,  9,  9, 10, 13,  9,  9,  9, 11,  9,  9,  0,  0,
+     8,  0,  0,  7, 11,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    16,  0,  0, 11, 13, 11, 11, 11, 10,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    11,  0,  0,  8, 15, 12, 15, 32, 12, 12,  0, 27, 14, 29, 29, 32,
+     0,  0,  0,  0,  0,  0,  9,  0, 14, 29, 11, 27, 14,  0, 40, 11,
+    28,  0,  0, 14, 17, 14,  0,  0, 16,  8, 11,  0, 13, 19,  0,  0,
+     0,  0, 16, 14,  0,  0, 12,  0, 22,  0, 11, 13, 11,  0, 15,  0,
+};
+
 bool macParse(const uint8_t* b, int n, MacPdu& m) {
     m = MacPdu();
     if (n < 1) return false;
@@ -306,10 +326,24 @@ bool macParse(const uint8_t* b, int n, MacPdu& m) {
         m.tg = get16(b + 16);
         return true;
     case kMacActive: case kMacIdle: case kMacHangtime:
-        if (n >= 2 && b[1] != 0) {
-            m.msgOpcode = b[1];
-            if (b[1] == 0x01 && n >= 8) { m.svcOpts = b[2]; m.tg = get16(b + 3); m.src = get24(b + 5); m.group = true; }
-            else if (b[1] == 0x02 && n >= 9) { m.svcOpts = b[2]; m.tg = get24(b + 3); m.src = get24(b + 6); m.group = false; }
+        // the PDU carries a list of MAC messages: walk it as OP25's decode_mac_msg does, taking the voice channel user message wherever it is
+        for (int p = 1; p < n;) {
+            const int op = b[p], rem = n - p;
+            int len = 0;
+            switch (op) {
+            case 0x00: len = rem; break;                                            // null information: the rest
+            case 0x08: len = p + 1 < n ? b[p + 1] & 0x3F : 0; break;                // null avoid zero bias
+            case 0x11: len = p + 1 < n ? ((b[p + 1] & 3) + 1) * 2 + 2 : 0; break;   // indirect group paging
+            case 0x12: len = p + 1 < n ? ((b[p + 1] & 3) + 1) * 3 + 2 : 0; break;   // individual paging with priority
+            default:
+                if ((op >> 6) == 2 && p + 2 < n) len = b[p + 2] & 0x3F;              // manufacturer specific: its own length
+                if (len == 0) len = kMacMsgLen[op];
+            }
+            if (op != 0x00 && op != 0x08 && m.msgOpcode < 0) m.msgOpcode = op;
+            if (op == 0x01 && rem >= 7 && m.tg < 0) { m.svcOpts = b[p + 1]; m.tg = get16(b + p + 2); m.src = get24(b + p + 4); m.group = true; }
+            else if (op == 0x02 && rem >= 8 && m.tg < 0) { m.svcOpts = b[p + 1]; m.tg = get24(b + p + 2); m.src = get24(b + p + 5); m.group = false; }
+            if (len <= 0) break;
+            p += len;
         }
         return true;
     default: return true;

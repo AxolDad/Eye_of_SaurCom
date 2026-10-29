@@ -36,6 +36,7 @@
 #include <cstdio>
 #include <ctime>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -63,6 +64,11 @@ struct Trunk {
     std::string mptChannels;             // MPT 1327 channels that do not follow the formula (pref "trunkMptChannels")
     double mptBaseMhz = 0, mptSpacingKhz = 12.5;   // MPT 1327: channel n is on base + n x spacing (prefs "trunkMptBase", "trunkMptSpacing")
     bool mptBaseAuto = false;            // the base was worked out from the control channel's broadcast (the user did not type one)
+    dect2::trunk::LtrSweep ltrSweep;     // LTR: the repeaters watched at once inside the capture, and the sweep when they do not all fit
+    int ltrWatched = 0;                  // repeaters decoded right now (the main channel and those inside its capture)
+    std::set<int> tgLoaded;              // systems whose talkgroup file was read
+    std::map<int, int> p2Slot;           // receivers on a Phase 2 call: their slot (re-seeded when the system identity changes)
+    uint64_t p2Gen = 0;                  // the controller's phase2SeedGen() they were seeded with
     bool edacsNarrow = false;            // EDACS narrowband, 4800 bit/s (pref "trunkEdacsNarrow")
     dect2::trunk::VoiceWatch selfWatch;  // what the control receiver hears of the call it hopped to (analog systems)
     int forcedSel = 0;
@@ -85,7 +91,19 @@ struct Trunk {
 Trunk T;
 
 double nowSec() { using namespace std::chrono; return duration<double>(steady_clock::now().time_since_epoch()).count(); }
-std::string tgFile() { return plat::dataDir() + "/trunk_talkgroups.csv"; }
+// one talkgroup file per system: P25 (and the older shared file) trunk_talkgroups.csv, the others trunk_talkgroups_<system>.csv
+std::string tgFileFor(dect2::trunk::SysKind k) {
+    using dect2::trunk::SysKind;
+    switch (k) {
+    case SysKind::Dmr: return plat::dataDir() + "/trunk_talkgroups_dmr.csv";
+    case SysKind::Nxdn: return plat::dataDir() + "/trunk_talkgroups_nxdn.csv";
+    case SysKind::Edacs: return plat::dataDir() + "/trunk_talkgroups_edacs.csv";
+    case SysKind::Ltr: return plat::dataDir() + "/trunk_talkgroups_ltr.csv";
+    case SysKind::Mpt1327: return plat::dataDir() + "/trunk_talkgroups_mpt1327.csv";
+    default: return plat::dataDir() + "/trunk_talkgroups.csv";
+    }
+}
+std::string tgFile() { return tgFileFor(T.ctl.system()); }
 
 void tgLoad(const std::string& path, bool merge) {
     std::ifstream f(std::filesystem::u8path(path), std::ios::binary);
@@ -157,6 +175,8 @@ void retuneReceiver(App& r, const dect2::trunk::Action& ac) {
     if (r.family == 50 && r.engine.running()) {
         const dect2::trunk::SiteInfo& si = T.ctl.sys.site();
         r.engine.p25().setPhase2(ac.p25p2, ac.slot < 0 ? 0 : ac.slot, si.wacn < 0 ? 0 : si.wacn, si.sysId < 0 ? 0 : si.sysId, si.nac < 0 ? 0 : si.nac);
+        if (ac.p25p2) T.p2Slot[r.rxId] = ac.slot < 0 ? 0 : ac.slot; else T.p2Slot.erase(r.rxId);
+        T.p2Gen = T.ctl.phase2SeedGen();
     }
     if (dect2::trunk::isAnalogTrunkFamily(r.family)) setAnalogVoice(r, ac.callId != 0);
     tuneFreq(r, ac.freqHz / 1e6);
@@ -210,7 +230,7 @@ void applyActions(App* ctl) {
             if (!ctl) break;
             dect2::AudioRecorder& rec = dect2::AudioRecorder::instance();
             const dect2::trunk::CallRecord* cr = T.ctl.log.byId(ac.callId);
-            const bool p2 = cr && cr->kind == dect2::trunk::SysKind::P25 && cr->slot >= 0;
+            const bool p2 = cr && cr->p25p2;   // only a call the identifier table marked TDMA: Phase 1 needs IMBE
             if ((live(*ctl) && !(p2 ? dect2::nxdnAmbeAvailable() : dect2::p25ImbeAvailable())) || rec.active()) break;   // no vocoder: there is no sound to save
             dect2::AudioRecOptions o; o.gated = true;
             char nm[96]; time_t tt = time(nullptr); struct tm g;
@@ -568,7 +588,8 @@ void noteVoiceRadio(App& v, uint64_t id) {
     if (!r) return;
     if (live(v) && v.rx.p25.now.active && v.rx.p25.now.encrypted && (v.rx.p25.now.dst < 0 || v.rx.p25.now.dst == r->tg) && !r->encrypted) {
         r->encrypted = true;
-        r->note = "encrypted (no sound)";
+        r->note = "encrypted (no sound): the radio was released";
+        T.ctl.onTerminator(id, nowSec());   // nothing of it can be heard: the radio goes back to work
     }
     if (liveEdacs(v) && v.rx.edacs.provoice && !r->provoice && std::fabs(v.rx.edacs.channelHz - r->freqHz) < 2500) {
         r->provoice = true;
@@ -577,14 +598,55 @@ void noteVoiceRadio(App& v, uint64_t id) {
     }
 }
 
+// LTR coverage: every repeater in the list inside the capture is decoded at once; when they do not all fit, the capture sweeps through
+// groups of them (a short dwell on a quiet group, staying while one of it is busy or the radio is on a call)
+void ltrCoverage(App& a, double now) {
+    const auto& tbl = T.ctl.ltr.repeaters.entries();
+    std::vector<double> f;
+    for (const auto& kv : tbl) f.push_back(kv.second);
+    const dect2::LtrTelemetry& t = a.rx.ltr;
+    if (f.empty() || t.inputRate <= 0 || t.channelHz <= 0) { T.ltrWatched = 0; T.ltrSweep.setPlan({}); a.engine.ltr().setWatch({}); return; }
+    const double mainOff = t.channelHz - t.centerHz;
+    T.ltrSweep.setPlan(dect2::trunk::planCoverage(f, t.inputRate * 0.8, mainOff));
+    const bool following = T.ctl.follower.state() == dect2::trunk::FollowState::Hopped;
+    const int k = T.ltrSweep.step(now, !t.busyHz.empty(), following);
+    const auto& plan = T.ltrSweep.plan();
+    const int cur = T.ltrSweep.current();
+    if (cur < 0 || cur >= (int)plan.size()) return;
+    const dect2::trunk::CoverageGroup& g = plan[(size_t)cur];
+    if (k >= 0 && std::fabs(t.channelHz - g.mainHz) > 1) tuneFreq(a, g.mainHz / 1e6);
+    const double centre = g.mainHz - mainOff;
+    std::vector<double> off;
+    for (double o : g.others) off.push_back(o - centre);
+    a.engine.ltr().setWatch(off);
+    T.ltrWatched = 1 + (int)off.size();
+}
+
+// The system identity changed under a running Phase 2 call (a later NET_STS_BCST, another site): seed its radio again
+void reseedPhase2() {
+    if (T.p2Gen == T.ctl.phase2SeedGen()) return;
+    T.p2Gen = T.ctl.phase2SeedGen();
+    const dect2::trunk::SiteInfo& si = T.ctl.sys.site();
+    for (const auto& kv : T.p2Slot)
+        if (App* r = receiverById(kv.first)) if (r->family == 50 && r->engine.running()) r->engine.p25().setPhase2(true, kv.second, si.wacn, si.sysId, si.nac);
+}
+
 void trunkTick(App& a) {
+    reseedPhase2();
     if (!T.loaded) {
         T.loaded = true;
+        T.ctl.selectSystem(dect2::trunk::SysKind::P25);
+        T.tgLoaded.insert((int)dect2::trunk::SysKind::P25);
         if (std::filesystem::exists(std::filesystem::u8path(tgFile()))) tgLoad(tgFile(), false);
         RxPrefScope ps(1);
         T.dmrChannels = plat::prefs().getS("trunkDmrChannels", "");
-        applyDmrChannels(T.dmrChannels);
         T.nxdnChannels = plat::prefs().getS("trunkNxdnChannels", "");
+        if ((T.dmrChannels.empty() || T.nxdnChannels.empty()) && a.rxId != 1) {   // older builds kept them under the receiver that followed
+            RxPrefScope old(a.rxId);
+            if (T.dmrChannels.empty()) T.dmrChannels = plat::prefs().getS("trunkDmrChannels", "");
+            if (T.nxdnChannels.empty()) T.nxdnChannels = plat::prefs().getS("trunkNxdnChannels", "");
+        }
+        applyDmrChannels(T.dmrChannels);
         applyNxdnChannels(T.nxdnChannels);
         T.edacsChannels = plat::prefs().getS("trunkEdacsLcns", "");
         applyEdacsChannels(T.edacsChannels);
@@ -606,9 +668,10 @@ void trunkTick(App& a) {
         a.engine.p25().setPhase2(false);
     const bool p25 = live(a), dmr = liveDmr(a), nxdn = liveNxdn(a), edacs = liveEdacs(a), ltr = liveLtr(a), mpt = liveMpt(a);
     if (mpt && T.mptBaseMhz <= 0 && !a.voiceFor && a.rx.mpt1327.locked && T.ctl.follower.state() != dect2::trunk::FollowState::Hopped) {
-        // MPT 1327 with no base typed: when the control channel broadcasts one control channel number only, it is this one (channel n is here)
+        // MPT 1327 with no base typed: only this site's own control channel counts (BCAST SYSDEF 0 whose low 4 bits match the Aloha's
+        // CHAN4); an adjacent site's broadcast never does. Anything less certain and the user is asked for channel 1's frequency.
         int n = 0, ch = -1;
-        for (const dect2::MptChannelRow& c : a.rx.mpt1327.channels) if (c.controlChannel) { n++; ch = c.channel; }
+        for (const dect2::MptChannelRow& c : a.rx.mpt1327.channels) if (c.own) { n++; ch = c.channel; }
         if (n == 1 && ch > 0 && a.rx.mpt1327.channelHz > 0) {
             T.mptBaseMhz = (a.rx.mpt1327.channelHz - ch * T.mptSpacingKhz * 1e3) / 1e6;
             T.mptBaseAuto = true;
@@ -647,6 +710,15 @@ void trunkTick(App& a) {
     if (!t.tsbks.empty() && t.tsbks.back().seq < sn.tsbk) sn.tsbk = 0;
     if (!a.rx.dmr.csbks.empty() && a.rx.dmr.csbks.back().seq < sn.csbk) sn.csbk = 0;
     if (!a.rx.nxdn.grants.empty() && a.rx.nxdn.grants.back().seq < sn.nxdn) sn.nxdn = 0;
+    {   // this system's own talkgroup list (saved and read per system)
+        using dect2::trunk::SysKind;
+        const SysKind k = p25 ? SysKind::P25 : dmr ? SysKind::Dmr : nxdn ? SysKind::Nxdn : edacs ? SysKind::Edacs : ltr ? SysKind::Ltr : SysKind::Mpt1327;
+        if (k != T.ctl.system()) {
+            if (T.dirty) { T.dirty = false; tgSave(tgFile()); }
+            T.ctl.selectSystem(k);
+            if (T.tgLoaded.insert((int)k).second && std::filesystem::exists(std::filesystem::u8path(tgFile()))) tgLoad(tgFile(), false);
+        }
+    }
     // the analog systems: what the control receiver decoded (its own sequence numbers are unique across receivers)
     if (edacs) for (const dect2::EdacsMsgRec& m : a.rx.edacs.msgs) { if (m.seq <= sn.edacs) continue; sn.edacs = m.seq; T.ctl.onEdacs(m.m1, m.m2, now); }
     if (ltr) for (const dect2::LtrWordRec& w : a.rx.ltr.words) {
@@ -654,6 +726,7 @@ void trunkTick(App& a) {
         sn.ltr = w.seq;
         if (w.passport) T.ctl.onPassport(w.dcc, w.lcn, w.site, w.group, w.type, w.freeCh, now); else T.ctl.onLtr(w.area, w.gotoCh, w.home, w.id, w.freeCh, now);
     }
+    if (ltr && !a.voiceFor) ltrCoverage(a, now);
     if (mpt) for (const dect2::MptMsgRec& m : a.rx.mpt1327.msgs) {
         if (m.seq <= sn.mpt) continue;
         sn.mpt = m.seq;
@@ -693,7 +766,10 @@ void trunkTick(App& a) {
         bool voice = false;
         // only this call's own voice counts: the channel may already carry another talkgroup's call (its grant was not heard here)
         auto ours = [&](long long dst) { return r && (dst < 0 || dst == r->tg); };
-        if (p25) voice = t.now.active && t.now.kind == 0 && ours(t.now.dst);
+        if (p25 && r && t.now.active && t.now.encrypted && ours(t.now.dst)) {   // a hop to an encrypted call: logged, the radio comes back
+            if (CallRecord* w = T.ctl.log.byId(id)) { w->encrypted = true; w->note = "encrypted (no sound): the radio came back"; }
+            T.ctl.onTerminator(id, now);
+        } else if (p25) voice = t.now.active && t.now.kind == 0 && ours(t.now.dst);
         else if (dmr) voice = r && r->slot >= 0 && r->slot < 2 && a.rx.dmr.slot[r->slot].active && a.rx.dmr.slot[r->slot].state == 1 && ours(a.rx.dmr.slot[r->slot].dst ? (long long)a.rx.dmr.slot[r->slot].dst : -1);   // 0: not decoded yet
         else voice = a.rx.nxdn.now.active && a.rx.nxdn.now.kind == 0 && ours(a.rx.nxdn.now.dst);
         if (voice && !(p25 && wideActive(a))) T.ctl.onVoice(id, now);
@@ -908,9 +984,16 @@ void followView(App& a) {
     }
     if (liveLtr(a)) {
         ImGui::PushTextWrapPos(0);
-        ImGui::TextDisabled("%s", tr("LTR has no control channel: start this receiver on a busy repeater of the system (the home repeater of the talkgroups you follow). The data under its voice says which repeater each call is on."));
+        ImGui::TextDisabled("%s", tr("LTR has no control channel: each repeater sends its data only while it is busy. Every repeater in your list that fits in the radio's bandwidth is watched at once; when they do not all fit, the radio sweeps through them."));
         ImGui::PopTextWrapPos();
         channelListUi("ltr", T.ltrChannels, (int)T.ctl.ltr.repeaters.size(), applyLtrChannels, "LTR repeaters");
+        {   // coverage: an idle LTR repeater sends nothing, so every repeater of the list is watched
+            const int m = (int)T.ctl.ltr.repeaters.size();
+            if (m == 0) ImGui::TextColored(pal::warnAmber(), "%s", tr("List the system's repeaters above: each one is watched for calls."));
+            else if (T.ltrSweep.sweeping())
+                ImGui::Text(tr("Sweeping %d repeaters: %d at a time, group %d of %d"), m, T.ltrWatched, T.ltrSweep.current() + 1, (int)T.ltrSweep.plan().size());
+            else ImGui::Text(tr("Watching %d of %d repeaters"), T.ltrWatched, m);
+        }
         if (a.rx.ltr.passport) {
             ImGui::PushTextWrapPos(0);
             ImGui::TextDisabled("%s", tr("Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is."));
@@ -919,16 +1002,22 @@ void followView(App& a) {
         } else ImGui::TextDisabled("%llu calls heard (talkgroups are area-home-id, kept in the list as area x 100000 + home x 1000 + id)", (unsigned long long)T.ctl.ltr.grants());
     }
     if (liveMpt(a)) {
-        ImGui::TextDisabled("%s", tr("MPT 1327: channel n is on base + n x spacing; list the channels that are not."));
-        float base = (float)T.mptBaseMhz, sp = (float)T.mptSpacingKhz;
+        ImGui::TextDisabled("%s", tr("MPT 1327: channel n is on channel 1 + (n - 1) x spacing; list the channels that are not."));
+        // typed as channel 1's frequency (what a channel plan lists); kept as the base (channel 0) = channel 1 - spacing
+        double ch1 = T.mptBaseMhz > 0 ? T.mptBaseMhz + T.mptSpacingKhz / 1e3 : 0;
+        float sp = (float)T.mptSpacingKhz;
         ImGui::SetNextItemWidth(140 * gUi);
-        bool ch = ImGui::InputFloat(tr("base MHz"), &base, 0, 0, "%.5f");
+        bool ch = ImGui::InputDouble(tr("channel 1 MHz"), &ch1, 0, 0, "%.5f");
         ImGui::SameLine(0, 12 * gUi);
         ImGui::SetNextItemWidth(90 * gUi);
         ch |= ImGui::InputFloat(tr("spacing kHz"), &sp, 0, 0, "%.2f");
-        if (ch) { T.mptBaseMhz = base; T.mptSpacingKhz = sp > 0 ? sp : 12.5; T.mptBaseAuto = false; applyMptChannels(T.mptChannels); saveTables(); }
+        if (ch) {
+            T.mptSpacingKhz = sp > 0 ? sp : 12.5;
+            T.mptBaseMhz = ch1 > 0 ? ch1 - T.mptSpacingKhz / 1e3 : 0;
+            T.mptBaseAuto = false; applyMptChannels(T.mptChannels); saveTables();
+        }
         if (T.mptBaseAuto) ImGui::TextDisabled("%s", tr("The base was worked out from the control channel's broadcast of its own number: check it."));
-        else if (T.mptBaseMhz <= 0) ImGui::TextColored(pal::warnAmber(), "%s", tr("Enter the base frequency (channel 0) of your system, or list its channels below."));
+        else if (T.mptBaseMhz <= 0) ImGui::TextColored(pal::warnAmber(), "%s", tr("Enter the channel 1 frequency of your system, or list its channels below."));
         channelListUi("mpt", T.mptChannels, (int)T.ctl.mpt.channels.size(), applyMptChannels, "MPT 1327 channels", T.mptBaseMhz > 0);
         // the fleet plan: which idents are groups (the codeword does not say)
         int gr[2] = {T.ctl.mpt.groupMin, T.ctl.mpt.groupMax};

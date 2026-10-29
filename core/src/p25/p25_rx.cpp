@@ -65,6 +65,7 @@ struct P25Receiver::Impl {
     // Phase 2 TDMA (p25p2.h): asked for under mu, taken by the feed thread
     struct P2Cfg { bool on = false; int slot = 0, wacn = 0, sysId = 0, nac = 0; };
     P2Cfg p2Want;
+    std::vector<cf32> p2Clean;   // a block with NaN or inf samples, cleaned before the Phase 2 chain
     std::atomic<bool> p2Dirty{false};
     std::function<void(int, const char (*)[24], bool)> p2tapSet, p2tap;
 
@@ -821,7 +822,15 @@ void P25Receiver::feed(const cf32* x, size_t n) {
     if (m.tapReq.load()) { std::lock_guard<std::mutex> lk(m.mu); m.tap = m.tapSet; m.vtap = m.vtapSet; m.p2tap = m.p2tapSet; m.tapReq = false; }
     if (m.p2Dirty.exchange(false)) { Impl::P2Cfg c; { std::lock_guard<std::mutex> lk(m.mu); c = m.p2Want; } m.p2Apply(c); }
     if (m.rate <= 0 || n == 0) return;
-    if (m.p2.on) { m.p2Feed(x, n); return; }   // Phase 2 TDMA: the H-DQPSK chain instead of C4FM
+    if (m.p2.on) {   // Phase 2 TDMA: the H-DQPSK chain instead of C4FM; a NaN or inf would stay in its filters and phase for good
+        bool bad = false;
+        for (size_t i = 0; i < n && !bad; i++) bad = !std::isfinite(x[i].real()) || !std::isfinite(x[i].imag());
+        if (!bad) { m.p2Feed(x, n); return; }
+        m.p2Clean.assign(x, x + n);
+        for (cf32& v : m.p2Clean) if (!std::isfinite(v.real()) || !std::isfinite(v.imag())) v = cf32(0, 0);
+        m.p2Feed(m.p2Clean.data(), n);
+        return;
+    }
     for (size_t i = 0; i < n; i++) {
         float re = x[i].real(), im = x[i].imag();
         if (!std::isfinite(re) || !std::isfinite(im)) re = im = 0;

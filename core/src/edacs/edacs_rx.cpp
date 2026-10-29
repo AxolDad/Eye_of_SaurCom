@@ -1,6 +1,6 @@
 // EDACS receiver: FM front end at 76.8 kHz, the 48-bit sync (edacs::kSync or its complement) searched on hard decisions at every sample
 // phase, then the 240 payload bits sliced at the bit centres the sync gives, voted (three copies) and checked (BCH(40,28)) per message,
-// in the polarity the BCH accepts. Frame handling after dsd-fme's src/edacs-fme.c (ISC licence).
+// in the polarity the BCH accepts. Frame handling after DSD-FME's src/edacs-fme.c (ISC licence), in our own code.
 // Working channels: the FM voice through AnalogVoice, the subaudible low-speed data's level, and ProVoice detection (zero crossings that keep
 // to the 9600 bit/s clock while no EDACS frame decodes).
 #include "dect2/edacs/edacs_rx.h"

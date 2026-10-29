@@ -1,5 +1,5 @@
-// EDACS against dsd-fme's decoder (src/edacs-fme.c, src/edacs-bch3.c; ISC licence): the BCH(40,28) generator worked out as edacs-bch3.c
-// does equals the product of the two minimal polynomials, every one- and two-bit error is corrected; the vote; the messages: dsd-fme's two
+// EDACS against DSD-FME's decoder (src/edacs-fme.c; ISC licence): the BCH(40,28) generator (our own textbook computation, with the
+// parameters DSD-FME uses) equals the product of the two minimal polynomials, every one- and two-bit error is corrected; the vote; the messages: dsd-fme's two
 // captured EA frames (F802180 0000000 a test call, FE00045 FE00045 a regroup) and frames written by hand from dsd-fme's field masks, for the
 // standard / networked and the EA sets, with the ESK; the receiver on generated control channels (wide and narrowband, both polarities,
 // noise), and a working channel (FM voice with the low-speed data, the end-of-transmission dotting, ProVoice).
@@ -60,7 +60,7 @@ std::vector<uint8_t> lead(int n, unsigned seed) { std::vector<uint8_t> b; for (i
 
 int main() {
     // ---------------------------------------------------------------- BCH(40,28)
-    CHECK(edacs::bchGenerator() == gfMul(0x43, 0x57) && edacs::bchGenerator() == 0x1539, "the generator (edacs-bch3.c's way) %X = m1 m3", edacs::bchGenerator());
+    CHECK(edacs::bchGenerator() == gfMul(0x43, 0x57) && edacs::bchGenerator() == 0x1539, "the generator %X = m1 m3", edacs::bchGenerator());
     {
         int bad = 0, n = 0;
         for (uint32_t d : {0x0000000u, 0xFFFFFFFu, 0x1234567u, 0xEE12345u, 0xABCDEF0u, 0x5555555u}) {
