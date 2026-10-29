@@ -161,6 +161,9 @@ struct Action {
                                  // when the call was not on a voice radio or its radio is gone (key recordings by callId).
                                  // ReleaseRadio: the call on voice radio k ended and the radio is free (informational: voiceCall(k) says the same)
     double freqHz = 0;           // OpenSlice / Retune
+    int slot = -1;               // Retune for a call: the call's TDMA slot (P25 Phase 2: the logical channel 0 / 1 to follow; DMR: the time slot), -1 none
+    bool p25p2 = false;          // Retune for a call: a P25 Phase 2 TDMA voice channel (the receiver switches to Phase 2 on `slot`); a Retune without it
+                                 // (another call, the way back to the control channel) is Phase 1 again
     std::string text;            // Notice; RecordStart: the file name stem
 };
 

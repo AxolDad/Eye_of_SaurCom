@@ -156,7 +156,6 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     if (g.encrypted) { skip("encrypted: not followed", false); return; }
     if (!d.follow) { skip(d.reason, false); return; }
     if (g.freqHz <= 0) { skip("channel frequency not known yet (no identifier update heard)", false); return; }
-    if (g.tdma && !g.dmr) { skip("P25 Phase 2 TDMA voice: no Phase 2 demodulator", false); return; }
     const int prio = d.priority;
     auto lowest = [&](bool hoppedOnly, bool anyOnly) -> Slot* {
         Slot* v = nullptr;
@@ -175,12 +174,14 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     };
     bool voiceFree = false;
     for (const Slot& v : voice_) voiceFree |= !v.used;
-    Slot* sl = inSpan(g.freqHz) ? freeSlot() : nullptr;
-    if (inSpan(g.freqHz) && !sl && !voiceFree) {   // every slice busy and no voice radio free: a higher priority call takes a slice
+    // a P25 Phase 2 channel is never taken by the wide capture's carrier decoders (Phase 1 only): it goes to a radio of its own
+    const bool span = inSpan(g.freqHz) && !(g.tdma && !g.dmr);
+    Slot* sl = span ? freeSlot() : nullptr;
+    if (span && !sl && !voiceFree) {   // every slice busy and no voice radio free: a higher priority call takes a slice
         Slot* v = lowest(false, false);
         if (v && effPrio(prio) < effPrio(v->prio)) { close(*v, log, now, "preempted by a higher priority call"); sl = v; }
     }
-    if (inSpan(g.freqHz) && !sl && voice_.empty()) { skip("busy: every slice is in use", true); return; }
+    if (span && !sl && voice_.empty()) { skip("busy: every slice is in use", true); return; }
     if (sl) {   // inside the capture; with every slice busy the call goes on to a voice radio below
         sl->used = true; sl->hopped = false; sl->callId = id; sl->prio = prio; sl->freqHz = g.freqHz; sl->startSec = sl->lastSec = now;
         Action a;
@@ -211,7 +212,7 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
         const int k = (int)(s - voice_.data());
         s->used = true; s->hopped = false; s->callId = id; s->prio = prio; s->freqHz = g.freqHz; s->startSec = s->lastSec = now;
         Action a;
-        a.kind = Action::Retune; a.callId = id; a.freqHz = g.freqHz; a.radio = k;
+        a.kind = Action::Retune; a.callId = id; a.freqHz = g.freqHz; a.radio = k; a.slot = g.slot; a.p25p2 = g.tdma && !g.dmr;
         out_.push_back(a);
         if (cfg_.record) {
             Action rs;
@@ -244,7 +245,7 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     if (!s) return;
     s->used = true; s->hopped = true; s->callId = id; s->prio = prio; s->freqHz = g.freqHz; s->startSec = s->lastSec = now;
     Action a;
-    a.kind = Action::Retune; a.callId = id; a.freqHz = g.freqHz;
+    a.kind = Action::Retune; a.callId = id; a.freqHz = g.freqHz; a.slot = g.slot; a.p25p2 = g.tdma && !g.dmr;
     out_.push_back(a);
     radioHz_ = g.freqHz;
     if (cfg_.record) {

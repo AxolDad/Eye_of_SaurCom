@@ -92,6 +92,10 @@ struct P25Telemetry {
     std::vector<P25Call> log;    // newest first, at most kP25LogMax
     std::vector<std::string> events;   // newest first: decoded control messages as text
     std::vector<P25TsbkRec> tsbks;     // the last decoded TSBKs, oldest first, at most kP25TsbkMax
+    // Phase 2 TDMA (P25Receiver::setPhase2): `now` is the followed slot's call
+    bool phase2 = false, p2Locked = false;
+    int p2Slot = 0;
+    uint64_t p2Superframes = 0, p2Frames = 0, p2Decoded = 0, p2MacOk = 0, p2MacBad = 0;
 };
 
 constexpr size_t kP25LogMax = 300;

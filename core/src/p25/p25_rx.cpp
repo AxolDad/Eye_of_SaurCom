@@ -4,6 +4,8 @@
 #include "dect2/p25/p25_tel.h"
 #include "dect2/p25/p25_proto.h"
 #include "dect2/p25/p25_imbe.h"
+#include "dect2/p25/p25p2.h"
+#include "dect2/nxdn/nxdn_ambe.h"
 #include "dect2/audio/audioout.h"
 #include <algorithm>
 #include <atomic>
@@ -60,6 +62,11 @@ struct P25Receiver::Impl {
     std::atomic<float> volume{1.f};
     std::atomic<bool> muted{false}, silent{false};
     P25Telemetry pub, tel;
+    // Phase 2 TDMA (p25p2.h): asked for under mu, taken by the feed thread
+    struct P2Cfg { bool on = false; int slot = 0, wacn = 0, sysId = 0, nac = 0; };
+    P2Cfg p2Want;
+    std::atomic<bool> p2Dirty{false};
+    std::function<void(int, const uint8_t*, bool)> p2tapSet, p2tap;
 
     double rate = 0, offset = 0;
     double power = 0; int64_t nPower = 0, nIn = 0;
@@ -647,6 +654,98 @@ struct P25Receiver::Impl {
         aud8.clear();
     }
 
+    // ------------------------------------------------------------ Phase 2 TDMA: the channel as H-DQPSK, one of its two logical channels followed
+    P2Cfg p2;                    // what the feed thread runs now
+    p25p2::Demod p2dm;
+    p25p2::Framer p2f;
+    p25p2::CallTracker p2ct;
+    std::unique_ptr<NxdnAmbe> p2ambe;
+    std::vector<uint8_t> p2dib;
+    bool p2WasLocked = false;
+
+    void p2Apply(const P2Cfg& c) {
+        if (tel.now.active) endCall(false);
+        p2 = c;
+        tel.phase2 = c.on; tel.p2Slot = c.slot; tel.p2Locked = false;
+        p2f.reset(); p2ct.reset(); p2WasLocked = false;
+        p2f.setSeed(c.wacn, c.sysId, c.nac);
+        if (c.on) p2dm.configure(rate, offset);
+        if (c.on) event(std::string("Phase 2 TDMA: following slot ") + std::to_string(c.slot));
+    }
+
+    void p2Sync(const p25p2::Event& e) {
+        const int slot = p2.slot;
+        if (e.chan != slot && e.kind != p25p2::Event::Lost && e.kind != p25p2::Event::Lock) return;
+        char b[200];
+        if (e.kind == p25p2::Event::Mac && e.mac.opcode == p25p2::kMacPtt && tel.now.active) endCall(false);   // a new PTT without the END of the last
+        if (e.kind == p25p2::Event::Mac) {
+            const p25p2::MacPdu& m = e.mac;
+            if (m.opcode == p25p2::kMacPtt || m.opcode == p25p2::kMacEndPtt) {
+                snprintf(b, sizeof b, "%s slot %d: %d -> TG %d%s", p25p2::macName(m.opcode), slot, m.src, m.tg,
+                         m.opcode == p25p2::kMacPtt && m.algId != p25p2::kAlgClear && m.algId != 0 ? ", encrypted" : "");
+                event(b);
+            }
+        }
+        const p25p2::Call& c = p2ct.call(slot);
+        if (c.active && !tel.now.active) {
+            startCall(tel.nac, c.lateEntry);
+            lastVoice = sigSec();   // the voice follows the PTT a few timeslots later
+            p2ambe = nxdnAmbeAvailable() ? std::make_unique<NxdnAmbe>() : nullptr;
+        }
+        if (tel.now.active) {
+            if (c.src > 0) tel.now.src = c.src;
+            if (c.tg >= 0) tel.now.dst = c.tg;
+            tel.now.group = c.group;
+            if (c.emergency) tel.now.emergency = true;
+            if (c.encrypted) { tel.now.encrypted = true; tel.now.algId = c.algId; tel.now.keyId = c.keyId; }
+        }
+        if (!c.active && tel.now.active) endCall(c.endSeen);
+    }
+
+    void p2Voice(const p25p2::Event& e) {
+        if (e.chan != p2.slot || !tel.now.active) return;
+        lastVoice = sigSec();
+        // joined late: until the encryption state is known (ESS, MAC_ACTIVE) nothing is played, it might be encrypted
+        const bool clear = !tel.now.encrypted && p2ct.call(p2.slot).cryptoKnown;
+        for (int i = 0; i < e.nVoice; i++) {
+            tel.now.voiceFrames++;
+            tel.voiceFrames++; tel.p2Frames++;
+            if (p2tap) p2tap(e.chan, e.voice[i], clear);
+            if (!clear) continue;   // encrypted: reported, never decoded
+            tel.now.clearFrames++;
+            if (!p2ambe || !p2ambe->ok()) continue;
+            int16_t pcm[160];
+            p2ambe->decode(e.voice[i], pcm);
+            for (int16_t s : pcm) aud8.push_back(s / 32768.f);
+            tel.voiceDecoded++; tel.p2Decoded++;
+            tel.now.voice = true;
+        }
+        if (aud8.size() >= 1600) flushAudio();
+    }
+
+    void p2Feed(const cf32* x, size_t n) {
+        for (size_t i = 0; i < n; i++) power += (double)x[i].real() * x[i].real() + (double)x[i].imag() * x[i].imag();
+        nPower += (int64_t)n;
+        p2dib.clear();
+        p2dm.feed(x, n, p2dib);
+        for (uint8_t d : p2dib) {
+            p2f.push(d);
+            for (const p25p2::Event& e : p2f.take()) {
+                p2ct.onEvent(e);
+                if (e.kind == p25p2::Event::Voice || e.kind == p25p2::Event::Mac) lastGood = sigSec();
+                if (e.kind == p25p2::Event::Voice) { p2Sync(e); p2Voice(e); }
+                else p2Sync(e);
+            }
+        }
+        tel.p2Locked = p2f.locked();
+        tel.p2Superframes = p2f.superframes();
+        tel.p2MacOk = p2f.macOk(); tel.p2MacBad = p2f.macBad();
+        tel.cfoHz = p2dm.cfoHz();
+        if (p2f.locked() != p2WasLocked) { p2WasLocked = p2f.locked(); event(p2WasLocked ? "Phase 2: superframe sync" : "Phase 2: sync lost"); }
+        nIn += (int64_t)n;
+        while ((double)nIn >= nextReport) { nextReport += 0.25 * rate; report(); }
+    }
+
     // The call log, talkgroups, control messages and the site with its neighbours stay through resets: Clear and a loaded file reach the feed thread's copy through these requests (mu), and the
     // published report at once
     bool clearReq = false, loadReq = false;
@@ -682,10 +781,12 @@ struct P25Receiver::Impl {
         moveLists(tel, keep);
         tel.inputRate = rate;
         tel.imbe = p25ImbeAvailable(&tel.imbePath);
+        tel.phase2 = p2.on; tel.p2Slot = p2.slot;
+        if (p2.on) { p2dm.configure(rate, offset); p2f.reset(); p2ct.reset(); p2WasLocked = false; }
     }
 
     void report() {
-        if (tapReq.exchange(false)) { std::lock_guard<std::mutex> lk(mu); tap = tapSet; vtap = vtapSet; }
+        if (tapReq.exchange(false)) { std::lock_guard<std::mutex> lk(mu); tap = tapSet; vtap = vtapSet; p2tap = p2tapSet; }
         tel.seq++;
         tel.timeSec = sigSec();
         tel.levelDb = nPower ? (float)(10 * std::log10(power / (double)nPower + 1e-20)) : -200.f;
@@ -715,8 +816,10 @@ void P25Receiver::feed(const cf32* x, size_t n) {
     Impl& m = *p_;
     if (m.resetReq.exchange(false)) m.resetState();
     m.takeRequests();
-    if (m.tapReq.load()) { std::lock_guard<std::mutex> lk(m.mu); m.tap = m.tapSet; m.vtap = m.vtapSet; m.tapReq = false; }
+    if (m.tapReq.load()) { std::lock_guard<std::mutex> lk(m.mu); m.tap = m.tapSet; m.vtap = m.vtapSet; m.p2tap = m.p2tapSet; m.tapReq = false; }
+    if (m.p2Dirty.exchange(false)) { Impl::P2Cfg c; { std::lock_guard<std::mutex> lk(m.mu); c = m.p2Want; } m.p2Apply(c); }
     if (m.rate <= 0 || n == 0) return;
+    if (m.p2.on) { m.p2Feed(x, n); return; }   // Phase 2 TDMA: the H-DQPSK chain instead of C4FM
     for (size_t i = 0; i < n; i++) {
         float re = x[i].real(), im = x[i].imag();
         if (!std::isfinite(re) || !std::isfinite(im)) re = im = 0;
@@ -764,6 +867,15 @@ void P25Receiver::setVolume(float v) { p_->volume = std::max(0.f, std::min(1.f, 
 void P25Receiver::setMuted(bool m) { p_->muted = m; }
 void P25Receiver::setSilent(bool s) { p_->silent = s; }
 void P25Receiver::setAudioTap(std::function<void(const float*, size_t)> cb) { std::lock_guard<std::mutex> lk(p_->mu); p_->tapSet = std::move(cb); p_->tapReq = true; }
+void P25Receiver::setPhase2(bool on, int slot, int wacn, int sysId, int nac) {
+    std::lock_guard<std::mutex> lk(p_->mu);
+    Impl::P2Cfg c; c.on = on; c.slot = slot & 1; c.wacn = wacn; c.sysId = sysId; c.nac = nac;
+    const Impl::P2Cfg& w = p_->p2Want;
+    if (w.on == c.on && w.slot == c.slot && w.wacn == c.wacn && w.sysId == c.sysId && w.nac == c.nac) return;
+    p_->p2Want = c;
+    p_->p2Dirty = true;
+}
+void P25Receiver::setPhase2VoiceTap(std::function<void(int, const uint8_t*, bool)> cb) { std::lock_guard<std::mutex> lk(p_->mu); p_->p2tapSet = std::move(cb); p_->tapReq = true; }
 void P25Receiver::setVoiceTap(std::function<void(const uint8_t bits[144], bool clear)> cb) { std::lock_guard<std::mutex> lk(p_->mu); p_->vtapSet = std::move(cb); p_->tapReq = true; }
 
 ModeTuning p25Tuning() {
