@@ -154,9 +154,11 @@ private:
 // ------------------------------------------------------------------------------------------------ follower
 
 struct Action {
-    enum Kind { OpenSlice, CloseSlice, Retune, Listen, RecordStart, RecordStop, Notice } kind = Notice;
+    enum Kind { OpenSlice, CloseSlice, Retune, Listen, RecordStart, RecordStop, Notice, ReleaseRadio } kind = Notice;
     uint64_t callId = 0;
     int slice = -1;              // OpenSlice / CloseSlice / Listen: the follower's own slice number
+    int radio = -1;              // Retune / RecordStart / RecordStop / ReleaseRadio: -1 the control radio itself, k >= 0 voice radio k
+                                 // (ReleaseRadio: the call on voice radio k ended, the radio is free again)
     double freqHz = 0;           // OpenSlice / Retune
     std::string text;            // Notice; RecordStart: the file name stem
 };
@@ -201,11 +203,21 @@ public:
     bool inSpan(double freqHz) const;
     double currentControlHz() const { return ccHz_; }
     double radioHz() const { return radioHz_; }   // where the single radio was last told to be (0: not told)
+    // Voice radios: n other radios that follow calls outside the capture, so the control radio never leaves the control channel.
+    // n = 0 (the default): the control radio hops for a call as before. Calls on radios that go away end at the next tick.
+    void setVoiceRadios(int n);
+    int voiceRadios() const { return (int)voice_.size(); }
+    // Voice radio k is gone (unplugged, its tab closed): its call ends at the next tick with note why, the radios above it move down by one
+    void dropVoiceRadio(int k, const char* why);
+    uint64_t voiceCall(int k) const;        // the call on voice radio k; 0 free (or no such radio)
+    int voiceRadioOf(uint64_t callId) const;   // the voice radio carrying the call; -1 none
     void reset();
 
 private:
     struct Slot { uint64_t callId = 0; int prio = 0; double freqHz = 0, startSec = 0, lastSec = 0; bool used = false, hopped = false; };
     std::vector<Slot> slots_;
+    std::vector<Slot> voice_;          // one per voice radio
+    std::vector<std::pair<Slot, std::string>> dropped_;   // calls on radios that went away: closed at the next tick
     FollowConfig cfg_;
     FollowState state_ = FollowState::NoControl;
     double centerHz_ = 0, spanHz_ = 0, ccHz_ = 0, radioHz_ = 0, homeHz_ = 0;
@@ -217,6 +229,7 @@ private:
     std::vector<std::pair<double, double>> noticed_;   // out-of-span frequencies already announced
     void note(const std::string& s) { Action a; a.text = s; out_.push_back(a); }
     void close(Slot& s, CallLog& log, double now, const char* why);
+    void endVoice(Slot& s, int radio, CallLog& log, const char* why);
     void goHome(double now);
     void setState(FollowState s, double now) { if (state_ != s) { state_ = s; stateSince_ = now; } }
     Slot* freeSlot();
@@ -292,6 +305,8 @@ public:
     std::vector<Action> takeActions() { return follower.takeActions(); }
     void onVoice(uint64_t callId, double now) { follower.onVoice(callId, now); }
     void onTerminator(uint64_t callId, double now) { follower.onTerminator(callId, now); }
+    void setVoiceRadios(int n) { follower.setVoiceRadios(n); }
+    void dropVoiceRadio(int k, const char* why) { follower.dropVoiceRadio(k, why); }
     ControllerStatus status(double nowSec) const;
     std::vector<std::string> messages;   // newest last, at most 200
     void clear();

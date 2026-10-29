@@ -191,6 +191,129 @@ int main() {
         a = e.takeActions();
         CHECK(count(a, Action::Retune) == 0 && e.log.records().back().missed, "no hop away from a running call");
     }
+    // ---- voice radios: calls outside the capture go to other radios; the control channel is never left
+    {
+        Controller c;
+        setupSite(c, 0);
+        c.setCapture(chHz(0x1001), 0);   // the control radio only has the control channel
+        feed(c, gen::idenUp(5, 856000000, 12500, 0, 12500), 0);
+        FollowConfig fc; fc.hangSec = 1.5;
+        c.follower.setConfig(fc);
+        c.setVoiceRadios(2);
+        CHECK(c.follower.voiceRadios() == 2, "two voice radios");
+        c.tgs.upsert(6001).priority = 6;
+        c.tgs.upsert(6002).priority = 5;
+        c.tgs.upsert(6003).priority = 8;   // lower than both running calls
+        c.tgs.upsert(6004).priority = 1;   // higher than both
+        auto vch = [](int n) { return 856000000 + n * 12500.0; };
+        bool leftControl = false;
+        auto look = [&](const std::vector<Action>& a) {
+            for (const auto& x : a) if (x.kind == Action::Retune && x.radio < 0) leftControl = true;
+            const FollowState s = c.follower.state();
+            if (s == FollowState::Hopped || s == FollowState::Returning) leftControl = true;
+        };
+        auto retuneOn = [](const std::vector<Action>& a, int radio, double hz) {
+            for (const auto& x : a) if (x.kind == Action::Retune && x.radio == radio && std::fabs(x.freqHz - hz) < 1) return true;
+            return false;
+        };
+        auto released = [](const std::vector<Action>& a, int radio) {
+            for (const auto& x : a) if (x.kind == Action::ReleaseRadio && x.radio == radio) return true;
+            return false;
+        };
+        feed(c, gen::grpVGrant(4, 0x5010, 6001, 1), 1.0);
+        auto a = c.takeActions(); look(a);
+        const uint64_t call1 = c.log.records().back().id;
+        CHECK(retuneOn(a, 0, vch(16)) && c.follower.voiceCall(0) == call1 && c.log.records().back().followed, "first call on voice radio 0");
+        CHECK(c.follower.state() == FollowState::ControlHold, "control stays held (%s)", followStateName(c.follower.state()));
+        bool rec = false;
+        for (const auto& x : a) rec |= x.kind == Action::RecordStart && x.radio == 0 && x.callId == call1;
+        CHECK(rec, "recording starts on voice radio 0");
+        feed(c, gen::grpVGrant(4, 0x5011, 6002, 1), 1.1);
+        a = c.takeActions(); look(a);
+        const uint64_t call2 = c.log.records().back().id;
+        CHECK(retuneOn(a, 1, vch(17)) && c.follower.voiceCall(1) == call2, "second call on voice radio 1");
+        CHECK(c.follower.audibleCall() == call2, "the higher priority call is the audible one");
+        // a repeat of a running call takes no radio
+        feed(c, gen::grpVGrantUpd(0x5010, 6001, 0x5011, 6002), 1.2);
+        a = c.takeActions(); look(a);
+        CHECK(count(a, Action::Retune) == 0, "grant updates take no radio");
+        // both busy, a lower priority call: missed
+        feed(c, gen::grpVGrant(4, 0x5012, 6003, 1), 1.3);
+        a = c.takeActions(); look(a);
+        CHECK(count(a, Action::Retune) == 0 && c.log.records().back().missed && c.log.records().back().note == "missed (all voice radios busy)", "missed: %s", c.log.records().back().note.c_str());
+        CHECK(c.follower.missedCalls() == 1, "one missed");
+        // both busy, a higher priority call: preempts the lowest priority one (6001 on radio 0)
+        feed(c, gen::grpVGrant(4, 0x5013, 6004, 1), 1.4);
+        a = c.takeActions(); look(a);
+        const uint64_t call4 = c.log.records().back().id;
+        CHECK(retuneOn(a, 0, vch(19)) && c.follower.voiceCall(0) == call4 && c.follower.voiceCall(1) == call2, "preempts radio 0");
+        const CallRecord* r1 = c.log.byId(call1);
+        CHECK(r1 && !r1->active && r1->note.find("preempted") != std::string::npos, "the preempted call ended");
+        CHECK(c.follower.audibleCall() == call4, "the new call is audible");
+        // voice keeps them; the terminator ends one; silence the other
+        c.onVoice(call4, 2.5); c.onVoice(call2, 2.5);
+        c.tick(3.0);
+        a = c.takeActions(); look(a);
+        CHECK(c.follower.voiceCall(0) == call4 && c.follower.voiceCall(1) == call2, "voice keeps both");
+        c.onTerminator(call2, 3.1);
+        c.tick(3.2);
+        a = c.takeActions(); look(a);
+        CHECK(released(a, 1) && c.follower.voiceCall(1) == 0 && c.follower.voiceCall(0) == call4, "terminator frees voice radio 1");
+        c.tick(4.5);
+        a = c.takeActions(); look(a);
+        CHECK(released(a, 0) && c.follower.voiceCall(0) == 0, "hang time frees voice radio 0");
+        CHECK(!leftControl, "the control channel was never left");
+        CHECK(c.follower.state() == FollowState::ControlHold, "still holding");
+        // a voice radio goes away during a call (unplugged, the tab closed): the call ends, the others move down
+        feed(c, gen::grpVGrant(4, 0x5014, 6002, 1), 5.0);
+        feed(c, gen::grpVGrant(4, 0x5015, 6004, 1), 5.0);
+        a = c.takeActions(); look(a);
+        const uint64_t onR1 = c.follower.voiceCall(1);
+        const uint64_t onR0 = c.follower.voiceCall(0);
+        CHECK(onR0 && onR1, "two calls running");
+        c.dropVoiceRadio(0, "voice radio removed");
+        CHECK(c.follower.voiceRadios() == 1 && c.follower.voiceCall(0) == onR1, "radio 1 is now radio 0");
+        c.tick(5.1);
+        a = c.takeActions(); look(a);
+        const CallRecord* rd = c.log.byId(onR0);
+        CHECK(rd && !rd->active && rd->note == "voice radio removed", "the call on the removed radio ended");
+        CHECK(c.log.byId(onR1) && c.log.byId(onR1)->active, "the other call goes on");
+        bool stop = false;
+        for (const auto& x : a) stop |= x.kind == Action::RecordStop && x.callId == onR0;
+        CHECK(stop, "its recording stops");
+        // no voice radios: exactly the old behaviour (hop the control radio)
+        c.setVoiceRadios(0);
+        c.tick(5.2);
+        a = c.takeActions(); look(a);
+        CHECK(c.log.byId(onR1) && !c.log.byId(onR1)->active, "calls on removed radios end");
+        CHECK(!leftControl, "the control channel was never left while voice radios were linked");
+        feed(c, gen::grpVGrant(4, 0x5016, 6001, 1), 6.0);
+        a = c.takeActions();
+        CHECK(retuneOn(a, -1, vch(22)) && c.follower.state() == FollowState::Hopped, "back to hopping (%s)", followStateName(c.follower.state()));
+    }
+    // ---- voice radios on NXDN (no control channel named), and slices inside the capture still come first
+    {
+        Controller c;
+        c.nxdn.setChannel(513, 451.0125e6);
+        c.setCapture(451.5e6, 0);
+        c.setVoiceRadios(1);
+        c.onControlSeen(0.5);
+        c.onNxdnAssignment(1, 4321, 77, 513, 0, 1.0);
+        bool r0 = false, own = false;
+        for (const Action& x : c.takeActions()) if (x.kind == Action::Retune) { r0 |= x.radio == 0 && std::fabs(x.freqHz - 451.0125e6) < 1; own |= x.radio < 0; }
+        CHECK(r0 && !own && c.follower.state() == FollowState::ControlHold, "nxdn call on the voice radio");
+        for (double t = 1.5; t < 6; t += 0.5) { c.onControlSeen(t); c.tick(t); }
+        own = false; bool rel = false;
+        for (const Action& x : c.takeActions()) { own |= x.kind == Action::Retune && x.radio < 0; rel |= x.kind == Action::ReleaseRadio && x.radio == 0; }
+        CHECK(rel && !own && !c.log.records()[0].active, "ends without a trip home");
+        Controller s;
+        setupSite(s, 0);
+        s.setCapture(851.1e6, 2.4e6);
+        s.setVoiceRadios(1);
+        feed(s, gen::grpVGrant(4, 0x1010, 3001, 9), 1);
+        auto a = s.takeActions();
+        CHECK(count(a, Action::OpenSlice) == 1 && count(a, Action::Retune) == 0, "inside the capture a slice is still used");
+    }
     // ---- rotating control channel
     {
         Controller c;
@@ -330,6 +453,9 @@ int main() {
             if (i % 3 == 0) c.tick(now);
             if (i % 11 == 0) c.takeActions();
             if (i % 997 == 0) c.setCapture((rand() % 2) ? 851.1e6 : 0, (rand() % 2) ? 2.4e6 : 0);
+            if (i % 701 == 0) c.setVoiceRadios(rand() % 3);
+            if (i % 1301 == 0) c.dropVoiceRadio(rand() % 3 - 1, "gone");
+            if (c.follower.voiceRadios() > 2) { CHECK(false, "more voice radios than linked"); break; }
             if (i % 500 == 0) { TgEntry& e = c.tgs.upsert(rand() % 5000); e.listen = rand() & 1; e.lockout = rand() % 4 == 0; e.priority = rand() % 11; }
             if (c.follower.activeSlices() > 3) { CHECK(false, "more slices than allowed"); break; }
         }
