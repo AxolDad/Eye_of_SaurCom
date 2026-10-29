@@ -3442,3 +3442,24 @@ deselect	選択解除
 click a station on the map to select it	地図上の局をクリックして選択
 %zu stations by their locators, %zu contact lines	%zu局（ロケーター位置）、交信ライン%zu本
 %d stations at the centre of their grid squares, %zu contact lines	%d局（グリッドの中心）、交信ライン%zu本
+# trunking: voice radios (the follower's second radio)
+Voice	音声
+Unlink	リンク解除
+RX %d is on the control channel and follows the calls with its voice radios.	RX %d は制御チャンネルにとどまり、音声用無線機で通話を追跡します。
+Voice: RX %d · %s	音声: RX %d · %s
+RX %d is no longer a voice radio: its tab is closed.	RX %d は音声用無線機ではなくなりました。タブは閉じられています。
+Use a second radio for voice	音声に2台目の無線機を使う
+Use another radio for voice	音声に別の無線機を使う
+RX %d follows the calls as a voice radio; RX %d stays on the control channel.	RX %d が音声用無線機として通話を追跡します。RX %d は制御チャンネルにとどまります。
+Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.	最初の空いている無線機で、このモードの受信機タブを開いてリンクします。この無線機は制御チャンネルにとどまり、通話はすべてもう一方で聞こえます。もう一度押すともう1台追加します。
+Start this receiver on the control channel first.	まずこの受信機を制御チャンネルで開始してください。
+With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding.	無線機が1台だと、この受信機は通話のたびに制御チャンネルを離れ、その間に割り当てられた通話を逃します。音声用の2台目の無線機でこれを避けられます。全帯域デコードを使う広帯域無線機 (HackRF) でも同様です。
+This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed.	この無線機は制御チャンネルにとどまります。音声用無線機がすべて使用中のときは、優先度の高い通話が最も優先度の低い通話の無線機を引き継ぎ、それ以外は取り逃しとして記録されます。
+Voice for RX %d · TG %d · %.4f MHz	RX %d の音声 · TG %d · %.4f MHz
+Voice for RX %d · waiting for a call	RX %d の音声 · 通話待ち
+This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	この受信機は RX %d の通話だけを追跡します。トークグループ、通話ログ、設定は RX %d の追跡タブにあります。
+The receiver on the control channel was closed: its voice radios are closed too.	制御チャンネルの受信機が閉じられました。その音声用無線機も閉じられます。
+RX %d left trunking: its voice radios are closed.	RX %d がトランキングを離れました。その音声用無線機は閉じられます。
+The voice tab RX %d was closed: RX %d follows calls with its own radio again.	音声タブ RX %d が閉じられました。RX %d は再び自分の無線機で通話を追跡します。
+RX %d was switched to another mode: it is no longer a voice radio.	RX %d は別のモードに切り替えられました。音声用無線機ではなくなりました。
+RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d の無線機 (%s) が失われました。その通話は終了し、音声用無線機ではなくなりました。RX %d は制御チャンネルにとどまります。

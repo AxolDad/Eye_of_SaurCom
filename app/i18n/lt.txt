@@ -3442,3 +3442,24 @@ deselect	atšaukti pasirinkimą
 click a station on the map to select it	spustelėkite stotį žemėlapyje, kad ją pasirinktumėte
 %zu stations by their locators, %zu contact lines	%zu stočių pagal lokatorius, %zu ryšio linijų
 %d stations at the centre of their grid squares, %zu contact lines	%d stočių savo kvadratų viduryje, %zu ryšio linijų
+# trunking: voice radios (the follower's second radio)
+Voice	Balsas
+Unlink	Atsieti
+RX %d is on the control channel and follows the calls with its voice radios.	RX %d lieka valdymo kanale ir seka pokalbius savo balso radijo imtuvais.
+Voice: RX %d · %s	Balsas: RX %d · %s
+RX %d is no longer a voice radio: its tab is closed.	RX %d nebėra balso radijo imtuvas: jo kortelė uždaryta.
+Use a second radio for voice	Naudoti antrą radijo imtuvą balsui
+Use another radio for voice	Naudoti dar vieną radijo imtuvą balsui
+RX %d follows the calls as a voice radio; RX %d stays on the control channel.	RX %d seka pokalbius kaip balso radijo imtuvas; RX %d lieka valdymo kanale.
+Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.	Atidaro imtuvo kortelę pirmame laisvame radijo imtuve, šiuo režimu, ir susieja ją: šis radijo imtuvas lieka valdymo kanale, o kiekvienas pokalbis girdimas kitame. Paspauskite dar kartą, kad pridėtumėte dar vieną.
+Start this receiver on the control channel first.	Pirmiausia paleiskite šį imtuvą valdymo kanale.
+With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding.	Su vienu radijo imtuvu šis imtuvas kiekvienam pokalbiui palieka valdymo kanalą ir praleidžia tuo metu skirtus pokalbius. Antras radijo imtuvas balsui to išvengia; taip pat plačiajuostis radijo imtuvas (HackRF) su visos juostos dekodavimu.
+This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed.	Šis radijo imtuvas lieka valdymo kanale. Kai visi balso radijo imtuvai užimti, aukštesnio prioriteto pokalbis perima tą, kuriame yra žemiausio prioriteto pokalbis; kiti įrašomi kaip praleisti.
+Voice for RX %d · TG %d · %.4f MHz	Balsas RX %d · TG %d · %.4f MHz
+Voice for RX %d · waiting for a call	Balsas RX %d · laukiama pokalbio
+This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Šis imtuvas seka tik RX %d pokalbius. Pokalbių grupės, pokalbių žurnalas ir nustatymai yra RX %d kortelėje Sekti.
+The receiver on the control channel was closed: its voice radios are closed too.	Valdymo kanalo imtuvas uždarytas: jo balso radijo imtuvai taip pat uždaromi.
+RX %d left trunking: its voice radios are closed.	RX %d paliko magistralinį ryšį: jo balso radijo imtuvai uždaromi.
+The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Balso kortelė RX %d uždaryta: RX %d vėl seka pokalbius savo radijo imtuvu.
+RX %d was switched to another mode: it is no longer a voice radio.	RX %d perjungtas į kitą režimą: jis nebėra balso radijo imtuvas.
+RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d prarado savo radijo imtuvą (%s): jame vykęs pokalbis baigtas, ir jis nebėra balso radijo imtuvas. RX %d lieka valdymo kanale.

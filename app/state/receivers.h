@@ -15,5 +15,16 @@ App* addReceiver();                               // a new receiver (nullptr: no
 void closeReceiver(int id);                       // stops it and lets go of its radio (done at the start of the next frame)
 void receiversFrame(App& first, ImVec2 disp);     // every frame: ticks all receivers, draws the selected one and the tab strip
 void receiversShutdown(App& first);
-bool receiverModeBusy(const App& a, std::string* why);   // another receiver runs this mode: its screen state is not separated yet
+bool receiverModeBusy(const App& a, std::string* why);   // another receiver runs this mode: its screen state is not separated yet (voice radios excepted)
+// Voice radios of the trunking follower (docs/trunking.md): a new receiver on the first free radio that covers ctl's frequency, in ctl's mode,
+// linked to ctl (voiceFor) and started; ctl's tab stays selected. nullptr and why (the new-tab banner's text) when no radio is free.
+App* addVoiceReceiver(App& ctl, std::string* why);
+void receiverSetVoiceFor(App& v, int ctlId);      // link (ctlId) or unlink (0); a voice receiver is not reopened at the next start
+void receiverSetHeard(int id);                    // make that receiver the audible one now (the others are muted at once)
+// The receiver whose settings prefs() reads and writes, for the life of the scope (work done on one receiver from another's frame)
+struct RxPrefScope {
+    int old;
+    explicit RxPrefScope(int r);
+    ~RxPrefScope();
+};
 extern float gCpuPct;                             // the CPU meter of the status bar (process, 100 = one core), 0 until measured

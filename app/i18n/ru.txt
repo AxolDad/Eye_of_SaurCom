@@ -3425,3 +3425,24 @@ deselect	снять выбор
 click a station on the map to select it	щёлкните станцию на карте, чтобы выбрать её
 %zu stations by their locators, %zu contact lines	%zu станций по локаторам, %zu линий связи
 %d stations at the centre of their grid squares, %zu contact lines	%d станций в центре своих квадратов, %zu линий связи
+# trunking: voice radios (the follower's second radio)
+Voice	Голос
+Unlink	Отвязать
+RX %d is on the control channel and follows the calls with its voice radios.	RX %d остаётся на канале управления и следит за вызовами с помощью своих голосовых приёмников.
+Voice: RX %d · %s	Голос: RX %d · %s
+RX %d is no longer a voice radio: its tab is closed.	RX %d больше не голосовой приёмник: его вкладка закрыта.
+Use a second radio for voice	Использовать второй приёмник для голоса
+Use another radio for voice	Использовать ещё один приёмник для голоса
+RX %d follows the calls as a voice radio; RX %d stays on the control channel.	RX %d следит за вызовами как голосовой приёмник; RX %d остаётся на канале управления.
+Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.	Открывает вкладку приёмника на первом свободном радио, в этом режиме, и связывает её: это радио остаётся на канале управления, а каждый вызов слышен на другом. Нажмите ещё раз, чтобы добавить ещё одно.
+Start this receiver on the control channel first.	Сначала запустите этот приёмник на канале управления.
+With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding.	С одним радио этот приёмник покидает канал управления на каждый вызов и пропускает вызовы, назначенные за это время. Второе радио для голоса этого избегает; так же как широкополосное радио (HackRF) с декодированием всей полосы.
+This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed.	Это радио остаётся на канале управления. Когда все голосовые приёмники заняты, вызов с более высоким приоритетом занимает тот, на котором вызов с самым низким приоритетом; остальные записываются как пропущенные.
+Voice for RX %d · TG %d · %.4f MHz	Голос для RX %d · TG %d · %.4f MHz
+Voice for RX %d · waiting for a call	Голос для RX %d · ожидание вызова
+This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Этот приёмник следит только за вызовами для RX %d. Разговорные группы, журнал вызовов и настройки находятся на вкладке «Следить» RX %d.
+The receiver on the control channel was closed: its voice radios are closed too.	Приёмник на канале управления закрыт: его голосовые приёмники тоже закрываются.
+RX %d left trunking: its voice radios are closed.	RX %d вышел из транкинга: его голосовые приёмники закрываются.
+The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Голосовая вкладка RX %d закрыта: RX %d снова следит за вызовами своим радио.
+RX %d was switched to another mode: it is no longer a voice radio.	RX %d переключён на другой режим: он больше не голосовой приёмник.
+RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d потерял своё радио (%s): вызов на нём завершён, и он больше не голосовой приёмник. RX %d остаётся на канале управления.

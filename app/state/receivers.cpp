@@ -23,16 +23,19 @@ int gSel = 1, gAudio = 1;
 std::vector<int> gCloseQ;
 bool gWarnAsk = false;
 
-struct PrefScope {
-    int old;
-    explicit PrefScope(int r) : old(plat::gPrefRx) { plat::gPrefRx = r; }
-    ~PrefScope() { plat::gPrefRx = old; }
-};
+using PrefScope = RxPrefScope;
 
-int openMask() {
+int openMask() {   // voice radios are made for the session (one click makes them again): not reopened at the next start
     int m = 0;
-    for (int i = 0; i < kMaxReceivers - 1; i++) if (gExtra[i]) m |= 1 << (i + 2);
+    for (int i = 0; i < kMaxReceivers - 1; i++) if (gExtra[i] && !gExtra[i]->voiceFor) m |= 1 << (i + 2);
     return m;
+}
+
+// only the audible receiver has its sound on (the mode's tick passes a.muted to its decoder)
+void applyForcedMute(App& r) {
+    const bool play = r.rxId == gAudio;
+    if (!play && !r.rxForcedMute) { r.rxSavedMuted = r.muted; r.muted = true; r.rxForcedMute = true; }
+    else if (play && r.rxForcedMute) { r.muted = r.rxSavedMuted; r.rxForcedMute = false; }
 }
 void saveOpen() { plat::prefs().setI("rxOpen", openMask()); }
 
@@ -326,7 +329,68 @@ void strip(App& first, ImVec2 disp, float h) {
 }
 }  // namespace
 
+RxPrefScope::RxPrefScope(int r) : old(plat::gPrefRx) { plat::gPrefRx = r; }
+RxPrefScope::~RxPrefScope() { plat::gPrefRx = old; }
+
 App* receiverHeard() { return receiverById(gAudio); }
+
+void receiverSetHeard(int id) {
+    if (!receiverById(id)) return;
+    gAudio = id;
+    for (App* r : receiversAll()) applyForcedMute(*r);
+}
+
+void receiverSetVoiceFor(App& v, int ctlId) {
+    v.voiceFor = ctlId;
+    saveOpen();
+}
+
+App* addVoiceReceiver(App& ctl, std::string* why) {
+    int id = 0;
+    for (int i = 2; i <= kMaxReceivers && !id; i++) if (!gExtra[i - 2]) id = i;
+    if (!id) { if (why) *why = tr("The most receivers are open."); return nullptr; }
+    App* n = create(id);
+    if (!n) { if (why) *why = tr("The most receivers are open."); return nullptr; }
+    // the first radio nobody uses (another tab running it, or having it chosen: radioTaken) that can tune to the system
+    const double hz = ctl.freqMhz * 1e6;
+    int pick = -1;
+    bool anyRadio = false;
+    for (int i = 2; i < (int)n->devices.size(); i++) {
+        const DeviceInfo& d = n->devices[(size_t)i];
+        if (!d.isRadio()) continue;
+        anyRadio = true;
+        if (pick >= 0 || radioTaken(*n, i)) continue;
+        if (d.maxFreqHz > 0 && (hz < d.minFreqHz || hz > d.maxFreqHz)) continue;
+        pick = i;
+    }
+    if (pick < 0) {   // the same words as the banner of a new tab with no radio left
+        if (why) *why = anyRadio ? tr("Every radio is taken by another receiver tab \xE2\x80\x94 this one is showing the test signal. Plug in another radio, or close a tab (or pick another source in it) to free its radio.")
+                                 : tr("No radio is connected \xE2\x80\x94 this receiver is showing the test signal. Plug in a radio, then choose it here.");
+        gExtra[id - 2].reset();
+        return nullptr;
+    }
+    n->devIdx = pick;
+    n->rxNoRadio = 0;
+    n->tune.biasTee = false;   // never power an antenna the user did not ask for
+    n->voiceFor = ctl.rxId;
+    {
+        PrefScope ps(id);
+        setMode(*n, ctl.family, ctl.sub);
+        n->freqMhz = ctl.freqMhz;   // waits on the system's control channel until the first call
+        n->tune.centerHz = n->freqMhz * 1e6;
+        n->muted = false;          // its own setting; it is muted below until the follower makes it the audible one
+        applyForcedMute(*n);
+        startReceiver(*n);
+    }
+    if (!n->startErr.empty()) {   // refused at once (the reason is the Start button's): nothing is left half made
+        if (why) *why = n->startErr;
+        n->engine.stop();
+        gExtra[id - 2].reset();
+        return nullptr;
+    }
+    saveOpen();
+    return n;
+}
 
 App* receiverById(int id) {
     if (id == 1) return gFirst;
@@ -380,6 +444,7 @@ void receiversInit(App& first) {
 bool receiverModeBusy(const App& a, std::string* why) {
     for (App* b : receiversAll()) {
         if (b == &a || !b->engine.running() || b->family != a.family || b->sub != a.sub) continue;
+        if (a.voiceFor || b->voiceFor) continue;   // a voice radio never draws the mode screen: it shares no screen state
         if (why) *why = "RX " + std::to_string(b->rxId) + " is already receiving this mode, and two receivers cannot share one mode yet. Choose another mode here, or stop RX " + std::to_string(b->rxId) + ".";
         return true;
     }
@@ -403,13 +468,12 @@ void receiversFrame(App& first, ImVec2 disp) {
     sampleCpu();
     if (!receiverById(gSel)) gSel = 1;
     if (!receiverById(gAudio)) gAudio = gSel;
+    trunkVoiceFrame();   // voice radios whose receiver was closed above, switched mode or lost its radio are unlinked before anything ticks
     const float h = stripHeight(first);
     const ImVec2 d(disp.x, disp.y - h);
     for (App* r : receiversAll()) {
         PrefScope ps(r->rxId);
-        const bool play = r->rxId == gAudio;
-        if (!play && !r->rxForcedMute) { r->rxSavedMuted = r->muted; r->muted = true; r->rxForcedMute = true; }
-        else if (play && r->rxForcedMute) { r->muted = r->rxSavedMuted; r->rxForcedMute = false; }
+        applyForcedMute(*r);
         drawUI(*r, d, r->rxId == gSel);
         aeroToolsTick(*r);
     }
@@ -426,11 +490,17 @@ void receiversShutdown(App& first) {
     rtlSerialShutdown();    // a running EEPROM write finishes first
     radioWatchShutdown();   // before the engines and the radio libraries go
     tx::shutdown();
-    for (int id = 2; id <= kMaxReceivers; id++) if (App* r = gExtra[id - 2].get()) {
-        { PrefScope ps(id); savePrefs(*r); }
-        r->engine.stop();
-        r->engine.flushResults();
-    }
+    bool voice[kMaxReceivers + 1] = {};
+    for (int id = 2; id <= kMaxReceivers; id++) if (App* r = gExtra[id - 2].get()) voice[id] = r->voiceFor != 0;
+    trunkVoiceShutdown();   // the follower lets go of its voice radios (calls end, a recording stops) while every receiver still exists
+    // the voice radios stop first, then the other receivers (RX 1, stopped by main(), is last)
+    for (int pass = 0; pass < 2; pass++)
+        for (int id = 2; id <= kMaxReceivers; id++) if (App* r = gExtra[id - 2].get()) {
+            if ((pass == 0) != voice[id]) continue;
+            { PrefScope ps(id); savePrefs(*r); }
+            r->engine.stop();
+            r->engine.flushResults();
+        }
     for (auto& e : gExtra) e.reset();
     (void)first;
 }

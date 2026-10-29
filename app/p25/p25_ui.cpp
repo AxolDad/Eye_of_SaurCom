@@ -9,6 +9,11 @@
 #include "dect2/p25/p25_rx.h"
 #include "dect2/p25/p25_tel.h"
 #include "dect2/p25/trunk.h"
+#include "dect2/p25/trunk_voice.h"
+#include "dect2/dmr/dmr_rx.h"
+#include "dect2/nxdn/nxdn_rx.h"
+#include "state/receivers.h"
+#include "ui/notices.h"
 #include "dect2/transcribe/context.h"
 #include "dect2/audio/audio_rec.h"
 #include "dect2/common/u8file.h"
@@ -46,6 +51,17 @@ struct Trunk {
     uint64_t recCall = 0;
     std::string status;
     char csvPath[300] = "";
+    // voice radios (docs/trunking.md, "Several radios"): other receivers that take the calls outside the capture, so the control radio stays put
+    struct VoiceRadio {
+        int rxId = 0;
+        dect2::trunk::VoiceWatch watch;  // what its receiver heard of the call it was sent to
+        double linkedSec = 0;
+        bool ran = false;                // its receiver has been running since it was linked
+    };
+    std::vector<VoiceRadio> voice;       // radio k of the follower is voice[k]
+    int ctlRx = 0;                       // the receiver on the control channel while voice radios are linked
+    int heardBefore = 0;                 // the receiver that was heard before the sound moved to a voice radio (0: it did not move)
+    std::string voiceErr;                // why the last "Use a second radio for voice" did not work
 };
 Trunk T;
 
@@ -69,6 +85,71 @@ void tgSave(const std::string& path) {
 bool live(const App& a) { return a.rx.standard == 51; }   // the engine reports its standard code minus one
 bool liveDmr(const App& a) { return a.rx.standard == 10; }   // DMR: Tier III grants come as CSBKs
 bool liveNxdn(const App& a) { return a.rx.standard == 39; }  // NXDN: Type C grants come as VCALL_ASSGN on the control channel
+bool trunkFamily(const App& a) { return a.family == 50 || a.family == 9 || a.family == 38; }   // P25, DMR, NXDN: the modes the follower serves
+
+// ---------------------------------------------------------------- voice radios
+
+std::string radioOf(const App& v) { return v.devIdx >= 2 ? radioShortName(v, v.devIdx) : std::string(tr("Test signal")); }
+
+// the receiver's volume and mute to its decoder now (the mode's own tick does this for a receiver that is not a voice radio)
+void pushSound(App& r) {
+    if (!r.engine.running()) return;
+    if (r.family == 50) { r.engine.p25().setVolume(r.volume); r.engine.p25().setMuted(r.muted); }
+    else if (r.family == 9) { r.engine.dmr().setVolume(r.volume); r.engine.dmr().setMuted(r.muted); }
+    else if (r.family == 38) { r.engine.nxdn().setVolume(r.volume); r.engine.nxdn().setMuted(r.muted); }
+}
+
+// The sound moves between the control receiver and its voice radios: the receivers that go quiet are muted first, then the one heard
+// is turned on, so two of them never play at once.
+void hearNow(int id) {
+    receiverSetHeard(id);
+    std::vector<App*> group;
+    if (App* c = receiverById(T.ctlRx)) group.push_back(c);
+    for (const auto& vr : T.voice) if (App* v = receiverById(vr.rxId)) group.push_back(v);
+    for (App* r : group) if (r->rxId != id) pushSound(*r);
+    for (App* r : group) if (r->rxId == id) pushSound(*r);
+}
+
+bool heardIsOurs() {   // the user listens to this trunked system (its control receiver or a voice radio), not to another tab
+    const App* h = receiverHeard();
+    return h && T.ctlRx && (h->rxId == T.ctlRx || h->voiceFor == T.ctlRx);
+}
+
+void soundBack() {
+    const int back = T.heardBefore;
+    T.heardBefore = 0;
+    if (back && heardIsOurs() && receiverById(back)) hearNow(back);
+}
+
+enum class Unlink { Keep, Stop, Close };   // what happens to the receiver: it goes on (another mode now), it stops, or its tab closes
+
+void unlinkVoice(size_t k, const std::string& why, Unlink what, bool notice) {
+    if (k >= T.voice.size()) return;
+    const int id = T.voice[k].rxId, ctlRx = T.ctlRx;
+    const bool wasHeard = receiverHeard() && receiverHeard()->rxId == id;
+    T.ctl.dropVoiceRadio((int)k, why.c_str());   // its call ends at the next tick; the others keep their radios
+    T.voice.erase(T.voice.begin() + (long)k);
+    if (App* v = receiverById(id)) {
+        receiverSetVoiceFor(*v, 0);
+        if (what == Unlink::Stop) v->engine.stop();
+        else if (what == Unlink::Close) closeReceiver(id);
+    }
+    if (wasHeard) {   // the sound goes back to where it was before the call, else to the control receiver
+        const int back = T.heardBefore && T.heardBefore != id ? T.heardBefore : ctlRx;
+        T.heardBefore = 0;
+        if (receiverById(back)) hearNow(back);
+    }
+    if (T.voice.empty()) { T.ctlRx = 0; T.heardBefore = 0; }
+    T.ctl.messages.push_back(why);
+    if (notice) noticePush(why, {}, 12);
+}
+
+void unlinkAll(const std::string& why, Unlink what, bool notice) {
+    while (!T.voice.empty()) unlinkVoice(T.voice.size() - 1, why, what, false);
+    if (notice && !why.empty()) noticePush(why, {}, 12);
+}
+
+std::string fmtRx(const char* f, int a, int b = 0) { char t[512]; snprintf(t, sizeof t, f, a, b); return t; }
 
 std::string clock(int64_t t) {
     if (t <= 0) return "-";
@@ -298,8 +379,10 @@ void trunkTick(App& a) {
         applyNxdnChannels(T.nxdnChannels);
     }
     const bool p25 = live(a), dmr = liveDmr(a), nxdn = liveNxdn(a);
+    if (!T.voice.empty() && a.rxId != T.ctlRx) return;   // voice radios are linked to another receiver's control channel: that one drives the follower
     if (!T.on || !(p25 || dmr || nxdn)) return;
     using namespace dect2::trunk;
+    if (T.ctl.follower.voiceRadios() != (int)T.voice.size()) T.ctl.setVoiceRadios((int)T.voice.size());
     const double now = nowSec();
     const dect2::P25Telemetry& t = a.rx.p25;
     // a restarted receiver counts its messages from 1 again
@@ -328,7 +411,8 @@ void trunkTick(App& a) {
         }
     }
     T.ctl.setCapture(radioCenterMhz(a) * 1e6, p25 && wideActive(a) ? t.inputRate : 0);   // DMR, NXDN: the radio retunes for each call
-    if (const uint64_t id = T.ctl.follower.audibleCall()) {   // on the call's channel: voice heard keeps the call (and the radio) there
+    const uint64_t audible = T.ctl.follower.audibleCall();
+    if (const uint64_t id = T.ctl.follower.voiceRadioOf(audible) < 0 ? audible : 0) {   // on the call's channel: voice heard keeps the call (and the radio) there
         const CallRecord* r = T.ctl.log.byId(id);
         bool voice = false;
         // only this call's own voice counts: the channel may already carry another talkgroup's call (its grant was not heard here)
@@ -338,10 +422,33 @@ void trunkTick(App& a) {
         else voice = a.rx.nxdn.now.active && a.rx.nxdn.now.kind == 0 && ours(a.rx.nxdn.now.dst);
         if (voice && !(p25 && wideActive(a))) T.ctl.onVoice(id, now);
     }
+    // the voice radios: each one's own receiver says whether its call is still talking, or sent its terminator
+    for (size_t k = 0; k < T.voice.size(); k++) {
+        Trunk::VoiceRadio& vr = T.voice[k];
+        App* v = receiverById(vr.rxId);
+        const uint64_t id = T.ctl.follower.voiceCall((int)k);
+        const CallRecord* r = id ? T.ctl.log.byId(id) : nullptr;
+        if (!v || !r) { vr.watch = VoiceWatch(); continue; }
+        VoiceHeard h = VoiceHeard::Nothing;
+        if (p25 && live(*v)) h = p25VoiceHeard(vr.watch, id, r->tg, v->rx.p25.now);
+        else if (dmr && liveDmr(*v)) h = dmrVoiceHeard(vr.watch, id, r->tg, r->slot, v->rx.dmr.slot);
+        else if (nxdn && liveNxdn(*v)) h = nxdnVoiceHeard(vr.watch, id, r->tg, v->rx.nxdn.now);
+        if (h == VoiceHeard::Voice) T.ctl.onVoice(id, now);
+        else if (h == VoiceHeard::Ended) T.ctl.onTerminator(id, now);
+    }
     T.ctl.tick(now);
     for (const Action& ac : T.ctl.takeActions()) {
         switch (ac.kind) {
-        case Action::Retune: tuneFreq(a, ac.freqHz / 1e6); break;
+        case Action::Retune:
+            if (ac.radio < 0) tuneFreq(a, ac.freqHz / 1e6);   // no voice radio: this receiver leaves the control channel for the call
+            else if ((size_t)ac.radio < T.voice.size()) {
+                if (App* v = receiverById(T.voice[(size_t)ac.radio].rxId)) {
+                    RxPrefScope ps(v->rxId);   // its own settings, not this receiver's
+                    tuneFreq(*v, ac.freqHz / 1e6);
+                    T.voice[(size_t)ac.radio].watch = VoiceWatch();
+                }
+            }
+            break;
         case Action::Notice: T.ctl.messages.push_back(ac.text); break;
         case Action::RecordStart: {
             dect2::AudioRecorder& rec = dect2::AudioRecorder::instance();
@@ -365,6 +472,15 @@ void trunkTick(App& a) {
         default: break;
         }
     }
+    if (!T.voice.empty()) {   // the sound follows the call: the voice radio that carries it is heard, then the sound goes back
+        const int k = T.ctl.follower.voiceRadioOf(T.ctl.follower.audibleCall());
+        App* want = k >= 0 && (size_t)k < T.voice.size() ? receiverById(T.voice[(size_t)k].rxId) : nullptr;
+        App* h = receiverHeard();
+        if (want && h != want && heardIsOurs()) {
+            if (!T.heardBefore) T.heardBefore = h->rxId;
+            hearNow(want->rxId);
+        } else if (!want && T.heardBefore) soundBack();
+    }
     if (wideActive(a)) {   // the sound follows the call that should be heard
         const uint64_t id = T.ctl.follower.audibleCall();
         const CallRecord* r = id ? T.ctl.log.byId(id) : nullptr;
@@ -376,6 +492,69 @@ void trunkTick(App& a) {
         } else if (T.forcedSel) { a.wideSel = 0; T.forcedSel = 0; }
     }
     if (T.dirty) { T.dirty = false; tgSave(tgFile()); }
+}
+
+// The Follow tab's voice radios: the one-click button, and a line per linked radio with Unlink (docs/trunking.md, "Several radios")
+void voiceRadiosView(App& a) {
+    using namespace dect2::trunk;
+    if (!T.voice.empty() && T.ctlRx != a.rxId) {   // another receiver holds the control channel for these radios
+        ImGui::TextDisabled("%s", fmtRx(tr("RX %d is on the control channel and follows the calls with its voice radios."), T.ctlRx).c_str());
+        return;
+    }
+    for (size_t k = 0; k < T.voice.size(); k++) {
+        const App* v = receiverById(T.voice[k].rxId);
+        if (!v) continue;
+        ImGui::PushID((int)k);
+        ImGui::AlignTextToFramePadding();
+        char line[300];
+        snprintf(line, sizeof line, tr("Voice: RX %d \xC2\xB7 %s"), v->rxId, radioOf(*v).c_str());   // the radio's name is the user's text: an argument, never the format
+        ImGui::TextColored(pal::okGreen(), "%s", line);
+        if (const uint64_t id = T.ctl.follower.voiceCall((int)k)) if (const CallRecord* r = T.ctl.log.byId(id)) {
+            ImGui::SameLine(0, 8 * gUi);
+            const TgEntry* e = r->group ? T.ctl.tgs.find(r->tg) : nullptr;
+            ImGui::TextDisabled("TG %d %s  %s", r->tg, e ? e->alpha.c_str() : "", mhz(r->freqHz).c_str());
+        }
+        ImGui::SameLine(0, 10 * gUi);
+        if (ImGui::SmallButton(tr("Unlink"))) {
+            unlinkVoice(k, fmtRx(tr("RX %d is no longer a voice radio: its tab is closed."), v->rxId), Unlink::Close, false);
+            ImGui::PopID();
+            break;
+        }
+        ImGui::PopID();
+    }
+    const bool on = live(a) || liveDmr(a) || liveNxdn(a);
+    ImGui::BeginDisabled(!on);
+    if (ImGui::Button(T.voice.empty() ? tr("Use a second radio for voice") : tr("Use another radio for voice"))) {
+        std::string why;
+        if (App* v = addVoiceReceiver(a, &why)) {
+            T.ctlRx = a.rxId;
+            Trunk::VoiceRadio vr;
+            vr.rxId = v->rxId;
+            vr.linkedSec = nowSec();
+            T.voice.push_back(vr);
+            T.ctl.setVoiceRadios((int)T.voice.size());
+            T.on = true;   // the point of the click: follow the calls
+            T.voiceErr.clear();
+            T.ctl.messages.push_back(fmtRx(tr("RX %d follows the calls as a voice radio; RX %d stays on the control channel."), v->rxId, a.rxId));
+        } else T.voiceErr = why;
+    }
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", on ? tr("Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.")
+                                   : tr("Start this receiver on the control channel first."));
+    if (!T.voiceErr.empty()) {
+        ImGui::PushTextWrapPos(0);
+        ImGui::TextColored(pal::warnAmber(), "%s", T.voiceErr.c_str());
+        ImGui::PopTextWrapPos();
+    }
+    if (T.voice.empty() && !wideActive(a)) {
+        ImGui::PushTextWrapPos(0);
+        ImGui::TextDisabled("%s", tr("With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. "
+                                     "A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding."));
+        ImGui::PopTextWrapPos();
+    } else if (!T.voice.empty()) {
+        ImGui::TextDisabled("%s", tr("This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed."));
+    }
 }
 
 void followView(App& a) {
@@ -423,12 +602,8 @@ void followView(App& a) {
     const SiteInfo& si = T.ctl.sys.site();
     if (si.valid) kvRow(a, "site", "WACN %05X system %03X RFSS %d site %d NAC %03X", si.wacn < 0 ? 0 : si.wacn, si.sysId < 0 ? 0 : si.sysId, si.rfss, si.site, si.nac < 0 ? 0 : si.nac);
     if (wideActive(a)) ImGui::TextDisabled("wide capture: calls inside the span are followed by the carrier decoders (up to %d at once)", T.ctl.follower.config().maxSlices);
-    else ImGui::TextDisabled("single channel: the radio leaves the control channel for each call (turn on whole-span decoding to follow inside the capture)");
-    // asked for often with several radios attached: say plainly what works today (docs/trunking.md, "Several radios")
-    ImGui::PushTextWrapPos(0);
-    ImGui::TextDisabled("%s", tr("Voice on a second radio is not supported yet: this receiver follows calls with its own radio. "
-                                 "With a wide-band radio (HackRF), turn on whole-span decoding so the control channel and the voice channels are received together."));
-    ImGui::PopTextWrapPos();
+    else if (T.voice.empty()) ImGui::TextDisabled("single channel: the radio leaves the control channel for each call (turn on whole-span decoding to follow inside the capture)");
+    voiceRadiosView(a);
     FollowConfig fc = T.ctl.follower.config();
     ImGui::SetNextItemWidth(110 * gUi); bool ch = ImGui::SliderInt("simultaneous calls", &fc.maxSlices, 1, 4);
     ImGui::SameLine(0, 10 * gUi); ImGui::SetNextItemWidth(110 * gUi); ch |= ImGui::SliderFloat("hang time s", &S.hang, 0.5f, 6.f, "%.1f");
@@ -620,6 +795,75 @@ void summary(const App& a, std::string& l1, std::string& l2) {
 // The trunking follower is shared by P25, DMR Tier III and NXDN Type C: the DMR and NXDN tabs tick it and shows the same panel (talkgroups, now talking, call log).
 void trunkFollowTick(App& a) { trunkTick(a); }
 void trunkFollowPanel(App& a) { followView(a); }
+
+void trunkVoiceTick(App& v) {
+    if (live(v)) appcodec::voiceCodecTick("imbe");   // the user's codec plug-in, as the mode's own tick does
+    else if (liveDmr(v) || liveNxdn(v)) appcodec::voiceCodecTick("ambe2");
+    if (!v.engine.running()) return;
+    if (v.family == 9) {   // DMR: decode and play the time slot of the call it was sent to
+        int slot = 0;
+        for (size_t k = 0; k < T.voice.size(); k++) if (T.voice[k].rxId == v.rxId)
+            if (const uint64_t id = T.ctl.follower.voiceCall((int)k)) if (const dect2::trunk::CallRecord* r = T.ctl.log.byId(id)) if (r->slot == 0 || r->slot == 1) slot = r->slot + 1;
+        v.engine.dmr().setListenSlot(slot);
+    }
+    pushSound(v);
+}
+
+void trunkVoicePanel(App& v) {
+    using namespace dect2::trunk;
+    size_t k = 0;
+    while (k < T.voice.size() && T.voice[k].rxId != v.rxId) k++;
+    if (k == T.voice.size()) { receiverSetVoiceFor(v, 0); v.engine.stop(); return; }   // not linked any more: stopped, its mode screen comes back next frame
+    const uint64_t id = k < T.voice.size() ? T.ctl.follower.voiceCall((int)k) : 0;
+    const CallRecord* r = id ? T.ctl.log.byId(id) : nullptr;
+    char line[300];
+    if (r) snprintf(line, sizeof line, tr("Voice for RX %d \xC2\xB7 TG %d \xC2\xB7 %.4f MHz"), v.voiceFor, r->tg, r->freqHz / 1e6);
+    else snprintf(line, sizeof line, tr("Voice for RX %d \xC2\xB7 waiting for a call"), v.voiceFor);
+    ImGui::PushFont(v.mono, 0);
+    ImGui::TextColored(r ? pal::okGreen() : pal::grey(0.6f), "%s", line);
+    ImGui::PopFont();
+    if (r) if (const TgEntry* e = r->group ? T.ctl.tgs.find(r->tg) : nullptr) if (!e->alpha.empty()) { ImGui::SameLine(0, 8 * gUi); ImGui::TextUnformatted(e->alpha.c_str()); }
+    ImGui::TextDisabled(tr("Radio: %s"), radioOf(v).c_str());
+    if (!v.engine.running()) ImGui::TextColored(pal::warnAmber(), "%s", tr("starting"));
+    if (ImGui::Button(tr("Unlink"))) unlinkVoice(k, fmtRx(tr("RX %d is no longer a voice radio: its tab is closed."), v.rxId), Unlink::Close, false);
+    ImGui::Spacing();
+    ImGui::PushTextWrapPos(0);
+    ImGui::TextDisabled("%s", fmtRx(tr("This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d."), v.voiceFor, v.voiceFor).c_str());
+    ImGui::PopTextWrapPos();
+}
+
+void trunkVoiceFrame() {
+    if (T.voice.empty()) return;
+    App* c = receiverById(T.ctlRx);
+    if (!c) { unlinkAll(tr("The receiver on the control channel was closed: its voice radios are closed too."), Unlink::Close, true); return; }
+    if (!trunkFamily(*c)) { unlinkAll(fmtRx(tr("RX %d left trunking: its voice radios are closed."), c->rxId), Unlink::Close, true); return; }
+    const double now = nowSec();
+    for (size_t k = T.voice.size(); k-- > 0;) {
+        Trunk::VoiceRadio& vr = T.voice[k];
+        const int id = vr.rxId;
+        App* v = receiverById(id);
+        if (!v) { unlinkVoice(k, fmtRx(tr("The voice tab RX %d was closed: RX %d follows calls with its own radio again."), id, c->rxId), Unlink::Keep, true); continue; }
+        if (v->family != c->family || v->sub != c->sub) { unlinkVoice(k, fmtRx(tr("RX %d was switched to another mode: it is no longer a voice radio."), id), Unlink::Keep, true); continue; }
+        const bool run = v->engine.running(), lost = v->engine.radioLost();
+        if (run && !lost) vr.ran = true;
+        if (lost || (!run && (vr.ran || now - vr.linkedSec > 15))) {   // unplugged, stopped, or never started
+            char why[700];
+            snprintf(why, sizeof why, tr("RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel."), id, radioOf(*v).c_str(), c->rxId);
+            std::string w = why;
+            if (!v->startErr.empty()) w += " " + v->startErr;
+            unlinkVoice(k, w, Unlink::Stop, true);
+        }
+    }
+}
+
+void trunkVoiceShutdown() {
+    while (!T.voice.empty()) { T.ctl.dropVoiceRadio((int)T.voice.size() - 1, "program closed"); T.voice.pop_back(); }
+    T.ctl.tick(nowSec());   // the calls on them end
+    for (const dect2::trunk::Action& ac : T.ctl.takeActions())
+        if (ac.kind == dect2::trunk::Action::RecordStop && T.recCall == ac.callId) { dect2::AudioRecorder::instance().stop(); T.recCall = 0; }
+    T.ctlRx = 0;
+    T.heardBefore = 0;
+}
 
 // The scanner on a trunked system's entry: follow its calls while it is there. enter: a new system, so the site and the follower start
 // again (the call log and the talkgroups stay) and the new receiver's message counters are taken from the start.

@@ -304,6 +304,7 @@ struct App {
     Engine engine;
     int rxId = 1;                 // receiver number: RX 1 is the first (receivers.h)
     bool rxForcedMute = false, rxSavedMuted = false;   // only the receiver that plays gets sound: the others are muted
+    int voiceFor = 0;             // a voice radio of the trunking follower on RX n (docs/trunking.md): it shows a small panel, never the mode screen
     NetTuner net{engine};      // network tuner (declared after the engine so that it stops first)
     bool netOn = false, netLan = false;
     int netPort = 8089;
@@ -944,6 +945,11 @@ void trunkFollowTick(App& a);    // the P25 / DMR Tier III / NXDN Type C trunkin
 void trunkFollowPanel(App& a);
 void trunkScanFollow(App& a, bool on, bool enter);   // the scanner on a trunked system's entry (app/p25/p25_ui.cpp)
 bool trunkCallNow(std::string* what);                // a followed call is running; what: its talkgroup and name
+// Voice radios (docs/trunking.md, "Several radios"): receivers linked to the follower's control receiver that take the calls outside its capture
+void trunkVoiceTick(App& v);       // a voice receiver's per-frame work, in place of its mode's tick (the mode's shared screen state is not touched)
+void trunkVoicePanel(App& v);      // a voice receiver's screen, in place of the mode screen
+void trunkVoiceFrame();            // every frame before the receivers draw: unlinks voice receivers that were closed, switched mode or lost their radio
+void trunkVoiceShutdown();         // the program's end: unlinks every voice receiver, before the receivers stop
 void savePrefs(const App& a);
 int adcBitsFor(const DeviceInfo& d, double rateHz);
 void ingestSpectrum(App& a);

@@ -3465,3 +3465,24 @@ Basic and detail paired	基础报文与扩展报文已配对
 Unpaired detail	未配对的扩展报文
 Locomotive code: %s, serial: %s	机车型号码：%s，机车号：%s
 Cab end (raw): %s	端位原码：%s
+# trunking: voice radios (the follower's second radio)
+Voice	语音
+Unlink	解除关联
+RX %d is on the control channel and follows the calls with its voice radios.	RX %d 留在控制信道上，并用其语音电台跟踪通话。
+Voice: RX %d · %s	语音：RX %d · %s
+RX %d is no longer a voice radio: its tab is closed.	RX %d 不再是语音电台：其标签页已关闭。
+Use a second radio for voice	使用第二台电台接收语音
+Use another radio for voice	再使用一台电台接收语音
+RX %d follows the calls as a voice radio; RX %d stays on the control channel.	RX %d 作为语音电台跟踪通话；RX %d 留在控制信道上。
+Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.	在第一台空闲电台上以此模式打开一个接收机标签页并关联：本电台留在控制信道上，每个通话都在另一台上收听。再按一次可再添加一台。
+Start this receiver on the control channel first.	请先在控制信道上启动此接收机。
+With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding.	只有一台电台时，此接收机每次通话都会离开控制信道，并错过期间分配的通话。第二台语音电台可以避免这一点；带全频段解码的宽带电台 (HackRF) 也可以。
+This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed.	本电台留在控制信道上。所有语音电台都忙时，优先级更高的通话会接管正在承载最低优先级通话的那一台；其余的记为错过。
+Voice for RX %d · TG %d · %.4f MHz	RX %d 的语音 · TG %d · %.4f MHz
+Voice for RX %d · waiting for a call	RX %d 的语音 · 等待通话
+This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	此接收机只跟踪 RX %d 的通话。通话组、通话记录和设置在 RX %d 的跟踪标签页上。
+The receiver on the control channel was closed: its voice radios are closed too.	控制信道上的接收机已关闭：其语音电台也随之关闭。
+RX %d left trunking: its voice radios are closed.	RX %d 已离开集群：其语音电台已关闭。
+The voice tab RX %d was closed: RX %d follows calls with its own radio again.	语音标签页 RX %d 已关闭：RX %d 重新用自己的电台跟踪通话。
+RX %d was switched to another mode: it is no longer a voice radio.	RX %d 已切换到其他模式：它不再是语音电台。
+RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d 失去了它的电台 (%s)：其上的通话已结束，它不再是语音电台。RX %d 留在控制信道上。

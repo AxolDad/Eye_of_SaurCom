@@ -3442,3 +3442,24 @@ deselect	abwählen
 click a station on the map to select it	Station auf der Karte anklicken, um sie zu wählen
 %zu stations by their locators, %zu contact lines	%zu Stationen nach ihren Lokatoren, %zu Kontaktlinien
 %d stations at the centre of their grid squares, %zu contact lines	%d Stationen in der Mitte ihrer Gitterfelder, %zu Kontaktlinien
+# trunking: voice radios (the follower's second radio)
+Voice	Sprache
+Unlink	Trennen
+RX %d is on the control channel and follows the calls with its voice radios.	RX %d bleibt auf dem Steuerkanal und verfolgt die Gespräche mit seinen Sprachfunkgeräten.
+Voice: RX %d · %s	Sprache: RX %d · %s
+RX %d is no longer a voice radio: its tab is closed.	RX %d ist kein Sprachfunkgerät mehr: sein Tab ist geschlossen.
+Use a second radio for voice	Zweites Funkgerät für Sprache verwenden
+Use another radio for voice	Weiteres Funkgerät für Sprache verwenden
+RX %d follows the calls as a voice radio; RX %d stays on the control channel.	RX %d verfolgt die Gespräche als Sprachfunkgerät; RX %d bleibt auf dem Steuerkanal.
+Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.	Öffnet einen Empfänger-Tab auf dem ersten freien Funkgerät, in dieser Betriebsart, und verbindet ihn: dieses Funkgerät bleibt auf dem Steuerkanal, und jedes Gespräch ist auf dem anderen zu hören. Erneut drücken, um ein weiteres hinzuzufügen.
+Start this receiver on the control channel first.	Starten Sie diesen Empfänger zuerst auf dem Steuerkanal.
+With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding.	Mit einem Funkgerät verlässt dieser Empfänger für jedes Gespräch den Steuerkanal und verpasst die Gespräche, die währenddessen vergeben werden. Ein zweites Funkgerät für Sprache vermeidet das, ebenso ein Breitband-Funkgerät (HackRF) mit Dekodierung der ganzen Spanne.
+This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed.	Dieses Funkgerät bleibt auf dem Steuerkanal. Sind alle Sprachfunkgeräte belegt, übernimmt ein Gespräch höherer Priorität das mit dem Gespräch niedrigster Priorität; die übrigen werden als verpasst protokolliert.
+Voice for RX %d · TG %d · %.4f MHz	Sprache für RX %d · TG %d · %.4f MHz
+Voice for RX %d · waiting for a call	Sprache für RX %d · wartet auf ein Gespräch
+This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Dieser Empfänger verfolgt nur Gespräche für RX %d. Die Sprechgruppen, das Gesprächsprotokoll und die Einstellungen sind im Tab Folgen von RX %d.
+The receiver on the control channel was closed: its voice radios are closed too.	Der Empfänger auf dem Steuerkanal wurde geschlossen: seine Sprachfunkgeräte werden ebenfalls geschlossen.
+RX %d left trunking: its voice radios are closed.	RX %d hat den Bündelfunk verlassen: seine Sprachfunkgeräte werden geschlossen.
+The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Der Sprach-Tab RX %d wurde geschlossen: RX %d verfolgt Gespräche wieder mit dem eigenen Funkgerät.
+RX %d was switched to another mode: it is no longer a voice radio.	RX %d wurde auf eine andere Betriebsart umgestellt: es ist kein Sprachfunkgerät mehr.
+RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d hat sein Funkgerät verloren (%s): das Gespräch darauf ist beendet, und es ist kein Sprachfunkgerät mehr. RX %d bleibt auf dem Steuerkanal.

@@ -3442,3 +3442,24 @@ deselect	selectie opheffen
 click a station on the map to select it	klik op een station op de kaart om het te kiezen
 %zu stations by their locators, %zu contact lines	%zu stations op hun locator, %zu contactlijnen
 %d stations at the centre of their grid squares, %zu contact lines	%d stations in het midden van hun vak, %zu contactlijnen
+# trunking: voice radios (the follower's second radio)
+Voice	Spraak
+Unlink	Ontkoppelen
+RX %d is on the control channel and follows the calls with its voice radios.	RX %d blijft op het controlekanaal en volgt de gesprekken met zijn spraakontvangers.
+Voice: RX %d · %s	Spraak: RX %d · %s
+RX %d is no longer a voice radio: its tab is closed.	RX %d is geen spraakontvanger meer: zijn tabblad is gesloten.
+Use a second radio for voice	Een tweede radio voor spraak gebruiken
+Use another radio for voice	Nog een radio voor spraak gebruiken
+RX %d follows the calls as a voice radio; RX %d stays on the control channel.	RX %d volgt de gesprekken als spraakontvanger; RX %d blijft op het controlekanaal.
+Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.	Opent een ontvangertabblad op de eerste vrije radio, in deze modus, en koppelt het: deze radio blijft op het controlekanaal en elk gesprek is op de andere te horen. Druk nog eens om er nog een toe te voegen.
+Start this receiver on the control channel first.	Start deze ontvanger eerst op het controlekanaal.
+With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding.	Met één radio verlaat deze ontvanger voor elk gesprek het controlekanaal en mist hij de gesprekken die intussen worden toegewezen. Een tweede radio voor spraak voorkomt dat; een breedbandradio (HackRF) met decodering van de hele band ook.
+This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed.	Deze radio blijft op het controlekanaal. Als alle spraakontvangers bezet zijn, neemt een gesprek met hogere prioriteit de ontvanger met het gesprek van de laagste prioriteit over; de andere worden als gemist gelogd.
+Voice for RX %d · TG %d · %.4f MHz	Spraak voor RX %d · TG %d · %.4f MHz
+Voice for RX %d · waiting for a call	Spraak voor RX %d · wacht op een gesprek
+This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Deze ontvanger volgt alleen gesprekken voor RX %d. De gespreksgroepen, het gesprekslogboek en de instellingen staan op het tabblad Volgen van RX %d.
+The receiver on the control channel was closed: its voice radios are closed too.	De ontvanger op het controlekanaal is gesloten: zijn spraakontvangers worden ook gesloten.
+RX %d left trunking: its voice radios are closed.	RX %d heeft trunking verlaten: zijn spraakontvangers worden gesloten.
+The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Het spraaktabblad RX %d is gesloten: RX %d volgt gesprekken weer met zijn eigen radio.
+RX %d was switched to another mode: it is no longer a voice radio.	RX %d is naar een andere modus omgeschakeld: het is geen spraakontvanger meer.
+RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d is zijn radio kwijt (%s): het gesprek erop is beëindigd en het is geen spraakontvanger meer. RX %d blijft op het controlekanaal.

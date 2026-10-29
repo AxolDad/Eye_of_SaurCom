@@ -3442,3 +3442,24 @@ deselect	désélectionner
 click a station on the map to select it	cliquez sur une station de la carte pour la sélectionner
 %zu stations by their locators, %zu contact lines	%zu stations par leur locator, %zu lignes de contact
 %d stations at the centre of their grid squares, %zu contact lines	%d stations au centre de leur carré de grille, %zu lignes de contact
+# trunking: voice radios (the follower's second radio)
+Voice	Voix
+Unlink	Délier
+RX %d is on the control channel and follows the calls with its voice radios.	RX %d est sur le canal de contrôle et suit les appels avec ses radios de voix.
+Voice: RX %d · %s	Voix : RX %d · %s
+RX %d is no longer a voice radio: its tab is closed.	RX %d n'est plus une radio de voix : son onglet est fermé.
+Use a second radio for voice	Utiliser une deuxième radio pour la voix
+Use another radio for voice	Utiliser une autre radio pour la voix
+RX %d follows the calls as a voice radio; RX %d stays on the control channel.	RX %d suit les appels comme radio de voix ; RX %d reste sur le canal de contrôle.
+Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.	Ouvre un onglet de récepteur sur la première radio libre, dans ce mode, et le lie : cette radio reste sur le canal de contrôle et chaque appel s'entend sur l'autre. Appuyez à nouveau pour en ajouter une.
+Start this receiver on the control channel first.	Démarrez d'abord ce récepteur sur le canal de contrôle.
+With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding.	Avec une seule radio, ce récepteur quitte le canal de contrôle pour chaque appel et manque les appels attribués entre-temps. Une deuxième radio pour la voix l'évite ; une radio large bande (HackRF) avec le décodage de toute la bande aussi.
+This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed.	Cette radio reste sur le canal de contrôle. Quand toutes les radios de voix sont occupées, un appel de priorité plus haute prend celle qui porte l'appel de plus basse priorité ; les autres sont notés comme manqués.
+Voice for RX %d · TG %d · %.4f MHz	Voix pour RX %d · TG %d · %.4f MHz
+Voice for RX %d · waiting for a call	Voix pour RX %d · en attente d'un appel
+This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Ce récepteur ne suit que les appels pour RX %d. Les groupes, le journal des appels et les réglages sont dans l'onglet Suivre de RX %d.
+The receiver on the control channel was closed: its voice radios are closed too.	Le récepteur du canal de contrôle a été fermé : ses radios de voix sont fermées aussi.
+RX %d left trunking: its voice radios are closed.	RX %d a quitté le trunking : ses radios de voix sont fermées.
+The voice tab RX %d was closed: RX %d follows calls with its own radio again.	L'onglet de voix RX %d a été fermé : RX %d suit de nouveau les appels avec sa propre radio.
+RX %d was switched to another mode: it is no longer a voice radio.	RX %d est passé à un autre mode : ce n'est plus une radio de voix.
+RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d a perdu sa radio (%s) : l'appel en cours s'est terminé et ce n'est plus une radio de voix. RX %d reste sur le canal de contrôle.

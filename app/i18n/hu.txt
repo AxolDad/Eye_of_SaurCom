@@ -3428,3 +3428,24 @@ deselect	kijelölés törlése
 click a station on the map to select it	kattints egy állomásra a térképen a kijelöléshez
 %zu stations by their locators, %zu contact lines	%zu állomás a lokátoruk szerint, %zu kapcsolatvonal
 %d stations at the centre of their grid squares, %zu contact lines	%d állomás a rácsnégyzetük közepén, %zu kapcsolatvonal
+# trunking: voice radios (the follower's second radio)
+Voice	Hang
+Unlink	Leválasztás
+RX %d is on the control channel and follows the calls with its voice radios.	Az RX %d a vezérlőcsatornán marad, és a hangrádióival követi a hívásokat.
+Voice: RX %d · %s	Hang: RX %d · %s
+RX %d is no longer a voice radio: its tab is closed.	Az RX %d már nem hangrádió: a lapja bezárult.
+Use a second radio for voice	Második rádió használata a hanghoz
+Use another radio for voice	Újabb rádió használata a hanghoz
+RX %d follows the calls as a voice radio; RX %d stays on the control channel.	Az RX %d hangrádióként követi a hívásokat; az RX %d a vezérlőcsatornán marad.
+Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.	Új vevőlapot nyit az első szabad rádión, ebben az üzemmódban, és összekapcsolja: ez a rádió a vezérlőcsatornán marad, és minden hívás a másikon hallható. Nyomja meg újra egy további hozzáadásához.
+Start this receiver on the control channel first.	Először indítsa el ezt a vevőt a vezérlőcsatornán.
+With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding.	Egy rádióval ez a vevő minden hívásnál elhagyja a vezérlőcsatornát, és lemarad az eközben kiosztott hívásokról. Egy második rádió a hanghoz ezt elkerüli; ugyanígy egy szélessávú rádió (HackRF) a teljes sáv dekódolásával.
+This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed.	Ez a rádió a vezérlőcsatornán marad. Ha minden hangrádió foglalt, egy magasabb prioritású hívás átveszi azt, amelyiken a legalacsonyabb prioritású hívás van; a többi kihagyottként kerül a naplóba.
+Voice for RX %d · TG %d · %.4f MHz	Hang az RX %d számára · TG %d · %.4f MHz
+Voice for RX %d · waiting for a call	Hang az RX %d számára · hívásra vár
+This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Ez a vevő csak az RX %d hívásait követi. A beszélgetőcsoportok, a hívásnapló és a beállítások az RX %d Követés lapján vannak.
+The receiver on the control channel was closed: its voice radios are closed too.	A vezérlőcsatorna vevője bezárult: a hangrádiói is bezárulnak.
+RX %d left trunking: its voice radios are closed.	Az RX %d kilépett a trönkölésből: a hangrádiói bezárulnak.
+The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Az RX %d hanglap bezárult: az RX %d ismét a saját rádiójával követi a hívásokat.
+RX %d was switched to another mode: it is no longer a voice radio.	Az RX %d másik üzemmódra váltott: már nem hangrádió.
+RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	Az RX %d elvesztette a rádióját (%s): a rajta lévő hívás véget ért, és már nem hangrádió. Az RX %d a vezérlőcsatornán marad.

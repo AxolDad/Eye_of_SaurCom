@@ -33,7 +33,8 @@ static void tickReceiver(App& a) {
     ingestRx(a);
     dabHistory(a);
     fmHistory(a);
-    if (const ModeUi* mu = modeUi(a.family)) if (mu->tick) mu->tick(a);
+    if (a.voiceFor) trunkVoiceTick(a);   // a trunking voice radio: its own small tick, the mode's (and its shared screen state) is left alone
+    else if (const ModeUi* mu = modeUi(a.family)) if (mu->tick) mu->tick(a);
     syncAdsbReference(a);
     wideSync(a);
     secondModeTick(a);
