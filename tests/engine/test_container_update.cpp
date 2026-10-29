@@ -110,6 +110,17 @@ int main() {
     CHECK(std::string(stateName(State::Pulling)) == "pulling" && std::string(stateName(State::None)) == "none", "state names");
 
     if (fails) { printf("%d failure(s)\n", fails); return 1; }
+    // the one-time command: pinned to this release's tag, a temporary file, installed only when complete
+    {
+        const std::string c = helperCommand("v0.3.1"), c2 = helperCommand("0.3.1");
+        CHECK(c == c2, "the v is dropped");
+        CHECK(c.find("/Eye_of_SaurCom/v0.3.1/packaging/proxmox/saurcom-update") != std::string::npos, "pinned to the tag: %s", c.c_str());
+        CHECK(c.find("/main/") == std::string::npos && c.find("vv") == std::string::npos, "no branch");
+        CHECK(c.find("mktemp") != std::string::npos && c.find("[ -s ") != std::string::npos && c.find("#!/usr/bin/env bash") != std::string::npos &&
+              c.find("install -m 755") != std::string::npos && c.find("-o /usr/local/bin") == std::string::npos, "a temporary file, checked, then installed");
+        CHECK(c.rfind("pct exec <id> -- bash -c '", 0) == 0 && c.back() == '\'' && c.size() < 500, "one quoted command that fits the window's field (%zu)", c.size());
+    }
+
     printf("container_update: all passed\n");
     return 0;
 }

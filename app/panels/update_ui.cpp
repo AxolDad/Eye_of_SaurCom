@@ -2,8 +2,8 @@
 // the state, and a small window with the notes of the new version and the settings. The new version is put in place when the program closes,
 // or at once on request.
 // In the Docker image (packaging/docker) the program cannot replace its own image: there the button asks the helper outside the container
-// (saurcom-update, packaging/proxmox) through a request file in the config volume and shows the status file it writes back
-// (dect2/engine/container_update.h). The desktop download and install-on-close are not offered there.
+// (saurcom-update, packaging/proxmox) through a request file in the config volume and shows the status file it writes back into a
+// directory of root's that this container sees read-only (dect2/engine/container_update.h). The desktop download and install-on-close are not offered there.
 #include "../app.h"
 #include "dect2/engine/updater.h"
 #include "dect2/engine/container_update.h"
@@ -29,12 +29,13 @@ bool skipped(const App& a, const ReleaseInfo& r) { return !a.updSkip.empty() && 
 
 // ---- the Docker image: the request and status files
 namespace cu = dect2::cupdate;
-// the one-time step for a Proxmox container made before the update button: the new saurcom-update, which then also installs its units
-const char* kHelperCmd = "pct exec <id> -- bash -c 'curl -fsSL https://raw.githubusercontent.com/AxolDad/Eye_of_SaurCom/main/packaging/proxmox/saurcom-update"
-                         " -o /usr/local/bin/saurcom-update && chmod 755 /usr/local/bin/saurcom-update && saurcom-update'";
+// the one-time step for a Proxmox container made before the update button: the saurcom-update of this release, which then also installs its
+// units (pinned to this version's tag)
+const std::string& helperCmd() { static const std::string c = cu::helperCommand(SAURCOM_VERSION); return c; }
 struct Cu {
     bool on = false;          // this program runs in a container: updates go through the helper outside it
-    std::string dir;          // where the request and status files are (/config/.saurcom-update)
+    std::string dir;          // where the request and auto files are (/config/.saurcom-update, the app's)
+    std::string statusDir;    // where the helper's status and log are (/run/saurcom-update, root's, read-only here)
     bool dirOk = false;       // the directory exists (or was made) and this program may write in it
     double requestedAt = 0;   // when this run wrote a request (seconds since 1970); 0: none
     std::string requested;    // the version it asked for
@@ -83,7 +84,7 @@ bool putFile(const std::string& dir, const std::string& name, const std::string&
 #endif
 }
 void cuPoll(Cu& c) {
-    c.st = cu::parseStatus(readSmall(c.dir + "/status"));
+    c.st = cu::parseStatus(readSmall(c.statusDir + "/status"));
     std::string au = readSmall(c.dir + "/auto");
     c.autoOn = !au.empty() && au[0] == '1';
 }
@@ -100,6 +101,8 @@ Cu& C() {
         else c.on = access("/.dockerenv", F_OK) == 0 || access("/run/.containerenv", F_OK) == 0;
         const char* d = getenv("SAURCOM_UPDATE_DIR");   // for tests and screenshots
         c.dir = d && *d ? d : cu::kDefaultDir;
+        const char* sd = getenv("SAURCOM_UPDATE_STATUS_DIR");
+        c.statusDir = sd && *sd ? sd : cu::kStatusDir;
         if (c.on) { c.dirOk = dirUsable(c.dir); cuPoll(c); }
 #endif
     }
@@ -223,11 +226,11 @@ void cuInstructions(const Cu& c, bool notWritable) {
     ImGui::TextUnformatted(tr("On the Proxmox node, in its Shell, run this once (your container's number in place of <id>):"));
     ImGui::PopTextWrapPos();
     static char cmd[512];
-    snprintf(cmd, sizeof cmd, "%s", kHelperCmd);
+    snprintf(cmd, sizeof cmd, "%s", helperCmd().c_str());
     ImGui::SetNextItemWidth(-70 * gUi);
     ImGui::InputText("##helpercmd", cmd, sizeof cmd, ImGuiInputTextFlags_ReadOnly);
     ImGui::SameLine();
-    if (ImGui::Button(tr("Copy##helpercmd"))) ImGui::SetClipboardText(kHelperCmd);
+    if (ImGui::Button(tr("Copy##helpercmd"))) ImGui::SetClipboardText(helperCmd().c_str());
     ImGui::PushTextWrapPos(0);
     ImGui::TextUnformatted(tr("It updates Eye of SaurCom now, and from then on the Update now button works. pct exec <id> -- saurcom-update also still works."));
     ImGui::TextDisabled("%s", tr("Docker without Proxmox: run docker compose pull, then docker compose up -d, next to compose.yaml."));
@@ -292,7 +295,7 @@ void cuWindow(App& a, const Updater::Status& st) {
         break;
     case cu::View::Failed: {
         ImGui::TextColored(kBad, "%s", c.st.message.empty() ? tr("The update did not complete.") : c.st.message.c_str());
-        ImGui::TextDisabled(tr("Log: %s/log (in the Proxmox container: /opt/saurcom/config/.saurcom-update/log)"), c.dir.c_str());
+        ImGui::TextDisabled(tr("Log: %s/log (in the Proxmox container: /opt/saurcom/update/log)"), c.statusDir.c_str());
         if (st.phase == Updater::Phase::Available && cu::validVersion(st.release.version)) {
             updateNow(tr("Try again"), st.release.version);
             ImGui::SameLine();

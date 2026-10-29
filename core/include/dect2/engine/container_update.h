@@ -1,10 +1,12 @@
 // Updates of the Docker image (packaging/docker), started from inside the app. The app cannot replace its own image, so it asks a helper
-// outside the container through two small files in the config volume, with no network port and no Docker socket:
-//   request   the app writes the version it wants ("0.3.1", or "latest"), through a temporary file and a rename
-//   status    the helper (saurcom-update, packaging/proxmox) writes {"state":"checking|pulling|restarting|done|failed","version":"0.3.1",
-//             "message":"...","time":<seconds since 1970>} at every step; it removes the request when it has finished
-//   auto      the app writes 1 or 0: the helper's daily timer installs a newer release by itself only with 1
-//   log       the helper's log, capped in size
+// outside the container through small files, with no network port and no Docker socket. The app writes only into its own config volume,
+// and the helper (root) only reads there; the helper writes only into a directory of root's that the app sees read-only:
+//   request   (the app's, kDefaultDir) the version it wants ("0.3.1", or "latest"), through a temporary file and a rename; the helper
+//             reads it only if it is a plain file of the app's, and removes it
+//   auto      (the app's, kDefaultDir) 1 or 0: the helper's daily timer installs a newer release by itself only with 1
+//   status    (root's, kStatusDir) the helper (saurcom-update, packaging/proxmox) writes {"state":"checking|pulling|restarting|done|failed",
+//             "version":"0.3.1","message":"...","time":<seconds since 1970>} at every step
+//   log       (root's, kStatusDir) the helper's log, capped in size
 // What is here is the part without files or a window: the version rule (the same as the helper's), reading the status, and what the
 // update window shows for a given status (decide()).
 #pragma once
@@ -14,6 +16,7 @@
 namespace dect2::cupdate {
 
 inline constexpr const char* kDefaultDir = "/config/.saurcom-update";   // in the container; /opt/saurcom/config/.saurcom-update in the Proxmox container
+inline constexpr const char* kStatusDir = "/run/saurcom-update";       // read-only in the container; /opt/saurcom/update (root's) in the Proxmox container
 inline constexpr double kAnswerTimeout = 30;        // seconds the helper has to write a status after a request
 inline constexpr double kBusyStale = 3 * 3600;      // a "pulling" or "restarting" this old is a helper that died: not shown
 inline constexpr double kResultShown = 24 * 3600;   // a "done" or "failed" is shown this long after it was written (unless dismissed)
@@ -41,6 +44,15 @@ inline bool validRequest(const std::string& s) {
     std::string t = s;
     while (!t.empty() && (t.back() == '\n' || t.back() == '\r' || t.back() == ' ')) t.pop_back();
     return t == "latest" || validVersion(t);
+}
+
+// The one-time step for a Proxmox container made before the update button, run on the Proxmox node: the saurcom-update of this release
+// (the tag v<version>, never a branch), downloaded to a temporary file, installed only when it is complete (not empty, the script's first
+// line), then run. <id> stays for the user to fill in.
+inline std::string helperCommand(const std::string& version) {
+    return "pct exec <id> -- bash -c 'f=$(mktemp) && curl -fsSL https://raw.githubusercontent.com/AxolDad/Eye_of_SaurCom/v" + stripV(version) +
+           "/packaging/proxmox/saurcom-update -o \"$f\" && [ -s \"$f\" ] && head -n 1 \"$f\" | grep -qx \"#!/usr/bin/env bash\""
+           " && install -m 755 \"$f\" /usr/local/bin/saurcom-update; r=$?; rm -f \"$f\"; [ $r = 0 ] && saurcom-update'";
 }
 
 enum class State { None, Checking, Pulling, Restarting, Done, Failed };
