@@ -744,7 +744,6 @@ No Hermes Lite 2 answered on this computer's networks: type its address.	Nenhum 
 No radio found	Nenhum rádio encontrado
 No sound output	Sem saída de som
 North America	América do Norte
-Not a locator or coordinates	Não é um localizador nem coordenadas
 On Windows a HackRF needs its WinUSB driver once: install it with Zadig (zadig.akeo.ie).	No Windows, um HackRF precisa uma vez do controlador WinUSB: instale-o com o Zadig (zadig.akeo.ie).
 Eye of SaurCom %s	Eye of SaurCom %s
 Eye of SaurCom cannot see a HackRF on the USB ports.	O Eye of SaurCom não vê nenhum HackRF nas portas USB.
@@ -763,7 +762,6 @@ Open driver page	Abrir a página do controlador
 Open firmware page	Abrir a página do firmware
 Open the SDRplay API page	Abrir a página da API SDRplay
 Open the device list	Abrir a lista de dispositivos
-Optional: your position, as a Maidenhead locator (KO24pq) or coordinates (54.68, 25.28). It is kept on this computer and used for maps and satellite passes.	Opcional: a sua posição, como localizador Maidenhead (KO24pq) ou coordenadas (54.68, 25.28). É guardada neste computador e usada para mapas e passagens de satélites.
 Or choose another radio from the list.	Ou escolha outro rádio da lista.
 Or install Eye of SaurCom's blacklist file (the .deb package does it).	Ou instale o ficheiro de lista negra do Eye of SaurCom (o pacote .deb fá-lo).
 Or set the UHD_IMAGES_DIR variable to the folder with the images.	Ou defina a variável UHD_IMAGES_DIR com a pasta das imagens.

@@ -744,7 +744,6 @@ No Hermes Lite 2 answered on this computer's networks: type its address.	Ни о
 No radio found	Радио не найдено
 No sound output	Нет вывода звука
 North America	Северная Америка
-Not a locator or coordinates	Это не локатор и не координаты
 On Windows a HackRF needs its WinUSB driver once: install it with Zadig (zadig.akeo.ie).	В Windows для HackRF один раз нужен драйвер WinUSB: установите его через Zadig (zadig.akeo.ie).
 Eye of SaurCom %s	Eye of SaurCom %s
 Eye of SaurCom cannot see a HackRF on the USB ports.	Eye of SaurCom не видит HackRF на USB-портах.
@@ -763,7 +762,6 @@ Open driver page	Открыть страницу драйвера
 Open firmware page	Открыть страницу прошивки
 Open the SDRplay API page	Открыть страницу SDRplay API
 Open the device list	Открыть список устройств
-Optional: your position, as a Maidenhead locator (KO24pq) or coordinates (54.68, 25.28). It is kept on this computer and used for maps and satellite passes.	Необязательно: ваше положение в виде локатора Maidenhead (KO24pq) или координат (54.68, 25.28). Хранится на этом компьютере и используется для карт и пролётов спутников.
 Or choose another radio from the list.	Или выберите другое радио из списка.
 Or install Eye of SaurCom's blacklist file (the .deb package does it).	Или установите файл чёрного списка Eye of SaurCom (пакет .deb делает это).
 Or set the UHD_IMAGES_DIR variable to the folder with the images.	Или задайте переменную UHD_IMAGES_DIR с папкой образов.
