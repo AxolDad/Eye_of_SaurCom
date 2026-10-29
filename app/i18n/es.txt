@@ -3469,3 +3469,18 @@ Not a voice radio any more: this tab closes.	Ya no es una radio de voz: esta pes
 No free radio can tune to %.4f MHz.	Ninguna radio libre puede sintonizar %.4f MHz.
 Every radio is in use by another receiver	Todas las radios están en uso por otro receptor
 No radio is connected	No hay ninguna radio conectada
+Add your system's channel list	Añada la lista de canales de su sistema
+The control channel names channels by number. One line per channel: the number, a comma, the frequency in MHz (for example 1,851.0125). Paste the list from your system's listing, or load a CSV file.	El canal de control nombra los canales por número. Una línea por canal: el número, una coma, la frecuencia en MHz (por ejemplo 1,851.0125). Pegue la lista del listado de su sistema o cargue un archivo CSV.
+%d channels in the list (number,MHz per line)	%d canales en la lista (número,MHz por línea)
+Apply and save	Aplicar y guardar
+Load file	Cargar archivo
+The formula gives every channel; list here only the channels that do not follow it.	La fórmula da todos los canales; liste aquí solo los canales que no la siguen.
+EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: las llamadas se asignan a números de canal lógico (LCN 1 a 31).
+Narrowband (EDACS NB, 4800 bit/s)	Banda estrecha (EDACS NB, 4800 bit/s)
+LTR has no control channel: start this receiver on a busy repeater of the system (the home repeater of the talkgroups you follow). The data under its voice says which repeater each call is on.	LTR no tiene canal de control: inicie este receptor en un repetidor activo del sistema (el repetidor base de los grupos que sigue). Los datos bajo su voz indican en qué repetidor está cada llamada.
+MPT 1327: channel n is on base + n x spacing; list the channels that are not.	MPT 1327: el canal n está en base + n x separación; liste los canales que no lo están.
+base MHz	base MHz
+spacing kHz	separación kHz
+The base was worked out from the control channel's broadcast of its own number: check it.	La base se calculó a partir de la difusión del propio número del canal de control: compruébela.
+Enter the base frequency (channel 0) of your system, or list its channels below.	Introduzca la frecuencia base (canal 0) de su sistema o liste sus canales abajo.
+A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	El canal de control de un sistema troncal (P25, DMR Tier III, NXDN Type C, EDACS, LTR o MPT 1327): el escáner sigue sus llamadas\ncon la lista de grupos y las tablas de canales del seguidor, y pasa al siguiente si no llega ninguna llamada en el tiempo de espera

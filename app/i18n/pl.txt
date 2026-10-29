@@ -3469,3 +3469,18 @@ Not a voice radio any more: this tab closes.	To już nie jest radio głosowe: ta
 No free radio can tune to %.4f MHz.	Żadne wolne radio nie może dostroić się do %.4f MHz.
 Every radio is in use by another receiver	Każde radio jest używane przez inny odbiornik
 No radio is connected	Nie podłączono żadnego radia
+Add your system's channel list	Dodaj listę kanałów swojego systemu
+The control channel names channels by number. One line per channel: the number, a comma, the frequency in MHz (for example 1,851.0125). Paste the list from your system's listing, or load a CSV file.	Kanał sterujący podaje kanały numerami. Jeden wiersz na kanał: numer, przecinek, częstotliwość w MHz (na przykład 1,851.0125). Wklej listę z opisu swojego systemu albo wczytaj plik CSV.
+%d channels in the list (number,MHz per line)	%d kanałów na liście (numer,MHz w wierszu)
+Apply and save	Zastosuj i zapisz
+Load file	Wczytaj plik
+The formula gives every channel; list here only the channels that do not follow it.	Wzór daje każdy kanał; wpisz tu tylko kanały, które go nie spełniają.
+EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: rozmowy są przydzielane do numerów kanałów logicznych (LCN 1-31).
+Narrowband (EDACS NB, 4800 bit/s)	Wąskopasmowy (EDACS NB, 4800 bit/s)
+LTR has no control channel: start this receiver on a busy repeater of the system (the home repeater of the talkgroups you follow). The data under its voice says which repeater each call is on.	LTR nie ma kanału sterującego: uruchom ten odbiornik na zajętym przemienniku systemu (przemienniku macierzystym śledzonych grup). Dane pod jego głosem mówią, na którym przemienniku jest każda rozmowa.
+MPT 1327: channel n is on base + n x spacing; list the channels that are not.	MPT 1327: kanał n jest na bazie + n x odstęp; wpisz kanały, dla których tak nie jest.
+base MHz	baza MHz
+spacing kHz	odstęp kHz
+The base was worked out from the control channel's broadcast of its own number: check it.	Bazę wyliczono z rozgłoszenia własnego numeru przez kanał sterujący: sprawdź ją.
+Enter the base frequency (channel 0) of your system, or list its channels below.	Wpisz częstotliwość bazową (kanał 0) systemu albo wpisz poniżej jego kanały.
+A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	Kanał sterujący systemu trankingowego (P25, DMR Tier III, NXDN Type C, EDACS, LTR lub MPT 1327): skaner śledzi jego rozmowy\nz listą grup i tabelami kanałów śledzenia i przechodzi dalej, gdy w czasie postoju nie było rozmowy

@@ -1,5 +1,6 @@
-// LTR trunking screens (work in progress): lock, good / bad word counts, the area, the message list and the repeater table.
-// Control data only; the 7 check bits are shown as received and are not verified (the algorithm is not in public non-code sources).
+// LTR trunking screens: lock, good / bad word counts, the area, the message list and the repeater table, and the Follow tab of the shared
+// trunking follower (app/p25/p25_ui.cpp: the repeater table, talkgroups, call log, voice radios). The 7 check bits are shown as received and
+// are not verified (the algorithm is not in public non-code sources): the follower wants a word twice instead.
 #include "app.h"
 #include "dect2/ltr/ltr_tel.h"
 #include <cstdio>
@@ -7,15 +8,18 @@
 
 namespace {
 
+struct State { int view = 0; };
+State S;
+
 bool live(const App& a) { return a.rx.standard == 130; }   // family 129, engine standard 131, active standard 130
 
-void tab(App& a) {
+void controlView(App& a) {
     if (!live(a)) {
         ImGui::TextDisabled("%s", a.engine.running() ? "starting" : "tune to an LTR repeater channel (VHF / UHF) and start the receiver");
         return;
     }
     const dect2::LtrTelemetry& t = a.rx.ltr;
-    ImGui::TextUnformatted("LTR trunking (WIP): 300 bit/s subaudible control words, no voice");
+    ImGui::TextUnformatted("LTR trunking: 300 bit/s subaudible words; calls are followed on the Follow tab");
     ImGui::Spacing();
     ImGui::Text("Lock: %s", t.locked ? "yes" : "no");
     ImGui::Text("Good words: %llu   Bad words: %llu", (unsigned long long)t.blocksOk, (unsigned long long)t.blocksBad);
@@ -42,6 +46,11 @@ void tab(App& a) {
         ImGui::EndTable();
     }
     if (!t.dataValid) ImGui::TextDisabled("listening: no word with a good sync and plausible fields yet");
+}
+
+void tab(App& a) {
+    subNav("ltrv", S.view, {"Words", "Follow"});
+    if (S.view == 0) controlView(a); else trunkFollowPanel(a);
 }
 
 void receiver(App& a) {
@@ -75,7 +84,7 @@ void list(App& a) {
     }
 }
 
-void tick(App&) {}
+void tick(App& a) { trunkFollowTick(a); }   // the shared follower (app/p25/p25_ui.cpp); also the repeater's sound
 
 void status(App& a) {
     ImGui::AlignTextToFramePadding();
@@ -85,7 +94,7 @@ void status(App& a) {
 }
 
 void summary(const App& a, std::string& l1, std::string& l2) {
-    l1 = "LTR trunking (WIP)";
+    l1 = "LTR trunking";
     if (live(a)) l2 = dect2::ltrSummary(a.rx.ltr);
 }
 

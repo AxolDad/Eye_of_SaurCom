@@ -1,11 +1,14 @@
-// MPT1327 trunking screens (work in progress): lock, good and bad codewords, the system identity, the control message list
-// and the channel table.
+// MPT1327 trunking screens: lock, good and bad codewords, the system identity, the control message list and the channel table, and the
+// Follow tab of the shared trunking follower (app/p25/p25_ui.cpp: base and spacing, the channel list, talkgroups, call log, voice radios).
 #include "app.h"
 #include "dect2/mpt1327/mpt1327_engine.h"
 #include <cstdio>
 #include <string>
 
 namespace {
+
+struct State { int view = 0; };
+State S;
 
 bool live(const App& a) { return a.rx.standard == 128; }   // family 127, stdMode 129, active standard 128
 
@@ -52,13 +55,13 @@ void channelTable(const dect2::MptTelemetry& t) {
     ImGui::EndTable();
 }
 
-void tab(App& a) {
+void controlView(App& a) {
     if (!live(a)) {
         ImGui::TextDisabled("%s", a.engine.running() ? "starting" : "tune to an MPT1327 control channel (VHF / UHF, 12.5 or 25 kHz FM) and start the receiver");
         return;
     }
     const dect2::MptTelemetry& t = a.rx.mpt1327;
-    ImGui::TextUnformatted("MPT1327 trunking (WIP): 1200 bit/s FFSK control channel, control messages only");
+    ImGui::TextUnformatted("MPT1327 trunking: 1200 bit/s FFSK control channel; calls are followed on the Follow tab");
     ImGui::Spacing();
     ImGui::Text("Lock: %s", t.locked ? "locked" : "searching");
     if (t.sysId >= 0) ImGui::Text("System identity: %d", t.sysId);
@@ -71,7 +74,13 @@ void tab(App& a) {
     if (t.channels.empty()) ImGui::TextDisabled("no channel numbers seen yet");
     else channelTable(t);
     ImGui::Spacing();
-    ImGui::TextDisabled("Input %.0f Hz, centre %.4f MHz. No traffic channel audio is decoded and nothing encrypted is decoded.", t.inputRate, t.centerHz / 1e6);
+    if (t.voice.carrier && t.synt) ImGui::Text("Traffic channel: %llu CLEAR, %llu MAINT", (unsigned long long)t.clears, (unsigned long long)t.maints);
+    ImGui::TextDisabled("Input %.0f Hz, centre %.4f MHz.", t.inputRate, t.centerHz / 1e6);
+}
+
+void tab(App& a) {
+    subNav("mptv", S.view, {"Control channel", "Follow"});
+    if (S.view == 0) controlView(a); else trunkFollowPanel(a);
 }
 
 void receiver(App& a) {
@@ -88,7 +97,7 @@ void list(App& a) {
     messageTable(t, ImGui::GetContentRegionAvail().y);
 }
 
-void tick(App&) {}
+void tick(App& a) { trunkFollowTick(a); }   // the shared follower (app/p25/p25_ui.cpp); also the traffic channel's sound
 
 void status(App& a) {
     ImGui::AlignTextToFramePadding();
@@ -98,7 +107,7 @@ void status(App& a) {
 }
 
 void summary(const App& a, std::string& l1, std::string& l2) {
-    l1 = "MPT1327 trunking (WIP)";
+    l1 = "MPT1327 trunking";
     if (live(a)) l2 = dect2::mpt1327Summary(a.rx.mpt1327);
 }
 
