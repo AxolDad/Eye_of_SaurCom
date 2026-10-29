@@ -307,7 +307,7 @@ void statusLine(App& a) {
             if (!sameLineIf(2 * gap + 1 + (fit ? 40 * gUi : ImGui::CalcTextSize(text).x), gap)) return;   // no room left on the bar
             const ImVec2 p = ImGui::GetCursorScreenPos();   // gap after the previous text
             dl->AddLine(ImVec2(p.x + 0.5f, p.y + 1), ImVec2(p.x + 0.5f, p.y + lh - 1), u32(T.dim));
-            ImGui::SameLine(0, gap + 1);   // the next text starts a gap past the rule (1 px wide)
+            ImGui::SameLine(0, 2 * gap + 1);   // the next text starts a gap past the rule (1 px wide); SameLine counts from the previous text, not from the rule
         }
         const std::string t = fit ? ellipsize(text, ImGui::GetContentRegionAvail().x, ImGui::GetFontSize()) : text;   // the log line: as much as fits
         if (col.x < 0) ImGui::TextUnformatted(t.c_str()); else ImGui::TextColored(col, "%s", t.c_str());
