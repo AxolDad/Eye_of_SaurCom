@@ -3497,3 +3497,28 @@ Your location is not set: the site is a placeholder.	Je locatie is niet ingestel
 or right-click the map: I'm here	of rechtsklik op de kaart: Ik ben hier
 height (m)	hoogte (m)
 latitude must be -90 to 90 and longitude -180 to 180	breedte moet -90 tot 90 zijn en lengte -180 tot 180
+Add your system's channel list	Voeg de kanalenlijst van uw systeem toe
+The control channel names channels by number. One line per channel: the number, a comma, the frequency in MHz (for example 1,851.0125). Paste the list from your system's listing, or load a CSV file.	Het besturingskanaal noemt kanalen bij nummer. Eén regel per kanaal: het nummer, een komma, de frequentie in MHz (bijvoorbeeld 1,851.0125). Plak de lijst uit het overzicht van uw systeem, of laad een CSV-bestand.
+%d channels in the list (number,MHz per line)	%d kanalen in de lijst (nummer,MHz per regel)
+Apply and save	Toepassen en opslaan
+Load file	Bestand laden
+The formula gives every channel; list here only the channels that do not follow it.	De formule geeft elk kanaal; zet hier alleen de kanalen die er niet aan voldoen.
+EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: gesprekken worden toegewezen aan logische kanaalnummers (LCN 1 tot 31).
+Narrowband (EDACS NB, 4800 bit/s)	Smalband (EDACS NB, 4800 bit/s)
+LTR has no control channel: each repeater sends its data only while it is busy. Every repeater in your list that fits in the radio's bandwidth is watched at once; when they do not all fit, the radio sweeps through them.	LTR heeft geen controlekanaal: elke repeater zendt zijn data alleen als hij bezet is. Alle repeaters uit uw lijst die in de bandbreedte van de radio passen, worden tegelijk bewaakt; passen ze niet allemaal, dan loopt de radio ze af.
+List the system's repeaters above: each one is watched for calls.	Zet hierboven de repeaters van het systeem in de lijst: elke repeater wordt op oproepen bewaakt.
+Sweeping %d repeaters: %d at a time, group %d of %d	%d repeaters worden afgelopen: %d tegelijk, groep %d van %d
+Watching %d of %d repeaters	%d van %d repeaters bewaakt
+Message set	Berichtenset
+Standard / networked	Standaard / genetwerkt
+Extended addressing (EA)	Uitgebreide adressering (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	Nog geen gesprekstoewijzing begrepen: als er gesproken wordt, probeer dan de andere berichtenset of ESK.
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: de lijst hierboven neemt de kanaalnummers (LCN) van de site. Kanalen die er niet in staan worden berekend uit de band van de site, zodra een rustwoord heeft gezegd welke band dat is.
+MPT 1327: channel n is on channel 1 + (n - 1) x spacing; list the channels that are not.	MPT 1327: kanaal n ligt op kanaal 1 + (n - 1) x afstand; zet de kanalen die afwijken in de lijst.
+Group idents (from, to)	Groeps-idents (van, tot)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 zegt niet of een ident een groep of een portofoon is: dat bepaalt het vlootplan van uw systeem. Oproepen naar idents in dit bereik worden gelogd als groepsoproepen, de andere als oproepen naar één portofoon.
+channel 1 MHz	kanaal 1 MHz
+spacing kHz	afstand kHz
+The base was worked out from the control channel's broadcast of its own number: check it.	De basis is afgeleid uit de uitzending van het eigen nummer van het besturingskanaal: controleer haar.
+Enter the channel 1 frequency of your system, or list its channels below.	Voer de frequentie van kanaal 1 van uw systeem in, of zet de kanalen hieronder in de lijst.
+A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	Het besturingskanaal van een trunkingsysteem (P25, DMR Tier III, NXDN Type C, EDACS, LTR of MPT 1327): de scanner volgt de gesprekken\nmet de gespreksgroepenlijst en kanaaltabellen van de volger, en gaat verder als er binnen de wachttijd geen gesprek kwam

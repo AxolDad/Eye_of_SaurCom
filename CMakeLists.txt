@@ -175,7 +175,7 @@ if(SAURCOM_RUST_RING)
   target_compile_definitions(dect2core PUBLIC DECT2_RUST_RING)   # ring.h is included by the app and the tests too: every user must see the same IqRing
 endif()
 saurcom_rust_use(dect2core)   # links the Rust library saurcom_rs
-target_sources(dect2core PRIVATE core/src/engine/modes.cpp core/src/engine/rate_choice.cpp core/src/geo/passes.cpp core/src/dsp/imgproc.cpp core/src/dsp/wxstudio.cpp core/src/dsp/wx_vectors.cpp core/src/engine/sig_ident.cpp core/src/geo/maidenhead.cpp core/src/geo/station_location.cpp core/src/geo/maplayers.cpp core/src/geo/tilecache.cpp core/src/mesh/mesh_report.cpp core/src/df/df.cpp core/src/df/source.cpp core/src/df/position.cpp core/src/df/xfix.cpp core/src/df/rfcam.cpp core/src/df/group.cpp core/src/df/rtl_group.cpp core/src/geo/pass_sched.cpp core/src/geo/doppler_fit.cpp core/src/engine/sig_known.cpp core/src/radar/passive.cpp core/src/rfi/rfi.cpp core/src/map/contact_graph.cpp)
+target_sources(dect2core PRIVATE core/src/engine/modes.cpp core/src/engine/rate_choice.cpp core/src/geo/passes.cpp core/src/dsp/imgproc.cpp core/src/dsp/analog_voice.cpp core/src/dsp/wxstudio.cpp core/src/dsp/wx_vectors.cpp core/src/engine/sig_ident.cpp core/src/geo/maidenhead.cpp core/src/geo/station_location.cpp core/src/geo/maplayers.cpp core/src/geo/tilecache.cpp core/src/mesh/mesh_report.cpp core/src/df/df.cpp core/src/df/source.cpp core/src/df/position.cpp core/src/df/xfix.cpp core/src/df/rfcam.cpp core/src/df/group.cpp core/src/df/rtl_group.cpp core/src/geo/pass_sched.cpp core/src/geo/doppler_fit.cpp core/src/engine/sig_known.cpp core/src/radar/passive.cpp core/src/rfi/rfi.cpp core/src/map/contact_graph.cpp)
 target_sources(dect2core PRIVATE core/src/net/remote_api.cpp core/src/net/satnogs.cpp core/src/results/rx_json.cpp core/src/source/gain_opt.cpp core/src/mesh/mesh_report.cpp core/src/source/rotator.cpp)   # remote-control API server, telemetry JSON, gain optimiser, mesh report text, antenna rotator
 target_sources(dect2core PRIVATE core/src/net/remote_api.cpp core/src/results/rx_json.cpp core/src/source/gain_opt.cpp core/src/mesh/mesh_report.cpp core/src/source/rotator.cpp)   # remote-control API server, telemetry JSON, gain optimiser, mesh report text, antenna rotator
 target_sources(dect2core PRIVATE core/src/packs/packs.cpp)   # offline data packs: catalog, download with resume, checksums, disk guard, delete
@@ -593,6 +593,8 @@ if(DECT2_BUILD_TESTS)
   add_executable(test_mpt1327 tests/mpt1327/test_mpt1327.cpp)   # MPT1327 control channel: check code, address codewords, FFSK decoder, engine receiver
   target_link_libraries(test_mpt1327 PRIVATE dect2core)
   add_test(NAME mpt1327 COMMAND test_mpt1327)
+  add_executable(trunk_capture_check tools/trunk_capture_check.cpp)   # a recording of a real MPT 1327 / LTR / EDACS system through our decoders (not a test)
+  target_link_libraries(trunk_capture_check PRIVATE dect2core)
 
   add_executable(test_l1 tests/t2/test_l1.cpp)
   target_link_libraries(test_l1 PRIVATE dect2core)

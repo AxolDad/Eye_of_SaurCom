@@ -3497,3 +3497,28 @@ Your location is not set: the site is a placeholder.	Dein Standort ist nicht ges
 or right-click the map: I'm here	oder Rechtsklick auf die Karte: Ich bin hier
 height (m)	Höhe (m)
 latitude must be -90 to 90 and longitude -180 to 180	Breite muss -90 bis 90 und Länge -180 bis 180 sein
+Add your system's channel list	Kanalliste Ihres Systems hinzufügen
+The control channel names channels by number. One line per channel: the number, a comma, the frequency in MHz (for example 1,851.0125). Paste the list from your system's listing, or load a CSV file.	Der Steuerkanal nennt Kanäle nur mit Nummer. Eine Zeile pro Kanal: die Nummer, ein Komma, die Frequenz in MHz (zum Beispiel 1,851.0125). Fügen Sie die Liste aus der Aufstellung Ihres Systems ein oder laden Sie eine CSV-Datei.
+%d channels in the list (number,MHz per line)	%d Kanäle in der Liste (Nummer,MHz pro Zeile)
+Apply and save	Übernehmen und speichern
+Load file	Datei laden
+The formula gives every channel; list here only the channels that do not follow it.	Die Formel ergibt jeden Kanal; listen Sie hier nur die Kanäle auf, die ihr nicht folgen.
+EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: Gespräche werden logischen Kanalnummern zugewiesen (LCN 1 bis 31).
+Narrowband (EDACS NB, 4800 bit/s)	Schmalband (EDACS NB, 4800 bit/s)
+LTR has no control channel: each repeater sends its data only while it is busy. Every repeater in your list that fits in the radio's bandwidth is watched at once; when they do not all fit, the radio sweeps through them.	LTR hat keinen Steuerkanal: Jedes Relais sendet seine Daten nur, solange es belegt ist. Alle Relais Ihrer Liste, die in die Bandbreite des Funkempfängers passen, werden gleichzeitig beobachtet; passen sie nicht alle hinein, durchläuft der Empfänger sie nacheinander.
+List the system's repeaters above: each one is watched for calls.	Listen Sie oben die Relais des Systems auf: Jedes wird auf Gespräche beobachtet.
+Sweeping %d repeaters: %d at a time, group %d of %d	%d Relais werden durchlaufen: %d gleichzeitig, Gruppe %d von %d
+Watching %d of %d repeaters	%d von %d Relais werden beobachtet
+Message set	Nachrichtensatz
+Standard / networked	Standard / vernetzt
+Extended addressing (EA)	Erweiterte Adressierung (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	Noch keine Gesprächszuweisung verstanden: Wenn gesprochen wird, versuchen Sie den anderen Nachrichtensatz oder ESK.
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: Die Liste oben nimmt die Kanalnummern (LCN) des Standorts. Kanäle, die nicht darin stehen, werden aus dem Band des Standorts berechnet, sobald ein Ruhewort das Band genannt hat.
+MPT 1327: channel n is on channel 1 + (n - 1) x spacing; list the channels that are not.	MPT 1327: Kanal n liegt auf Kanal 1 + (n - 1) x Raster; listen Sie die Kanäle auf, bei denen das nicht gilt.
+Group idents (from, to)	Gruppen-Idents (von, bis)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 sagt nicht, ob ein Ident eine Gruppe oder ein Funkgerät ist: Das legt der Flottenplan Ihres Systems fest. Rufe an Idents in diesem Bereich werden als Gruppenrufe protokolliert, die übrigen als Rufe an ein Funkgerät.
+channel 1 MHz	Kanal 1 MHz
+spacing kHz	Raster kHz
+The base was worked out from the control channel's broadcast of its own number: check it.	Die Basis wurde aus der Aussendung der eigenen Nummer des Steuerkanals ermittelt: bitte prüfen.
+Enter the channel 1 frequency of your system, or list its channels below.	Geben Sie die Frequenz von Kanal 1 Ihres Systems ein oder listen Sie unten seine Kanäle auf.
+A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	Der Steuerkanal eines Bündelfunksystems (P25, DMR Tier III, NXDN Type C, EDACS, LTR oder MPT 1327): der Scanner verfolgt seine Gespräche\nmit der Sprechgruppenliste und den Kanaltabellen des Verfolgers und geht weiter, wenn innerhalb der Verweilzeit kein Gespräch kam

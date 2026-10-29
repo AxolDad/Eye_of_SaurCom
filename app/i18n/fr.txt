@@ -3497,3 +3497,28 @@ Your location is not set: the site is a placeholder.	Votre position n'est pas d�
 or right-click the map: I'm here	ou clic droit sur la carte : Je suis ici
 height (m)	altitude (m)
 latitude must be -90 to 90 and longitude -180 to 180	la latitude doit être entre -90 et 90 et la longitude entre -180 et 180
+Add your system's channel list	Ajoutez la liste des canaux de votre système
+The control channel names channels by number. One line per channel: the number, a comma, the frequency in MHz (for example 1,851.0125). Paste the list from your system's listing, or load a CSV file.	Le canal de contrôle désigne les canaux par leur numéro. Une ligne par canal : le numéro, une virgule, la fréquence en MHz (par exemple 1,851.0125). Collez la liste issue de la description de votre système, ou chargez un fichier CSV.
+%d channels in the list (number,MHz per line)	%d canaux dans la liste (numéro,MHz par ligne)
+Apply and save	Appliquer et enregistrer
+Load file	Charger un fichier
+The formula gives every channel; list here only the channels that do not follow it.	La formule donne chaque canal ; listez ici seulement les canaux qui ne la suivent pas.
+EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS : les appels sont attribués à des numéros de canal logique (LCN 1 à 31).
+Narrowband (EDACS NB, 4800 bit/s)	Bande étroite (EDACS NB, 4800 bit/s)
+LTR has no control channel: each repeater sends its data only while it is busy. Every repeater in your list that fits in the radio's bandwidth is watched at once; when they do not all fit, the radio sweeps through them.	LTR n'a pas de canal de contrôle : chaque relais n'envoie ses données que lorsqu'il est occupé. Tous les relais de votre liste qui tiennent dans la bande de la radio sont surveillés à la fois ; s'ils ne tiennent pas tous, la radio les parcourt.
+List the system's repeaters above: each one is watched for calls.	Listez ci-dessus les relais du système : chacun est surveillé pour les appels.
+Sweeping %d repeaters: %d at a time, group %d of %d	Balayage de %d relais : %d à la fois, groupe %d sur %d
+Watching %d of %d repeaters	%d relais surveillés sur %d
+Message set	Jeu de messages
+Standard / networked	Standard / en réseau
+Extended addressing (EA)	Adressage étendu (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	Aucune attribution d'appel comprise pour l'instant : si des appels ont lieu, essayez l'autre jeu de messages ou ESK.
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport : la liste ci-dessus prend les numéros de canal (LCN) du site. Les canaux absents sont calculés à partir de la bande du site, dès qu'un mot de repos a indiqué laquelle.
+MPT 1327: channel n is on channel 1 + (n - 1) x spacing; list the channels that are not.	MPT 1327 : le canal n est sur canal 1 + (n - 1) x pas ; listez les canaux qui font exception.
+Group idents (from, to)	Idents de groupe (de, à)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 ne dit pas si un ident est un groupe ou une radio : c'est le plan de flotte de votre système. Les appels vers les idents de cette plage sont notés comme appels de groupe, les autres comme appels vers une radio.
+channel 1 MHz	canal 1 MHz
+spacing kHz	pas kHz
+The base was worked out from the control channel's broadcast of its own number: check it.	La base a été déduite de la diffusion par le canal de contrôle de son propre numéro : vérifiez-la.
+Enter the channel 1 frequency of your system, or list its channels below.	Saisissez la fréquence du canal 1 de votre système, ou listez ses canaux ci-dessous.
+A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	Le canal de contrôle d'un système à ressources partagées (P25, DMR Tier III, NXDN Type C, EDACS, LTR ou MPT 1327) : le scanner suit ses appels\navec la liste des groupes et les tables de canaux du suivi, et passe au suivant si aucun appel n'est venu pendant le temps d'arrêt

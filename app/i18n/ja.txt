@@ -3497,3 +3497,28 @@ Your location is not set: the site is a placeholder.	現在地が未設定です
 or right-click the map: I'm here	または地図を右クリック: ここにいる
 height (m)	高さ (m)
 latitude must be -90 to 90 and longitude -180 to 180	緯度は -90 から 90、経度は -180 から 180 にしてください
+Add your system's channel list	システムのチャンネル一覧を追加してください
+The control channel names channels by number. One line per channel: the number, a comma, the frequency in MHz (for example 1,851.0125). Paste the list from your system's listing, or load a CSV file.	制御チャンネルはチャンネルを番号で示します。1行に1チャンネル: 番号、カンマ、MHz単位の周波数（例: 1,851.0125）。システムの一覧から貼り付けるか、CSVファイルを読み込んでください。
+%d channels in the list (number,MHz per line)	一覧に %d チャンネル（1行に 番号,MHz）
+Apply and save	適用して保存
+Load file	ファイルを読み込む
+The formula gives every channel; list here only the channels that do not follow it.	式ですべてのチャンネルが決まります。ここには式に従わないチャンネルだけを書いてください。
+EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: 通話は論理チャンネル番号（LCN 1～31）に割り当てられます。
+Narrowband (EDACS NB, 4800 bit/s)	ナローバンド（EDACS NB、4800 bit/s）
+LTR has no control channel: each repeater sends its data only while it is busy. Every repeater in your list that fits in the radio's bandwidth is watched at once; when they do not all fit, the radio sweeps through them.	LTR には制御チャンネルがありません。各中継器は使用中のときだけデータを送ります。無線機の帯域に収まるリストの中継器はすべて同時に監視し、収まらない場合は順に巡回します。
+List the system's repeaters above: each one is watched for calls.	上にシステムの中継器を一覧で入力してください。各中継器で通話を監視します。
+Sweeping %d repeaters: %d at a time, group %d of %d	%d 台の中継器を巡回中: 同時に %d 台、グループ %d / %d
+Watching %d of %d repeaters	%d / %d 台の中継器を監視中
+Message set	メッセージセット
+Standard / networked	標準 / ネットワーク
+Extended addressing (EA)	拡張アドレス (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	まだ通話割り当てを解釈できていません。通話があるなら、別のメッセージセットか ESK を試してください。
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: 上のリストにはサイトのチャンネル番号 (LCN) を入れます。リストにないチャンネルは、アイドルワードがバンドを示した後、サイトのバンドから計算されます。
+MPT 1327: channel n is on channel 1 + (n - 1) x spacing; list the channels that are not.	MPT 1327: チャンネル n はチャンネル 1 + (n - 1) x 間隔にあります。そうでないチャンネルを一覧にしてください。
+Group idents (from, to)	グループ ident (開始, 終了)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 は ident がグループか無線機かを示しません。それはシステムのフリート計画で決まります。この範囲の ident への通話はグループ通話、それ以外は個別の無線機への通話として記録されます。
+channel 1 MHz	チャンネル 1 MHz
+spacing kHz	間隔 kHz
+The base was worked out from the control channel's broadcast of its own number: check it.	ベースは制御チャンネルが自分の番号を通知した放送から求めました。確認してください。
+Enter the channel 1 frequency of your system, or list its channels below.	システムのチャンネル 1 の周波数を入力するか、下にチャンネルを一覧で入力してください。
+A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	トランキングシステムの制御チャンネル（P25、DMR Tier III、NXDN Type C、EDACS、LTR、MPT 1327）: スキャナーは追跡機能のトークグループ一覧と\nチャンネル表でその通話を追跡し、待機時間内に通話がなければ次へ進みます

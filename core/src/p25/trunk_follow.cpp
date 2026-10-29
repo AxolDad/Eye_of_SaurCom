@@ -125,7 +125,7 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     // a repeat of a call that is running?
     for (size_t i = log.records().size(); i-- > 0;) {
         CallRecord& r = const_cast<CallRecord&>(log.records()[i]);
-        if (!r.active || r.tg != g.tg || r.group != g.group || r.dmr != g.dmr) continue;
+        if (!r.active || r.tg != g.tg || r.group != g.group || r.dmr != g.dmr || r.kind != g.kind) continue;
         if (g.freqHz > 0 && r.freqHz > 0 && std::fabs(g.freqHz - r.freqHz) > 1 && g.slot == r.slot) {   // the call moved: the old one ends
             r.active = false;
             r.durSec = r.lastSec - r.startSec;
@@ -140,11 +140,22 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
         for (Slot& s : voice_) if (s.used && s.callId == r.id) s.lastSec = now;
         return;
     }
+    if (g.noPreempt) {   // seen once only: it may take a free slice or radio, never one a running call has
+        bool freeRes = false;
+        if (inSpan(g.freqHz) && !(g.tdma && !g.dmr)) {
+            for (const Slot& x : slots_) freeRes |= !x.used;
+            freeRes |= (int)slots_.size() < std::max(1, cfg_.maxSlices);
+        }
+        for (const Slot& v : voice_) freeRes |= !v.used;
+        if (voice_.empty()) { bool busy = false; for (const Slot& x : slots_) busy |= x.used; freeRes |= !busy; }
+        if (!freeRes) return;   // not logged yet: the next word confirms it
+    }
     CallRecord rec;
     rec.wallTime = (int64_t)time(nullptr);
     rec.startSec = rec.lastSec = now;
     rec.active = true; rec.dmr = g.dmr; rec.group = g.group; rec.tg = g.tg; rec.src = g.src;
-    rec.channel = g.channel; rec.freqHz = g.freqHz; rec.slot = g.slot; rec.emergency = g.emergency; rec.encrypted = g.encrypted;
+    rec.channel = g.channel; rec.freqHz = g.freqHz; rec.slot = g.slot; rec.p25p2 = g.kind == SysKind::P25 && g.tdma && !g.dmr; rec.emergency = g.emergency; rec.encrypted = g.encrypted;
+    rec.kind = g.kind; rec.label = g.label; rec.provoice = g.provoice;
     const uint64_t id = log.add(rec).id;
     log.trim(2000);
     CallRecord* rp = log.byId(id);   // trim moves records: look it up again
@@ -155,8 +166,13 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     };
     if (g.encrypted) { skip("encrypted: not followed", false); return; }
     if (!d.follow) { skip(d.reason, false); return; }
-    if (g.freqHz <= 0) { skip("channel frequency not known yet (no identifier update heard)", false); return; }
-    if (g.tdma && !g.dmr) { skip("P25 Phase 2 TDMA voice: no Phase 2 demodulator", false); return; }
+    if (g.provoice) { skip("ProVoice (EDACS digital voice): logged, there is no ProVoice decoder", false); return; }
+    if (g.dataCall) { skip("data call: no speech to follow", false); return; }
+    if (g.freqHz <= 0) {
+        skip(g.kind == SysKind::P25 && !g.dmr ? "channel frequency not known yet (no identifier update heard)"
+                                               : "channel " + std::to_string(g.channel) + " is not in your channel list", false);
+        return;
+    }
     const int prio = d.priority;
     auto lowest = [&](bool hoppedOnly, bool anyOnly) -> Slot* {
         Slot* v = nullptr;
@@ -175,12 +191,14 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     };
     bool voiceFree = false;
     for (const Slot& v : voice_) voiceFree |= !v.used;
-    Slot* sl = inSpan(g.freqHz) ? freeSlot() : nullptr;
-    if (inSpan(g.freqHz) && !sl && !voiceFree) {   // every slice busy and no voice radio free: a higher priority call takes a slice
+    // a P25 Phase 2 channel is never taken by the wide capture's carrier decoders (Phase 1 only): it goes to a radio of its own
+    const bool span = inSpan(g.freqHz) && !(g.tdma && !g.dmr);
+    Slot* sl = span ? freeSlot() : nullptr;
+    if (span && !sl && !voiceFree) {   // every slice busy and no voice radio free: a higher priority call takes a slice
         Slot* v = lowest(false, false);
         if (v && effPrio(prio) < effPrio(v->prio)) { close(*v, log, now, "preempted by a higher priority call"); sl = v; }
     }
-    if (inSpan(g.freqHz) && !sl && voice_.empty()) { skip("busy: every slice is in use", true); return; }
+    if (span && !sl && voice_.empty()) { skip("busy: every slice is in use", true); return; }
     if (sl) {   // inside the capture; with every slice busy the call goes on to a voice radio below
         sl->used = true; sl->hopped = false; sl->callId = id; sl->prio = prio; sl->freqHz = g.freqHz; sl->startSec = sl->lastSec = now;
         Action a;
@@ -211,7 +229,7 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
         const int k = (int)(s - voice_.data());
         s->used = true; s->hopped = false; s->callId = id; s->prio = prio; s->freqHz = g.freqHz; s->startSec = s->lastSec = now;
         Action a;
-        a.kind = Action::Retune; a.callId = id; a.freqHz = g.freqHz; a.radio = k;
+        a.kind = Action::Retune; a.callId = id; a.freqHz = g.freqHz; a.radio = k; a.slot = g.slot; a.p25p2 = g.tdma && !g.dmr;
         out_.push_back(a);
         if (cfg_.record) {
             Action rs;
@@ -244,7 +262,7 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     if (!s) return;
     s->used = true; s->hopped = true; s->callId = id; s->prio = prio; s->freqHz = g.freqHz; s->startSec = s->lastSec = now;
     Action a;
-    a.kind = Action::Retune; a.callId = id; a.freqHz = g.freqHz;
+    a.kind = Action::Retune; a.callId = id; a.freqHz = g.freqHz; a.slot = g.slot; a.p25p2 = g.tdma && !g.dmr;
     out_.push_back(a);
     radioHz_ = g.freqHz;
     if (cfg_.record) {

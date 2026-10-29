@@ -3497,3 +3497,28 @@ Your location is not set: the site is a placeholder.	Twoja lokalizacja nie jest 
 or right-click the map: I'm here	lub prawy klik na mapie: Jestem tutaj
 height (m)	wysokość (m)
 latitude must be -90 to 90 and longitude -180 to 180	szerokość musi być od -90 do 90, a długość od -180 do 180
+Add your system's channel list	Dodaj listę kanałów swojego systemu
+The control channel names channels by number. One line per channel: the number, a comma, the frequency in MHz (for example 1,851.0125). Paste the list from your system's listing, or load a CSV file.	Kanał sterujący podaje kanały numerami. Jeden wiersz na kanał: numer, przecinek, częstotliwość w MHz (na przykład 1,851.0125). Wklej listę z opisu swojego systemu albo wczytaj plik CSV.
+%d channels in the list (number,MHz per line)	%d kanałów na liście (numer,MHz w wierszu)
+Apply and save	Zastosuj i zapisz
+Load file	Wczytaj plik
+The formula gives every channel; list here only the channels that do not follow it.	Wzór daje każdy kanał; wpisz tu tylko kanały, które go nie spełniają.
+EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: rozmowy są przydzielane do numerów kanałów logicznych (LCN 1-31).
+Narrowband (EDACS NB, 4800 bit/s)	Wąskopasmowy (EDACS NB, 4800 bit/s)
+LTR has no control channel: each repeater sends its data only while it is busy. Every repeater in your list that fits in the radio's bandwidth is watched at once; when they do not all fit, the radio sweeps through them.	LTR nie ma kanału sterującego: każdy przemiennik wysyła dane tylko, gdy jest zajęty. Wszystkie przemienniki z listy mieszczące się w paśmie radia są obserwowane jednocześnie; jeśli nie mieszczą się wszystkie, radio przechodzi po nich kolejno.
+List the system's repeaters above: each one is watched for calls.	Wypisz powyżej przemienniki systemu: każdy jest obserwowany pod kątem rozmów.
+Sweeping %d repeaters: %d at a time, group %d of %d	Przeszukiwanie %d przemienników: %d naraz, grupa %d z %d
+Watching %d of %d repeaters	Obserwowane %d z %d przemienników
+Message set	Zestaw komunikatów
+Standard / networked	Standardowy / sieciowy
+Extended addressing (EA)	Adresowanie rozszerzone (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	Nie zrozumiano jeszcze żadnego przydziału rozmowy: jeśli trwają rozmowy, spróbuj innego zestawu komunikatów lub ESK.
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: powyższa lista przyjmuje numery kanałów (LCN) stacji. Kanały spoza niej są wyliczane z pasma stacji, gdy tylko słowo spoczynkowe poda, jakie to pasmo.
+MPT 1327: channel n is on channel 1 + (n - 1) x spacing; list the channels that are not.	MPT 1327: kanał n jest na kanale 1 + (n - 1) x odstęp; wypisz kanały, które tego nie spełniają.
+Group idents (from, to)	Identy grup (od, do)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 nie mówi, czy ident jest grupą, czy radiotelefonem: to określa plan floty Twojego systemu. Wywołania identów z tego zakresu są zapisywane jako grupowe, pozostałe jako wywołania jednego radiotelefonu.
+channel 1 MHz	kanał 1 MHz
+spacing kHz	odstęp kHz
+The base was worked out from the control channel's broadcast of its own number: check it.	Bazę wyliczono z rozgłoszenia własnego numeru przez kanał sterujący: sprawdź ją.
+Enter the channel 1 frequency of your system, or list its channels below.	Wpisz częstotliwość kanału 1 swojego systemu albo wypisz jego kanały poniżej.
+A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	Kanał sterujący systemu trankingowego (P25, DMR Tier III, NXDN Type C, EDACS, LTR lub MPT 1327): skaner śledzi jego rozmowy\nz listą grup i tabelami kanałów śledzenia i przechodzi dalej, gdy w czasie postoju nie było rozmowy

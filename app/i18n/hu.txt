@@ -3483,3 +3483,28 @@ Your location is not set: the site is a placeholder.	A helyed nincs megadva: a h
 or right-click the map: I'm here	vagy jobb klikk a térképre: Itt vagyok
 height (m)	magasság (m)
 latitude must be -90 to 90 and longitude -180 to 180	a szélesség -90 és 90, a hosszúság -180 és 180 között legyen
+Add your system's channel list	Adja meg a rendszer csatornalistáját
+The control channel names channels by number. One line per channel: the number, a comma, the frequency in MHz (for example 1,851.0125). Paste the list from your system's listing, or load a CSV file.	A vezérlőcsatorna számmal nevezi meg a csatornákat. Csatornánként egy sor: a szám, egy vessző, a frekvencia MHz-ben (például 1,851.0125). Illessze be a listát a rendszer leírásából, vagy töltsön be egy CSV-fájlt.
+%d channels in the list (number,MHz per line)	%d csatorna a listában (szám,MHz soronként)
+Apply and save	Alkalmaz és ment
+Load file	Fájl betöltése
+The formula gives every channel; list here only the channels that do not follow it.	A képlet minden csatornát megad; itt csak azokat a csatornákat sorolja fel, amelyek nem követik.
+EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: a hívások logikai csatornaszámokhoz (LCN 1-31) vannak rendelve.
+Narrowband (EDACS NB, 4800 bit/s)	Keskenysávú (EDACS NB, 4800 bit/s)
+LTR has no control channel: each repeater sends its data only while it is busy. Every repeater in your list that fits in the radio's bandwidth is watched at once; when they do not all fit, the radio sweeps through them.	Az LTR-nek nincs vezérlőcsatornája: minden átjátszó csak foglalt állapotban küldi az adatait. A listája minden átjátszóját, amely belefér a rádió sávszélességébe, egyszerre figyeli; ha nem fér bele mind, a rádió végigpásztázza őket.
+List the system's repeaters above: each one is watched for calls.	Sorolja fel fent a rendszer átjátszóit: mindegyiket figyeli hívásokra.
+Sweeping %d repeaters: %d at a time, group %d of %d	%d átjátszó pásztázása: egyszerre %d, %d. csoport a(z) %d közül
+Watching %d of %d repeaters	%d / %d átjátszó figyelése
+Message set	Üzenetkészlet
+Standard / networked	Szabványos / hálózatos
+Extended addressing (EA)	Kiterjesztett címzés (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	Még nincs értelmezett híváskiosztás: ha folynak hívások, próbálja a másik üzenetkészletet vagy az ESK-t.
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: a fenti lista a telephely csatornaszámait (LCN) várja. A benne nem szereplő csatornák a telephely sávjából számolódnak, amint egy üresjárati szó megmondta, melyik sáv az.
+MPT 1327: channel n is on channel 1 + (n - 1) x spacing; list the channels that are not.	MPT 1327: az n. csatorna az 1. csatorna + (n - 1) x osztás frekvencián van; sorolja fel azokat, amelyeknél nem.
+Group idents (from, to)	Csoport-identek (ettől, eddig)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	Az MPT 1327 nem mondja meg, hogy egy ident csoport vagy rádió: ezt a rendszer flottaterve határozza meg. Az e tartományba eső identekre irányuló hívások csoporthívásként, a többi egy rádiónak szóló hívásként kerül a naplóba.
+channel 1 MHz	1. csatorna MHz
+spacing kHz	osztás kHz
+The base was worked out from the control channel's broadcast of its own number: check it.	Az alapot a vezérlőcsatorna saját számának sugárzásából számoltuk ki: ellenőrizze.
+Enter the channel 1 frequency of your system, or list its channels below.	Adja meg a rendszer 1. csatornájának frekvenciáját, vagy sorolja fel lent a csatornáit.
+A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	Egy trönkölt rendszer vezérlőcsatornája (P25, DMR Tier III, NXDN Type C, EDACS, LTR vagy MPT 1327): a pásztázó követi a hívásait\na követő beszélgetőcsoport-listájával és csatornatábláival, és továbblép, ha a várakozási időn belül nem jött hívás

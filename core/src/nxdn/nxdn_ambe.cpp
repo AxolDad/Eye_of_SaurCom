@@ -33,9 +33,15 @@ NxdnAmbe::~NxdnAmbe() = default;
 bool NxdnAmbe::ok() const { return p_->plug || p_->a != nullptr; }
 
 void NxdnAmbe::decode(const uint8_t bits[72], int16_t pcm[160]) {
+    char fr[4][24];
+    nxdn::ambeFrame(bits, fr);
+    decodeFr(fr, pcm);
+}
+
+void NxdnAmbe::decodeFr(const char frIn[4][24], int16_t pcm[160]) {
     if (!p_->a && !p_->plug) { memset(pcm, 0, 160 * sizeof(int16_t)); return; }
     char fr[4][24], d[49] = {}, err[64] = {};
-    nxdn::ambeFrame(bits, fr);
+    memcpy(fr, frIn, sizeof fr);
     if (p_->plug) {
         const std::vector<int16_t> v = p_->plug->decode(codec::packCodeWords(&fr[0][0], 4, 24));
         memset(pcm, 0, 160 * sizeof(int16_t));
