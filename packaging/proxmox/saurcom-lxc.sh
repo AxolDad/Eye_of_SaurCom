@@ -295,6 +295,7 @@ fi
 msg "Installing Docker and Eye of SaurCom $VERSION in the container (the image is about 2 GB)"
 setup=$(asset saurcom-lxc-setup.sh) || die "could not get saurcom-lxc-setup.sh"
 upd=$(asset saurcom-update) || die "could not get saurcom-update"
+[[ $upd == '#!/usr/bin/env bash'$'\n'* ]] || die "saurcom-update did not download completely"
 if [ "$DRY_RUN" = 1 ]; then
     echo "    [dry-run] pct push $CTID saurcom-update /usr/local/bin/saurcom-update --perms 0755"
 else

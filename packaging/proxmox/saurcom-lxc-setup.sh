@@ -42,6 +42,7 @@ drv=$(docker info --format '{{.Driver}}' 2>/dev/null || true)
 echo "--- Eye of SaurCom"
 install -d -m 0755 "$D" "$D/config"
 chown 1000:1000 "$D/config"
+install -d -m 0755 -o 0 -g 0 "$D/update"   # saurcom-update's status and log: root's, read-only in the app's container
 umask 077
 cat > "$D/.env" <<EOF
 # the login of the web page, and what the service runs (saurcom-update changes SAURCOM_IMAGE)
@@ -73,6 +74,7 @@ services:
     shm_size: "1gb"           # the virtual display and the browser stream
     volumes:
       - ./config:/config      # settings, recordings and saurcom.log
+      - ./update:/run/saurcom-update:ro   # the updater's status and log, read-only (saurcom-update)
       - /dev/bus/usb:/dev/bus/usb   # the radios, also those plugged in later
     device_cgroup_rules:      # only matters in a privileged container (in an unprivileged one the kernel's own rules apply)
       - "c 189:* rwm"         # USB devices
@@ -112,9 +114,15 @@ chmod 755 /usr/local/sbin/saurcom-up
 
 # saurcom-update (packaging/proxmox/saurcom-update): saurcom-lxc.sh puts it in place before this runs (pct push); else it comes from GitHub.
 # It also installs the units behind the app's update button (saurcom-update.path) and the automatic updates (saurcom-update-auto.timer).
+# (downloaded to a temporary file and installed only when complete)
 if [ ! -x /usr/local/bin/saurcom-update ]; then
-    curl -fsSL -o /usr/local/bin/saurcom-update "https://raw.githubusercontent.com/AxolDad/Eye_of_SaurCom/${SAURCOM_ASSET_REF:-main}/packaging/proxmox/saurcom-update"
-    chmod 755 /usr/local/bin/saurcom-update
+    su_tmp=$(mktemp)
+    curl -fsSL -o "$su_tmp" "https://raw.githubusercontent.com/AxolDad/Eye_of_SaurCom/${SAURCOM_ASSET_REF:-main}/packaging/proxmox/saurcom-update"
+    if [ ! -s "$su_tmp" ] || ! head -n 1 "$su_tmp" | grep -qx '#!/usr/bin/env bash'; then
+        rm -f "$su_tmp"; echo "!!! saurcom-update did not download completely" >&2; exit 1
+    fi
+    install -m 755 "$su_tmp" /usr/local/bin/saurcom-update
+    rm -f "$su_tmp"
 fi
 
 cat > /etc/systemd/system/saurcom.service <<'EOF'
