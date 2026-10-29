@@ -33,6 +33,9 @@ int main() {
         CHECK(std::fabs(t.freq(1) - 851012500) < 1 && std::fabs(t.freq(2) - 851512500) < 1 && std::fabs(t.freq(3) - 852012500) < 1 && std::fabs(t.freq(4) - 853012500) < 1,
               "frequencies %.0f %.0f %.0f %.0f", t.freq(1), t.freq(2), t.freq(3), t.freq(4));
         CHECK(t.freq(9) == 0, "a channel not in the table is unknown");
+        ChannelTable v;
+        CHECK(v.parse("1=451.0125 2=451.0375, 3=451.0625\n7,452.5,Fire dispatch\n", 4095) == 4 && std::fabs(v.freq(2) - 451037500) < 1 && std::fabs(v.freq(7) - 452500000) < 1,
+              "the older LCN=MHz pairs and extra columns");
         ChannelTable u;
         CHECK(u.parse(t.csv(), 31) == 4 && std::fabs(u.freq(3) - 852012500) < 1, "the table round trips through its CSV");
         u.setFormula(160e6, 12500);

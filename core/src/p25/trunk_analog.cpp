@@ -37,28 +37,33 @@ int ChannelTable::parse(const std::string& text, int maxNumber, std::string* err
         lineNo++;
         if (const size_t h = line.find('#'); h != std::string::npos) line.erase(h);
         if (!line.empty() && (unsigned char)line[0] == 0xEF && line.size() >= 3) line.erase(0, 3);   // a UTF-8 byte order mark
+        const bool pairs = line.find('=') != std::string::npos;   // "1=851.0125 2=851.2625": several pairs on a line
         for (char& c : line) if (c == ',' || c == ';' || c == '\t' || c == '=' || c == '\r' || c == '"') c = ' ';
         std::istringstream w(line);
         std::string a, b;
-        if (!(w >> a)) continue;
-        if (!(w >> b)) { bad++; if (bad <= 3) msgs += "line " + std::to_string(lineNo) + ": no frequency\n"; continue; }
-        char* e1 = nullptr;
-        char* e2 = nullptr;
-        const long num = std::strtol(a.c_str(), &e1, 10);
-        double f = std::strtod(b.c_str(), &e2);
-        if (*e1 || *e2) {   // a header row ("LCN,Frequency") is not a mistake
-            if (n == 0 && bad == 0 && (a.empty() || !std::isdigit((unsigned char)a[0]))) continue;
-            bad++; if (bad <= 3) msgs += "line " + std::to_string(lineNo) + ": not a number\n";
-            continue;
+        bool first = true;
+        while (w >> a) {
+            const bool firstOfLine = first;
+            first = false;
+            if (!(w >> b)) { bad++; if (bad <= 3) msgs += "line " + std::to_string(lineNo) + ": no frequency\n"; break; }
+            char* e1 = nullptr;
+            char* e2 = nullptr;
+            const long num = std::strtol(a.c_str(), &e1, 10);
+            double f = std::strtod(b.c_str(), &e2);
+            if (*e1 || *e2) {   // a header row ("LCN,Frequency") is not a mistake
+                if (!(firstOfLine && n == 0 && bad == 0 && (a.empty() || !std::isdigit((unsigned char)a[0])))) { bad++; if (bad <= 3) msgs += "line " + std::to_string(lineNo) + ": not a number\n"; }
+                break;
+            }
+            if (f < 6000) f *= 1e6;   // MHz
+            if (num < 0 || num > maxNumber || !(f > 1e6 && f < 6e9)) {
+                bad++;
+                if (bad <= 3) msgs += "line " + std::to_string(lineNo) + ": " + (num < 0 || num > maxNumber ? "channel number out of range" : "frequency out of range") + "\n";
+            } else {
+                t_[(int)num] = f;
+                n++;
+            }
+            if (!pairs) break;   // "LCN,frequency,anything else": the rest of the line is the user's
         }
-        if (f < 6000) f *= 1e6;   // MHz
-        if (num < 0 || num > maxNumber || !(f > 1e6 && f < 6e9)) {
-            bad++;
-            if (bad <= 3) msgs += "line " + std::to_string(lineNo) + ": " + (num < 0 || num > maxNumber ? "channel number out of range" : "frequency out of range") + "\n";
-            continue;
-        }
-        t_[(int)num] = f;
-        n++;
     }
     if (err) *err = msgs;
     if (skipped) *skipped = bad;
