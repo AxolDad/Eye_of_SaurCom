@@ -1353,7 +1353,6 @@ The computer clock when each time packet began, minus the stamp in the packet an
 nothing to compare (a recording)	сравнивать не с чем (запись)
 once the time is decoded	после декодирования времени
 path	трасса
-; set your position in ADS-B (Receiver position) for the right delay	; set your position in ADS-B (Receiver position) for the right delay
 clock offset	расхождение часов
 level	уровень
 start the receiver to see the signal	запустите приёмник, чтобы увидеть сигнал
@@ -1931,7 +1930,6 @@ Sound alert	Звуковой сигнал
 Test (dry run)	Проверка (без действий)
 Test with a sample event	Проверить на примере события
 Text can use:	В тексте можно использовать:
-The receiver position is not set (ADS-B window).	Положение приёмника не задано (окно ADS-B).
 The recipe file	Файл рецепта
 The script ran and did nothing for this event.	Скрипт выполнился и ничего не сделал для этого события.
 Then do	Тогда выполнить
@@ -2213,7 +2211,6 @@ Save CSV	Сохранить CSV
 Save FITS	Сохранить FITS
 Save SigMF text	Сохранить текст SigMF
 Save session	Сохранить сеанс
-Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	Место — положение приёмника (Вид > Карта). Время — часы компьютера, UTC.
 Sun	Солнце
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	Для кривой вращения нужны спектры на нескольких долготах между 0 и 90 (или 270 и 360).
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	К цели: вращение Земли %+.2f, орбита %+.2f, Солнце %+.2f; всего %+.2f км/с (добавить к топоцентрической скорости)
@@ -2442,7 +2439,6 @@ Saved illuminators	Сохранённые передатчики
 Second target	Вторая цель
 Target range (km)	Дальность цели (км)
 Targets closer than the tap count in range samples are hidden by the cancellation.	Цели ближе, чем число отводов в отсчётах дальности, скрываются подавлением.
-The receiver position is the one set for ADS-B.	Положение приёмника берётся из настроек ADS-B.
 Tracks	Треки
 Two recordings (reference, surveillance)	Две записи (опорная, обзорная)
 Two-channel recording (cf32)	Двухканальная запись (cf32)
@@ -3452,3 +3448,33 @@ Not a voice radio any more: this tab closes.	Больше не голосово�
 No free radio can tune to %.4f MHz.	Ни одно свободное радио не может настроиться на %.4f MHz.
 Every radio is in use by another receiver	Все радио заняты другим приёмником
 No radio is connected	Радио не подключено
+# station location: maps open at My station, Centre on me, I'm here
+(your location is not set: the distance filter is off)	(ваше местоположение не задано: фильтр по расстоянию выключен)
+; set your location (the pin in the toolbar) for the right delay	; задайте своё местоположение (булавка на панели инструментов) для правильной задержки
+Centre on me	Центрировать на мне
+Centre the map here	Центрировать карту здесь
+Centre the map on my station (%.4f, %.4f)	Центрировать карту на моей станции (%.4f, %.4f)
+Every map and range uses it. Change it any time in My station (the location pin in the toolbar).	Его используют все карты и расстояния. Изменить его можно в любой момент в разделе Моя станция (булавка на панели инструментов).
+I'm here...	Я здесь...
+Locator %s	Локатор %s
+Now %.5f, %.5f (%.1f km from here)	Сейчас %.5f, %.5f (%.1f км отсюда)
+Open My station: paste coordinates, a locator or a map link, or use a GPS	Открыть Мою станцию: вставьте координаты, локатор или ссылку на карту либо используйте GPS
+Set my station (every map and range) to this point	Поместить мою станцию (все карты и расстояния) в эту точку
+Set my station here?	Поместить мою станцию сюда?
+Set your location	Задать местоположение
+Set your location first: the sky direction is worked out from it.	Сначала задайте своё местоположение: направление на небе вычисляется от него.
+Set your location first: these services are asked about a circle around you.	Сначала задайте своё местоположение: у этих сервисов запрашивается круг вокруг вас.
+Set your location to use bearings.	Задайте своё местоположение, чтобы использовать пеленги.
+Set your location: NMS is asked about a circle around it.	Задайте своё местоположение: у NMS запрашивается круг вокруг него.
+Set your location: each bearing line starts at it.	Задайте своё местоположение: каждая линия пеленга начинается от него.
+Set your location: ranges are measured from it.	Задайте своё местоположение: расстояния измеряются от него.
+Set your location: the API is asked about a circle around it.	Задайте своё местоположение: у API запрашивается круг вокруг него.
+Site is your location (My station, the pin in the toolbar). Time is the computer clock, UTC.	Пункт наблюдения — ваше местоположение (Моя станция, булавка на панели инструментов). Время — часы компьютера, UTC.
+The map opens at your station and ranges are measured from it. Paste coordinates, a locator or a map link, use a GPS, or right-click the map and choose I'm here.	Карта открывается у вашей станции, и расстояния измеряются от неё. Вставьте координаты, локатор или ссылку на карту, используйте GPS или щёлкните карту правой кнопкой и выберите Я здесь.
+The receiver position is your station's (My station, the pin in the toolbar).	Положение приёмника — это положение вашей станции (Моя станция, булавка на панели инструментов).
+This station does not report where it is (its location is not set).	Эта станция не сообщает, где она (её местоположение не задано).
+Yes, I'm here	Да, я здесь
+Your location is not set.	Ваше местоположение не задано.
+Your location is not set: opens My station	Ваше местоположение не задано: открывает Мою станцию
+Your location is not set: the site is a placeholder.	Ваше местоположение не задано: пункт наблюдения временный.
+or right-click the map: I'm here	или правый щелчок по карте: Я здесь

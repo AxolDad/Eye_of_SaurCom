@@ -48,7 +48,7 @@ bool emergency(const ModeAcCode& c) { return dect2::modeac::isEmergencySquawk(c.
 void selectCode(App& a, const ModeAcCode& c) {
     M.sel = c.bits; M.haveSel = true;
     S.sel = c.icao ? c.icao : 0xFFFFFFFFu;
-    if (c.icao) for (const auto& ac : a.rx.modeac.adsb.aircraft) if (ac.icao == c.icao && ac.hasPos) { S.map.lat = ac.lat; S.map.lon = ac.lon; S.mapHome = false; }
+    if (c.icao) for (const auto& ac : a.rx.modeac.adsb.aircraft) if (ac.icao == c.icao && ac.hasPos) { S.map.lat = ac.lat; S.map.lon = ac.lon; S.map.followStation = false; }
 }
 
 void codesTable(App& a, bool compact) {

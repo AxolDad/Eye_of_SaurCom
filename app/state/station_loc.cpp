@@ -42,7 +42,12 @@ void load() {
 
 bool fail(std::string* err, const char* why) { if (err) *err = why; return false; }
 
+App* gBound = nullptr;
+
 }   // namespace
+
+void stationBindApp(App& a) { gBound = &a; }
+App* stationApp() { return gBound; }
 
 dect2::geo::StationPos stationPos() { load(); return G.pos; }
 unsigned stationGeneration() { load(); return G.gen; }
@@ -57,6 +62,17 @@ void receiverLocation(double& lat, double& lon) {
 }
 
 bool receiverLocationSet() { load(); return G.pos.valid(); }
+
+bool stationRange(double lat, double lon, double& km, double& bearingDeg) {
+    load();
+    if (!G.pos.valid() || !std::isfinite(lat) || !std::isfinite(lon)) return false;
+    km = dect2::geo::distanceM(G.pos.lat, G.pos.lon, lat, lon) / 1000.0;
+    const double p = M_PI / 180.0, dLon = (lon - G.pos.lon) * p;
+    const double y = std::sin(dLon) * std::cos(lat * p);
+    const double x = std::cos(G.pos.lat * p) * std::sin(lat * p) - std::sin(G.pos.lat * p) * std::cos(lat * p) * std::cos(dLon);
+    bearingDeg = std::fmod(std::atan2(y, x) / p + 360.0, 360.0);
+    return std::isfinite(km);
+}
 
 double receiverAltitudeM() { load(); return G.pos.valid() && !std::isnan(G.pos.altM) ? G.pos.altM : 0.0; }
 

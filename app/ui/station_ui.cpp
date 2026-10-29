@@ -215,7 +215,9 @@ void fieldsBlock(App& a) {
     }
     ImGui::EndDisabled();
     if (!S.applyErr.empty()) { ImGui::SameLine(0, 8 * gUi); ImGui::TextColored(pal::badRed(), "%s", S.applyErr.c_str()); }
+    ImGui::PushTextWrapPos(0);
     ImGui::TextDisabled("%s", tr("Leave a height empty if you do not know it. The heights help the pass planner and the propagation tools."));
+    ImGui::PopTextWrapPos();
 }
 
 void gpsBlock(App& a) {
@@ -259,7 +261,7 @@ void gpsBlock(App& a) {
         ImGui::SameLine(0, 10 * gUi);
         ImGui::TextColored(fix ? pal::okGreen() : pal::warnAmber(), "%s", st.c_str());   // the text may come from the gpsd host: never a format string
         if (fix) ImGui::TextDisabled("%s", coordText(f.lat, f.lon).c_str());
-        else if (S.active) ImGui::TextDisabled("%s", tr("No fix yet: the station position stays as it is until the GPS has one."));
+        else if (S.active) { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("%s", tr("No fix yet: the station position stays as it is until the GPS has one.")); ImGui::PopTextWrapPos(); }
         ImGui::BeginDisabled(!fix);
         if (ImGui::Button(tr("Use this fix once"))) {
             std::string err;
@@ -309,8 +311,18 @@ bool stationPasteBox(App& a, char* buf, size_t n, const char* id, float width) {
 
 void stationOpenPage(App& a) { a.myStationOpen = true; }
 
+void stationHint(App& a, const char* why) {
+    if (receiverLocationSet()) return;
+    ImGui::PushID(why);
+    if (why && *why) { ImGui::PushTextWrapPos(0); ImGui::TextColored(pal::warnAmber(), "%s", why); ImGui::PopTextWrapPos(); }
+    if (ImGui::SmallButton(tr("Set your location"))) stationOpenPage(a);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Open My station: paste coordinates, a locator or a map link, or use a GPS"));
+    ImGui::PopID();
+}
+
 // every loop of the main program, drawn or not (a full-screen map, a minimised window): the GPS keeps the station where the vehicle is
 void stationTick(App& a) {
+    stationBindApp(a);   // the maps' "I'm here" saves through it
     load();
     pollLocate(a);
     followTick(a);

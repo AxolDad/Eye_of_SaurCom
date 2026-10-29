@@ -1370,7 +1370,6 @@ The computer clock when each time packet began, minus the stamp in the packet an
 nothing to compare (a recording)	无可比较（录音文件）
 once the time is decoded	解码时间后
 path	路径
-; set your position in ADS-B (Receiver position) for the right delay	; set your position in ADS-B (Receiver position) for the right delay
 clock offset	时钟偏差
 level	电平
 start the receiver to see the signal	启动接收机以查看信号
@@ -1948,7 +1947,6 @@ Sound alert	声音提醒
 Test (dry run)	测试（试运行）
 Test with a sample event	用示例事件测试
 Text can use:	文本可使用：
-The receiver position is not set (ADS-B window).	未设置接收机位置（ADS-B 窗口）。
 The recipe file	配方文件
 The script ran and did nothing for this event.	脚本已运行，但对此事件没有执行任何操作。
 Then do	则执行
@@ -2230,7 +2228,6 @@ Save CSV	保存 CSV
 Save FITS	保存 FITS
 Save SigMF text	保存 SigMF 文本
 Save session	保存会话
-Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	站点为接收机位置 (视图 > 地图),时间为电脑时钟 (UTC)。
 Sun	太阳
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	旋转曲线需要 0 到 90 (或 270 到 360) 之间多个银经的频谱。
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	朝向目标: 地球自转 %+.2f、公转 %+.2f、太阳 %+.2f;合计 %+.2f km/s (加到站心速度上)
@@ -2459,7 +2456,6 @@ Saved illuminators	已保存的照射源
 Second target	第二个目标
 Target range (km)	目标距离 (km)
 Targets closer than the tap count in range samples are hidden by the cancellation.	比抽头数（以距离采样计）更近的目标会被抵消处理掩盖。
-The receiver position is the one set for ADS-B.	接收机位置使用为 ADS-B 设置的位置。
 Tracks	航迹
 Two recordings (reference, surveillance)	两个录音（参考、监视）
 Two-channel recording (cf32)	双通道录音 (cf32)
@@ -3492,3 +3488,33 @@ Not a voice radio any more: this tab closes.	不再是语音电台：此标签�
 No free radio can tune to %.4f MHz.	没有空闲电台能调谐到 %.4f MHz。
 Every radio is in use by another receiver	所有电台都在被其他接收机使用
 No radio is connected	未连接电台
+# station location: maps open at My station, Centre on me, I'm here
+(your location is not set: the distance filter is off)	(未设置你的位置：距离过滤已关闭)
+; set your location (the pin in the toolbar) for the right delay	；设置你的位置（工具栏中的图钉）以获得正确的延迟
+Centre on me	以我为中心
+Centre the map here	将地图中心设在此处
+Centre the map on my station (%.4f, %.4f)	将地图中心设为我的电台 (%.4f, %.4f)
+Every map and range uses it. Change it any time in My station (the location pin in the toolbar).	所有地图和距离都使用它。可随时在“我的电台”（工具栏中的图钉）中更改。
+I'm here...	我在这里...
+Locator %s	定位符 %s
+Now %.5f, %.5f (%.1f km from here)	当前 %.5f, %.5f（距此处 %.1f km）
+Open My station: paste coordinates, a locator or a map link, or use a GPS	打开“我的电台”：粘贴坐标、定位符或地图链接，或使用 GPS
+Set my station (every map and range) to this point	将我的电台（所有地图和距离）设在此点
+Set my station here?	将我的电台设在这里？
+Set your location	设置你的位置
+Set your location first: the sky direction is worked out from it.	请先设置你的位置：天空中的方向由它计算。
+Set your location first: these services are asked about a circle around you.	请先设置你的位置：这些服务按你周围的一个圆来查询。
+Set your location to use bearings.	设置你的位置才能使用方位。
+Set your location: NMS is asked about a circle around it.	设置你的位置：NMS 按其周围的一个圆来查询。
+Set your location: each bearing line starts at it.	设置你的位置：每条方位线都从它开始。
+Set your location: ranges are measured from it.	设置你的位置：距离从它开始测量。
+Set your location: the API is asked about a circle around it.	设置你的位置：API 按其周围的一个圆来查询。
+Site is your location (My station, the pin in the toolbar). Time is the computer clock, UTC.	观测点即你的位置（“我的电台”，工具栏中的图钉）。时间为计算机时钟，UTC。
+The map opens at your station and ranges are measured from it. Paste coordinates, a locator or a map link, use a GPS, or right-click the map and choose I'm here.	地图在你的电台处打开，距离从它开始测量。粘贴坐标、定位符或地图链接，使用 GPS，或右键点击地图并选择“我在这里”。
+The receiver position is your station's (My station, the pin in the toolbar).	接收机位置即你的电台位置（“我的电台”，工具栏中的图钉）。
+This station does not report where it is (its location is not set).	此电台未报告其位置（其位置未设置）。
+Yes, I'm here	是的，我在这里
+Your location is not set.	你的位置未设置。
+Your location is not set: opens My station	你的位置未设置：打开“我的电台”
+Your location is not set: the site is a placeholder.	你的位置未设置：观测点为临时位置。
+or right-click the map: I'm here	或右键点击地图：我在这里

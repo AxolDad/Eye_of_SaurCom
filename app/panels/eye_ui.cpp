@@ -4,6 +4,8 @@
 // was heard before it was opened). The window copies what it shows out of the model at most four times a second, and only when the model
 // changed, so a busy ADS-B receiver does not make it stutter or hold up the decoders.
 #include "../app.h"
+#include "../adsb/adsb_map.h"
+#include "../ui/station_ui.h"
 #include "dect2/automation/engine.h"
 #include "dect2/df/xfix.h"
 #include "dect2/eye/eye.h"
@@ -306,10 +308,8 @@ void scope(App& a, double now, float size) {
     dl->AddEllipseFilled(c, ImVec2(3 * gUi, 11 * gUi), IM_COL32(10, 4, 4, 255));
     dl->AddEllipse(c, ImVec2(5 * gUi, 13 * gUi), IM_COL32(255, 236, 170, 160));
 
-    if (!haveHome) {
-        const char* m = tr("No location set");
-        const ImVec2 ts = ImGui::CalcTextSize(m);
-        if (ts.x < 2 * R) dl->AddText(ImVec2(c.x - ts.x / 2, c.y + R / 2), IM_COL32(255, 220, 180, 230), m);
+    if (!haveHome) {   // the scope is drawn around the station: without one, the button that sets it, in the middle
+        adsbmap::locationButton(p0, ImVec2(size, size), false);
     }
     if (hot) {
         const ey::Contact& k = *hot->c;
@@ -338,7 +338,7 @@ void scope(App& a, double now, float size) {
     for (const auto& k : S.contacts) if (!k.hasPos) noPos++;
     if (noPos) line += ", " + std::to_string(noPos) + " " + tr("without a position");
     ImGui::TextDisabled("%s", line.c_str());
-    if (!haveHome && ImGui::SmallButton(tr("Set my location on the map..."))) a.mapOpen = true;
+    if (!haveHome && ImGui::SmallButton(tr("Set your location"))) stationOpenPage(a);
 }
 
 void timeline(App& a, double now) {

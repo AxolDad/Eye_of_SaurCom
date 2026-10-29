@@ -47,7 +47,6 @@ static void syncStation() {
     S.stGen = g;
     receiverLocation(S.refLat, S.refLon);
     S.refAltM = receiverAltitudeM();
-    S.map.lat = S.refLat; S.map.lon = S.refLon;
     S.pushedLat = S.pushedLon = 1e9;   // force syncAdsbReference to push on the next frame
 }
 
@@ -57,6 +56,7 @@ void loadState() {
     S.loaded = true;
     plat::Prefs& d = plat::prefs();
     S.map.zoom = (int)d.getI("adsbZoom", 7);
+    S.map.homeKm = 200;   // with a station set the map opens on it showing about 200 km (adsb_map.cpp)
     S.winds = d.getB("adsbWinds", false);
     S.jamLayer = d.getB("adsbGpsJam", false);
     S.units.sys = d.getI("adsbUnits", 0) == 1 ? dect2::adsbu::System::Metric : dect2::adsbu::System::Aviation;
@@ -64,7 +64,7 @@ void loadState() {
     S.disp.altColour = d.getB(dect2::adsbd::kPrefAltColour, true);
     S.disp.trackWidth = dect2::adsbd::clampTrackWidth((int)d.getI(dect2::adsbd::kPrefTrackWidth, dect2::adsbd::kDefaultTrackWidth));
     S.disp.dropSec = dect2::adsbd::clampDropSec((int)d.getI(dect2::adsbd::kPrefDropSec, dect2::adsbd::kDefaultDropSec));
-    S.map.lat = S.refLat; S.map.lon = S.refLon;
+    S.map.lat = S.refLat; S.map.lon = S.refLon;   // the placeholder until a station is set; the map centres itself on the station
     S.srcText = d.getS("adsbSources", "");
     for (char& c : S.srcText) if (c == '|') c = '\n';
     S.srcAny = d.getB("adsbSrcAny", false);
@@ -189,8 +189,10 @@ void tick(App& a) {
         const AdsbTelemetry& t = a.rx.adsb;
         S.rate.push_back(t.msgsPerSec); if (S.rate.size() > 240) S.rate.pop_front();
         if (t.dataValid) { S.snr.push_back(t.snrDb); if (S.snr.size() > 240) S.snr.pop_front(); }
-        rangeSetStation(S.range, S.refLat, S.refLon);
-        for (const auto& ac : t.aircraft) if (ac.hasPos) rangeFeed(S.range, ac.lat, ac.lon);
+        if (receiverLocationSet()) {   // ranges only from a real station position
+            rangeSetStation(S.range, S.refLat, S.refLon);
+            for (const auto& ac : t.aircraft) if (ac.hasPos) rangeFeed(S.range, ac.lat, ac.lon);
+        }
         for (const auto& ac : t.aircraft) {   // accuracy reported by the aircraft, for the GPS interference layer (fresh fixes only)
             if (!ac.hasPos || ac.ground || ac.posAgeSec > 3) continue;
             dect2::GpsJamObs o; o.icao = ac.icao; o.lat = ac.lat; o.lon = ac.lon; o.timeSec = ImGui::GetTime(); o.nacp = ac.nacp; o.nic = ac.nic; o.sil = ac.sil;

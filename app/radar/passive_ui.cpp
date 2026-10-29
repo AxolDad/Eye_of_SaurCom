@@ -2,6 +2,7 @@
 // channel. Sources: a built-in simulator with synthetic targets (demo), a two-channel cf32 recording, or two single-channel recordings.
 // Shows the range-Doppler map, a Doppler-time waterfall, the tracks and a local map with the bistatic range ellipses around the illuminator
 // and the receiver. Nothing here talks to a radio: see docs/passive-radar.md for what is and is not verified.
+#include "../adsb/adsb_map.h"
 #include "../app.h"
 #include "../ui/scale.h"
 #include "dect2/radar/passive.h"
@@ -192,6 +193,7 @@ void localMap(float w, float h) {
     ImDrawList* dl = ImGui::GetWindowDrawList();
     dl->AddRectFilled(p0, ImVec2(p0.x + w, p0.y + h), IM_COL32(18, 20, 22, 255));
     const LatLon rx = rxPos();
+    if (!receiverLocationSet()) { adsbmap::locationButton(p0, ImVec2(w, h), false); return; }   // the geometry is from the station: no placeholder
     if (!S.txSet) { dl->AddText(ImVec2(p0.x + 6, p0.y + 6), IM_COL32(200, 204, 208, 255), tr("Enter the illuminator position.")); return; }
     const LatLon tx{S.txLat, S.txLon};
     const double mN = 111195.0, mE = 111195.0 * std::cos(rx.lat * 3.14159265 / 180);
@@ -243,11 +245,11 @@ void illuminatorSection() {
         S.cur = (int)S.ill.size() - 1; ch = true;
     }
     if (S.cur >= 0 && S.cur < (int)S.ill.size()) { ImGui::SameLine(); if (ImGui::SmallButton(tr("Delete"))) { S.ill.erase(S.ill.begin() + S.cur); S.cur = -1; ch = true; } }
-    if (S.txSet) {
+    if (S.txSet && receiverLocationSet()) {
         const LatLon tx{S.txLat, S.txLon}, rx{rlat, rlon};
         ImGui::TextDisabled(tr("Baseline %.1f km, transmitter bearing %.0f degrees"), distanceM(tx, rx) / 1e3, bearingDeg(rx, tx));
     }
-    ImGui::TextWrapped("%s", tr("The receiver position is the one set for ADS-B."));
+    ImGui::TextWrapped("%s", tr("The receiver position is your station's (My station, the pin in the toolbar)."));
     if (ch) save();
 }
 

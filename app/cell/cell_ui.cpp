@@ -454,7 +454,7 @@ void mapView(App& a) {
     if (haveRx) receiverLocation(rLat, rLon);
     if (!S.fitted) {   // centre on the first tower placed, else the receiver
         for (const auto& c : a.rx.cell.cells) { const Loc l = towerOf(c); if (l.src) { S.map.lat = l.p.lat; S.map.lon = l.p.lon; S.map.zoom = 13; S.fitted = true; break; } }
-        if (!S.fitted && haveRx) { S.map.lat = rLat; S.map.lon = rLon; S.map.zoom = 12; }
+        S.map.homeKm = 30;   // with no tower placed: the station, at town level (adsb_map.cpp centres it there, until the user drags the map)
     }
     const ImVec2 p0 = ImGui::GetCursorScreenPos();
     adsbmap::draw(S.map, sz);

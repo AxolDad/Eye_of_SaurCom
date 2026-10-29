@@ -1356,7 +1356,6 @@ The computer clock when each time packet began, minus the stamp in the packet an
 nothing to compare (a recording)	nincs mivel összevetni (felvétel)
 once the time is decoded	amint az idő dekódolva van
 path	útvonal
-; set your position in ADS-B (Receiver position) for the right delay	; set your position in ADS-B (Receiver position) for the right delay
 clock offset	óraeltérés
 level	szint
 start the receiver to see the signal	indítsd el a vevőt a jel megtekintéséhez
@@ -1934,7 +1933,6 @@ Sound alert	Hangjelzés
 Test (dry run)	Teszt (szárazon)
 Test with a sample event	Teszt mintaeseménnyel
 Text can use:	A szöveg használhatja:
-The receiver position is not set (ADS-B window).	A vevő pozíciója nincs megadva (ADS-B ablak).
 The recipe file	A receptfájl
 The script ran and did nothing for this event.	A szkript lefutott, és nem tett semmit ennél az eseménynél.
 Then do	Akkor tegye
@@ -2216,7 +2214,6 @@ Save CSV	CSV mentése
 Save FITS	FITS mentése
 Save SigMF text	SigMF szöveg mentése
 Save session	Munkamenet mentése
-Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	A hely a vevő helye (Nézet > Térkép). Az idő a számítógép órája, UTC.
 Sun	Nap
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	A forgási görbéhez több hosszúságon kell spektrum 0 és 90 (vagy 270 és 360) között.
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	A cél felé: Föld forgása %+.2f, pálya %+.2f, Nap %+.2f; összesen %+.2f km/s (a topocentrikus sebességhez adandó)
@@ -2445,7 +2442,6 @@ Saved illuminators	Mentett megvilágító adók
 Second target	Második cél
 Target range (km)	Cél távolsága (km)
 Targets closer than the tap count in range samples are hidden by the cancellation.	Azokat a célokat, amelyek közelebb vannak, mint az együtthatók száma távolságmintákban, elrejti a kioltás.
-The receiver position is the one set for ADS-B.	A vevő helyzete az ADS-B-hez beállított.
 Tracks	Pályák
 Two recordings (reference, surveillance)	Két felvétel (referencia, megfigyelő)
 Two-channel recording (cf32)	Kétcsatornás felvétel (cf32)
@@ -3455,3 +3451,33 @@ Not a voice radio any more: this tab closes.	Már nem hangrádió: ez a lap bez�
 No free radio can tune to %.4f MHz.	Egyik szabad rádió sem tud %.4f MHz-re hangolni.
 Every radio is in use by another receiver	Minden rádiót egy másik vevő használ
 No radio is connected	Nincs rádió csatlakoztatva
+# station location: maps open at My station, Centre on me, I'm here
+(your location is not set: the distance filter is off)	(a helyed nincs megadva: a távolságszűrő ki van kapcsolva)
+; set your location (the pin in the toolbar) for the right delay	; add meg a helyed (a gombostű az eszköztáron) a helyes késleltetéshez
+Centre on me	Középre engem
+Centre the map here	A térkép középre ide
+Centre the map on my station (%.4f, %.4f)	A térkép középre az állomásomra (%.4f, %.4f)
+Every map and range uses it. Change it any time in My station (the location pin in the toolbar).	Minden térkép és távolság ezt használja. Bármikor módosíthatod a Saját állomás oldalon (a gombostű az eszköztáron).
+I'm here...	Itt vagyok...
+Locator %s	Lokátor %s
+Now %.5f, %.5f (%.1f km from here)	Most %.5f, %.5f (%.1f km innen)
+Open My station: paste coordinates, a locator or a map link, or use a GPS	Saját állomás megnyitása: illessz be koordinátákat, lokátort vagy térképlinket, vagy használj GPS-t
+Set my station (every map and range) to this point	Az állomásom (minden térkép és távolság) erre a pontra
+Set my station here?	Ide tegyem az állomásomat?
+Set your location	Hely megadása
+Set your location first: the sky direction is worked out from it.	Először add meg a helyed: az égi irány ebből számolódik.
+Set your location first: these services are asked about a circle around you.	Először add meg a helyed: ezektől a szolgáltatásoktól egy körülötted lévő körről kérdezünk.
+Set your location to use bearings.	Add meg a helyed az irányszögek használatához.
+Set your location: NMS is asked about a circle around it.	Add meg a helyed: az NMS-től egy körülötte lévő körről kérdezünk.
+Set your location: each bearing line starts at it.	Add meg a helyed: minden iránysugár innen indul.
+Set your location: ranges are measured from it.	Add meg a helyed: a távolságokat innen mérjük.
+Set your location: the API is asked about a circle around it.	Add meg a helyed: az API-tól egy körülötte lévő körről kérdezünk.
+Site is your location (My station, the pin in the toolbar). Time is the computer clock, UTC.	A helyszín a helyed (Saját állomás, a gombostű az eszköztáron). Az idő a számítógép órája, UTC.
+The map opens at your station and ranges are measured from it. Paste coordinates, a locator or a map link, use a GPS, or right-click the map and choose I'm here.	A térkép az állomásodnál nyílik meg, és a távolságokat innen mérjük. Illessz be koordinátákat, lokátort vagy térképlinket, használj GPS-t, vagy kattints jobb gombbal a térképre és válaszd az Itt vagyok lehetőséget.
+The receiver position is your station's (My station, the pin in the toolbar).	A vevő helye az állomásodé (Saját állomás, a gombostű az eszköztáron).
+This station does not report where it is (its location is not set).	Ez az állomás nem közli, hol van (a helye nincs megadva).
+Yes, I'm here	Igen, itt vagyok
+Your location is not set.	A helyed nincs megadva.
+Your location is not set: opens My station	A helyed nincs megadva: megnyitja a Saját állomás oldalt
+Your location is not set: the site is a placeholder.	A helyed nincs megadva: a helyszín csak helykitöltő.
+or right-click the map: I'm here	vagy jobb klikk a térképre: Itt vagyok

@@ -296,7 +296,7 @@ void refreshContext() {
     // The runways of the airports around here: "runway two five left" is said constantly and mis-heard easily.
     double lat = 0, lon = 0;
     receiverLocation(lat, lon);
-    if (lat != 0 || lon != 0) {
+    if (receiverLocationSet()) {   // never the airports around the placeholder
         const dect2::AirportDb& db = dect2::AirportDb::builtin();
         const std::vector<dect2::AirportHit> around = db.nearby(lat, lon, 60, 6, true);
         for (const dect2::AirportHit& h : around) {

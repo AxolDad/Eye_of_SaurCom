@@ -29,4 +29,12 @@ unsigned stationGeneration();           // changes whenever the position does (s
 std::string stationEnvError();          // why SAURCOM_LOCATOR / SAURCOM_LAT were ignored; empty when fine or not set
 std::string stationSourceLabel(const std::string& source);   // "typed", "pasted", ... in words, translated
 
+// Ranges and bearings from the station: false while no position is set (show kNoRange then, never a distance from the placeholder)
+bool stationRange(double lat, double lon, double& km, double& bearingDeg);
+inline constexpr const char* kNoRange = "\xE2\x80\x94";   // the em dash shown for a range while no position is set
+
+// The App the maps save "I'm here" through (adsbmap has no App of its own): bound by stationTick() every loop of the main program.
+void stationBindApp(App& a);
+App* stationApp();
+
 namespace adsbui { void onStationChanged(App& a); }   // adsb_ui.cpp: take the new position and push it to the decoder

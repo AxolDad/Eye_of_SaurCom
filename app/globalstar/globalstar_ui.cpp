@@ -102,7 +102,7 @@ void dopplerView(App& a) {
     ImGui::SliderFloat("##gsw", &S.windowSec, 60, 600, "%.0f s");
     flowNext();
     ImGui::Checkbox("Pass planner overlay", &S.overlay);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("The predicted Doppler of every Globalstar satellite above the horizon, from the TLEs of the pass planner (View > Passes: download, and set your position in the ADS-B screen)");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("The predicted Doppler of every Globalstar satellite above the horizon, from the TLEs of the pass planner (View > Passes: download, and set your location with the pin in the toolbar)");
     const bool on = live(a);
     const dect2::GlobalstarTelemetry empty;
     const dect2::GlobalstarTelemetry& t = on ? a.rx.globalstar : empty;

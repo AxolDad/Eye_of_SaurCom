@@ -5,6 +5,7 @@
 #include "../app.h"
 #include "../platform/platform.h"
 #include "dect2/net/station_link.h"
+#include "dect2/geo/maidenhead.h"
 #include <algorithm>
 #include <cctype>
 #include <cmath>
@@ -146,11 +147,12 @@ void stationsWindow(App& a) {
 
     const ImGuiTableFlags fl = ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp;
     const float formH = S.editing ? 150 * gUi : 0;
-    if (ImGui::BeginTable("##stations", 8, fl, ImVec2(0, std::max(120.f * gUi, ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing() * 2 - formH)))) {
+    if (ImGui::BeginTable("##stations", 9, fl, ImVec2(0, std::max(120.f * gUi, ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing() * 2 - formH)))) {
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableSetupColumn(tr("Name"), ImGuiTableColumnFlags_WidthStretch, 1.f);
         ImGui::TableSetupColumn(tr("Address"), ImGuiTableColumnFlags_WidthStretch, 1.4f);
         ImGui::TableSetupColumn(tr("State"), ImGuiTableColumnFlags_WidthFixed, 80 * gUi);
+        ImGui::TableSetupColumn(tr("Position"), ImGuiTableColumnFlags_WidthStretch, 1.4f);
         ImGui::TableSetupColumn(tr("Events"), ImGuiTableColumnFlags_WidthFixed, 64 * gUi);
         ImGui::TableSetupColumn(tr("Missed"), ImGuiTableColumnFlags_WidthFixed, 60 * gUi);
         ImGui::TableSetupColumn(tr("Last event"), ImGuiTableColumnFlags_WidthFixed, 80 * gUi);
@@ -172,6 +174,22 @@ void stationsWindow(App& a) {
             ImGui::Text("%s:%d", c.host.c_str(), c.port);
             ImGui::TableNextColumn();
             ImGui::TextColored(stateColour(c.on ? st.state : 0), "%s", stateWord(c.on ? st.state : 0));
+            ImGui::TableNextColumn();
+            // the site's position from its status (range-checked in station_link.cpp): NaN when it sends none, or none that makes sense
+            if (std::isfinite(st.lat) && std::isfinite(st.lon)) {
+                ImGui::Text("%.4f, %.4f", st.lat, st.lon);
+                if (ImGui::IsItemHovered()) {
+                    double km = 0, brg = 0;
+                    std::string t = dect2::toMaidenhead(st.lat, st.lon, 6);
+                    char b[96];
+                    if (std::isfinite(st.altM)) { snprintf(b, sizeof b, ", %.0f m", st.altM); t += b; }
+                    if (stationRange(st.lat, st.lon, km, brg)) { snprintf(b, sizeof b, "\n%.0f km at %.0f\xC2\xB0 from my station", km, brg); t += b; }
+                    ImGui::SetTooltip("%s", t.c_str());
+                }
+            } else {
+                ImGui::TextDisabled("%s", kNoRange);
+                if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("This station does not report where it is (its location is not set)."));
+            }
             ImGui::TableNextColumn();
             ImGui::Text("%llu", (unsigned long long)st.events);
             ImGui::TableNextColumn();

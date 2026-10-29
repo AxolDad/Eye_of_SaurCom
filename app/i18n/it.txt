@@ -1353,7 +1353,6 @@ The computer clock when each time packet began, minus the stamp in the packet an
 nothing to compare (a recording)	niente da confrontare (una registrazione)
 once the time is decoded	dopo la decodifica dell’ora
 path	percorso
-; set your position in ADS-B (Receiver position) for the right delay	; set your position in ADS-B (Receiver position) for the right delay
 clock offset	scarto dell’orologio
 level	livello
 start the receiver to see the signal	avvia il ricevitore per vedere il segnale
@@ -1931,7 +1930,6 @@ Sound alert	Avviso sonoro
 Test (dry run)	Prova (simulazione)
 Test with a sample event	Prova con un evento di esempio
 Text can use:	Il testo può usare:
-The receiver position is not set (ADS-B window).	La posizione del ricevitore non è impostata (finestra ADS-B).
 The recipe file	Il file della ricetta
 The script ran and did nothing for this event.	Lo script è stato eseguito e non ha fatto nulla per questo evento.
 Then do	Allora fai
@@ -2213,7 +2211,6 @@ Save CSV	Salva CSV
 Save FITS	Salva FITS
 Save SigMF text	Salva testo SigMF
 Save session	Salva sessione
-Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	Il sito è la posizione del ricevitore (Vista > Mappa). L'ora è l'orologio del computer, UTC.
 Sun	Sole
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	La curva di rotazione richiede spettri a più longitudini tra 0 e 90 (o 270 e 360).
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	Verso il bersaglio: rotazione terrestre %+.2f, orbita %+.2f, Sole %+.2f; totale %+.2f km/s (da sommare alla velocità topocentrica)
@@ -2442,7 +2439,6 @@ Saved illuminators	Illuminatori salvati
 Second target	Secondo bersaglio
 Target range (km)	Distanza del bersaglio (km)
 Targets closer than the tap count in range samples are hidden by the cancellation.	I bersagli più vicini del numero di coefficienti, in campioni di distanza, vengono nascosti dalla cancellazione.
-The receiver position is the one set for ADS-B.	La posizione del ricevitore è quella impostata per l'ADS-B.
 Tracks	Tracce
 Two recordings (reference, surveillance)	Due registrazioni (riferimento, sorveglianza)
 Two-channel recording (cf32)	Registrazione a due canali (cf32)
@@ -3452,3 +3448,33 @@ Not a voice radio any more: this tab closes.	Non è più una radio per la voce: 
 No free radio can tune to %.4f MHz.	Nessuna radio libera può sintonizzarsi su %.4f MHz.
 Every radio is in use by another receiver	Tutte le radio sono usate da un altro ricevitore
 No radio is connected	Nessuna radio collegata
+# station location: maps open at My station, Centre on me, I'm here
+(your location is not set: the distance filter is off)	(la tua posizione non è impostata: il filtro di distanza è spento)
+; set your location (the pin in the toolbar) for the right delay	; imposta la tua posizione (la puntina nella barra degli strumenti) per il ritardo giusto
+Centre on me	Centra su di me
+Centre the map here	Centra la mappa qui
+Centre the map on my station (%.4f, %.4f)	Centra la mappa sulla mia stazione (%.4f, %.4f)
+Every map and range uses it. Change it any time in My station (the location pin in the toolbar).	Ogni mappa e distanza la usa. Cambiala quando vuoi in La mia stazione (la puntina nella barra degli strumenti).
+I'm here...	Sono qui...
+Locator %s	Locatore %s
+Now %.5f, %.5f (%.1f km from here)	Ora %.5f, %.5f (a %.1f km da qui)
+Open My station: paste coordinates, a locator or a map link, or use a GPS	Apri La mia stazione: incolla coordinate, un locatore o un link di mappa, o usa un GPS
+Set my station (every map and range) to this point	Metti la mia stazione (ogni mappa e distanza) in questo punto
+Set my station here?	Mettere qui la mia stazione?
+Set your location	Imposta la tua posizione
+Set your location first: the sky direction is worked out from it.	Imposta prima la tua posizione: la direzione nel cielo si calcola da essa.
+Set your location first: these services are asked about a circle around you.	Imposta prima la tua posizione: a questi servizi si chiede di un cerchio intorno a te.
+Set your location to use bearings.	Imposta la tua posizione per usare i rilevamenti.
+Set your location: NMS is asked about a circle around it.	Imposta la tua posizione: a NMS si chiede di un cerchio intorno ad essa.
+Set your location: each bearing line starts at it.	Imposta la tua posizione: ogni linea di rilevamento parte da essa.
+Set your location: ranges are measured from it.	Imposta la tua posizione: le distanze si misurano da essa.
+Set your location: the API is asked about a circle around it.	Imposta la tua posizione: all'API si chiede di un cerchio intorno ad essa.
+Site is your location (My station, the pin in the toolbar). Time is the computer clock, UTC.	Il sito è la tua posizione (La mia stazione, la puntina nella barra degli strumenti). L'ora è l'orologio del computer, UTC.
+The map opens at your station and ranges are measured from it. Paste coordinates, a locator or a map link, use a GPS, or right-click the map and choose I'm here.	La mappa si apre sulla tua stazione e le distanze si misurano da essa. Incolla coordinate, un locatore o un link di mappa, usa un GPS, oppure fai clic destro sulla mappa e scegli Sono qui.
+The receiver position is your station's (My station, the pin in the toolbar).	La posizione del ricevitore è quella della tua stazione (La mia stazione, la puntina nella barra degli strumenti).
+This station does not report where it is (its location is not set).	Questa stazione non dice dove si trova (la sua posizione non è impostata).
+Yes, I'm here	Sì, sono qui
+Your location is not set.	La tua posizione non è impostata.
+Your location is not set: opens My station	La tua posizione non è impostata: apre La mia stazione
+Your location is not set: the site is a placeholder.	La tua posizione non è impostata: il sito è provvisorio.
+or right-click the map: I'm here	o clic destro sulla mappa: Sono qui

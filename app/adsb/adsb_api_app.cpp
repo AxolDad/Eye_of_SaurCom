@@ -13,6 +13,7 @@
 #include "../i18n/i18n.h"
 #include "../platform/platform.h"
 #include "../ui/theme.h"
+#include "../ui/station_ui.h"
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -143,7 +144,7 @@ void threadBody() {
             b.name = s->name;
             if (!havePos) {
                 b.ok = false;
-                b.error = "no receiver position: set it on the ADS-B screen";
+                b.error = "your location is not set (the pin in the toolbar, or My station)";
             } else {
                 std::string err;
                 const std::string url = dect2::apiUrl(*s, lat, lon, v.radiusNm, v.key, &err);
@@ -224,7 +225,7 @@ void tick(App& a) {
         std::lock_guard<std::mutex> lk(S.mu);
         S.lat = lat;
         S.lon = lon;
-        S.havePos = lat != 0 || lon != 0;
+        S.havePos = receiverLocationSet();   // never the placeholder
         ready.swap(S.ready);
     }
     for (State::Batch& b : ready) {
@@ -250,10 +251,7 @@ void panel(App& a) {
                                  "passed on to the feeds above, and never recorded in the flight history, which is a record of what this "
                                  "antenna heard."));
     ImGui::PopTextWrapPos();
-    double lat = 0, lon = 0;
-    receiverLocation(lat, lon);
-    if (lat == 0 && lon == 0)
-        ImGui::TextColored(pal::warnAmber(), "%s", tr("Set the receiver position on the ADS-B screen first: these services are asked about a circle around you."));
+    stationHint(a, tr("Set your location first: these services are asked about a circle around you."));
 
     bool changed = false;
     const std::vector<dect2::ApiService>& all = dect2::apiServices();

@@ -490,7 +490,7 @@ void toolbarParts(App& a, int mask, bool vertical) {
         ImGui::SameLine(0, 12 * gUi);
     }
     if (mask & TbSource) toolbarSource(a, vertical, running);
-    if (!vertical && (mask & TbSource)) { flowNext(8 * gUi); stationChip(a); }   // station_ui.cpp: the position, or "Set location"
+    if (!vertical && (mask & TbSource) && !a.newUi) { flowNext(8 * gUi); stationChip(a); }   // station_ui.cpp: the position, or "Set location" (the new interface has it in the menu bar)
 
 
     const DeviceInfo& curDev = a.devices[a.devIdx];

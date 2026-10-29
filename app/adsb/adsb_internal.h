@@ -33,7 +33,6 @@ struct State {
     uint64_t lastSeq = 0;
     int viewMode = 0;                           // 0 map, 1 table, 2 radar
     adsbmap::View map;
-    bool mapHome = true;                        // the map follows the antenna position until the user drags it
     dect2::adsbu::Units units;                  // display units (prefs adsbUnits, adsbSpeedUnit)
     dect2::GpsJamGrid jam;                      // GPS interference per 0.5 degree cell, from the accuracy the aircraft report (app clock, last hour)
     bool jamLayer = false;                      // draw it on the map (prefs adsbGpsJam)
@@ -41,7 +40,6 @@ struct State {
     int pushedDrop = -1;                        // the drop time last given to the receiver
     bool winds = false;                         // "winds aloft": wind arrows at the aircraft (from Comm-B)
     bool full = false;                          // the map or radar fills the whole window (Esc or the same button to leave)
-    double ctxLat = 0, ctxLon = 0;              // where the map was right-clicked
     std::string locMsg;
     int locBusy = 0;
     RangeView range;                            // the receiver-range plot (Range view)

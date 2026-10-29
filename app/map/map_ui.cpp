@@ -164,9 +164,11 @@ void infoPopup() {
         if (mk->hasAlt) ImGui::Text("altitude %.0f m (%.0f ft)", mk->altM, mk->altM / 0.3048);
         if (mk->hasSpeed) ImGui::Text("speed %.0f kn (%.0f km/h)", mk->speedKt, mk->speedKt * 1.852);
         if (mk->headingDeg >= 0) ImGui::Text("heading %.0f\xC2\xB0", mk->headingDeg);
-        double rl, ro, km, brg; receiverLocation(rl, ro); dect2::greatCircle(rl, ro, mk->lat, mk->lon, km, brg);
-        ImGui::Text("%.1f km at %.0f\xC2\xB0 from the receiver", km, brg);
-        if (ImGui::Button(tr("Point antenna rotator"))) rotatorPointBearing(brg, 0);
+        double km, brg;
+        if (stationRange(mk->lat, mk->lon, km, brg)) {
+            ImGui::Text("%.1f km at %.0f\xC2\xB0 from the receiver", km, brg);
+            if (ImGui::Button(tr("Point antenna rotator"))) rotatorPointBearing(brg, 0);
+        } else ImGui::Text("%s km from the receiver", kNoRange);
         ImGui::Text("last heard %s ago", dect2::ageText(mk->ageSec).c_str());
         if (!mk->detail.empty()) ImGui::TextDisabled("%s", mk->detail.c_str());
     } else if (S.selLayer == dect2::LayerSat) {
@@ -206,7 +208,10 @@ void layerPanel(const ImVec2& p0, const ImVec2& size) {
 
 void place(double lat, double lon, bool centre, int zoom = 0) {
     S.marker = true; S.mLat = lat; S.mLon = lon; S.msg.clear();
-    if (centre) { S.map.lat = lat; S.map.lon = lon; if (zoom) S.map.zoom = std::max(S.map.zoom, zoom); }
+    if (centre) {   // a place asked for: the map stays on it (it does not jump back to the station)
+        S.map.lat = lat; S.map.lon = lon; if (zoom) S.map.zoom = std::max(S.map.zoom, zoom);
+        S.map.followStation = false; S.map.stationGen = stationGeneration();
+    }
 }
 
 void inputs() {
@@ -244,12 +249,13 @@ void markerInfo(App& a) {
     ImGui::SameLine(0, 12 * gUi);
     ImGui::Text("%s", loc6.c_str());
     ImGui::SameLine(); ImGui::TextDisabled("(%s)", loc8.c_str());
-    double rl, ro; receiverLocation(rl, ro);
-    double km, brg; dect2::greatCircle(rl, ro, S.mLat, S.mLon, km, brg);
+    double km = 0, brg = 0;
     ImGui::SameLine(0, 12 * gUi);
-    if (km < 10) ImGui::Text("%.2f km", km); else ImGui::Text("%.0f km", km);
-    ImGui::SameLine(); ImGui::Text("%.0f\xC2\xB0", brg);
-    ImGui::SameLine(); ImGui::TextDisabled(receiverLocationSet() ? "from my location" : "from the placeholder location");
+    if (stationRange(S.mLat, S.mLon, km, brg)) {
+        if (km < 10) ImGui::Text("%.2f km", km); else ImGui::Text("%.0f km", km);
+        ImGui::SameLine(); ImGui::Text("%.0f\xC2\xB0", brg);
+        ImGui::SameLine(); ImGui::TextDisabled("from my location");
+    } else { ImGui::Text("%s km", kNoRange); ImGui::SameLine(); ImGui::TextDisabled("(set your location for the distance)"); }
     if (ImGui::SmallButton("Copy coordinates")) { snprintf(b, sizeof b, "%.6f, %.6f", S.mLat, S.mLon); ImGui::SetClipboardText(b); }
     ImGui::SameLine();
     if (ImGui::SmallButton("Copy locator")) ImGui::SetClipboardText(loc6.c_str());
@@ -274,7 +280,7 @@ void mapView(App& a) {
     double rl, ro; receiverLocation(rl, ro);
     const ImVec2 h = adsbmap::project(rl, ro);   // the receiver: a ringed dot
     drawLayers(dl, p0, size);
-    if (S.layerOn[dect2::LayerCount]) {
+    if (S.layerOn[dect2::LayerCount] && receiverLocationSet()) {
         dl->AddCircleFilled(h, 4 * gUi, IM_COL32(110, 210, 230, 255));
         dl->AddCircle(h, 8 * gUi, IM_COL32(110, 210, 230, 220), 24, 1.5f * gUi);
         dl->AddText(ImVec2(h.x + 10 * gUi, h.y - 7 * gUi), IM_COL32(110, 210, 230, 255), "me");
@@ -282,7 +288,7 @@ void mapView(App& a) {
     if (S.marker) {   // the marker: a pin with its point on the position
         const ImVec2 q = adsbmap::project(S.mLat, S.mLon);
         const ImU32 c = IM_COL32(240, 90, 80, 255);
-        dl->AddLine(h, q, IM_COL32(255, 255, 255, 110), 1 * gUi);
+        if (receiverLocationSet()) dl->AddLine(h, q, IM_COL32(255, 255, 255, 110), 1 * gUi);
         dl->AddTriangleFilled(ImVec2(q.x - 4 * gUi, q.y - 10 * gUi), ImVec2(q.x + 4 * gUi, q.y - 10 * gUi), q, c);
         dl->AddCircleFilled(ImVec2(q.x, q.y - 13 * gUi), 6 * gUi, c);
         dl->AddCircleFilled(ImVec2(q.x, q.y - 13 * gUi), 2.2f * gUi, IM_COL32(255, 255, 255, 230));
@@ -293,9 +299,6 @@ void mapView(App& a) {
     if (ImGui::Button("+", ImVec2(26 * gUi, 0))) S.map.zoom = std::min(adsbmap::kMaxZoom, S.map.zoom + 1);
     ImGui::SameLine(0, 2 * gUi);
     if (ImGui::Button("-", ImVec2(26 * gUi, 0))) S.map.zoom = std::max(adsbmap::kMinZoom, S.map.zoom - 1);
-    ImGui::SameLine(0, 6 * gUi);
-    if (ImGui::Button("me")) { S.map.lat = rl; S.map.lon = ro; }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Centre the map on my location");
     ImGui::PopStyleColor();
     ImGui::SameLine(0, 6 * gUi);
     adsbmap::tileControls("never the marker or your location");

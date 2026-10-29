@@ -1370,7 +1370,6 @@ The computer clock when each time packet began, minus the stamp in the packet an
 nothing to compare (a recording)	比較対象なし（録音）
 once the time is decoded	時刻の復号後
 path	伝搬路
-; set your position in ADS-B (Receiver position) for the right delay	; set your position in ADS-B (Receiver position) for the right delay
 clock offset	時計のずれ
 level	レベル
 start the receiver to see the signal	受信を開始すると信号を表示します
@@ -1948,7 +1947,6 @@ Sound alert	警告音
 Test (dry run)	テスト（ドライラン）
 Test with a sample event	サンプルイベントでテスト
 Text can use:	テキストで使えるもの:
-The receiver position is not set (ADS-B window).	受信機の位置が未設定です（ADS-B ウィンドウ）。
 The recipe file	レシピファイル
 The script ran and did nothing for this event.	スクリプトは実行されましたが、このイベントでは何もしませんでした。
 Then do	そのとき実行
@@ -2230,7 +2228,6 @@ Save CSV	CSV を保存
 Save FITS	FITS を保存
 Save SigMF text	SigMF テキストを保存
 Save session	セッションを保存
-Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	地点は受信機の位置 (表示 > マップ)、時刻はコンピュータの時計 (UTC) です。
 Sun	太陽
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	回転曲線には 0〜90 (または 270〜360) の複数の銀経のスペクトルが必要です。
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	目標方向: 地球自転 %+.2f、公転 %+.2f、太陽 %+.2f、合計 %+.2f km/s (トポセントリック速度に加算)
@@ -2459,7 +2456,6 @@ Saved illuminators	保存済みの照射源
 Second target	2つ目の目標
 Target range (km)	目標の距離 (km)
 Targets closer than the tap count in range samples are hidden by the cancellation.	距離サンプルで見てタップ数より近い目標は、キャンセレーションにより隠れます。
-The receiver position is the one set for ADS-B.	受信機の位置は ADS-B に設定したものを使います。
 Tracks	トラック
 Two recordings (reference, surveillance)	2つの録音（参照、監視）
 Two-channel recording (cf32)	2チャンネルの録音 (cf32)
@@ -3469,3 +3465,33 @@ Not a voice radio any more: this tab closes.	音声用無線機ではなくな�
 No free radio can tune to %.4f MHz.	%.4f MHz に同調できる空いている無線機がありません。
 Every radio is in use by another receiver	すべての無線機が別の受信機で使用中です
 No radio is connected	無線機が接続されていません
+# station location: maps open at My station, Centre on me, I'm here
+(your location is not set: the distance filter is off)	(現在地が未設定です: 距離フィルターはオフ)
+; set your location (the pin in the toolbar) for the right delay	; 正しい遅延のために現在地を設定してください (ツールバーのピン)
+Centre on me	自分を中心に
+Centre the map here	ここを地図の中心に
+Centre the map on my station (%.4f, %.4f)	地図を自局の位置に合わせる (%.4f, %.4f)
+Every map and range uses it. Change it any time in My station (the location pin in the toolbar).	すべての地図と距離がこの位置を使います。マイステーション (ツールバーのピン) でいつでも変更できます。
+I'm here...	ここにいる...
+Locator %s	ロケーター %s
+Now %.5f, %.5f (%.1f km from here)	現在 %.5f, %.5f (ここから %.1f km)
+Open My station: paste coordinates, a locator or a map link, or use a GPS	マイステーションを開く: 座標、ロケーター、地図リンクを貼り付けるか GPS を使用
+Set my station (every map and range) to this point	自局 (すべての地図と距離) をこの地点に設定
+Set my station here?	自局をここに設定しますか?
+Set your location	現在地を設定
+Set your location first: the sky direction is worked out from it.	先に現在地を設定してください: 空の方向はそこから計算されます。
+Set your location first: these services are asked about a circle around you.	先に現在地を設定してください: これらのサービスには周囲の円内について問い合わせます。
+Set your location to use bearings.	方位を使うには現在地を設定してください。
+Set your location: NMS is asked about a circle around it.	現在地を設定してください: NMS にはその周囲の円内について問い合わせます。
+Set your location: each bearing line starts at it.	現在地を設定してください: 各方位線はそこから始まります。
+Set your location: ranges are measured from it.	現在地を設定してください: 距離はそこから測ります。
+Set your location: the API is asked about a circle around it.	現在地を設定してください: API にはその周囲の円内について問い合わせます。
+Site is your location (My station, the pin in the toolbar). Time is the computer clock, UTC.	観測地は現在地です (マイステーション、ツールバーのピン)。時刻はコンピューターの時計、UTC です。
+The map opens at your station and ranges are measured from it. Paste coordinates, a locator or a map link, use a GPS, or right-click the map and choose I'm here.	地図は自局の位置で開き、距離はそこから測ります。座標、ロケーター、地図リンクを貼り付けるか、GPS を使うか、地図を右クリックして「ここにいる」を選んでください。
+The receiver position is your station's (My station, the pin in the toolbar).	受信機の位置は自局の位置です (マイステーション、ツールバーのピン)。
+This station does not report where it is (its location is not set).	この局は位置を報告していません (位置が未設定です)。
+Yes, I'm here	はい、ここにいます
+Your location is not set.	現在地が未設定です。
+Your location is not set: opens My station	現在地が未設定です: マイステーションを開きます
+Your location is not set: the site is a placeholder.	現在地が未設定です: 観測地は仮の位置です。
+or right-click the map: I'm here	または地図を右クリック: ここにいる

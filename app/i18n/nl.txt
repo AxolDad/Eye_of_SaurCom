@@ -1370,7 +1370,6 @@ The computer clock when each time packet began, minus the stamp in the packet an
 nothing to compare (a recording)	niets om mee te vergelijken (een opname)
 once the time is decoded	zodra de tijd is gedecodeerd
 path	pad
-; set your position in ADS-B (Receiver position) for the right delay	; set your position in ADS-B (Receiver position) for the right delay
 clock offset	klokafwijking
 level	niveau
 start the receiver to see the signal	start de ontvanger om het signaal te zien
@@ -1948,7 +1947,6 @@ Sound alert	Geluidssignaal
 Test (dry run)	Testen (droogloop)
 Test with a sample event	Testen met een voorbeeldgebeurtenis
 Text can use:	Tekst kan gebruiken:
-The receiver position is not set (ADS-B window).	De positie van de ontvanger is niet ingesteld (ADS-B-venster).
 The recipe file	Het receptbestand
 The script ran and did nothing for this event.	Het script liep en deed niets voor deze gebeurtenis.
 Then do	Doe dan
@@ -2230,7 +2228,6 @@ Save CSV	CSV opslaan
 Save FITS	FITS opslaan
 Save SigMF text	SigMF-tekst opslaan
 Save session	Sessie opslaan
-Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	Locatie is de ontvangerlocatie (Beeld > Kaart). Tijd is de computerklok, UTC.
 Sun	Zon
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	De rotatiecurve heeft spectra nodig op meerdere lengtes tussen 0 en 90 (of 270 en 360).
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	Naar het doel: aardrotatie %+.2f, baan %+.2f, zon %+.2f; totaal %+.2f km/s (optellen bij de topocentrische snelheid)
@@ -2459,7 +2456,6 @@ Saved illuminators	Opgeslagen illuminators
 Second target	Tweede doel
 Target range (km)	Afstand van het doel (km)
 Targets closer than the tap count in range samples are hidden by the cancellation.	Doelen die dichterbij zijn dan het aantal taps in afstandssamples worden door de onderdrukking verborgen.
-The receiver position is the one set for ADS-B.	De positie van de ontvanger is die welke voor ADS-B is ingesteld.
 Tracks	Sporen
 Two recordings (reference, surveillance)	Twee opnames (referentie, bewaking)
 Two-channel recording (cf32)	Tweekanaalsopname (cf32)
@@ -3469,3 +3465,33 @@ Not a voice radio any more: this tab closes.	Geen spraakontvanger meer: dit tabb
 No free radio can tune to %.4f MHz.	Geen vrije radio kan op %.4f MHz afstemmen.
 Every radio is in use by another receiver	Elke radio wordt door een andere ontvanger gebruikt
 No radio is connected	Er is geen radio aangesloten
+# station location: maps open at My station, Centre on me, I'm here
+(your location is not set: the distance filter is off)	(je locatie is niet ingesteld: het afstandsfilter staat uit)
+; set your location (the pin in the toolbar) for the right delay	; stel je locatie in (de speld in de werkbalk) voor de juiste vertraging
+Centre on me	Centreer op mij
+Centre the map here	Centreer de kaart hier
+Centre the map on my station (%.4f, %.4f)	Centreer de kaart op mijn station (%.4f, %.4f)
+Every map and range uses it. Change it any time in My station (the location pin in the toolbar).	Elke kaart en afstand gebruikt hem. Wijzig hem altijd in Mijn station (de speld in de werkbalk).
+I'm here...	Ik ben hier...
+Locator %s	Locator %s
+Now %.5f, %.5f (%.1f km from here)	Nu %.5f, %.5f (%.1f km van hier)
+Open My station: paste coordinates, a locator or a map link, or use a GPS	Mijn station openen: plak coördinaten, een locator of een kaartlink, of gebruik een GPS
+Set my station (every map and range) to this point	Zet mijn station (elke kaart en afstand) op dit punt
+Set my station here?	Mijn station hier zetten?
+Set your location	Stel je locatie in
+Set your location first: the sky direction is worked out from it.	Stel eerst je locatie in: de richting aan de hemel wordt daaruit berekend.
+Set your location first: these services are asked about a circle around you.	Stel eerst je locatie in: deze diensten wordt gevraagd naar een cirkel om je heen.
+Set your location to use bearings.	Stel je locatie in om peilingen te gebruiken.
+Set your location: NMS is asked about a circle around it.	Stel je locatie in: NMS wordt gevraagd naar een cirkel eromheen.
+Set your location: each bearing line starts at it.	Stel je locatie in: elke peillijn begint daar.
+Set your location: ranges are measured from it.	Stel je locatie in: afstanden worden daarvandaan gemeten.
+Set your location: the API is asked about a circle around it.	Stel je locatie in: de API wordt gevraagd naar een cirkel eromheen.
+Site is your location (My station, the pin in the toolbar). Time is the computer clock, UTC.	De plaats is je locatie (Mijn station, de speld in de werkbalk). De tijd is de computerklok, UTC.
+The map opens at your station and ranges are measured from it. Paste coordinates, a locator or a map link, use a GPS, or right-click the map and choose I'm here.	De kaart opent bij je station en afstanden worden daarvandaan gemeten. Plak coördinaten, een locator of een kaartlink, gebruik een GPS, of klik met rechts op de kaart en kies Ik ben hier.
+The receiver position is your station's (My station, the pin in the toolbar).	De ontvangerpositie is die van je station (Mijn station, de speld in de werkbalk).
+This station does not report where it is (its location is not set).	Dit station meldt niet waar het is (zijn locatie is niet ingesteld).
+Yes, I'm here	Ja, ik ben hier
+Your location is not set.	Je locatie is niet ingesteld.
+Your location is not set: opens My station	Je locatie is niet ingesteld: opent Mijn station
+Your location is not set: the site is a placeholder.	Je locatie is niet ingesteld: de plaats is een tijdelijke.
+or right-click the map: I'm here	of rechtsklik op de kaart: Ik ben hier

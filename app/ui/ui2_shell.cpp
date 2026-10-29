@@ -569,6 +569,8 @@ float menuBar(App& a) {
             ImGui::EndMenu();
         }
         tourMark("help", ImVec2(hx0, my0), ImVec2(ImGui::GetCursorScreenPos().x, my1));
+        ImGui::SameLine(0, 14 * gUi);
+        stationChip(a);   // station_ui.cpp: where the station is, or "Set location" (the sidebar layouts have no top toolbar for it)
         menuBarRight(a);
         ImGui::EndMainMenuBar();
     }

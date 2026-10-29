@@ -13,6 +13,7 @@
 #include "../platform/platform.h"
 #include "../ui/theme.h"
 #include "../ui/typography.h"
+#include "../ui/station_ui.h"
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -622,7 +623,7 @@ void window(App& a) {
             ImGui::TextColored(pal::badRed(), "%s", tr("A key has spaces, quotes or other characters a key does not have."));
         ImGui::SetNextItemWidth(160 * gUi);
         if (ImGui::SliderInt(tr("Radius (nm)##nms"), &S.apiRadius, 5, 100)) changed = true;
-        if (!receiverLocationSet()) ImGui::TextColored(pal::warnAmber(), "%s", tr("Set the receiver position on the ADS-B screen: NMS is asked about a circle around it."));
+        stationHint(a, tr("Set your location: NMS is asked about a circle around it."));
         ImGui::TextDisabled("%s", tr("Access is by request to the FAA (notams@faa.gov). The same radius is used for the older API."));
         ImGui::Unindent();
     }
@@ -644,7 +645,7 @@ void window(App& a) {
             ImGui::TextColored(pal::badRed(), "%s", tr("A key has spaces, quotes or other characters a key does not have."));
         ImGui::SetNextItemWidth(160 * gUi);
         if (ImGui::SliderInt(tr("Radius (nm)"), &S.apiRadius, 5, 100)) changed = true;
-        if (!receiverLocationSet()) ImGui::TextColored(pal::warnAmber(), "%s", tr("Set the receiver position on the ADS-B screen: the API is asked about a circle around it."));
+        stationHint(a, tr("Set your location: the API is asked about a circle around it."));
         if (ImGui::SmallButton(tr("Get a free key"))) dect2::openUrl("https://api.faa.gov/s/");
         ImGui::Unindent();
     }
@@ -706,7 +707,7 @@ void window(App& a) {
             if (force) ImGui::TextColored(pal::badRed(), "%s", whenText(n, now).c_str());
             else ImGui::TextUnformatted(whenText(n, now).c_str());
             ImGui::TableNextColumn();
-            if (d < 0) ImGui::TextDisabled("-");
+            if (d < 0) ImGui::TextDisabled("%s", pos ? "-" : kNoRange);
             else if (d == 0) ImGui::TextColored(pal::badRed(), "%s", tr("inside"));
             else ImGui::Text("%.0f", d);
             ImGui::TableNextColumn();
@@ -719,7 +720,7 @@ void window(App& a) {
         ImGui::TextDisabled(tr("%zu shown, %zu filtered out"), shown, hidden);
         if (!pos && S.nearNm > 0) {
             ImGui::SameLine();
-            ImGui::TextColored(pal::warnAmber(), "%s", tr("(no receiver position: the distance filter is off)"));
+            ImGui::TextColored(pal::warnAmber(), "%s", tr("(your location is not set: the distance filter is off)"));
         }
     }
 

@@ -14,3 +14,7 @@ bool stationPasteBox(App& a, char* buf, size_t n, const char* id, float width = 
 
 // Open the My station page (the "Change..." buttons).
 void stationOpenPage(App& a);
+
+// While no station position is set: `why` in amber (wrapped) and a "Set your location" button that opens My station. Nothing once one is
+// set. For the screens that need the position (ranges, passes, NOTAMs ...).
+void stationHint(App& a, const char* why);

@@ -459,7 +459,7 @@ void receiver(App& a) {
 
 // every frame while AIS is selected: the positions heard, for the range plot (from the receiver position)
 void tick(App& a) {
-    if (!live(a) || a.rx.seq == S.rangeSeq) return;
+    if (!live(a) || a.rx.seq == S.rangeSeq || !receiverLocationSet()) return;   // ranges only from a real station position
     S.rangeSeq = a.rx.seq;
     double lat, lon;
     receiverLocation(lat, lon);

@@ -4,6 +4,7 @@
 // broadcasts (FIG 0/22) where the file has none:
 //   eid,main,sub,lat,lon,site,power_kw,channel_mhz[,reports,first_seen,last_seen]      (eid in hex; a line starting with # is a comment)
 // TII codes are unique within an ensemble, not worldwide: a transmitter is found by (ensemble id, MainId, SubId).
+#include "../ui/station_ui.h"
 #include "dect2/common/thread_name.h"
 #include "app.h"
 #include "../adsb/adsb_map.h"
@@ -288,8 +289,8 @@ void dabTransmittersTab(App& a) {
                 if (ImGui::IsItemHovered()) ImGui::SetTooltip("Position not known yet: add it to your own list (%s).", S.ownFile.c_str());
             }
             ImGui::PopID();
-            ImGui::TableNextColumn(); if (r.km >= 0) ImGui::Text("%.0f km", r.km); else ImGui::TextDisabled("-");
-            ImGui::TableNextColumn(); if (r.km >= 0) ImGui::Text("%.0f°", r.deg); else ImGui::TextDisabled("-");
+            ImGui::TableNextColumn(); if (r.km >= 0) ImGui::Text("%.0f km", r.km); else ImGui::TextDisabled("%s", S.haveRef ? "-" : kNoRange);
+            ImGui::TableNextColumn(); if (r.km >= 0) ImGui::Text("%.0f°", r.deg); else ImGui::TextDisabled("%s", S.haveRef ? "-" : kNoRange);
             ImGui::TableNextColumn(); if (r.site && r.site->powerKw > 0) ImGui::Text("%.1f kW", r.site->powerKw); else ImGui::TextDisabled("-");
         }
         ImGui::EndTable();
@@ -312,6 +313,6 @@ void dabTransmittersTab(App& a) {
     if (ImGui::SmallButton("clear heard")) S.heard.clear();
     flowEnd();
     if (!S.exportMsg.empty()) { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("%s", S.exportMsg.c_str()); ImGui::PopTextWrapPos(); }
-    if (!S.haveRef) { ImGui::PushTextWrapPos(0); ImGui::TextDisabled("Distances and bearings: set the antenna position in the ADS-B tuner."); ImGui::PopTextWrapPos(); }
+    if (!S.haveRef) stationHint(a, "Distances and bearings need your location.");
     if (full) ImGui::EndChild();
 }
