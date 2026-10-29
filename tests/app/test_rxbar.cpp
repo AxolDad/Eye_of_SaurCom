@@ -27,6 +27,7 @@ int main() {
         check(rxbar::utf8Chars(f) <= 25 && f.find("NESDR") == std::string::npos && f.find("145.500 MHz") != std::string::npos, "radio dropped");
         check(rxbar::fitLabel(2, "NESDR SMArt v5", "General receiver", 145.5, 3.f, chars) == "2 \xC2\xB7 145.500 MHz", "only number and frequency");
     }
+    check(rxbar::zeroDigits("2 \xC2\xB7 RTL-SDR #2 \xC2\xB7 145.500 MHz") == "0 \xC2\xB7 RTL-SDR #0 \xC2\xB7 000.000 MHz", "digits measured as zeros");
     {   // a frequency the radio can tune
         check(rxbar::tuneInRange(145.5, 24, 1766) == 145.5, "rtl covers the default");
         check(rxbar::tuneInRange(145.5, 0, 0) == 145.5, "range unknown");

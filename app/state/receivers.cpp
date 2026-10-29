@@ -219,7 +219,7 @@ void strip(App& first, ImVec2 disp, float h) {
     for (App* r : all) {
         std::string radio = chipRadio(*r);
         std::string mn = modeName(*r);
-        const float tw = ImGui::CalcTextSize(rxbar::label(r->rxId, radio, mn, r->freqMhz).c_str()).x;
+        const float tw = ImGui::CalcTextSize(rxbar::zeroDigits(rxbar::label(r->rxId, radio, mn, r->freqMhz)).c_str()).x;   // steady while tuning
         const float w = rxbar::chipWidth(tw, 12 * gUi + 14 * gUi + btn * (r->rxId > 1 ? 2.f : 1.f), minChip, maxChip);
         chips.push_back({r, std::move(radio), std::move(mn), x, w});
         x += w + 4 * gUi;

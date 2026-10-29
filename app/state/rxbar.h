@@ -25,6 +25,9 @@ inline std::string ellipsize(const std::string& s, int maxChars) {
     }
     return s.substr(0, i) + "\xE2\x80\xA6";
 }
+// every digit as a 0: measuring this instead of the real label keeps a chip's width steady while the frequency changes (the default
+// font, Inter, has proportional digits; 0 is among its widest)
+inline std::string zeroDigits(std::string s) { for (auto& c : s) if (c >= '0' && c <= '9') c = '0'; return s; }
 // number of UTF-8 characters
 inline int utf8Chars(const std::string& s) { int n = 0; for (unsigned char c : s) if ((c & 0xC0) != 0x80) n++; return n; }
 // "2 · NESDR SMArt v5 · General receiver · 145.500 MHz"; an empty radio or mode is left out
