@@ -49,7 +49,7 @@ public:
     // (0 or 1, the grant's slot) is followed: its MAC PDUs make the call (telemetry `now`, the call log), its AMBE+2 frames go to the vocoder.
     // wacn / sysId / nac seed the burst scrambling (the control channel gives them). Off: back to Phase 1. Takes effect at the next feed().
     void setPhase2(bool on, int slot = 0, int wacn = 0, int sysId = 0, int nac = 0);
-    void setPhase2VoiceTap(std::function<void(int chan, const uint8_t bits[72], bool clear)> cb);   // tests: every voice frame of the followed slot
+    void setPhase2VoiceTap(std::function<void(int chan, const char fr[4][24], bool clear)> cb);   // tests: every voice frame of the followed slot, as the vocoder gets it
 
 private:
     struct Impl;

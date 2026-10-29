@@ -66,7 +66,7 @@ struct P25Receiver::Impl {
     struct P2Cfg { bool on = false; int slot = 0, wacn = 0, sysId = 0, nac = 0; };
     P2Cfg p2Want;
     std::atomic<bool> p2Dirty{false};
-    std::function<void(int, const uint8_t*, bool)> p2tapSet, p2tap;
+    std::function<void(int, const char (*)[24], bool)> p2tapSet, p2tap;
 
     double rate = 0, offset = 0;
     double power = 0; int64_t nPower = 0, nIn = 0;
@@ -710,12 +710,14 @@ struct P25Receiver::Impl {
         for (int i = 0; i < e.nVoice; i++) {
             tel.now.voiceFrames++;
             tel.voiceFrames++; tel.p2Frames++;
-            if (p2tap) p2tap(e.chan, e.voice[i], clear);
+            char fr[4][24];
+            p25p2::voiceDeinterleave(e.voice[i], fr);
+            if (p2tap) p2tap(e.chan, fr, clear);
             if (!clear) continue;   // encrypted: reported, never decoded
             tel.now.clearFrames++;
             if (!p2ambe || !p2ambe->ok()) continue;
             int16_t pcm[160];
-            p2ambe->decode(e.voice[i], pcm);
+            p2ambe->decodeFr(fr, pcm);
             for (int16_t s : pcm) aud8.push_back(s / 32768.f);
             tel.voiceDecoded++; tel.p2Decoded++;
             tel.now.voice = true;
@@ -875,7 +877,7 @@ void P25Receiver::setPhase2(bool on, int slot, int wacn, int sysId, int nac) {
     p_->p2Want = c;
     p_->p2Dirty = true;
 }
-void P25Receiver::setPhase2VoiceTap(std::function<void(int, const uint8_t*, bool)> cb) { std::lock_guard<std::mutex> lk(p_->mu); p_->p2tapSet = std::move(cb); p_->tapReq = true; }
+void P25Receiver::setPhase2VoiceTap(std::function<void(int, const char (*)[24], bool)> cb) { std::lock_guard<std::mutex> lk(p_->mu); p_->p2tapSet = std::move(cb); p_->tapReq = true; }
 void P25Receiver::setVoiceTap(std::function<void(const uint8_t bits[144], bool clear)> cb) { std::lock_guard<std::mutex> lk(p_->mu); p_->vtapSet = std::move(cb); p_->tapReq = true; }
 
 ModeTuning p25Tuning() {

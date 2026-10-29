@@ -21,8 +21,8 @@ std::string fmtf(const char* f, ...) {
     return b;
 }
 
-// slots per carrier of a TDMA channel type (TIA-102.BBAC channel types): only the 12.5 kHz two-slot type is known to this implementation
-int slotsOfType(int type) { return type == 3 ? 2 : 0; }
+// slots per carrier of an IDEN_UP_TDMA channel type: OP25 (GPL-3, boatbod/op25) apps/tk_p25.py slots_per_carrier = [1,1,1,2,4,2,2,...]
+int slotsOfType(int type) { static const int t[16] = {1, 1, 1, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}; return t[type & 15]; }
 
 } // namespace
 
@@ -41,7 +41,7 @@ double SystemModel::channelFreq(int channel, int* slot, bool* tdma) const {
     if (!i.valid) return 0;
     int ch = channel & 0xFFF;
     if (i.tdma) {
-        if (i.slots <= 0) return 0;   // a channel type this build cannot place
+        if (i.slots != 2) return 0;   // a 4-slot channel type: not a Phase 2 carrier this build can follow
         if (slot) *slot = ch % i.slots;
         if (tdma) *tdma = true;
         ch /= i.slots;
@@ -130,13 +130,13 @@ std::string SystemModel::onTsbk(const p25::Tsbk& t, int nac, double now, std::ve
             r.txOffsetHz = ((toff >> 13) & 1 ? 1 : -1) * (double)(toff & 0x1FFF) * r.spacingHz;
             const int field = (int)(a >> 56) & 15;
             if (t.opcode == p25::kIdenUpVu) { r.vu = true; r.bwHz = field == 4 ? 6250 : field == 5 ? 12500 : 0; }
-            else { r.tdma = true; r.chanType = field; r.slots = slotsOfType(field); r.bwHz = 12500; }
+            else { r.slots = slotsOfType(field); r.tdma = r.slots > 1; r.chanType = field; r.bwHz = 12500; }
         }
         const bool news = !idens_[id].valid || idens_[id].baseHz != r.baseHz || idens_[id].spacingHz != r.spacingHz || idens_[id].tdma != r.tdma;
         idens_[id] = r;
         if (!news) return std::string();
         return fmtf("%s %d: base %.5f MHz, spacing %.3f kHz%s", p25::opcodeName(t.opcode) && *p25::opcodeName(t.opcode) ? p25::opcodeName(t.opcode) : "IDEN_UP", id, r.baseHz / 1e6,
-                    r.spacingHz / 1e3, r.tdma ? (r.slots ? ", TDMA 2 slots" : ", TDMA (channel type not placed)") : "");
+                    r.spacingHz / 1e3, r.tdma ? (r.slots == 2 ? ", TDMA 2 slots" : ", TDMA 4 slots (not followed)") : "");
     }
     case p25::kNetSts: {   // WACN 20, system 12, control channel 16, service class 8
         const int wacn = (int)((a >> 36) & 0xFFFFF), sys = (int)((a >> 24) & 0xFFF), ch = (int)((a >> 8) & 0xFFFF);

@@ -55,8 +55,10 @@ int main() {
         int slot = -2; bool tdma = false;
         const double f = c.sys.channelFreq(0x3005, &slot, &tdma);
         CHECK(tdma && slot == 1 && std::fabs(f - (770000000 + 2 * 12500.0)) < 1, "tdma %f slot %d", f, slot);
-        feed(c, gen::idenUpTdma(4, 9, 770000000, 12500, 0), 1);
-        CHECK(c.sys.channelFreq(0x4001) == 0, "unknown channel type is not placed");
+        feed(c, gen::idenUpTdma(4, 9, 770000000, 12500, 0), 1);   // OP25 tk_p25.py: channel types 5..15 have two slots
+        CHECK(std::fabs(c.sys.channelFreq(0x4001, &slot, &tdma) - 770000000) < 1 && slot == 1 && tdma, "channel type 9 is two-slot");
+        feed(c, gen::idenUpTdma(5, 4, 770000000, 12500, 0), 1);   // type 4: four slots
+        CHECK(c.sys.channelFreq(0x5001) == 0, "a four-slot channel type is not placed");
     }
     // ---- grants, calls, the follow cycle inside a wide capture
     {

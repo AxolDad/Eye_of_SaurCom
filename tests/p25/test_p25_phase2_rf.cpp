@@ -23,7 +23,7 @@ struct Result {
     bool retuned = false, controlRetuned = false, released = false, p2Asked = false;
     int slot = -1;
     double retuneHz = 0, firstVoice = -1, lastVoice = -1, endedAt = -1;
-    std::vector<std::vector<uint8_t>> frames;
+    std::vector<std::vector<char>> frames;
     int clearFrames = 0;
     uint64_t callId = 0;
     std::string note;
@@ -61,7 +61,7 @@ Result runCall(int algId) {
     vrx.configure(rate);
     vrx.setSignalOffset(offset);
     Result R;
-    vrx.setPhase2VoiceTap([&](int, const uint8_t* bits, bool clear) { R.frames.emplace_back(bits, bits + 72); R.clearFrames += clear; });
+    vrx.setPhase2VoiceTap([&](int, const char fr[4][24], bool clear) { R.frames.emplace_back(&fr[0][0], &fr[0][0] + 96); R.clearFrames += clear; });
 
     // the control channel's messages, as the Phase 1 receiver hands them on (the RF of the control channel is test_p25_trunk_voice_rf's)
     double t = 0;
@@ -114,12 +114,13 @@ Result runCall(int algId) {
     return R;
 }
 
-int matching(const std::vector<std::vector<uint8_t>>& got, int chan) {
+int matching(const std::vector<std::vector<char>>& got, int chan) {
+    auto ref = [&](int n) { uint32_t c[4]; p25p2::Generator::voiceWords(chan, (uint32_t)n, c); char fr[4][24]; p25p2::voiceFr(c, fr); return std::vector<char>(&fr[0][0], &fr[0][0] + 96); };
     int start = -1;
-    for (int n = 0; n < 2000 && start < 0 && !got.empty(); n++) { uint8_t ref[72]; p25p2::Generator::voiceFrame(chan, (uint32_t)n, ref); if (!memcmp(ref, got[0].data(), 72)) start = n; }
+    for (int n = 0; n < 2000 && start < 0 && !got.empty(); n++) if (ref(n) == got[0]) start = n;
     if (start < 0) return 0;
     int ok = 0;
-    for (size_t i = 0; i < got.size(); i++) { uint8_t ref[72]; p25p2::Generator::voiceFrame(chan, (uint32_t)(start + (int)i), ref); ok += !memcmp(ref, got[i].data(), 72); }
+    for (size_t i = 0; i < got.size(); i++) ok += ref(start + (int)i) == got[i];
     return ok;
 }
 

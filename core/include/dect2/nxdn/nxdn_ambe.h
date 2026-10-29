@@ -17,6 +17,8 @@ public:
     ~NxdnAmbe();
     bool ok() const;
     void decode(const uint8_t bits[72], int16_t pcm[160]);
+    // a frame already split into its code words (mbelib's ambe_fr): P25 Phase 2 interleaves them its own way (p25p2::voiceDeinterleave)
+    void decodeFr(const char fr[4][24], int16_t pcm[160]);
 private:
     struct Impl;
     std::unique_ptr<Impl> p_;
