@@ -206,7 +206,8 @@ void strip(App& first, ImVec2 disp, float h) {
     const float btn = chipH, plusW = chipH + 2 * gUi;
     char cpu[24];
     snprintf(cpu, sizeof cpu, "CPU %.0f%%", gCpuPct);
-    const float cpuW = compact ? 0.f : ImGui::CalcTextSize(cpu).x + 14 * gUi;
+    // room for "CPU 000%" at least, digits measured as zeros: the tabs do not shift each second as the load changes
+    const float cpuW = compact ? 0.f : std::max(ImGui::CalcTextSize(rxbar::zeroDigits(cpu).c_str()).x, ImGui::CalcTextSize("CPU 000%").x) + 14 * gUi;
     const float viewR = ImGui::GetWindowPos().x + disp.x - cpuW - plusW - 10 * gUi;   // chips are clipped here
     const float viewW = std::max(40.f, viewR - x0);
     const float maxChip = (compact ? 220.f : 460.f) * gUi, minChip = 96 * gUi;
