@@ -170,7 +170,7 @@ int main() {
         const CallRecord* rec = last(c);
         CHECK(r && r->radio < 0 && std::fabs(r->freqHz - (165.0e6 + 17 * 12500)) < 1 && c.follower.state() == FollowState::Hopped,
               "GTC channel 17 -> the radio hops to %.4f MHz", r ? r->freqHz / 1e6 : 0);
-        CHECK(rec && rec->kind == SysKind::Mpt1327 && rec->tg == 5 * 8192 + 1234 && rec->src == 2003 && rec->label == "5/1234", "MPT 1327 call %s from %d", rec ? rec->label.c_str() : "", rec ? rec->src : -1);
+        CHECK(rec && rec->kind == SysKind::Mpt1327 && rec->tg == 5 * 8192 + 1234 && rec->src == 5 * 8192 + 2003 && rec->label == "5/1234" && rec->group, "MPT 1327 call %s from %d", rec ? rec->label.c_str() : "", rec ? rec->src : -1);
         c.onTerminator(rec->id, 0.5);   // the traffic channel's CLEAR
         c.tick(0.51);
         a = c.takeActions();
@@ -184,6 +184,20 @@ int main() {
         CHECK(last(c)->note.find("data call") != std::string::npos && !last(c)->followed, "a data GTC is logged: %s", last(c)->note.c_str());
         c.onMpt("GTC", 5, 1301, 2006, 18, false, true, 1.2);   // a GTC on a traffic channel is not a new call
         CHECK(last(c)->tg == 5 * 8192 + 1300, "GTCs decoded on a traffic channel are not taken");
+        // the idents say what kind of call it is (section 5.4, Table 4-1)
+        c.onMpt("GTC", 5, 8191, 2007, 18, true, false, 1.3);
+        CHECK(last(c)->tg == 8191 && last(c)->group && last(c)->label == "all-call (ALLI)", "ALLI: %s", last(c)->label.c_str());
+        c.onMpt("GTC", 5, 8101, 2008, 18, true, false, 1.4);
+        CHECK(last(c)->tg == 5 * 8192 + 2008 && !last(c)->group && last(c)->label == "telephone call: 5/2008", "PSTNGI: %s", last(c)->label.c_str());
+        c.onMpt("GTC", 5, 2009, 8102, 18, true, false, 1.5);
+        CHECK(last(c)->tg == 5 * 8192 + 2009 && !last(c)->group && last(c)->label == "telephone call: 5/2009", "from PABXI: %s", last(c)->label.c_str());
+        c.mpt.groupMin = 6000; c.mpt.groupMax = 8100;   // the fleet plan: groups from 6000 up
+        c.onMpt("GTC", 5, 6001, 2010, 18, true, false, 1.6);
+        CHECK(last(c)->group, "6001 is a group");
+        c.onMpt("GTC", 5, 2011, 2010, 18, true, false, 1.7);
+        CHECK(!last(c)->group && last(c)->tg == 5 * 8192 + 2011, "2011 is a unit: an individual call");
+        c.onMpt("GTC", 5, 8189, 2012, 18, true, false, 1.8);   // interprefix, sent to the calling unit: IDENT2 is the user
+        CHECK(last(c)->tg == 5 * 8192 + 2012 && last(c)->label == "5/2012 (interprefix)", "interprefix: %s", last(c)->label.c_str());
     }
     // ---------------------------------------------------------------- what a voice radio hears of an analog channel
     {

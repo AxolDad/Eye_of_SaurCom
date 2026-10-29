@@ -1,5 +1,7 @@
 // MPT 1327 control channel: codeword check bits against the standard's own constraints, address codeword field round trips, the decoder on
 // generated FFSK audio (clean, shifted, other sample rates, inverted tones, noise, bit errors) and the engine receiver on a generated FM signal.
+// Field positions, message type numbers and ident classes are checked against a port of SDRTrunk's MPT1327Message (GPL-3, Dennis Sheirer):
+// its BitSet positions count from the first of 4 revs bits + 16 sync bits, so codeword bit 1 is its bit 20.
 #include "dect2/engine/mode_tuning.h"
 #include "dect2/mpt1327/mpt1327_engine.h"
 #include "dect2/mpt1327/mpt1327_gen.h"
@@ -42,6 +44,31 @@ std::vector<uint64_t> decode(const std::vector<float>& a, double fs, Stats* out 
 }
 
 bool sameSeq(const std::vector<uint64_t>& got, const std::vector<uint64_t>& want) { return got == want; }
+
+// SDRTrunk MPT1327Message.getInt over a message whose block 1 starts at bit 20
+int sdrInt(uint64_t cw, int from, int to) { int v = 0; for (int i = from; i <= to; i++) v = (v << 1) | (int)((cw >> (63 - (i - 20))) & 1); return v; }
+// SDRTrunk MPTMessageType.fromNumber for the types used here (B1_MESSAGE_TYPE = bits 41 .. 49)
+std::string sdrType(uint64_t cw) {
+    const int n = sdrInt(cw, 41, 49);
+    if (n < 256) return "GTC";
+    switch (n) {
+    case 256: return "ALH"; case 264: return "ACK"; case 272: return "AHOY"; case 280: return "MARK"; case 281: return "MAINT";
+    case 282: return "CLEAR"; case 283: return "MOVE"; case 284: return "BCAST"; default: return "?";
+    }
+}
+// SDRTrunk MPT1327Message.IdentType.fromIdent, reduced to the classes ours has
+std::string sdrIdent(int ident) {
+    switch (ident) {
+    case 0: return "DUMMYI"; case 8101: return "PSTNGI"; case 8102: return "PABXI"; case 8103: return "DNI";
+    case 8181: case 8182: case 8183: case 8184: return "reserved";
+    case 8185: return "REGI"; case 8186: return "INCI"; case 8187: return "DIVERTI"; case 8188: return "SDMI"; case 8189: return "IPFIXI";
+    case 8190: return "TSCI"; case 8191: return "ALLI";
+    default:
+        if (ident >= 8121 && ident <= 8135) return "PSTNSI" + std::to_string(ident - 8120);
+        if (1 <= ident && ident <= 8100) return "USER";
+        return "spare";
+    }
+}
 
 }  // namespace
 
@@ -174,11 +201,62 @@ int main() {
         CHECK(sameSeq(decode(ffskAudio(b, 24000), 24000), want), "two bit errors in message 1");
     }
 
+    // --- fields against SDRTrunk's positions
+    {
+        const uint64_t gtc = makeGtc(5, 1234, 1, 517, 2003);
+        CHECK(sdrType(gtc) == "GTC" && sdrInt(gtc, 21, 27) == 5 && sdrInt(gtc, 28, 40) == 1234 && sdrInt(gtc, 43, 52) == 517 && sdrInt(gtc, 53, 65) == 2003,
+              "GTC fields at SDRTrunk's positions");
+        Message m;
+        CHECK(decodeAddress(gtc, m) && m.type == "GTC" && m.channel == 517 && m.called.ident == 1234 && m.caller.ident == 2003 && m.caller.pfix == 5 && m.dataCall, "GTC decode");
+        const uint64_t mt = makeMaint(5, 1234, 517, kOperDisconnect);
+        CHECK(sdrType(mt) == "MAINT" && sdrInt(mt, 21, 27) == 5 && sdrInt(mt, 28, 40) == 1234, "MAINT is SDRTrunk's type 281 (%s)", sdrType(mt).c_str());
+        CHECK(decodeAddress(mt, m) && m.type == "MAINT" && m.channel == 517 && m.oper == 3 && m.called.ident == 1234 && m.detail.find("disconnect") != std::string::npos, "MAINT decode: %s", m.detail.c_str());
+        for (int op = 0; op < 8; op++) CHECK(decodeAddress(makeMaint(1, 2, 3, op), m) && m.oper == op, "OPER %d", op);
+        const uint64_t cl = makeClear(517, 33);
+        CHECK(sdrType(cl) == "CLEAR" && sdrInt(cl, 21, 30) == 517, "CLEAR: SDRTrunk's B1_TRAFFIC_CHANNEL (bits 21 .. 30) %d", sdrInt(cl, 21, 30));
+        CHECK(decodeAddress(cl, m) && m.type == "CLEAR" && m.channel == 517 && m.cont == 33 && m.called.ident < 0, "CLEAR decode: channel %d cont %d", m.channel, m.cont);
+        CHECK(sdrType(makeAloha(5, 0, 0, 3)) == "ALH" && sdrType(makeAck(5, 77, 0, 4321, 0, 0)) == "ACK" && sdrType(makeBcastChannel(0, 20001, 3)) == "BCAST", "other types");
+        int badIdent = 0;
+        for (int i = 0; i < 8192; i++) {
+            const char* n = identName(i);
+            if ((n ? std::string(n) : std::string("USER")) != sdrIdent(i)) badIdent++;
+        }
+        CHECK(badIdent == 0, "%d idents classed differently from SDRTrunk's IdentType", badIdent);
+        // special idents carry no prefix (SDRTrunk MPT1327Talkgroup.createTo / createFrom)
+        CHECK(addressNumber({5, 1234}) == 5 * 8192 + 1234 && addressNumber({5, 8191}) == 8191 && addressNumber({9, 0}) == 0 && addressText({5, 8191}) == "ALLI", "addresses");
+        Message g;
+        decodeAddress(makeGtc(5, 8191, 0, 3, 2003), g); CHECK(gtcKind(g) == CallKind::AllCall, "all-call");
+        decodeAddress(makeGtc(5, 8101, 0, 3, 2003), g); CHECK(gtcKind(g) == CallKind::ToPhone, "to a telephone");
+        decodeAddress(makeGtc(5, 1234, 0, 3, 8102), g); CHECK(gtcKind(g) == CallKind::FromPhone, "from a PABX");
+        decodeAddress(makeGtc(5, 8189, 0, 3, 2003), g); CHECK(gtcKind(g) == CallKind::Interprefix, "interprefix");
+        decodeAddress(makeGtc(5, 1234, 0, 3, 8186), g); CHECK(gtcKind(g) == CallKind::Include, "include");
+        decodeAddress(makeGtc(5, 1234, 0, 3, 2003), g); CHECK(gtcKind(g) == CallKind::Normal, "normal");
+    }
+
+    // --- the French variant (SYNC 0xB433, SYNT 0x4BCC: SDRTrunk SyncPattern MPT1327_CONTROL_FRENCH / MPT1327_TRAFFIC_FRENCH)
+    {
+        CHECK(kSyncFrench == 0xB433 && kSyntFrench == 0x4BCC && (uint16_t)~kSyncFrench == kSyntFrench, "French sync words");
+        int sys = 0;
+        CHECK(decodeCcsc(makeCcsc(20001, true), sys) && sys == 20001 && (makeCcsc(20001, true) & 0xFFFF) == 0xB433, "French CCSC");
+        const std::vector<uint64_t> msgs = sampleMessages();
+        for (int inv = 0; inv < 2; inv++) {
+            Stats st;
+            const std::vector<uint64_t> got = decode(ffskAudio(controlChannelBits(20001, msgs, 16, true), 24000, inv == 1), 24000, &st);
+            CHECK(sameSeq(got, msgs) && st.french && st.sys == 20001, "French control channel%s: %zu of %zu, sys %d", inv ? " (inverted)" : "", got.size(), msgs.size(), st.sys);
+            Decoder d;
+            const auto f = ffskAudio(trafficChannelBits({makeMaint(5, 1234, 17, 2), makeClear(17, 3)}, 16, true), 48000, inv == 1, 0.5f);
+            d.process(f.data(), f.size(), 48000);
+            int clear = 0, maint = 0;
+            for (const Event& e : d.takeEvents()) { if (e.traffic && e.msg.type == "CLEAR") clear++; if (e.traffic && e.msg.type == "MAINT" && e.msg.oper == 2) maint++; }
+            CHECK(clear == 1 && maint == 1, "French traffic channel%s: CLEAR %d MAINT %d", inv ? " (inverted)" : "", clear, maint);
+        }
+    }
+
     // --- a traffic channel: CLEAR and MAINT after SYNT (the complement of SYNC), either polarity, after speech
     for (int inv = 0; inv < 2; inv++) {
         std::vector<float> a;
         for (int i = 0; i < 48000; i++) a.push_back(0.8f * (float)std::sin(2 * 3.14159265358979323846 * 1000.0 * i / 48000.0));   // speech: a tone
-        const auto f = ffskAudio(trafficChannelBits({makeMisc(5, 1234, 1, 17), makeMisc(5, 1234, 2, 17)}), 48000, inv == 1, 0.5f);
+        const auto f = ffskAudio(trafficChannelBits({makeMaint(5, 1234, 17, 1), makeClear(17, 3)}), 48000, inv == 1, 0.5f);
         a.insert(a.end(), f.begin(), f.end());
         a.resize(a.size() + 4800, 0.f);
         Decoder d;
@@ -227,7 +305,7 @@ int main() {
             CHECK(t.messages == msgs.size() && t.rows.size() == msgs.size(), "engine cfo %.0f sigma %.1f: %llu messages", cfo, sigma, (unsigned long long)t.messages);
             bool gtc17 = false, ctl = false;
             for (const MptChannelRow& c : t.channels) {
-                if (c.channel == 17 && !c.controlChannel && c.called == "5/1234" && c.caller == "ident 2003") gtc17 = true;
+                if (c.channel == 17 && !c.controlChannel && c.called == "5/1234" && c.caller == "5/2003") gtc17 = true;
                 if (c.channel == 3 && c.controlChannel) ctl = true;
             }
             CHECK(gtc17 && ctl, "channel table: GTC channel 17 %d, announced control channel 3 %d", (int)gtc17, (int)ctl);

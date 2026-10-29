@@ -161,12 +161,41 @@ bool LtrModel::onPassport(int dcc, int lcn, int site, int group, int type, int f
 
 bool MptModel::onMessage(const std::string& type, int pfix, int ident, int caller, int channel, bool dataCall, bool traffic, Grant& g) {
     if (type != "GTC" || traffic || channel < 0 || ident < 0) return false;
+    mpt1327::Message m;
+    m.called = {pfix, ident};
+    m.caller = {mpt1327::userIdent(caller) ? pfix : -1, caller};
+    const mpt1327::CallKind k = mpt1327::gtcKind(m);
     g = Grant();
     g.kind = SysKind::Mpt1327;
-    mpt1327::Address a; a.pfix = pfix; a.ident = ident;
-    g.group = true; g.tg = mpt1327::addressNumber(a); g.src = caller; g.channel = channel; g.freqHz = channels.freq(channel); g.slot = -1;
+    g.channel = channel; g.freqHz = channels.freq(channel); g.slot = -1;
     g.dataCall = dataCall;
-    g.label = mpt1327::addressText(a);
+    auto isGroup = [&](int id) { return id >= groupMin && id <= groupMax; };
+    g.src = caller >= 0 ? mpt1327::addressNumber(m.caller) : -1;
+    switch (k) {
+    case mpt1327::CallKind::AllCall:
+        g.group = true; g.tg = mpt1327::addressNumber(m.called); g.label = "all-call (ALLI)";
+        break;
+    case mpt1327::CallKind::ToPhone:     // IDENT1 a gateway: the radio calling out is IDENT2
+        g.group = false; g.tg = mpt1327::addressNumber(m.caller); g.src = -1;
+        g.label = "telephone call: " + mpt1327::addressText(m.caller);
+        break;
+    case mpt1327::CallKind::FromPhone:   // IDENT2 a gateway: the radio called is IDENT1
+        g.group = false; g.tg = mpt1327::addressNumber(m.called); g.src = -1;
+        g.label = "telephone call: " + mpt1327::addressText(m.called);
+        break;
+    default:
+        {
+            // IPFIXI / DUMMYI / TSCI as IDENT1: the user ident is IDENT2
+            const bool second = !mpt1327::userIdent(ident) && mpt1327::userIdent(caller);
+            const mpt1327::Address& who = second ? m.caller : m.called;
+            g.group = isGroup(who.ident); g.tg = mpt1327::addressNumber(who);
+            if (second) g.src = -1;
+            g.label = mpt1327::addressText(who);
+        }
+        if (k == mpt1327::CallKind::Interprefix) g.label += " (interprefix)";
+        else if (k == mpt1327::CallKind::Include) g.label += " (include)";
+        break;
+    }
     n_++;
     return true;
 }

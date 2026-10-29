@@ -528,6 +528,8 @@ void saveTables() {   // the lists belong to the system, not to a receiver: kept
     plat::prefs().setS("trunkMptChannels", T.mptChannels);
     plat::prefs().setD("trunkMptBase", T.mptBaseAuto ? 0.0 : T.mptBaseMhz);
     plat::prefs().setD("trunkMptSpacing", T.mptSpacingKhz);
+    plat::prefs().setI("trunkMptGroupMin", T.ctl.mpt.groupMin);
+    plat::prefs().setI("trunkMptGroupMax", T.ctl.mpt.groupMax);
     plat::prefs().setI("trunkEdacsNarrow", T.edacsNarrow ? 1 : 0);
     plat::prefs().setI("trunkEdacsMode", T.ctl.edacs.mode);
     plat::prefs().setI("trunkEdacsEsk", T.ctl.edacs.esk ? 1 : 0);
@@ -546,7 +548,7 @@ void analogSound(App& a) {
 }
 
 // What a receiver of an analog system hears of the call it was sent to: its channel, its carrier, the channel's end signalling (EDACS: data
-// frames, the drop burst; LTR: the turn-off of this talkgroup; MPT 1327: CLEAR after SYNT)
+// frames, the drop burst; LTR: the turn-off of this talkgroup; MPT 1327: CLEAR or a MAINT disconnect after SYNT)
 dect2::trunk::VoiceHeard analogHeard(const App& v, dect2::trunk::VoiceWatch& w, const dect2::trunk::CallRecord& r) {
     using namespace dect2::trunk;
     auto on = [&](double hz) { return hz > 0 && std::fabs(hz - r.freqHz) < 2500; };
@@ -556,7 +558,7 @@ dect2::trunk::VoiceHeard analogHeard(const App& v, dect2::trunk::VoiceWatch& w, 
         const bool ours = t.passport ? t.turnOffGroup == r.tg : t.turnOffId >= 0 && dect2::ltr::tgNumber(t.turnOffArea, t.turnOffHome, t.turnOffId) == r.tg;
         return analogVoiceHeard(w, r.id, on(t.channelHz), t.voice.carrier, t.turnOffs, ours, v.rx.seq);
     }
-    if (liveMpt(v)) { const auto& t = v.rx.mpt1327; return analogVoiceHeard(w, r.id, on(t.channelHz), t.voice.carrier, t.clears, true, v.rx.seq); }
+    if (liveMpt(v)) { const auto& t = v.rx.mpt1327; return analogVoiceHeard(w, r.id, on(t.channelHz), t.voice.carrier, t.ends, true, v.rx.seq); }   // CLEAR or MAINT disconnect
     return VoiceHeard::Nothing;
 }
 
@@ -590,6 +592,8 @@ void trunkTick(App& a) {
         applyLtrChannels(T.ltrChannels);
         T.mptBaseMhz = plat::prefs().getD("trunkMptBase", 0.0);
         T.mptSpacingKhz = plat::prefs().getD("trunkMptSpacing", 12.5);
+        T.ctl.mpt.groupMin = (int)std::clamp<long>(plat::prefs().getI("trunkMptGroupMin", 1), 1, 8100);
+        T.ctl.mpt.groupMax = (int)std::clamp<long>(plat::prefs().getI("trunkMptGroupMax", 8100), 1, 8100);
         T.mptChannels = plat::prefs().getS("trunkMptChannels", "");
         applyMptChannels(T.mptChannels);
         T.edacsNarrow = plat::prefs().getI("trunkEdacsNarrow", 0) != 0;
@@ -926,6 +930,13 @@ void followView(App& a) {
         if (T.mptBaseAuto) ImGui::TextDisabled("%s", tr("The base was worked out from the control channel's broadcast of its own number: check it."));
         else if (T.mptBaseMhz <= 0) ImGui::TextColored(pal::warnAmber(), "%s", tr("Enter the base frequency (channel 0) of your system, or list its channels below."));
         channelListUi("mpt", T.mptChannels, (int)T.ctl.mpt.channels.size(), applyMptChannels, "MPT 1327 channels", T.mptBaseMhz > 0);
+        // the fleet plan: which idents are groups (the codeword does not say)
+        int gr[2] = {T.ctl.mpt.groupMin, T.ctl.mpt.groupMax};
+        ImGui::SetNextItemWidth(160 * gUi);
+        if (ImGui::InputInt2(tr("Group idents (from, to)"), gr)) {
+            T.ctl.mpt.groupMin = std::clamp(gr[0], 1, 8100); T.ctl.mpt.groupMax = std::clamp(gr[1], 1, 8100); saveTables();
+        }
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio."));
         ImGui::TextDisabled("%llu GTC (go to channel) seen", (unsigned long long)T.ctl.mpt.grants());
     }
     const double now = nowSec();

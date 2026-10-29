@@ -74,7 +74,8 @@ void controlView(App& a) {
     if (t.channels.empty()) ImGui::TextDisabled("no channel numbers seen yet");
     else channelTable(t);
     ImGui::Spacing();
-    if (t.voice.carrier && t.synt) ImGui::Text("Traffic channel: %llu CLEAR, %llu MAINT", (unsigned long long)t.clears, (unsigned long long)t.maints);
+    if (t.voice.carrier && t.synt) ImGui::Text("Traffic channel: %llu CLEAR, %llu MAINT (%llu disconnect)", (unsigned long long)t.clears, (unsigned long long)t.maints, (unsigned long long)t.disconnects);
+    if (t.french) ImGui::TextDisabled("French variant (SYNC B433)");
     ImGui::TextDisabled("Input %.0f Hz, centre %.4f MHz.", t.inputRate, t.centerHz / 1e6);
 }
 

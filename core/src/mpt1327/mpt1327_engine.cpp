@@ -74,11 +74,14 @@ struct MptReceiver::Impl {
             snap.rows.push_back(r);
             MptMsgRec q;
             q.seq = ++gMsgSeq; q.t = e.t; q.type = e.msg.type; q.calledPfix = e.msg.called.pfix; q.calledIdent = e.msg.called.ident;
-            q.callerIdent = e.msg.caller.ident; q.channel = e.msg.channel; q.traffic = e.traffic; q.dataCall = e.msg.dataCall;
+            q.callerIdent = e.msg.caller.ident; q.channel = e.msg.channel; q.traffic = e.traffic; q.dataCall = e.msg.dataCall; q.oper = e.msg.oper;
             snap.msgs.push_back(q);
             if (snap.msgs.size() > 96) snap.msgs.erase(snap.msgs.begin(), snap.msgs.end() - 96);
-            if (e.traffic && e.msg.type == "CLEAR") snap.clears++;
-            if (e.traffic && e.msg.type == "MAINT") snap.maints++;
+            if (e.traffic && e.msg.type == "CLEAR") { snap.clears++; snap.ends++; }
+            if (e.traffic && e.msg.type == "MAINT") {
+                snap.maints++;
+                if (e.msg.oper == mpt1327::kOperDisconnect) { snap.disconnects++; snap.ends++; }   // the radio's disconnect: end of channel use
+            }
             if (snap.rows.size() > kMaxRows) snap.rows.erase(snap.rows.begin(), snap.rows.begin() + (long)(snap.rows.size() - kMaxRows));
             if (e.msg.channel >= 0) {
                 MptChannelRow& c = chans[e.msg.channel];
@@ -101,6 +104,7 @@ struct MptReceiver::Impl {
         snap.blocksBad = st.bad;
         snap.state = st.locked ? 2 : 1;
         snap.synt = st.synt;
+        snap.french = st.french;
         snap.voice = voice.state();
         voice.markReported();
         if (powN) snap.levelDb = (float)(10.0 * std::log10(powSum / (double)powN + 1e-20));

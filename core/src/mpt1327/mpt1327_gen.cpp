@@ -27,7 +27,7 @@ uint64_t general(int pfix, int ident1, int cat, int type, int func, uint32_t par
 }
 }  // namespace
 
-uint64_t makeCcsc(int sys) {
+uint64_t makeCcsc(int sys, bool french) {
     // bit 1 = 0, SYS bits 2 .. 16, CCS bits 17 .. 32, preamble bits 33 .. 48; choose CCS so that the check bits equal SYNC.
     // The check bits are affine in the information bits (the XOR of the bit-63 inversion is a constant), so solve a 16 x 16 system over GF(2).
     uint64_t base = 0;
@@ -38,7 +38,7 @@ uint64_t makeCcsc(int sys) {
     for (int k = 0; k < 16; k++) col[k] = (uint16_t)(checkBits(put(base, 17, 16, 1u << (15 - k))) ^ c0);   // effect of CCS bit k (bit 17 + k)
     // gaussian elimination: find x (16 bits) with XOR over set bits of col = SYNC ^ c0
     uint32_t rows[16];   // rows[r] = bits r of check as a function of the 16 unknowns plus the right side in bit 16
-    const uint16_t want = (uint16_t)(kSync ^ c0);
+    const uint16_t want = (uint16_t)((french ? kSyncFrench : kSync) ^ c0);
     for (int r = 0; r < 16; r++) {
         uint32_t row = 0;
         for (int k = 0; k < 16; k++) if ((col[k] >> r) & 1) row |= 1u << k;
@@ -88,12 +88,19 @@ uint64_t makeAhy(int pfix, int ident1, int func, int params18) { return general(
 
 uint64_t makeMisc(int pfix, int ident1, int func, int chan) { return general(pfix, ident1, 0, 3, func, (uint32_t)(chan & 1023) << 8); }
 
-std::vector<uint8_t> trafficChannelBits(const std::vector<uint64_t>& cws, int preamble) {
+uint64_t makeMaint(int pfix, int ident1, int chan, int oper) { return general(pfix, ident1, 0, 3, 1, ((uint32_t)(chan & 1023) << 8) | ((uint32_t)(oper & 7) << 5)); }
+
+uint64_t makeClear(int chan, int cont) {   // bits 2 .. 21 are CHAN and CONT; RSVD '0000', SPARE '00', REVS '101010101010'
+    const uint32_t v = ((uint32_t)(chan & 1023) << 10) | (uint32_t)(cont & 1023);
+    return general((int)(v >> 13), (int)(v & 0x1FFF), 0, 3, 2, 0xAAA);
+}
+
+std::vector<uint8_t> trafficChannelBits(const std::vector<uint64_t>& cws, int preamble, bool french) {
     std::vector<uint8_t> b;
     auto word = [&](uint64_t v, int n) { for (int i = n - 1; i >= 0; i--) b.push_back((uint8_t)((v >> i) & 1)); };
     for (uint64_t c : cws) {
         for (int i = 0; i < preamble; i++) b.push_back((uint8_t)((i & 1) ^ 1));
-        word(kSynt, 16);
+        word(french ? kSyntFrench : kSynt, 16);
         word(c, 64);
     }
     for (int i = 0; i < 16; i++) b.push_back((uint8_t)((i & 1) ^ 1));   // a little more so the last codeword is completely received
@@ -121,13 +128,13 @@ uint64_t makeBcastChannel(int sysdef, int sys, int chan, int adjsite) {
 
 uint64_t makeData(uint64_t info47) { return encode(info47 & 0x7FFFFFFFFFFFull); }
 
-std::vector<uint8_t> controlChannelBits(int sys, const std::vector<uint64_t>& addr, int preamble) {
+std::vector<uint8_t> controlChannelBits(int sys, const std::vector<uint64_t>& addr, int preamble, bool french) {
     std::vector<uint8_t> b;
     auto word = [&](uint64_t v, int n) { for (int i = n - 1; i >= 0; i--) b.push_back((uint8_t)((v >> i) & 1)); };
     for (int i = 0; i < preamble; i++) b.push_back((uint8_t)((i & 1) ^ 1));   // 1010 ... 10: ends with a zero
-    word(kSync, 16);
+    word(french ? kSyncFrench : kSync, 16);
     bool first = true;
-    const uint64_t ccsc = makeCcsc(sys);
+    const uint64_t ccsc = makeCcsc(sys, french);
     for (uint64_t a : addr) {
         if (!first) word(ccsc, 64);
         first = false;

@@ -3484,6 +3484,8 @@ Extended addressing (EA)	Adresowanie rozszerzone (EA)
 No call assignment understood yet: if calls are being made, try the other message set or ESK.	Nie zrozumiano jeszcze żadnego przydziału rozmowy: jeśli trwają rozmowy, spróbuj innego zestawu komunikatów lub ESK.
 Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: powyższa lista przyjmuje numery kanałów (LCN) stacji. Kanały spoza niej są wyliczane z pasma stacji, gdy tylko słowo spoczynkowe poda, jakie to pasmo.
 MPT 1327: channel n is on base + n x spacing; list the channels that are not.	MPT 1327: kanał n jest na bazie + n x odstęp; wpisz kanały, dla których tak nie jest.
+Group idents (from, to)	Identy grup (od, do)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 nie mówi, czy ident jest grupą, czy radiotelefonem: to określa plan floty Twojego systemu. Wywołania identów z tego zakresu są zapisywane jako grupowe, pozostałe jako wywołania jednego radiotelefonu.
 base MHz	baza MHz
 spacing kHz	odstęp kHz
 The base was worked out from the control channel's broadcast of its own number: check it.	Bazę wyliczono z rozgłoszenia własnego numeru przez kanał sterujący: sprawdź ją.

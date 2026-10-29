@@ -3507,6 +3507,8 @@ Extended addressing (EA)	扩展寻址 (EA)
 No call assignment understood yet: if calls are being made, try the other message set or ESK.	尚未理解任何通话分配：如果正在通话，请尝试另一种消息集或 ESK。
 Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport：上面的列表填写站点的信道号 (LCN)。列表中没有的信道，在空闲字给出频段后，按站点的频段计算。
 MPT 1327: channel n is on base + n x spacing; list the channels that are not.	MPT 1327：信道 n 位于 基准 + n x 间隔；请列出不符合的信道。
+Group idents (from, to)	组 ident (从, 到)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 不说明一个 ident 是通话组还是电台：这由您系统的车队规划决定。呼叫此范围内 ident 的通话记录为组呼，其余记录为对单个电台的呼叫。
 base MHz	基准 MHz
 spacing kHz	间隔 kHz
 The base was worked out from the control channel's broadcast of its own number: check it.	基准是根据控制信道广播的自身编号推算的：请核对。

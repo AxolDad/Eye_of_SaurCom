@@ -207,7 +207,7 @@ int main() {
         const std::vector<std::complex<float>> ctlIq = fmModulate(ctlAud, rate, 3000.0, off);
         std::vector<float> traffic;
         for (size_t i = 0; i < (size_t)(3.0 * rate); i++) traffic.push_back(0.8f * (float)std::sin(2 * 3.14159265358979323846 * 1000.0 * (double)i / rate));
-        const auto clr = ffskAudio(trafficChannelBits({makeMisc(5, 1234, 2, 17), makeMisc(5, 1234, 2, 17)}), rate, false, 0.5f);
+        const auto clr = ffskAudio(trafficChannelBits({makeClear(17, 0), makeClear(17, 0)}), rate, false, 0.5f);
         traffic.insert(traffic.end(), clr.begin(), clr.end());
         const std::vector<std::complex<float>> work = fmModulate(traffic, rate, 3000.0, off);
         size_t cp = 0, vp = 0;

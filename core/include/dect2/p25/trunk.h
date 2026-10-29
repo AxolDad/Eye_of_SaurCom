@@ -354,10 +354,14 @@ private:
 };
 
 // MPT 1327: GTC (go to channel) on the control channel into grants. The called address (prefix / ident) is the talkgroup, the caller's
-// ident the source. Channel numbers become frequencies through the user's table or base + number x spacing.
+// ident the source. Channel numbers become frequencies through the user's table or base + number x spacing. The idents say what kind of
+// call it is (section 5.4, Table 4-1): ALLI a system-wide call, a PSTN / PABX gateway ident a telephone call (the radio is then the party
+// logged). Whether a user ident (1 - 8100) is a group or a unit is the system's fleet plan, not in the codeword: idents from groupMin to
+// groupMax are taken as groups (all of them by default, as SDRTrunk does), the others as individual calls.
 class MptModel {
 public:
     ChannelTable channels;
+    int groupMin = 1, groupMax = 8100;
     bool onMessage(const std::string& type, int calledPfix, int calledIdent, int callerIdent, int channel, bool dataCall, bool traffic, Grant& g);
     uint64_t grants() const { return n_; }
 private:

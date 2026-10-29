@@ -3484,6 +3484,8 @@ Extended addressing (EA)	Išplėstinis adresavimas (EA)
 No call assignment understood yet: if calls are being made, try the other message set or ESK.	Dar nesuprastas nė vienas pokalbio priskyrimas: jei kalbama, išbandykite kitą pranešimų rinkinį arba ESK.
 Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: aukščiau esantis sąrašas priima vietos kanalų numerius (LCN). Sąraše nesantys kanalai apskaičiuojami iš vietos juostos, kai tik laisvumo žodis pasako, kuri tai juosta.
 MPT 1327: channel n is on base + n x spacing; list the channels that are not.	MPT 1327: kanalas n yra ties baze + n x žingsniu; nurodykite kanalus, kurie ten nėra.
+Group idents (from, to)	Grupių identai (nuo, iki)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 nenurodo, ar identas yra grupė, ar radijo stotis: tai nustato jūsų sistemos parko planas. Skambučiai šio intervalo identams registruojami kaip grupiniai, kiti – kaip skambučiai vienai stočiai.
 base MHz	bazė MHz
 spacing kHz	žingsnis kHz
 The base was worked out from the control channel's broadcast of its own number: check it.	Bazė apskaičiuota iš valdymo kanalo savo numerio transliacijos: patikrinkite.

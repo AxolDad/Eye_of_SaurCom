@@ -32,6 +32,7 @@ struct MptMsgRec {
     int channel = -1;
     bool traffic = false;      // decoded on a traffic channel (after SYNT)
     bool dataCall = false;     // GTC for a data call
+    int oper = -1;             // MAINT: its OPER
 };
 
 struct MptChannelRow {
@@ -61,6 +62,9 @@ struct MptTelemetry {
     std::vector<MptMsgRec> msgs;            // the last messages, oldest first, at most 96
     uint64_t clears = 0;                    // CLEAR codewords heard on a traffic channel: the call's clear down
     uint64_t maints = 0;                    // MAINT codewords heard on a traffic channel (call maintenance)
+    uint64_t disconnects = 0;               // of them, MAINT OPER 3: the radio's disconnect (end of channel use)
+    uint64_t ends = 0;                      // CLEAR + disconnects: the call on this channel is over
+    bool french = false;                    // the French variant's SYNC / SYNT
     uint64_t synt = 0;                      // traffic channel sync sequences
     AnalogVoiceState voice;                 // the channel's FM voice
     double inputRate = 0;

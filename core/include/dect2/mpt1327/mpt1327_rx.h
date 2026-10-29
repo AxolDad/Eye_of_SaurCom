@@ -26,6 +26,7 @@ struct Stats {
     uint64_t ccsc = 0;       // control channel system codewords seen
     uint64_t messages = 0;   // address codewords decoded
     uint64_t synt = 0;       // traffic channel synchronisation sequences (SYNT) found
+    bool french = false;     // the French variant's sync sequences were heard
     uint64_t trafficMessages = 0;   // address codewords after a SYNT
     int sys = -1;            // system identity from the last good CCSC
     bool locked = false;     // a good codeword within the last 3 s

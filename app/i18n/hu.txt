@@ -3470,6 +3470,8 @@ Extended addressing (EA)	Kiterjesztett címzés (EA)
 No call assignment understood yet: if calls are being made, try the other message set or ESK.	Még nincs értelmezett híváskiosztás: ha folynak hívások, próbálja a másik üzenetkészletet vagy az ESK-t.
 Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: a fenti lista a telephely csatornaszámait (LCN) várja. A benne nem szereplő csatornák a telephely sávjából számolódnak, amint egy üresjárati szó megmondta, melyik sáv az.
 MPT 1327: channel n is on base + n x spacing; list the channels that are not.	MPT 1327: az n. csatorna az alap + n x osztás frekvencián van; sorolja fel azokat a csatornákat, amelyek nem.
+Group idents (from, to)	Csoport-identek (ettől, eddig)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	Az MPT 1327 nem mondja meg, hogy egy ident csoport vagy rádió: ezt a rendszer flottaterve határozza meg. Az e tartományba eső identekre irányuló hívások csoporthívásként, a többi egy rádiónak szóló hívásként kerül a naplóba.
 base MHz	alap MHz
 spacing kHz	osztás kHz
 The base was worked out from the control channel's broadcast of its own number: check it.	Az alapot a vezérlőcsatorna saját számának sugárzásából számoltuk ki: ellenőrizze.

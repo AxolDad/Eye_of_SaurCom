@@ -108,8 +108,10 @@ struct Decoder::Impl {
         }
         const uint64_t h = hist[ph];
         const uint16_t lo = (uint16_t)(h & 0xFFFF);
-        const bool inv = lo == (uint16_t)~kSync;
-        if (lo != kSync && !inv) return;
+        // the French variant's SYNC (0xB433, SYNT its complement, SDRTrunk SyncPattern) is taken the same way
+        const bool inv = lo == (uint16_t)~kSync || lo == (uint16_t)~kSyncFrench;
+        if (lo != kSync && lo != kSyncFrench && !inv) return;
+        if (lo == kSyncFrench || lo == (uint16_t)~kSyncFrench) st.french = true;
         // SYNT is the complement of SYNC: a traffic channel's SYNT looks like an inverted SYNC. Which one it was is settled by the codeword
         // that follows (finishCodeword).
         const uint64_t cwPrev = inv ? ~h : h;   // the last 64 bits: a control channel system codeword when this is a real sync
