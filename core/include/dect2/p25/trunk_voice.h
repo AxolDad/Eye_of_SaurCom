@@ -35,9 +35,12 @@ VoiceHeard dmrVoiceHeard(VoiceWatch& w, uint64_t callId, int tg, int slot, const
 
 // ------------------------------------------------------------------------------------------------ the app's rules for linked receivers
 
-bool isTrunkFamily(int family);
+bool isTrunkFamily(int family);   // P25 (50), DMR (9), NXDN (38): the app's mode families the follower serves
 // A voice radio's decoder plays only while it carries a followed call (never an unfollowed channel), and never against the user's mute
-inline bool voiceRadioMuted(bool userMuted, uint64_t callOnRadio) { return userMuted || callOnRadio == 0; }   // P25 (50), DMR (9), NXDN (38): the app's mode families the follower serves
+inline bool voiceRadioMuted(bool userMuted, uint64_t callOnRadio) { return userMuted || callOnRadio == 0; }
+// A receiver that takes over the follower from another one (prevOwner != 0) starts from its latest message: what it stored before
+// (old grants) is not new. The first owner (prevOwner 0) reads what it holds, as before.
+inline bool skipBacklogOnTakeover(int prevOwner, int newOwner) { return prevOwner != 0 && prevOwner != newOwner; }
 
 // What the rules need to know about one receiver tab
 struct RxState {

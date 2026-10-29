@@ -84,14 +84,16 @@ int main() {
         CHECK(dmrVoiceHeard(w, 5, 101, 1, s, 4) == VoiceHeard::Nothing, "dmr data burst does not end the call");
         s[1].state = 1; s[1].inCall = true; s[1].dst = 101; s[1].lastBurst = "Voice A";
         CHECK(dmrVoiceHeard(w, 5, 101, 1, s, 5) == VoiceHeard::Voice, "dmr voice again");
-        s[1].inCall = false; s[1].state = 3; s[1].lastBurst = "Terminator with LC";
-        CHECK(dmrVoiceHeard(w, 5, 101, 1, s, 6) == VoiceHeard::Ended, "dmr Terminator with LC ends it");
+        s[1].inCall = false; s[1].state = 3; s[1].lastBurst = "Terminator";
+        CHECK(dmrVoiceHeard(w, 5, 101, 1, s, 6) == VoiceHeard::Nothing, "dmr: only the exact burst name counts");
+        s[1].lastBurst = "Terminator with LC";
+        CHECK(dmrVoiceHeard(w, 5, 101, 1, s, 7) == VoiceHeard::Ended, "dmr Terminator with LC ends it");
         // a new call: the old terminator in the report does not end it, and voice of an undecoded talkgroup does not count as heard
-        CHECK(dmrVoiceHeard(w, 6, 101, 1, s, 7) == VoiceHeard::Nothing, "dmr new call, old terminator");
+        CHECK(dmrVoiceHeard(w, 6, 101, 1, s, 8) == VoiceHeard::Nothing, "dmr new call, old terminator");
         s[1].inCall = true; s[1].state = 1; s[1].dst = 0; s[1].lastBurst = "Voice B";
-        CHECK(dmrVoiceHeard(w, 6, 101, 1, s, 8) == VoiceHeard::Voice && !w.heard, "dmr late entry keeps the call");
+        CHECK(dmrVoiceHeard(w, 6, 101, 1, s, 9) == VoiceHeard::Voice && !w.heard, "dmr late entry keeps the call");
         s[1].inCall = false; s[1].lastBurst = "Terminator with LC";
-        CHECK(dmrVoiceHeard(w, 6, 101, 1, s, 9) == VoiceHeard::Nothing, "dmr: no end before the call's own voice");
+        CHECK(dmrVoiceHeard(w, 6, 101, 1, s, 10) == VoiceHeard::Nothing, "dmr: no end before the call's own voice");
     }
     // ---- DMR fade through the follower: the call stays until the hang time, not ended early
     {
@@ -237,6 +239,8 @@ int main() {
         CHECK(voiceFate(&vm, &ctlDmr, 50, 0, true) == VoiceFate::AllClose, "control switched P25 -> DMR: all closed (even if the voice tab followed)");
         CHECK(voiceFate(&v, nullptr, 50, 0, true) == VoiceFate::AllClose, "control closed");
         CHECK(voiceFate(&v, &ctlStopped, 50, 0, true) == VoiceFate::Keep, "control stopped: the radios stay linked (idle)");
+        // a takeover starts from the new owner's latest message; the first owner reads what it holds
+        CHECK(skipBacklogOnTakeover(1, 3) && !skipBacklogOnTakeover(0, 3) && !skipBacklogOnTakeover(3, 3), "takeover backlog");
         // who may share a mode
         CHECK(linkedPairMayShareMode(ctl, v, &ctl) && linkedPairMayShareMode(v, ctl, &ctl), "control and its voice radio");
         RxState v2 = v; v2.rxId = 4;

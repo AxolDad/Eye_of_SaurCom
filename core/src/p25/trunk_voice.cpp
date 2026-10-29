@@ -35,7 +35,7 @@ VoiceHeard dmrVoiceHeard(VoiceWatch& w, uint64_t callId, int tg, int slot, const
     const long long dst = s.dst ? (long long)s.dst : -1;   // 0: not decoded yet (and after a call ended)
     if (!ours(dst, tg)) return VoiceHeard::Nothing;
     if (s.active && s.state == 1 && s.inCall) { if (dst == tg) w.heard = true; return VoiceHeard::Voice; }
-    if (w.heard && !s.inCall && s.active && s.lastBurst.rfind("Terminator", 0) == 0) return VoiceHeard::Ended;   // Terminator with LC
+    if (w.heard && !s.inCall && s.active && s.lastBurst == "Terminator with LC") return VoiceHeard::Ended;   // Terminator with LC
     return VoiceHeard::Nothing;
 }
 

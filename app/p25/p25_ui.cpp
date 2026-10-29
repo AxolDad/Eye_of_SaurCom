@@ -474,6 +474,13 @@ void trunkTick(App& a) {
         if (!controlMayFeed(stateOf(a), o ? &os : nullptr)) return;
         if (T.ctlRx != a.rxId) {
             if (!T.voice.empty()) unlinkAll(fmtRx(tr("RX %d no longer follows the system: its voice radios are unlinked and closed."), T.ctlRx), Unlink::Close, true);
+            if (skipBacklogOnTakeover(T.ctlRx, a.rxId)) {   // its stored messages (old grants) are not new: start from its latest, as the scanner does
+                Trunk::Seen& s0 = T.seen[a.rxId];
+                s0.tsbk = a.rx.p25.tsbks.empty() ? 0 : a.rx.p25.tsbks.back().seq;
+                s0.csbk = a.rx.dmr.csbks.empty() ? 0 : a.rx.dmr.csbks.back().seq;
+                s0.nxdn = a.rx.nxdn.grants.empty() ? 0 : a.rx.nxdn.grants.back().seq;
+                s0.nxdnCac = a.rx.nxdn.cacOk;
+            }
             T.ctlRx = a.rxId;
         }
     }
