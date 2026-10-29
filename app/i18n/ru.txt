@@ -3442,7 +3442,13 @@ Voice for RX %d · TG %d · %.4f MHz	Голос для RX %d · TG %d · %.4f MH
 Voice for RX %d · waiting for a call	Голос для RX %d · ожидание вызова
 This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Этот приёмник следит только за вызовами для RX %d. Разговорные группы, журнал вызовов и настройки находятся на вкладке «Следить» RX %d.
 The receiver on the control channel was closed: its voice radios are closed too.	Приёмник на канале управления закрыт: его голосовые приёмники тоже закрываются.
-RX %d left trunking: its voice radios are closed.	RX %d вышел из транкинга: его голосовые приёмники закрываются.
 The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Голосовая вкладка RX %d закрыта: RX %d снова следит за вызовами своим радио.
 RX %d was switched to another mode: it is no longer a voice radio.	RX %d переключён на другой режим: он больше не голосовой приёмник.
-RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d потерял своё радио (%s): вызов на нём завершён, и он больше не голосовой приёмник. RX %d остаётся на канале управления.
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d переключён на другой режим: его голосовые приёмники отвязываются и закрываются.
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d потерял своё радио (%s): вызов на нём завершён, он больше не голосовой приёмник, и его вкладка закрывается. RX %d остаётся на канале управления.
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d остановлен: он больше не голосовой приёмник, и его вкладка закрывается. RX %d остаётся на канале управления.
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d больше не следит за системой: его голосовые приёмники отвязываются и закрываются.
+Not a voice radio any more: this tab closes.	Больше не голосовой приёмник: эта вкладка закрывается.
+No free radio can tune to %.4f MHz.	Ни одно свободное радио не может настроиться на %.4f MHz.
+Every radio is in use by another receiver	Все радио заняты другим приёмником
+No radio is connected	Радио не подключено

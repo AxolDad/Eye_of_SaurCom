@@ -3442,7 +3442,13 @@ Voice for RX %d · TG %d · %.4f MHz	Voz para RX %d · TG %d · %.4f MHz
 Voice for RX %d · waiting for a call	Voz para RX %d · à espera de uma chamada
 This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Este recetor só segue chamadas para RX %d. Os grupos de conversação, o registo de chamadas e as definições estão no separador Seguir de RX %d.
 The receiver on the control channel was closed: its voice radios are closed too.	O recetor do canal de controlo foi fechado: os seus rádios de voz também são fechados.
-RX %d left trunking: its voice radios are closed.	RX %d saiu do trunking: os seus rádios de voz são fechados.
 The voice tab RX %d was closed: RX %d follows calls with its own radio again.	O separador de voz RX %d foi fechado: RX %d volta a seguir as chamadas com o seu próprio rádio.
 RX %d was switched to another mode: it is no longer a voice radio.	RX %d mudou para outro modo: já não é um rádio de voz.
-RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d perdeu o seu rádio (%s): a chamada nele terminou e já não é um rádio de voz. RX %d fica no canal de controlo.
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d mudou para outro modo: os seus rádios de voz são desligados e fechados.
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d perdeu o seu rádio (%s): a chamada nele terminou, já não é um rádio de voz e o seu separador fecha. RX %d fica no canal de controlo.
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d foi parado: já não é um rádio de voz e o seu separador fecha. RX %d fica no canal de controlo.
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d já não segue o sistema: os seus rádios de voz são desligados e fechados.
+Not a voice radio any more: this tab closes.	Já não é um rádio de voz: este separador fecha.
+No free radio can tune to %.4f MHz.	Nenhum rádio livre consegue sintonizar %.4f MHz.
+Every radio is in use by another receiver	Todos os rádios estão a ser usados por outro recetor
+No radio is connected	Nenhum rádio ligado

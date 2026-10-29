@@ -3459,7 +3459,13 @@ Voice for RX %d · TG %d · %.4f MHz	Balsas RX %d · TG %d · %.4f MHz
 Voice for RX %d · waiting for a call	Balsas RX %d · laukiama pokalbio
 This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Šis imtuvas seka tik RX %d pokalbius. Pokalbių grupės, pokalbių žurnalas ir nustatymai yra RX %d kortelėje Sekti.
 The receiver on the control channel was closed: its voice radios are closed too.	Valdymo kanalo imtuvas uždarytas: jo balso radijo imtuvai taip pat uždaromi.
-RX %d left trunking: its voice radios are closed.	RX %d paliko magistralinį ryšį: jo balso radijo imtuvai uždaromi.
 The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Balso kortelė RX %d uždaryta: RX %d vėl seka pokalbius savo radijo imtuvu.
 RX %d was switched to another mode: it is no longer a voice radio.	RX %d perjungtas į kitą režimą: jis nebėra balso radijo imtuvas.
-RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d prarado savo radijo imtuvą (%s): jame vykęs pokalbis baigtas, ir jis nebėra balso radijo imtuvas. RX %d lieka valdymo kanale.
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d perjungtas į kitą režimą: jo balso radijo imtuvai atsiejami ir uždaromi.
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d prarado savo radijo imtuvą (%s): jame vykęs pokalbis baigtas, jis nebėra balso radijo imtuvas ir jo kortelė uždaroma. RX %d lieka valdymo kanale.
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d sustabdytas: jis nebėra balso radijo imtuvas ir jo kortelė uždaroma. RX %d lieka valdymo kanale.
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d nebeseka sistemos: jo balso radijo imtuvai atsiejami ir uždaromi.
+Not a voice radio any more: this tab closes.	Nebe balso radijo imtuvas: ši kortelė uždaroma.
+No free radio can tune to %.4f MHz.	Joks laisvas radijo imtuvas negali nusiderinti į %.4f MHz.
+Every radio is in use by another receiver	Visus radijo imtuvus naudoja kitas imtuvas
+No radio is connected	Neprijungtas joks radijo imtuvas

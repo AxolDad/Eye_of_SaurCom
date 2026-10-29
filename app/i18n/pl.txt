@@ -3459,7 +3459,13 @@ Voice for RX %d · TG %d · %.4f MHz	Głos dla RX %d · TG %d · %.4f MHz
 Voice for RX %d · waiting for a call	Głos dla RX %d · czeka na rozmowę
 This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Ten odbiornik śledzi tylko rozmowy dla RX %d. Grupy rozmówców, dziennik rozmów i ustawienia są na karcie Śledź odbiornika RX %d.
 The receiver on the control channel was closed: its voice radios are closed too.	Odbiornik na kanale sterującym został zamknięty: jego radia głosowe też są zamykane.
-RX %d left trunking: its voice radios are closed.	RX %d opuścił trunking: jego radia głosowe są zamykane.
 The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Karta głosowa RX %d została zamknięta: RX %d znów śledzi rozmowy własnym radiem.
 RX %d was switched to another mode: it is no longer a voice radio.	RX %d przełączono na inny tryb: nie jest już radiem głosowym.
-RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d utracił radio (%s): rozmowa na nim zakończyła się i nie jest już radiem głosowym. RX %d pozostaje na kanale sterującym.
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d przełączono na inny tryb: jego radia głosowe są odłączane i zamykane.
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d utracił radio (%s): rozmowa na nim zakończyła się, nie jest już radiem głosowym i jego karta się zamyka. RX %d pozostaje na kanale sterującym.
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d zatrzymano: nie jest już radiem głosowym i jego karta się zamyka. RX %d pozostaje na kanale sterującym.
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d nie śledzi już systemu: jego radia głosowe są odłączane i zamykane.
+Not a voice radio any more: this tab closes.	To już nie jest radio głosowe: ta karta się zamyka.
+No free radio can tune to %.4f MHz.	Żadne wolne radio nie może dostroić się do %.4f MHz.
+Every radio is in use by another receiver	Każde radio jest używane przez inny odbiornik
+No radio is connected	Nie podłączono żadnego radia

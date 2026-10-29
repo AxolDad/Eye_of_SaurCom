@@ -442,6 +442,7 @@ int main() {
         FollowConfig fc; fc.maxSlices = 3;
         c.follower.setConfig(fc);
         double now = 0;
+        FollowState prevState = c.follower.state();
         for (int i = 0; i < 20000; i++) {
             p25::Tsbk t;
             t.opcode = rand() % 64; t.mfid = rand() % 5 ? 0 : rand() % 256;
@@ -451,7 +452,14 @@ int main() {
             c.onTsbk(t, rand() & 0xFFF, now);
             if (i % 5 == 0) c.onTsbkBad(now);
             if (i % 3 == 0) c.tick(now);
-            if (i % 11 == 0) c.takeActions();
+            // invariants with voice radios linked: no hop of the control radio for a call, no new Hopped state, every voice call active
+            const bool voiceOn = c.follower.voiceRadios() > 0;
+            for (const Action& a : c.takeActions())
+                if (voiceOn && a.kind == Action::Retune && a.radio < 0 && a.callId) { CHECK(false, "control radio hopped for a call with voice radios"); break; }
+            if (voiceOn && c.follower.state() == FollowState::Hopped && prevState != FollowState::Hopped) CHECK(false, "entered Hopped with voice radios");
+            prevState = c.follower.state();
+            for (int k = 0; k < c.follower.voiceRadios(); k++)
+                if (const uint64_t id = c.follower.voiceCall(k)) if (const CallRecord* r = c.log.byId(id)) if (!r->active) { CHECK(false, "voice radio %d holds an ended call", k); break; }
             if (i % 997 == 0) c.setCapture((rand() % 2) ? 851.1e6 : 0, (rand() % 2) ? 2.4e6 : 0);
             if (i % 701 == 0) c.setVoiceRadios(rand() % 3);
             if (i % 1301 == 0) c.dropVoiceRadio(rand() % 3 - 1, "gone");

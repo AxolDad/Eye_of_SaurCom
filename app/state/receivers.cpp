@@ -7,6 +7,7 @@
 #include "adsb/adsb_acars.h"
 #include "transcribe/transcribe_app.h"
 #include "dect2/engine/device_claims.h"
+#include "dect2/p25/trunk_voice.h"
 #include <cmath>
 #include <memory>
 #ifndef _WIN32
@@ -354,18 +355,22 @@ App* addVoiceReceiver(App& ctl, std::string* why) {
     // the first radio nobody uses (another tab running it, or having it chosen: radioTaken) that can tune to the system
     const double hz = ctl.freqMhz * 1e6;
     int pick = -1;
-    bool anyRadio = false;
+    bool anyRadio = false, anyFree = false;
     for (int i = 2; i < (int)n->devices.size(); i++) {
         const DeviceInfo& d = n->devices[(size_t)i];
         if (!d.isRadio()) continue;
         anyRadio = true;
         if (pick >= 0 || radioTaken(*n, i)) continue;
+        anyFree = true;
         if (d.maxFreqHz > 0 && (hz < d.minFreqHz || hz > d.maxFreqHz)) continue;
         pick = i;
     }
-    if (pick < 0) {   // the same words as the banner of a new tab with no radio left
-        if (why) *why = anyRadio ? tr("Every radio is taken by another receiver tab \xE2\x80\x94 this one is showing the test signal. Plug in another radio, or close a tab (or pick another source in it) to free its radio.")
-                                 : tr("No radio is connected \xE2\x80\x94 this receiver is showing the test signal. Plug in a radio, then choose it here.");
+    if (pick < 0) {   // the words of a new tab's chip with no radio left (no tab is left behind)
+        if (why) {
+            char b[160];
+            snprintf(b, sizeof b, tr("No free radio can tune to %.4f MHz."), ctl.freqMhz);
+            *why = !anyRadio ? tr("No radio is connected") : !anyFree ? tr("Every radio is in use by another receiver") : b;
+        }
         gExtra[id - 2].reset();
         return nullptr;
     }
@@ -378,7 +383,7 @@ App* addVoiceReceiver(App& ctl, std::string* why) {
         setMode(*n, ctl.family, ctl.sub);
         n->freqMhz = ctl.freqMhz;   // waits on the system's control channel until the first call
         n->tune.centerHz = n->freqMhz * 1e6;
-        n->muted = false;          // its own setting; it is muted below until the follower makes it the audible one
+        n->muted = ctl.rxForcedMute ? ctl.rxSavedMuted : ctl.muted;   // the user's own mute of the control receiver carries over
         applyForcedMute(*n);
         startReceiver(*n);
     }
@@ -444,7 +449,13 @@ void receiversInit(App& first) {
 bool receiverModeBusy(const App& a, std::string* why) {
     for (App* b : receiversAll()) {
         if (b == &a || !b->engine.running() || b->family != a.family || b->sub != a.sub) continue;
-        if (a.voiceFor || b->voiceFor) continue;   // a voice radio never draws the mode screen: it shares no screen state
+        if (a.voiceFor || b->voiceFor) {   // a linked voice radio never draws the mode screen: only a linked pair in its control's mode may share it
+            const int c = a.voiceFor ? a.voiceFor : b->voiceFor;
+            const App* ctl = receiverById(c);
+            auto st = [](const App& x) { dect2::trunk::RxState r; r.rxId = x.rxId; r.family = x.family; r.sub = x.sub; r.voiceFor = x.voiceFor; r.running = x.engine.running(); return r; };
+            const dect2::trunk::RxState cs = ctl ? st(*ctl) : dect2::trunk::RxState();
+            if (dect2::trunk::linkedPairMayShareMode(st(a), st(*b), ctl ? &cs : nullptr)) continue;
+        }
         if (why) *why = "RX " + std::to_string(b->rxId) + " is already receiving this mode, and two receivers cannot share one mode yet. Choose another mode here, or stop RX " + std::to_string(b->rxId) + ".";
         return true;
     }

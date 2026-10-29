@@ -3459,7 +3459,13 @@ Voice for RX %d · TG %d · %.4f MHz	Spraak voor RX %d · TG %d · %.4f MHz
 Voice for RX %d · waiting for a call	Spraak voor RX %d · wacht op een gesprek
 This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Deze ontvanger volgt alleen gesprekken voor RX %d. De gespreksgroepen, het gesprekslogboek en de instellingen staan op het tabblad Volgen van RX %d.
 The receiver on the control channel was closed: its voice radios are closed too.	De ontvanger op het controlekanaal is gesloten: zijn spraakontvangers worden ook gesloten.
-RX %d left trunking: its voice radios are closed.	RX %d heeft trunking verlaten: zijn spraakontvangers worden gesloten.
 The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Het spraaktabblad RX %d is gesloten: RX %d volgt gesprekken weer met zijn eigen radio.
 RX %d was switched to another mode: it is no longer a voice radio.	RX %d is naar een andere modus omgeschakeld: het is geen spraakontvanger meer.
-RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d is zijn radio kwijt (%s): het gesprek erop is beëindigd en het is geen spraakontvanger meer. RX %d blijft op het controlekanaal.
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d is naar een andere modus omgeschakeld: zijn spraakontvangers worden ontkoppeld en gesloten.
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d is zijn radio kwijt (%s): het gesprek erop is beëindigd, het is geen spraakontvanger meer en zijn tabblad sluit. RX %d blijft op het controlekanaal.
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d is gestopt: het is geen spraakontvanger meer en zijn tabblad sluit. RX %d blijft op het controlekanaal.
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d volgt het systeem niet meer: zijn spraakontvangers worden ontkoppeld en gesloten.
+Not a voice radio any more: this tab closes.	Geen spraakontvanger meer: dit tabblad sluit.
+No free radio can tune to %.4f MHz.	Geen vrije radio kan op %.4f MHz afstemmen.
+Every radio is in use by another receiver	Elke radio wordt door een andere ontvanger gebruikt
+No radio is connected	Er is geen radio aangesloten

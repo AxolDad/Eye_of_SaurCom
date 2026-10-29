@@ -25,10 +25,16 @@ int effPrio(int p) { return p <= 0 ? 11 : p; }   // 1 is the highest; none count
 }
 
 void Follower::reset() {
+    // the calls being followed are dropped: their recordings still have to stop (the host keys them by call id)
+    std::vector<uint64_t> rec;
+    for (const Slot& s : slots_) if (s.used) rec.push_back(s.callId);
+    for (const Slot& s : voice_) if (s.used) rec.push_back(s.callId);
+    for (const auto& d : dropped_) if (d.first.used) rec.push_back(d.first.callId);
     slots_.clear();
-    for (Slot& v : voice_) v = Slot();   // the radios stay linked, their calls are forgotten with the log
+    for (Slot& v : voice_) v = Slot();   // the radios stay linked, their calls are forgotten
     dropped_.clear();
     out_.clear();
+    if (cfg_.record) for (uint64_t id : rec) { Action a; a.kind = Action::RecordStop; a.callId = id; out_.push_back(a); }
     state_ = FollowState::NoControl;
     lastCcSec_ = -1e9;
     missed_ = 0;
@@ -167,16 +173,18 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
         noticed_.push_back({g.freqHz, now});
         note(text);
     };
-    if (inSpan(g.freqHz)) {
-        Slot* s = freeSlot();
-        if (!s) {
-            Slot* v = lowest(false, false);
-            if (v && effPrio(prio) < effPrio(v->prio)) { close(*v, log, now, "preempted by a higher priority call"); s = v; }
-        }
-        if (!s) { skip("busy: every slice is in use", true); return; }
-        s->used = true; s->hopped = false; s->callId = id; s->prio = prio; s->freqHz = g.freqHz; s->startSec = s->lastSec = now;
+    bool voiceFree = false;
+    for (const Slot& v : voice_) voiceFree |= !v.used;
+    Slot* sl = inSpan(g.freqHz) ? freeSlot() : nullptr;
+    if (inSpan(g.freqHz) && !sl && !voiceFree) {   // every slice busy and no voice radio free: a higher priority call takes a slice
+        Slot* v = lowest(false, false);
+        if (v && effPrio(prio) < effPrio(v->prio)) { close(*v, log, now, "preempted by a higher priority call"); sl = v; }
+    }
+    if (inSpan(g.freqHz) && !sl && voice_.empty()) { skip("busy: every slice is in use", true); return; }
+    if (sl) {   // inside the capture; with every slice busy the call goes on to a voice radio below
+        sl->used = true; sl->hopped = false; sl->callId = id; sl->prio = prio; sl->freqHz = g.freqHz; sl->startSec = sl->lastSec = now;
         Action a;
-        a.kind = Action::OpenSlice; a.callId = id; a.slice = (int)(s - slots_.data()); a.freqHz = g.freqHz;
+        a.kind = Action::OpenSlice; a.callId = id; a.slice = (int)(sl - slots_.data()); a.freqHz = g.freqHz;
         out_.push_back(a);
         if (cfg_.record) {
             Action rs;
@@ -273,8 +281,7 @@ void Follower::tick(double now, CallLog& log) {
             close(s, log, now, "");
         }
     }
-    for (auto& d : dropped_) endVoice(d.first, -1, log, d.second.c_str());   // calls on radios that went away
-    dropped_.clear();
+    endDropped(log);   // calls on radios that went away
     for (size_t k = 0; k < voice_.size(); k++) if (voice_[k].used && now - voice_[k].lastSec > cfg_.hangSec) endVoice(voice_[k], (int)k, log, "");
     // calls nobody follows end by silence on the control channel too
     for (const CallRecord& cr : log.records()) {
@@ -356,6 +363,16 @@ int Follower::voiceRadioOf(uint64_t callId) const {
     if (!callId) return -1;
     for (size_t k = 0; k < voice_.size(); k++) if (voice_[k].used && voice_[k].callId == callId) return (int)k;
     return -1;
+}
+
+void Follower::endDropped(CallLog& log) {
+    for (auto& d : dropped_) endVoice(d.first, -1, log, d.second.c_str());
+    dropped_.clear();
+}
+
+void Follower::endVoiceCalls(CallLog& log, const char* why) {
+    endDropped(log);
+    for (size_t k = 0; k < voice_.size(); k++) endVoice(voice_[k], (int)k, log, why);
 }
 
 // The call on a voice radio ends: its recording stops, the host frees the radio (radio < 0: the radio is already gone, nothing to free)

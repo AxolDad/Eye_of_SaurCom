@@ -3482,7 +3482,13 @@ Voice for RX %d · TG %d · %.4f MHz	RX %d 的语音 · TG %d · %.4f MHz
 Voice for RX %d · waiting for a call	RX %d 的语音 · 等待通话
 This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	此接收机只跟踪 RX %d 的通话。通话组、通话记录和设置在 RX %d 的跟踪标签页上。
 The receiver on the control channel was closed: its voice radios are closed too.	控制信道上的接收机已关闭：其语音电台也随之关闭。
-RX %d left trunking: its voice radios are closed.	RX %d 已离开集群：其语音电台已关闭。
 The voice tab RX %d was closed: RX %d follows calls with its own radio again.	语音标签页 RX %d 已关闭：RX %d 重新用自己的电台跟踪通话。
 RX %d was switched to another mode: it is no longer a voice radio.	RX %d 已切换到其他模式：它不再是语音电台。
-RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d 失去了它的电台 (%s)：其上的通话已结束，它不再是语音电台。RX %d 留在控制信道上。
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d 已切换到其他模式：其语音电台已解除关联并关闭。
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d 失去了它的电台 (%s)：其上的通话已结束，它不再是语音电台，其标签页将关闭。RX %d 留在控制信道上。
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d 已停止：它不再是语音电台，其标签页将关闭。RX %d 留在控制信道上。
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d 不再跟踪该系统：其语音电台已解除关联并关闭。
+Not a voice radio any more: this tab closes.	不再是语音电台：此标签页将关闭。
+No free radio can tune to %.4f MHz.	没有空闲电台能调谐到 %.4f MHz。
+Every radio is in use by another receiver	所有电台都在被其他接收机使用
+No radio is connected	未连接电台

@@ -79,7 +79,7 @@ int main() {
         if (voiceRx.telemetry(vtel, voiceSeq)) voiceSeq = vtel.seq;
         if (const uint64_t id = ctl.follower.voiceCall(0)) {
             const CallRecord* r = ctl.log.byId(id);
-            const VoiceHeard h = r ? p25VoiceHeard(watch, id, r->tg, vtel.now) : VoiceHeard::Nothing;
+            const VoiceHeard h = r ? p25VoiceHeard(watch, id, r->tg, vtel.now, vtel.seq) : VoiceHeard::Nothing;
             if (h == VoiceHeard::Voice) { ctl.onVoice(id, t); if (firstVoiceAt < 0) firstVoiceAt = t; lastVoiceAt = t; }
             else if (h == VoiceHeard::Ended) ctl.onTerminator(id, t);
         }

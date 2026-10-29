@@ -3445,7 +3445,13 @@ Voice for RX %d · TG %d · %.4f MHz	Hang az RX %d számára · TG %d · %.4f MH
 Voice for RX %d · waiting for a call	Hang az RX %d számára · hívásra vár
 This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Ez a vevő csak az RX %d hívásait követi. A beszélgetőcsoportok, a hívásnapló és a beállítások az RX %d Követés lapján vannak.
 The receiver on the control channel was closed: its voice radios are closed too.	A vezérlőcsatorna vevője bezárult: a hangrádiói is bezárulnak.
-RX %d left trunking: its voice radios are closed.	Az RX %d kilépett a trönkölésből: a hangrádiói bezárulnak.
 The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Az RX %d hanglap bezárult: az RX %d ismét a saját rádiójával követi a hívásokat.
 RX %d was switched to another mode: it is no longer a voice radio.	Az RX %d másik üzemmódra váltott: már nem hangrádió.
-RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	Az RX %d elvesztette a rádióját (%s): a rajta lévő hívás véget ért, és már nem hangrádió. Az RX %d a vezérlőcsatornán marad.
+RX %d switched to another mode: its voice radios are unlinked and closed.	Az RX %d másik üzemmódra váltott: a hangrádióit leválasztja és bezárja.
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	Az RX %d elvesztette a rádióját (%s): a rajta lévő hívás véget ért, már nem hangrádió, és a lapja bezárul. Az RX %d a vezérlőcsatornán marad.
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	Az RX %d leállt: már nem hangrádió, és a lapja bezárul. Az RX %d a vezérlőcsatornán marad.
+RX %d no longer follows the system: its voice radios are unlinked and closed.	Az RX %d már nem követi a rendszert: a hangrádióit leválasztja és bezárja.
+Not a voice radio any more: this tab closes.	Már nem hangrádió: ez a lap bezárul.
+No free radio can tune to %.4f MHz.	Egyik szabad rádió sem tud %.4f MHz-re hangolni.
+Every radio is in use by another receiver	Minden rádiót egy másik vevő használ
+No radio is connected	Nincs rádió csatlakoztatva

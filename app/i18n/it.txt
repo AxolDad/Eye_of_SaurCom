@@ -3442,7 +3442,13 @@ Voice for RX %d · TG %d · %.4f MHz	Voce per RX %d · TG %d · %.4f MHz
 Voice for RX %d · waiting for a call	Voce per RX %d · in attesa di una chiamata
 This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Questo ricevitore segue solo le chiamate per RX %d. I gruppi, il registro chiamate e le impostazioni sono nella scheda Segui di RX %d.
 The receiver on the control channel was closed: its voice radios are closed too.	Il ricevitore sul canale di controllo è stato chiuso: anche le sue radio per la voce vengono chiuse.
-RX %d left trunking: its voice radios are closed.	RX %d ha lasciato il trunking: le sue radio per la voce vengono chiuse.
 The voice tab RX %d was closed: RX %d follows calls with its own radio again.	La scheda voce RX %d è stata chiusa: RX %d segue di nuovo le chiamate con la propria radio.
 RX %d was switched to another mode: it is no longer a voice radio.	RX %d è passato a un altro modo: non è più una radio per la voce.
-RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d ha perso la sua radio (%s): la chiamata su di essa è terminata e non è più una radio per la voce. RX %d resta sul canale di controllo.
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d è passato a un altro modo: le sue radio per la voce vengono scollegate e chiuse.
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d ha perso la sua radio (%s): la chiamata su di essa è terminata, non è più una radio per la voce e la sua scheda si chiude. RX %d resta sul canale di controllo.
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d è stato fermato: non è più una radio per la voce e la sua scheda si chiude. RX %d resta sul canale di controllo.
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d non segue più il sistema: le sue radio per la voce vengono scollegate e chiuse.
+Not a voice radio any more: this tab closes.	Non è più una radio per la voce: questa scheda si chiude.
+No free radio can tune to %.4f MHz.	Nessuna radio libera può sintonizzarsi su %.4f MHz.
+Every radio is in use by another receiver	Tutte le radio sono usate da un altro ricevitore
+No radio is connected	Nessuna radio collegata

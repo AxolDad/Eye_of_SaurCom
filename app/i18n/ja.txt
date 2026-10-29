@@ -3459,7 +3459,13 @@ Voice for RX %d · TG %d · %.4f MHz	RX %d の音声 · TG %d · %.4f MHz
 Voice for RX %d · waiting for a call	RX %d の音声 · 通話待ち
 This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	この受信機は RX %d の通話だけを追跡します。トークグループ、通話ログ、設定は RX %d の追跡タブにあります。
 The receiver on the control channel was closed: its voice radios are closed too.	制御チャンネルの受信機が閉じられました。その音声用無線機も閉じられます。
-RX %d left trunking: its voice radios are closed.	RX %d がトランキングを離れました。その音声用無線機は閉じられます。
 The voice tab RX %d was closed: RX %d follows calls with its own radio again.	音声タブ RX %d が閉じられました。RX %d は再び自分の無線機で通話を追跡します。
 RX %d was switched to another mode: it is no longer a voice radio.	RX %d は別のモードに切り替えられました。音声用無線機ではなくなりました。
-RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d の無線機 (%s) が失われました。その通話は終了し、音声用無線機ではなくなりました。RX %d は制御チャンネルにとどまります。
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d は別のモードに切り替わりました。その音声用無線機はリンク解除され、閉じられます。
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d の無線機 (%s) が失われました。その通話は終了し、音声用無線機ではなくなり、タブは閉じられます。RX %d は制御チャンネルにとどまります。
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d は停止されました。音声用無線機ではなくなり、タブは閉じられます。RX %d は制御チャンネルにとどまります。
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d はもうシステムを追跡していません。その音声用無線機はリンク解除され、閉じられます。
+Not a voice radio any more: this tab closes.	音声用無線機ではなくなりました。このタブは閉じられます。
+No free radio can tune to %.4f MHz.	%.4f MHz に同調できる空いている無線機がありません。
+Every radio is in use by another receiver	すべての無線機が別の受信機で使用中です
+No radio is connected	無線機が接続されていません

@@ -157,8 +157,9 @@ struct Action {
     enum Kind { OpenSlice, CloseSlice, Retune, Listen, RecordStart, RecordStop, Notice, ReleaseRadio } kind = Notice;
     uint64_t callId = 0;
     int slice = -1;              // OpenSlice / CloseSlice / Listen: the follower's own slice number
-    int radio = -1;              // Retune / RecordStart / RecordStop / ReleaseRadio: -1 the control radio itself, k >= 0 voice radio k
-                                 // (ReleaseRadio: the call on voice radio k ended, the radio is free again)
+    int radio = -1;              // Retune / RecordStart / ReleaseRadio: -1 the control radio itself, k >= 0 voice radio k. RecordStop: k, or -1
+                                 // when the call was not on a voice radio or its radio is gone (key recordings by callId).
+                                 // ReleaseRadio: the call on voice radio k ended and the radio is free (informational: voiceCall(k) says the same)
     double freqHz = 0;           // OpenSlice / Retune
     std::string text;            // Notice; RecordStart: the file name stem
 };
@@ -207,8 +208,11 @@ public:
     // n = 0 (the default): the control radio hops for a call as before. Calls on radios that go away end at the next tick.
     void setVoiceRadios(int n);
     int voiceRadios() const { return (int)voice_.size(); }
-    // Voice radio k is gone (unplugged, its tab closed): its call ends at the next tick with note why, the radios above it move down by one
+    // Voice radio k is gone (unplugged, its tab closed): its call ends at the next tick (or endDropped) with note why, the radios above
+    // it move down by one
     void dropVoiceRadio(int k, const char* why);
+    void endDropped(CallLog& log);                     // end the calls of dropped radios now (RecordStop with radio -1)
+    void endVoiceCalls(CallLog& log, const char* why); // end every call on a voice radio now (following is off); the radios stay linked
     uint64_t voiceCall(int k) const;        // the call on voice radio k; 0 free (or no such radio)
     int voiceRadioOf(uint64_t callId) const;   // the voice radio carrying the call; -1 none
     void reset();
@@ -305,8 +309,10 @@ public:
     std::vector<Action> takeActions() { return follower.takeActions(); }
     void onVoice(uint64_t callId, double now) { follower.onVoice(callId, now); }
     void onTerminator(uint64_t callId, double now) { follower.onTerminator(callId, now); }
-    void setVoiceRadios(int n) { follower.setVoiceRadios(n); }
-    void dropVoiceRadio(int k, const char* why) { follower.dropVoiceRadio(k, why); }
+    // the calls on radios that go away end at once (their RecordStop is in the next takeActions)
+    void setVoiceRadios(int n) { follower.setVoiceRadios(n); follower.endDropped(log); }
+    void dropVoiceRadio(int k, const char* why) { follower.dropVoiceRadio(k, why); follower.endDropped(log); }
+    void endVoiceCalls(const char* why) { follower.endVoiceCalls(log, why); }
     ControllerStatus status(double nowSec) const;
     std::vector<std::string> messages;   // newest last, at most 200
     void clear();

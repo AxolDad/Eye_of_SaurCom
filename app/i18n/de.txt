@@ -3459,7 +3459,13 @@ Voice for RX %d · TG %d · %.4f MHz	Sprache für RX %d · TG %d · %.4f MHz
 Voice for RX %d · waiting for a call	Sprache für RX %d · wartet auf ein Gespräch
 This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Dieser Empfänger verfolgt nur Gespräche für RX %d. Die Sprechgruppen, das Gesprächsprotokoll und die Einstellungen sind im Tab Folgen von RX %d.
 The receiver on the control channel was closed: its voice radios are closed too.	Der Empfänger auf dem Steuerkanal wurde geschlossen: seine Sprachfunkgeräte werden ebenfalls geschlossen.
-RX %d left trunking: its voice radios are closed.	RX %d hat den Bündelfunk verlassen: seine Sprachfunkgeräte werden geschlossen.
 The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Der Sprach-Tab RX %d wurde geschlossen: RX %d verfolgt Gespräche wieder mit dem eigenen Funkgerät.
 RX %d was switched to another mode: it is no longer a voice radio.	RX %d wurde auf eine andere Betriebsart umgestellt: es ist kein Sprachfunkgerät mehr.
-RX %d lost its radio (%s): the call on it ended and it is no longer a voice radio. RX %d stays on the control channel.	RX %d hat sein Funkgerät verloren (%s): das Gespräch darauf ist beendet, und es ist kein Sprachfunkgerät mehr. RX %d bleibt auf dem Steuerkanal.
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d wurde auf eine andere Betriebsart umgestellt: seine Sprachfunkgeräte werden getrennt und geschlossen.
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d hat sein Funkgerät verloren (%s): das Gespräch darauf ist beendet, es ist kein Sprachfunkgerät mehr und sein Tab wird geschlossen. RX %d bleibt auf dem Steuerkanal.
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d wurde gestoppt: es ist kein Sprachfunkgerät mehr und sein Tab wird geschlossen. RX %d bleibt auf dem Steuerkanal.
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d verfolgt das System nicht mehr: seine Sprachfunkgeräte werden getrennt und geschlossen.
+Not a voice radio any more: this tab closes.	Kein Sprachfunkgerät mehr: dieser Tab wird geschlossen.
+No free radio can tune to %.4f MHz.	Kein freies Funkgerät kann %.4f MHz empfangen.
+Every radio is in use by another receiver	Jedes Funkgerät wird von einem anderen Empfänger verwendet
+No radio is connected	Kein Funkgerät angeschlossen
