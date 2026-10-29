@@ -74,7 +74,7 @@ services:
     shm_size: "1gb"           # the virtual display and the browser stream
     volumes:
       - ./config:/config      # settings, recordings and saurcom.log
-      - ./update:/run/saurcom-update:ro   # the updater's status and log, read-only (saurcom-update)
+      - ./update:/saurcom-update:ro   # the updater's status and log, read-only (saurcom-update)
       - /dev/bus/usb:/dev/bus/usb   # the radios, also those plugged in later
     device_cgroup_rules:      # only matters in a privileged container (in an unprivileged one the kernel's own rules apply)
       - "c 189:* rwm"         # USB devices

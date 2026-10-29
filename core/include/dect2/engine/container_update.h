@@ -16,9 +16,12 @@
 namespace dect2::cupdate {
 
 inline constexpr const char* kDefaultDir = "/config/.saurcom-update";   // in the container; /opt/saurcom/config/.saurcom-update in the Proxmox container
-inline constexpr const char* kStatusDir = "/run/saurcom-update";       // read-only in the container; /opt/saurcom/update (root's) in the Proxmox container
+inline constexpr const char* kStatusDir = "/saurcom-update";       // read-only in the container; /opt/saurcom/update (root's) in the Proxmox container
 inline constexpr double kAnswerTimeout = 30;        // seconds the helper has to write a status after a request
-inline constexpr double kBusyStale = 3 * 3600;      // a "pulling" or "restarting" this old is a helper that died: not shown
+// The helper renews the time of a busy status ("checking", "pulling", "restarting") every 45 s while the step runs (saurcom-update's
+// heartbeat), however long the step takes (its unit allows 4 h, then stops it, and a stop writes "failed"). A busy status this old is
+// a helper that stopped answering.
+inline constexpr double kBusyStale = 300;
 inline constexpr double kResultShown = 24 * 3600;   // a "done" or "failed" is shown this long after it was written (unless dismissed)
 inline constexpr double kRestartGrace = 120;        // "done" for another version while this one still runs: shown as restarting this long
 
@@ -118,7 +121,8 @@ enum class View {
     Restarting,  // recreating the container: the page drops for a while
     Done,        // "Updated to X"
     Failed,      // the helper's message, and where its log is
-    NoAnswer     // no helper answered within kAnswerTimeout: the plain instructions
+    NoAnswer,    // no helper answered within kAnswerTimeout: the plain instructions
+    Stalled      // a busy status older than kBusyStale: the helper stopped answering (see its log)
 };
 inline bool busy(View v) { return v == View::Waiting || v == View::Checking || v == View::Pulling || v == View::Restarting; }
 
@@ -131,7 +135,9 @@ struct Inputs {
     double now = 0;            // seconds since 1970
 };
 
+inline bool busyState(State s) { return s == State::Checking || s == State::Pulling || s == State::Restarting; }
 inline View fromStatus(const Status& s, const std::string& running, double now) {
+    if (busyState(s.state) && now - s.time >= kBusyStale) return View::Stalled;
     switch (s.state) {
     case State::Checking: return View::Checking;
     case State::Pulling: return View::Pulling;
@@ -156,7 +162,8 @@ inline View decide(const Inputs& in) {
         const double age = in.now - s.time;
         switch (s.state) {
         case State::Checking: case State::Pulling: case State::Restarting:
-            if (age < kBusyStale) return fromStatus(s, in.running, in.now);   // e.g. the daily timer, or saurcom-update run in a terminal
+            // e.g. the daily timer, or saurcom-update run in a terminal; one that stopped answering is shown as such for a day
+            if (age < kResultShown) return fromStatus(s, in.running, in.now);
             break;
         case State::Done:
             // after the restart: "Updated to X" when X is what runs now

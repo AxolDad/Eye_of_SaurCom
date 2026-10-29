@@ -5,7 +5,8 @@
 #  - the app's request, "latest", a version already running, a downgrade refused from the app but allowed on the command line
 #  - a second run blocked by flock, an early exit that still clears the request, a full disk, a stop in the middle
 #  - the automatic mode, the units, the read-only mount added to compose.yaml, the clean-up of old images, the log cap
-#  - root never writing into the app's directory, whatever links the app puts there
+#  - root never writing into the app's directory, whatever links the app puts there; a request that is a directory, socket or worse
+#  - the heartbeat of a busy status; an image without a version tag (only "latest" from the app); the mount moved off /run
 #   bash tests/packaging/test_saurcom_update.sh [path/to/saurcom-update]
 set -uo pipefail
 SCRIPT=$(cd "$(dirname "$0")/../.." && pwd)/packaging/proxmox/saurcom-update
@@ -41,7 +42,8 @@ case "$1" in
         esac ;;
     image)
         case "$2" in
-            inspect) grep -qxF "$3" "$STATE/images" ;;
+            inspect) if [ "$3" = -f ]; then grep -qxF "$5" "$STATE/images" || exit 1; echo "${FAKE_LABEL:-}"   # (the version label)
+                     else grep -qxF "$3" "$STATE/images"; fi ;;
             ls) cat "$STATE/images" ;;
             rm) grep -vxF "$3" "$STATE/images" > "$STATE/images.new"; mv "$STATE/images.new" "$STATE/images"; echo "rm $3" >> "$STATE/calls" ;;
             prune) echo "prune" >> "$STATE/calls" ;;
@@ -124,7 +126,7 @@ if [ "$(id -u)" = 0 ]; then
     fi
 fi
 app_dir_clean; check "root wrote nothing into the app's directory"
-grep -qE '^      - \./update:/run/saurcom-update:ro' "$D/compose.yaml"; check "compose.yaml mounts the status directory read-only"
+grep -qE '^      - \./update:/saurcom-update:ro' "$D/compose.yaml"; check "compose.yaml mounts the status directory read-only"
 [ -f "$T/units/saurcom-update.path" ] && [ -f "$T/units/saurcom-update.service" ] && [ -f "$T/units/saurcom-update-auto.service" ] && [ -f "$T/units/saurcom-update-auto.timer" ]; check "the four units are installed"
 grep -qx "PathExists=$U/request" "$T/units/saurcom-update.path"; check "the path unit watches the request file"
 grep -qx 'StartLimitIntervalSec=0' "$T/units/saurcom-update.service" && grep -qx 'Restart=no' "$T/units/saurcom-update.service"; check "the service has no start limit and no restart"
@@ -140,7 +142,7 @@ FAKE_PULL_FAIL=0.3.2 run bash "$SCRIPT" 0.3.2
 ! grep -q '^up ' "$STATE/calls"; check "nothing was restarted"
 [ "$(st state)" = failed ] && grep -q 'Eye of SaurCom 0.3.1 still runs' "$S/status"; check "status failed, still runs 0.3.1"
 [ "$(grep -c daemon-reload "$STATE/systemctl")" = "$reloads" ]; check "the units are not rewritten when unchanged"
-[ "$(grep -c ':/run/saurcom-update' "$D/compose.yaml")" = 1 ]; check "the mount is added once"
+[ "$(grep -c ':/saurcom-update' "$D/compose.yaml")" = 1 ]; check "the mount is added once"
 
 echo "== 3. a failed start goes back to the image that ran (not what .env said)"
 : > "$STATE/calls"
@@ -333,10 +335,10 @@ if [ -f "$SETUP" ]; then
     # shellcheck disable=SC2016  # (the texts are meant literally)
     sed -n '/^cat > "$D\/compose.yaml" <</,/^EOF$/p' "$SETUP" | sed '1d;$d' > "$D/compose.yaml"
     # shellcheck disable=SC2016
-    grep -qE '^      - \./update:/run/saurcom-update:ro' "$D/compose.yaml" && grep -q 'install -d -m 0755 -o 0 -g 0 "$D/update"' "$SETUP"
+    grep -qE '^      - \./update:/saurcom-update:ro' "$D/compose.yaml" && grep -q 'install -d -m 0755 -o 0 -g 0 "$D/update"' "$SETUP"
     check "saurcom-lxc-setup.sh: the mount, and update/ made as root's"
     run bash "$SCRIPT" --install-units
-    [ "$rc" = 0 ] && [ "$(grep -c ':/run/saurcom-update' "$D/compose.yaml")" = 1 ]; check "...not added a second time"
+    [ "$rc" = 0 ] && [ "$(grep -c ':/saurcom-update' "$D/compose.yaml")" = 1 ]; check "...not added a second time"
     cp "$T/compose.keep" "$D/compose.yaml"
 fi
 
@@ -356,6 +358,76 @@ if [ "$(id -u)" = 0 ] && mkdir -p "$F" && mount -t tmpfs -o size=256k tmpfs "$F"
 else
     echo "(skipped: needs root and tmpfs)"
 fi
+
+echo "== 18. a request that is not a file: a directory, a socket, one that cannot be removed"
+mkdir -p "$T/victim2"; echo keep > "$T/victim2/file"
+mkdir -p "$U/request/sub"; echo 0.4.2 > "$U/request/sub/x"; ln -s "$T/victim2" "$U/request/link"; ln -s "$T/victim2/file" "$U/request/sub/flink"
+[ "$(id -u)" = 0 ] && chown -hR "$APPUID:$APPUID" "$U/request"
+: > "$STATE/calls"
+run bash "$SCRIPT" --request
+[ "$rc" = 2 ] && [ ! -e "$U/request" ] && grep -q 'not a plain file' "$S/status"; check "a directory: removed, refused (no loop)"
+[ "$(cat "$T/victim2/file")" = keep ] && [ -d "$T/victim2" ] && ! grep -q '^pull' "$STATE/calls"; check "...nothing behind its links removed, nothing pulled"
+if command -v python3 >/dev/null 2>&1; then
+    python3 -c 'import socket,sys; socket.socket(socket.AF_UNIX).bind(sys.argv[1])' "$U/request"
+    [ "$(id -u)" = 0 ] && chown -h "$APPUID" "$U/request"
+    run bash "$SCRIPT" --request
+    [ "$rc" = 2 ] && [ ! -e "$U/request" ]; check "a socket: removed, refused"
+fi
+if [ "$(id -u)" = 0 ] && mkdir -p "$U/request/m" && mount -t tmpfs tmpfs "$U/request/m" 2>/dev/null; then
+    t0=$(date +%s)
+    SAURCOM_BUSY_WAIT=2 run bash "$SCRIPT" --request
+    el=$(( $(date +%s) - t0 ))
+    umount "$U/request/m"
+    [ "$rc" = 1 ] && grep -q 'could not be removed' "$S/status" && [ "$el" -ge 2 ]; check "a directory that cannot be removed (a mount in it): status, then a pause before the exit ($el s)"
+    rm -rf "$U/request"
+fi
+rm -rf "$U/request"
+
+echo "== 19. the heartbeat: a long download keeps its status fresh, and stops with the run"
+: > "$STATE/calls"
+SAURCOM_HEARTBEAT=1 FAKE_PULL_SLEEP=4 bash "$SCRIPT" 0.4.2 > "$T/hb.out" 2>&1 &
+p=$!
+for _ in $(seq 1 50); do grep -q 'pull ghcr.io/axoldad/saurcom:0.4.2' "$STATE/calls" 2>/dev/null && break; sleep 0.1; done
+t1=$(st time)
+sleep 2.5
+[ "$(st state)" = pulling ] && [ "$(st time)" -gt "$t1" ] && grep -q 'Downloading Eye of SaurCom 0.4.2' "$S/status"; check "while pulling: the same status, a newer time"
+wait "$p"; prc=$?
+final=$(cat "$S/status")
+sleep 2
+[ "$prc" = 0 ] && [ "$(st state)" = "done" ] && [ "$(cat "$S/status")" = "$final" ]; check "after the run: done, and nothing renews it any more"
+[ "$(grep -c 'Downloading' "$S/log")" -le "$(grep -c '\[pulling\]' "$S/log")" ]; check "the heartbeat does not fill the log"
+: > "$STATE/calls"
+SAURCOM_HEARTBEAT=1 FAKE_PULL_SLEEP=5 bash "$SCRIPT" 0.4.3 > "$T/hb2.out" 2>&1 &
+p=$!
+for _ in $(seq 1 50); do grep -q 'pull ghcr.io/axoldad/saurcom:0.4.3' "$STATE/calls" 2>/dev/null && break; sleep 0.1; done
+kill -TERM "$p"; wait "$p"
+stopped=$(cat "$S/status")
+sleep 2
+[ "$(st state)" = failed ] && [ "$(cat "$S/status")" = "$stopped" ]; check "stopped: failed, and the heartbeat stopped with it"
+[ -z "$(find "$S" -name '.status.??????')" ]; check "...no temporary status files left"
+sleep 4   # (the fake pull's sleep)
+
+echo "== 20. an image whose version is not known (:latest): only \"latest\", and only if newer than its label"
+cp "$D/.env" "$T/env.keep"
+echo "running ghcr.io/axoldad/saurcom:latest" > "$STATE/running"; echo ghcr.io/axoldad/saurcom:latest >> "$STATE/images"
+sed -i 's#^SAURCOM_IMAGE=.*#SAURCOM_IMAGE=ghcr.io/axoldad/saurcom:latest#' "$D/.env"
+: > "$STATE/calls"
+app_put request 0.1.0
+run bash "$SCRIPT" --request
+[ "$rc" = 1 ] && grep -q 'has no version tag' "$S/status" && ! grep -q '^pull' "$STATE/calls" && [ "$(image)" = ghcr.io/axoldad/saurcom:latest ]; check "a given version: refused, nothing pulled"
+app_put request latest
+FAKE_LABEL=0.4.5 FAKE_LATEST=0.4.5 run bash "$SCRIPT" --request
+[ "$rc" = 1 ] && grep -q 'not newer than the running image (0.4.5)' "$S/status" && ! grep -q '^pull' "$STATE/calls"; check "latest, not newer than the label: refused"
+app_put request latest
+FAKE_LABEL=0.4.5 FAKE_LATEST=0.4.6 run bash "$SCRIPT" --request
+[ "$rc" = 0 ] && [ "$(image)" = ghcr.io/axoldad/saurcom:0.4.6 ]; check "latest, newer than the label: installed"
+cp "$T/env.keep" "$D/.env"; echo "running $(image)" > "$STATE/running"
+
+echo "== 21. the mount where a test build put it (/run) is moved"
+sed -i 's#\./update:/saurcom-update:ro#./update:/run/saurcom-update:ro#' "$D/compose.yaml"
+chmod 600 "$D/compose.yaml"
+run bash "$SCRIPT" --install-units
+grep -q '\./update:/saurcom-update:ro' "$D/compose.yaml" && ! grep -q '/run/saurcom-update' "$D/compose.yaml" && [ "$(stat -c %a "$D/compose.yaml")" = 600 ]; check "moved to /saurcom-update, the file's mode kept"
 
 echo
 echo "$pass passed, $fails failed"

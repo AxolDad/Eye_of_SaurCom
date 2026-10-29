@@ -13,8 +13,10 @@
 #            the version the app wants ("0.3.1" or "latest"): read only if it is a plain file of the app's (not a link, one name, at most
 #            64 bytes), only as a version, never run; removed when it has been read
 #   /opt/saurcom/config/.saurcom-update/auto     1 or 0, the app's "Install updates automatically (at 04:00)" (read with the same rules)
-# This script writes into a directory of root's, which the app sees read-only (/run/saurcom-update, a mount in compose.yaml):
-#   /opt/saurcom/update/status  at every step: {"state":"checking|pulling|restarting|done|failed","version":"…","message":"…","time":…}
+# This script writes into a directory of root's, which the app sees read-only (/saurcom-update, a mount in compose.yaml; not under /run,
+# which the image's s6-overlay manages):
+#   /opt/saurcom/update/status  at every step: {"state":"checking|pulling|restarting|done|failed","version":"…","message":"…","time":…};
+#                               while a step runs, its time is renewed every HEARTBEAT seconds (the app sees a stopped updater)
 #   /opt/saurcom/update/log     this script's log, capped in size
 # No network port and no Docker socket in the app's container. Every run installs or refreshes the units (saurcom-update.path watches the
 # request file; saurcom-update-auto.timer runs --auto) and the mount, so a container made before the update button gets them once this
@@ -38,6 +40,7 @@ SETTLE=${SAURCOM_SETTLE:-20}                                    # ...and to keep
 MIN_FREE_KB=${SAURCOM_MIN_FREE_KB:-3145728}                     # free space Docker needs for a pull: 3 GB (the image is about 1.7 GB)
 APP_UID=${SAURCOM_APP_UID:-1000}                                # the app's user (PUID in compose.yaml): the owner of its files
 BUSY_WAIT=${SAURCOM_BUSY_WAIT:-10}                              # seconds to wait before giving up on a request that cannot be removed
+HEARTBEAT=${SAURCOM_HEARTBEAT:-45}                              # seconds between renewals of a busy status (the app: stale after 300)
 REGISTRY=ghcr.io/axoldad/saurcom
 LOG_MAX=262144
 U=$D/config/.saurcom-update                                     # the app's: only read here
@@ -45,6 +48,7 @@ S=$D/update                                                     # root's: status
 VER=""                                                          # the version this run is about, for the status file
 HAVE_S=0                                                        # $S is usable: status and log go there
 STAGE=""                                                        # how far the update got, for a stop in the middle
+HB_PID=""                                                       # the heartbeat in the background
 
 say() { printf '%s\n' "$*"; }
 log() {
@@ -89,27 +93,58 @@ write_status() {   # <json>
     } 8>"$S/.status.lock"
 }
 status() {   # <state> <message>
+    case $1 in done|failed) stop_heartbeat ;; *) start_heartbeat ;; esac
     log "[$1] $2"
     write_status "$(printf '{"state":"%s","version":"%s","message":"%s","time":%s}' "$1" "$(json_str "$VER")" "$(json_str "$2")" "$(date +%s)")"
 }
-# The app asked while another update runs: its status is shown again with the time of now (so that the app sees an answer and its
-# progress), or, when that run has written nothing yet, "already running".
-busy_status() {
+# A busy status (checking, pulling, restarting) written again with the time of now; with "fallback", any other status is replaced by
+# "already running". 1: the status was not a busy one (and no fallback). Under the status lock: a final status is never overwritten.
+renew_status() {   # [fallback]
     [ "$HAVE_S" = 1 ] || return 0
-    local cur="" now tmp=""
+    local cur="" now tmp="" rc=0
     now=$(date +%s)
     {
         flock 8
         [ -f "$S/status" ] && cur=$(head -c 4096 -- "$S/status")
         if [[ $cur =~ \"state\":\"(checking|pulling|restarting)\" ]]; then
             cur=$(printf '%s' "$cur" | sed -E "s/\"time\":[0-9]+/\"time\":$now/")
-        else
+        elif [ "${1:-}" = fallback ]; then
             cur=$(printf '{"state":"failed","version":"","message":"An update is already running. Try again when it has finished.","time":%s}' "$now")
+        else
+            cur=""; rc=1
         fi
-        if ! { tmp=$(mktemp "$S/.status.XXXXXX") && printf '%s\n' "$cur" > "$tmp" && chmod 644 -- "$tmp" && mv -fT -- "$tmp" "$S/status"; }; then
+        if [ -n "$cur" ] && ! { tmp=$(mktemp "$S/.status.XXXXXX") && printf '%s\n' "$cur" > "$tmp" && chmod 644 -- "$tmp" && mv -fT -- "$tmp" "$S/status"; }; then
             rm -f -- "${tmp:-}"
         fi
     } 8>"$S/.status.lock"
+    return "$rc"
+}
+# The app asked while another update runs: that run's status is shown again with the time of now (the app sees an answer and its
+# progress), or, when that run has written nothing yet, "already running".
+busy_status() { renew_status fallback; }
+# The heartbeat: while a step runs (a download of 2 GB can take an hour), the status gets a new time every HEARTBEAT seconds, so that
+# the app can tell a slow step from an updater that stopped. Started by the first busy status, stopped by the final one and on every exit.
+# shellcheck disable=SC2329  # (called through status / trap)
+start_heartbeat() {
+    [ "$HAVE_S" = 1 ] && [ -z "$HB_PID" ] || return 0
+    (
+        trap - EXIT; stop=0; s=""
+        trap 'stop=1; [ -n "$s" ] && kill "$s" 2>/dev/null' TERM
+        while [ "$stop" = 0 ]; do
+            sleep "$HEARTBEAT" & s=$!
+            wait "$s"; s=""
+            [ "$stop" = 0 ] || break
+            renew_status || break   # (a final status is in place: nothing more to renew)
+        done
+    ) 3>/dev/null &
+    HB_PID=$!
+}
+# shellcheck disable=SC2329  # (called through status / trap)
+stop_heartbeat() {
+    [ -n "$HB_PID" ] || return 0
+    kill "$HB_PID" 2>/dev/null
+    wait "$HB_PID" 2>/dev/null
+    HB_PID=""
 }
 
 # ------------------------------------------------------------------------------------------------- the app's directory: read only
@@ -135,12 +170,16 @@ read_app_file() {
     [ "$links" = 1 ] && [ "$owner" = "$APP_UID" ] && [ "$size" -le 64 ] || return 2
     dd if="$f" iflag=nofollow,nonblock bs=64 count=1 2>/dev/null | head -n 1 | tr -d '\r '
 }
-# the request: read (with the rules above) and removed, whatever it held
+# The request: read (with the rules above) and removed, whatever it was: a file, a link (the link itself), a pipe, a socket, a device, or a
+# directory (rm -rf in this checked directory: rm follows no link, and --one-file-system stays off other mounts). 4: it could not be
+# removed (it would start the service again at once).
 # shellcheck disable=SC2329  # (called through in_app_dir / trap)
 take_request_here() {
     local r rc
     r=$(read_app_file request); rc=$?
-    rm -f -- request
+    if [ -d request ] && [ ! -L request ]; then rm -rf --one-file-system -- request 2>/dev/null
+    else rm -f -- request 2>/dev/null; fi
+    if [ -e request ] || [ -L request ]; then return 4; fi
     [ "$rc" = 0 ] && printf '%s' "$r"
     return "$rc"
 }
@@ -238,18 +277,28 @@ latest_release() {
 ensure_mount() {
     local f=$D/compose.yaml tmp
     [ -f "$f" ] || return 0
-    grep -q ':/run/saurcom-update' "$f" && return 0
+    grep -q '\./update:/saurcom-update:ro' "$f" && return 0
+    if grep -q '\./update:/run/saurcom-update:ro' "$f"; then   # (where a test build of the update button put it: s6-overlay manages /run)
+        tmp=$(mktemp "$D/.compose.XXXXXX") || return 1
+        if sed 's#\./update:/run/saurcom-update:ro#./update:/saurcom-update:ro#' "$f" > "$tmp" && [ -s "$tmp" ] && grep -q '\./update:/saurcom-update:ro' "$tmp" \
+            && chmod --reference="$f" -- "$tmp" && mv -fT -- "$tmp" "$f"; then
+            log "compose.yaml: the app now sees $S (read-only) as /saurcom-update"
+            return 0
+        fi
+        rm -f -- "$tmp"
+        return 1
+    fi
     if ! grep -qE '^[[:space:]]*- \./config:/config' "$f"; then
-        log "compose.yaml has no ./config:/config line: add \"- ./update:/run/saurcom-update:ro\" to the app's volumes by hand"
+        log "compose.yaml has no ./config:/config line: add \"- ./update:/saurcom-update:ro\" to the app's volumes by hand"
         return 1
     fi
     tmp=$(mktemp "$D/.compose.XXXXXX") || return 1
     if awk '{ print }
             !done && /^[[:space:]]*- \.\/config:\/config/ {
                 match($0, /^[[:space:]]*/)
-                printf "%s- ./update:/run/saurcom-update:ro   # the updater'"'"'s status and log, read-only (saurcom-update)\n", substr($0, 1, RLENGTH)
-                done = 1 }' "$f" > "$tmp" && [ -s "$tmp" ] && grep -q ':/run/saurcom-update:ro' "$tmp" && chmod 644 -- "$tmp" && mv -fT -- "$tmp" "$f"; then
-        log "compose.yaml: the app now sees $S (read-only) as /run/saurcom-update"
+                printf "%s- ./update:/saurcom-update:ro   # the updater'"'"'s status and log, read-only (saurcom-update)\n", substr($0, 1, RLENGTH)
+                done = 1 }' "$f" > "$tmp" && [ -s "$tmp" ] && grep -q ':/saurcom-update:ro' "$tmp" && { chmod --reference="$f" -- "$tmp" || chmod 644 -- "$tmp"; } && mv -fT -- "$tmp" "$f"; then
+        log "compose.yaml: the app now sees $S (read-only) as /saurcom-update"
         return 0
     fi
     rm -f -- "$tmp"
@@ -353,6 +402,17 @@ update() {
         log "auto: the app runs ${cur:-no image}, not a release of $REGISTRY: left as it is"
         return 0
     fi
+    # the app with an image that is not $REGISTRY:<version> (":latest", a build of one's own): the running version is not known, so no
+    # given version could be checked against it (it could be older); only "latest", and only if newer than the image's version label
+    local label_v=""
+    if [ "$mode" = request ] && [ -z "$cur_v" ]; then
+        if [ "$want" != latest ]; then
+            status failed "The running image (${cur:-none}) has no version tag, so its version is not known: nothing was changed. Use the command line to choose a version."
+            return 1
+        fi
+        label_v=$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.version"}}' "$cur" 2>/dev/null)
+        valid_version "$label_v" && label_v=${label_v#v} || label_v=""
+    fi
     if [ "$want" = latest ]; then
         [ "$mode" = auto ] || status checking "Looking for the newest version…"
         want=$(latest_release)
@@ -370,6 +430,10 @@ update() {
             if ! newer "$want" "$cur_v"; then log "auto: $cur_v is the newest version"; return 0; fi
             status checking "Eye of SaurCom $want is available: installing it by itself." ;;
         request)
+            if [ -n "$label_v" ] && ! newer "$want" "$label_v"; then
+                status failed "Eye of SaurCom $want is not newer than the running image ($label_v): nothing was changed."
+                return 1
+            fi
             if [ -n "$cur_v" ] && newer "$cur_v" "$want"; then
                 status failed "Eye of SaurCom $want is older than the running $cur_v. Use the command line to go back to an older version."
                 return 1
@@ -465,6 +529,17 @@ esac
 [ $# -le 1 ] || { say "saurcom-update: one version at most" >&2; exit 2; }
 exec 3>/dev/null
 
+# Every exit: the heartbeat stopped; and in request mode, a request still there (one that could not be removed, or a new one) starts the
+# service again at once, so not before a pause: the path unit can never start it in a loop.
+# shellcheck disable=SC2329  # (called through trap)
+on_exit() {
+    stop_heartbeat
+    if [ "$mode" = request ] && { [ -e "$U/request" ] || [ -L "$U/request" ]; }; then
+        log "a request is there again (or still): the next run in $BUSY_WAIT s"
+        sleep "$BUSY_WAIT"
+    fi
+}
+trap on_exit EXIT
 prep_s || say "saurcom-update: cannot use $S: no status for the app, no log" >&2
 mkdir -p -- "$(dirname -- "$LOCK")"
 exec 9>"$LOCK"
@@ -484,8 +559,11 @@ if [ "$mode" = request ]; then
     if [ "$req_rc" = 3 ] && [ -e "$U/request" ]; then
         # its directory is not what it should be, so it is not touched there: the service is started again, so wait a little first
         status failed "The request was not in Eye of SaurCom's own folder: ignored, nothing was changed."
-        sleep "$BUSY_WAIT"
-        exit 1
+        exit 1   # (on_exit waits BUSY_WAIT first)
+    fi
+    if [ "$req_rc" = 4 ]; then
+        status failed "The request could not be removed: ignored, nothing was changed."
+        exit 1   # (on_exit waits BUSY_WAIT first)
     fi
 fi
 

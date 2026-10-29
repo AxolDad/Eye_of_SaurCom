@@ -107,17 +107,20 @@ Afterwards the window says "Updated to 0.3.1".
   plus up to 30 minutes) a newer release is installed by itself. It is off until you tick it.
 - **If something goes wrong:** the new image is downloaded before anything is stopped, so a failed download leaves the running version
   alone. Before the download it checks for 3 GB of free disk space. If the new version does not start, the image that ran before is
-  started again. Either way the window shows what happened, and the log is in `/opt/saurcom/update/log` (`/run/saurcom-update/log`
+  started again. Either way the window shows what happened, and the log is in `/opt/saurcom/update/log` (`/saurcom-update/log`
   inside the app). After a successful update, older `ghcr.io/axoldad/saurcom` images are removed; the new one and the one before it stay.
 - **From a shell** it still works as before: `pct exec <ctid> -- saurcom-update`, or `saurcom-update 0.3.1` for a given release. Going
-  back to an older release is done only here: the app's button asks only for the same or a newer version.
+  back to an older release is done only here: the app's button asks only for the same or a newer version. (With an image that has no
+  version tag, such as `:latest`, the button can only ask for the newest release, and only if it is newer than the image's version.)
+- **If the updater stops:** while a step runs, the updater renews its status every 45 seconds. A status not renewed for 5 minutes makes
+  the window say "The updater stopped answering", with where the log is.
 
 How it works: the button writes the wanted version into `/opt/saurcom/config/.saurcom-update/request`. The systemd unit
 `saurcom-update.path` in the Proxmox container sees the file and starts `saurcom-update.service`, which runs `saurcom-update --request`.
 Root only reads in the app's folder: the request is read only if it is a plain file of the app's user (not a link, not a second name for
 another file, at most 64 bytes), only a version is taken from it (digits and dots), what is in it is never run, and it is removed. The
 script writes its progress to `/opt/saurcom/update/status`, a folder of root's that the app's container sees read-only as
-`/run/saurcom-update` (a line in `compose.yaml`; the script adds it to the `compose.yaml` of an older install). The app has no place
+`/saurcom-update` (a line in `compose.yaml`; the script adds it to the `compose.yaml` of an older install). The app has no place
 where root writes. `saurcom-update-auto.timer` runs `saurcom-update --auto`, which updates only when the app's `auto` file holds `1` and a
 newer release exists. A lock keeps two updates from running at once; a request made meanwhile is answered with the running update's
 progress. The app's container gets no network port and no Docker socket for this.

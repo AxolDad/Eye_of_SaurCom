@@ -35,7 +35,7 @@ const std::string& helperCmd() { static const std::string c = cu::helperCommand(
 struct Cu {
     bool on = false;          // this program runs in a container: updates go through the helper outside it
     std::string dir;          // where the request and auto files are (/config/.saurcom-update, the app's)
-    std::string statusDir;    // where the helper's status and log are (/run/saurcom-update, root's, read-only here)
+    std::string statusDir;    // where the helper's status and log are (/saurcom-update, root's, read-only here)
     bool dirOk = false;       // the directory exists (or was made) and this program may write in it
     double requestedAt = 0;   // when this run wrote a request (seconds since 1970); 0: none
     std::string requested;    // the version it asked for
@@ -155,6 +155,7 @@ void cuTick(App& a, const Updater::Status& st) {
     case cu::View::Restarting: a.engine.log("update: restarting with Eye of SaurCom " + c.st.version); break;
     case cu::View::Done: a.engine.log("updated to v" + c.st.version); break;
     case cu::View::Failed: a.engine.log("update: " + (c.st.message.empty() ? std::string("failed") : c.st.message)); break;
+    case cu::View::Stalled: a.engine.log("update: the updater outside this container stopped answering (see " + c.statusDir + "/log)"); break;
     case cu::View::NoAnswer: {
         std::error_code ec; std::filesystem::remove(c.dir + "/request", ec);   // no helper: the request is not left lying for one installed later
         a.engine.log("update: no updater answered in 30 s (see the update window)");
@@ -303,6 +304,15 @@ void cuWindow(App& a, const Updater::Status& st) {
         if (ImGui::Button(tr("Dismiss##cufailed"))) cuDismiss(c);
         break;
     }
+    case cu::View::Stalled:
+        ImGui::TextColored(kBad, tr("The updater stopped answering. See the log at %s/log (in the Proxmox container: /opt/saurcom/update/log)."), c.statusDir.c_str());
+        if (!c.st.message.empty()) ImGui::TextDisabled(tr("Its last step: %s"), c.st.message.c_str());
+        if (st.phase == Updater::Phase::Available && cu::validVersion(st.release.version)) {
+            updateNow(tr("Try again"), st.release.version);
+            ImGui::SameLine();
+        }
+        if (ImGui::Button(tr("Dismiss##custalled"))) cuDismiss(c);
+        break;
     case cu::View::NoAnswer:
         cuInstructions(c, false);
         if (ImGui::Button(tr("Back##cunoanswer"))) cuDismiss(c);

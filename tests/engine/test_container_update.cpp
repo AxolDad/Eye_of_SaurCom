@@ -100,16 +100,29 @@ int main() {
     Inputs bg; bg.running = "0.3.0"; bg.now = T + 10;
     bg.status = st(State::Pulling, "0.3.1", T);
     CHECK(decide(bg) == View::Pulling, "a background update in progress");
+    bg.now = T + kBusyStale - 1;
+    CHECK(decide(bg) == View::Pulling, "a heartbeat just under the limit: still pulling");
     bg.now = T + kBusyStale;
+    CHECK(decide(bg) == View::Stalled, "no heartbeat for 5 minutes: the updater stopped answering");
+    bg.now = T + kResultShown;
     CHECK(decide(bg) == View::Idle, "a helper that died long ago");
+    bg.now = T + kBusyStale; bg.dismissedAt = T;
+    CHECK(decide(bg) == View::Idle, "...dismissed");
+    bg.dismissedAt = 0;
+    // the same while this program waits for its own request
+    Inputs rq; rq.running = "0.3.0"; rq.requestedAt = T; rq.now = T + kBusyStale + 10;
+    rq.status = st(State::Restarting, "0.3.1", T + 5);
+    CHECK(decide(rq) == View::Stalled, "the program's own request, no heartbeat: stalled");
+    rq.status = st(State::Pulling, "0.3.1", T + kBusyStale - 30);
+    CHECK(decide(rq) == View::Pulling, "the program's own request, a fresh heartbeat: pulling");
+    CHECK(kBusyStale >= 5 * 45 && kBusyStale <= 600, "the limit leaves room for several heartbeats (45 s) and is a few minutes");
     bg.status = Status();
     CHECK(decide(bg) == View::Idle, "no status");
 
     CHECK(busy(View::Waiting) && busy(View::Checking) && busy(View::Pulling) && busy(View::Restarting), "busy views");
-    CHECK(!busy(View::Idle) && !busy(View::Available) && !busy(View::Done) && !busy(View::Failed) && !busy(View::NoAnswer), "idle views");
+    CHECK(!busy(View::Idle) && !busy(View::Available) && !busy(View::Done) && !busy(View::Failed) && !busy(View::NoAnswer) && !busy(View::Stalled), "idle views");
     CHECK(std::string(stateName(State::Pulling)) == "pulling" && std::string(stateName(State::None)) == "none", "state names");
 
-    if (fails) { printf("%d failure(s)\n", fails); return 1; }
     // the one-time command: pinned to this release's tag, a temporary file, installed only when complete
     {
         const std::string c = helperCommand("v0.3.1"), c2 = helperCommand("0.3.1");
@@ -121,6 +134,7 @@ int main() {
         CHECK(c.rfind("pct exec <id> -- bash -c '", 0) == 0 && c.back() == '\'' && c.size() < 500, "one quoted command that fits the window's field (%zu)", c.size());
     }
 
+    if (fails) { printf("%d failure(s)\n", fails); return 1; }
     printf("container_update: all passed\n");
     return 0;
 }

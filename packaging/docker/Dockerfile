@@ -4,9 +4,11 @@
 #   docker build -t saurcom --build-arg SAURCOM_VERSION=0.2.6 packaging/docker  (another release)
 
 # ---------- full: the Selkies desktop with Eye of SaurCom installed, minus what no Eye of SaurCom user needs ----------
+# (declared before the first FROM: both stages use it, the .deb and the version label)
+ARG SAURCOM_VERSION=0.2.5
 FROM ghcr.io/linuxserver/baseimage-selkies:ubuntunoble AS full
 
-ARG SAURCOM_VERSION=0.2.5
+ARG SAURCOM_VERSION
 ARG TARGETARCH
 
 # The release .deb: it carries its own FFmpeg and the libraries of the radios Eye of SaurCom drives itself; the SoapySDR modules add the rest.
@@ -32,8 +34,11 @@ COPY root/ /
 # ---------- final: one layer, so that what was removed above is not still carried in the base image's layers ----------
 FROM scratch
 COPY --from=full / /
+ARG SAURCOM_VERSION
 
+# (image.version: what saurcom-update compares a release with when the image's tag is not a version, e.g. :latest)
 LABEL org.opencontainers.image.title="Eye of SaurCom" \
+      org.opencontainers.image.version="${SAURCOM_VERSION}" \
       org.opencontainers.image.description="Eye of SaurCom software-defined radio receiver, its full GUI in the browser" \
       org.opencontainers.image.source="https://github.com/AxolDad/Eye_of_SaurCom" \
       org.opencontainers.image.licenses="GPL-3.0-or-later"
