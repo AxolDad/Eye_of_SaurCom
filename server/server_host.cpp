@@ -14,6 +14,7 @@
 #include "dect2/source/iq_file.h"
 #include "dect2/source/radio_id.h"
 #include "dect2/common/data_dir.h"
+#include "dect2/geo/station_location.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -354,18 +355,34 @@ bool ServerHost::setGainDb(double db, std::string& err) {
     return retuneLocked(err);
 }
 
+// Where this station is, for the stations linked to it: the settings file's "location" (coordinates or a Maidenhead locator, "location_alt" in
+// metres), else the environment (SAURCOM_LOCATOR, or SAURCOM_LAT + SAURCOM_LON, SAURCOM_ALT). ',"lat":..,"lon":..[,"alt":..]' or nothing.
+static std::string positionJson(const saurcom_server::ConfigFile& cfg) {
+    dect2::geo::StationPos p;
+    std::string err;
+    if (!cfg.get("location").empty() && !dect2::geo::parseLocationText(cfg.get("location"), p, err)) p = dect2::geo::StationPos();
+    if (p.valid() && cfg.has("location_alt")) { const double m = cfg.num("location_alt", NAN); if (dect2::geo::validAlt(m)) p.altM = m; }
+    if (!p.valid()) p = dect2::geo::envLocation(nullptr);
+    if (!p.valid()) return std::string();
+    char b[96];
+    if (std::isfinite(p.altM)) snprintf(b, sizeof b, ",\"lat\":%.6f,\"lon\":%.6f,\"alt\":%.1f", p.lat, p.lon, p.altM);
+    else snprintf(b, sizeof b, ",\"lat\":%.6f,\"lon\":%.6f", p.lat, p.lon);
+    return b;
+}
+
 std::string ServerHost::statusJson() {
+    const std::string pos = positionJson(cfg_);
     std::lock_guard<std::mutex> lk(mu_);
     const bool run = e_.running();
     const ModeEntry& m = modes_[(size_t)modeIdx_];
     const DeviceInfo* d = devIdx_ >= 0 && devIdx_ < (int)devices_.size() ? &devices_[(size_t)devIdx_] : nullptr;
     char b[512];
-    snprintf(b, sizeof b, ",\"frequencyHz\":%.0f,\"sampleRateHz\":%.0f,\"gainDb\":%s,\"gainMinDb\":%s,\"gainMaxDb\":%s,\"droppedSamples\":%llu,\"loadPct\":%.0f}",
+    snprintf(b, sizeof b, ",\"frequencyHz\":%.0f,\"sampleRateHz\":%.0f,\"gainDb\":%s,\"gainMinDb\":%s,\"gainMaxDb\":%s,\"droppedSamples\":%llu,\"loadPct\":%.0f",
              freqHz_, run ? e_.radioRate() : (rateHz_ > 0 ? rateHz_ : 0.0), jsonNum(gainDb_).c_str(), jsonNum(d && d->isGeneric() ? d->gainMinDb : 0).c_str(),
              jsonNum(d ? (d->isGeneric() ? d->gainMaxDb : d->kind == DeviceInfo::HackRF ? (cfg_.flag("amp", false) ? 116 : 102) : 0) : 0).c_str(), (unsigned long long)e_.droppedSamples(), (double)e_.sampleLoss().loadPct);
     return std::string("{\"running\":") + (run ? "true" : "false") + ",\"wanted\":" + (wantRun_ ? "true" : "false") + ",\"deviceIndex\":" + std::to_string(devIdx_) + ",\"device\":\"" +
            jsonEscape(d ? d->name : "") + "\",\"deviceKind\":\"" + (d ? kindName(d->kind) : "unknown") + "\",\"family\":" + std::to_string(m.family) + ",\"mode\":\"" + jsonEscape(m.name) +
-           "\",\"modeId\":\"" + jsonEscape(m.id) + "\",\"sub\":" + (m.sub.empty() ? "null" : "\"" + jsonEscape(m.sub) + "\"") + ",\"demod\":\"" + demodName(demod_) + "\",\"error\":\"" + jsonEscape(err_) + "\"" + b;
+           "\",\"modeId\":\"" + jsonEscape(m.id) + "\",\"sub\":" + (m.sub.empty() ? "null" : "\"" + jsonEscape(m.sub) + "\"") + ",\"demod\":\"" + demodName(demod_) + "\",\"error\":\"" + jsonEscape(err_) + "\"" + b + pos + "}";
 }
 
 std::string ServerHost::devicesJson() {

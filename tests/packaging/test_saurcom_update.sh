@@ -339,6 +339,7 @@ if [ -f "$SETUP" ]; then
     check "saurcom-lxc-setup.sh: the mount, and update/ made as root's"
     run bash "$SCRIPT" --install-units
     [ "$rc" = 0 ] && [ "$(grep -c ':/saurcom-update' "$D/compose.yaml")" = 1 ]; check "...not added a second time"
+    [ "$(grep -cE '^      SAURCOM_(LOCATOR|LAT|LON|ALT): \$\{SAURCOM_' "$D/compose.yaml")" = 4 ]; check "saurcom-lxc-setup.sh passes the station location on, and it is not added again"
     cp "$T/compose.keep" "$D/compose.yaml"
 fi
 
@@ -428,6 +429,35 @@ sed -i 's#\./update:/saurcom-update:ro#./update:/run/saurcom-update:ro#' "$D/com
 chmod 600 "$D/compose.yaml"
 run bash "$SCRIPT" --install-units
 grep -q '\./update:/saurcom-update:ro' "$D/compose.yaml" && ! grep -q '/run/saurcom-update' "$D/compose.yaml" && [ "$(stat -c %a "$D/compose.yaml")" = 600 ]; check "moved to /saurcom-update, the file's mode kept"
+
+echo "== 22. an older compose.yaml gets the station location pass-through; .env keeps the location through an update"
+cp "$D/compose.yaml" "$T/compose.keep22"; cp "$D/.env" "$T/env.keep22"
+cat > "$D/compose.yaml" <<'EOF'
+services:
+  saurcom:
+    image: ${SAURCOM_IMAGE}
+    environment:
+      CUSTOM_USER: ${SAURCOM_USER}
+      PASSWORD: ${SAURCOM_PASSWORD}
+    volumes:
+      - ./config:/config      # settings, recordings and saurcom.log
+EOF
+chmod 640 "$D/compose.yaml"
+printf '%s\n' "SAURCOM_LAT=52.100000" "SAURCOM_LON=-1.300000" >> "$D/.env"
+run bash "$SCRIPT" --install-units
+[ "$rc" = 0 ]; check "exit 0"
+# shellcheck disable=SC2016  # (the texts are meant literally)
+grep -A5 '^      PASSWORD: ' "$D/compose.yaml" | grep -qx '      SAURCOM_LAT: ${SAURCOM_LAT:-}' && grep -qx '      SAURCOM_LOCATOR: ${SAURCOM_LOCATOR:-}' "$D/compose.yaml" \
+    && grep -qx '      SAURCOM_LON: ${SAURCOM_LON:-}' "$D/compose.yaml" && grep -qx '      SAURCOM_ALT: ${SAURCOM_ALT:-}' "$D/compose.yaml"
+check "the four location variables are passed to the app, under PASSWORD"
+[ "$(stat -c %a "$D/compose.yaml")" = 640 ]; check "compose.yaml keeps its mode"
+run bash "$SCRIPT" --install-units
+[ "$(grep -c '^      SAURCOM_LAT:' "$D/compose.yaml")" = 1 ]; check "added once"
+echo "running $(image)" > "$STATE/running"
+FAKE_LATEST=0.4.7 run bash "$SCRIPT"
+[ "$rc" = 0 ] && grep -qx SAURCOM_LAT=52.100000 "$D/.env" && grep -qx SAURCOM_LON=-1.300000 "$D/.env" && [ "$(image)" = ghcr.io/axoldad/saurcom:0.4.7 ]
+check "an update keeps SAURCOM_LAT / SAURCOM_LON in .env"
+cp "$T/compose.keep22" "$D/compose.yaml"; cp "$T/env.keep22" "$D/.env"; echo "running $(image)" > "$STATE/running"
 
 echo
 echo "$pass passed, $fails failed"

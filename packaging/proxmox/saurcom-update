@@ -6,7 +6,7 @@
 #   saurcom-update --request        what the app asked for (run by saurcom-update.service when the app writes its request file)
 #   saurcom-update --auto           the newest release, only if the app's "Install updates automatically" is on and it is newer
 #                                   (run daily at 04:00 by saurcom-update-auto.timer)
-#   saurcom-update --install-units  only install or refresh the systemd units and the app's read-only mount
+#   saurcom-update --install-units  only install or refresh the systemd units, the app's read-only mount and the location pass-through
 #
 # The app and this script share no writable place. The app writes into its own config volume and root only reads there:
 #   /opt/saurcom/config/.saurcom-update/request  (/config/.saurcom-update/request in the app's container)
@@ -305,6 +305,35 @@ ensure_mount() {
     return 1
 }
 
+# compose.yaml of an older install does not pass the station location on (SAURCOM_LOCATOR, SAURCOM_LAT, SAURCOM_LON, SAURCOM_ALT from
+# .env, saurcom-lxc.sh --location): the lines are added after its PASSWORD line (the next start uses them). .env is never changed here
+# beyond SAURCOM_IMAGE, so a location in it stays; one set in the app (My station) needs neither.
+ensure_location_env() {
+    local f=$D/compose.yaml tmp
+    [ -f "$f" ] || return 0
+    grep -qE '^[[:space:]]*SAURCOM_LAT:' "$f" && return 0
+    if ! grep -qE '^[[:space:]]*PASSWORD: \$\{SAURCOM_PASSWORD' "$f"; then
+        log "compose.yaml has no PASSWORD line: add SAURCOM_LOCATOR, SAURCOM_LAT, SAURCOM_LON and SAURCOM_ALT to the app's environment by hand"
+        return 1
+    fi
+    tmp=$(mktemp "$D/.compose.XXXXXX") || return 1
+    if awk '{ print }
+            !done && /^[[:space:]]*PASSWORD: \$\{SAURCOM_PASSWORD/ {
+                match($0, /^[[:space:]]*/); ind = substr($0, 1, RLENGTH)
+                print ind "# where the station is (.env, from saurcom-lxc.sh --location): the app uses it until a location is set in the app (My station)"
+                print ind "SAURCOM_LOCATOR: ${SAURCOM_LOCATOR:-}"
+                print ind "SAURCOM_LAT: ${SAURCOM_LAT:-}"
+                print ind "SAURCOM_LON: ${SAURCOM_LON:-}"
+                print ind "SAURCOM_ALT: ${SAURCOM_ALT:-}"
+                done = 1 }' "$f" > "$tmp" && [ -s "$tmp" ] && grep -qE '^[[:space:]]*SAURCOM_LAT:' "$tmp" \
+        && { chmod --reference="$f" -- "$tmp" || chmod 644 -- "$tmp"; } && mv -fT -- "$tmp" "$f"; then
+        log "compose.yaml: the station location in .env (if any) now reaches the app"
+        return 0
+    fi
+    rm -f -- "$tmp"
+    return 1
+}
+
 units() {
     cat <<EOF
 #=saurcom-update.path
@@ -569,6 +598,7 @@ fi
 
 install_units || log "the units were not installed or refreshed"
 ensure_mount || log "the app may not see the status (see compose.yaml)"
+ensure_location_env || log "the station location in .env may not reach the app (see compose.yaml)"
 [ "$mode" = units ] && exit 0
 
 if [ ! -f "$D/.env" ]; then

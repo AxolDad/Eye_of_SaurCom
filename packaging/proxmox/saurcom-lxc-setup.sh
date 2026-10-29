@@ -7,6 +7,8 @@
 #   SAURCOM_GPU        /dev/dri/renderD128 when a graphics chip is passed through, else empty
 #   SAURCOM_SERIAL     1: pass the container's USB serial ports on to the app
 #   SAURCOM_ASSET_REF  the branch or tag saurcom-update comes from if saurcom-lxc.sh did not put it in place (default main)
+#   SAURCOM_LOCATION   where the station is, checked by saurcom-lxc.sh: "52.100000,-1.300000" or a Maidenhead locator; empty: not given.
+#                      Written to .env as SAURCOM_LAT + SAURCOM_LON, or SAURCOM_LOCATOR: the app uses it until a location is set in the app.
 #
 # The devices are bound into the app's container as volumes, not with --device: Docker in an unprivileged container cannot make device
 # files (mknod), and a bound directory also shows a radio plugged in later.
@@ -15,6 +17,20 @@ set -Eeuo pipefail
 TZ=${TZ:-Etc/UTC}
 SAURCOM_GPU=${SAURCOM_GPU:-}
 SAURCOM_SERIAL=${SAURCOM_SERIAL:-0}
+SAURCOM_LOCATION=${SAURCOM_LOCATION:-}
+LOC_LAT=""; LOC_LON=""; LOC_LOCATOR=""
+case "$SAURCOM_LOCATION" in
+    "") ;;
+    *,*)   # a decimal pair (saurcom-lxc.sh wrote it as lat,lon)
+        LOC_LAT=${SAURCOM_LOCATION%%,*}; LOC_LON=${SAURCOM_LOCATION#*,}
+        if ! [[ $LOC_LAT =~ ^[+-]?[0-9]+([.][0-9]+)?$ && $LOC_LON =~ ^[+-]?[0-9]+([.][0-9]+)?$ ]]; then
+            echo "!!! the station location \"$SAURCOM_LOCATION\" is not latitude,longitude: left out (set it in the app: My station)" >&2
+            LOC_LAT=""; LOC_LON=""
+        fi ;;
+    *)
+        if [[ $SAURCOM_LOCATION =~ ^[A-Ra-r]{2}[0-9]{2}([A-Xa-x]{2}([0-9]{2})?)?$ ]]; then LOC_LOCATOR=$SAURCOM_LOCATION
+        else echo "!!! the station location \"$SAURCOM_LOCATION\" is not a locator: left out (set it in the app: My station)" >&2; fi ;;
+esac
 export DEBIAN_FRONTEND=noninteractive
 D=/opt/saurcom
 
@@ -53,6 +69,12 @@ TZ=$TZ
 SAURCOM_GPU=$SAURCOM_GPU
 SAURCOM_SERIAL=$SAURCOM_SERIAL
 EOF
+# the station location (saurcom-lxc.sh --location): the app's maps open there until a location is set in the app (My station)
+if [ -n "$LOC_LOCATOR" ]; then
+    printf '%s\n' "# where the station is (a Maidenhead locator); the app uses it until you set your location in the app" "SAURCOM_LOCATOR=$LOC_LOCATOR" >> "$D/.env"
+elif [ -n "$LOC_LAT" ]; then
+    printf '%s\n' "# where the station is (decimal degrees); the app uses it until you set your location in the app" "SAURCOM_LAT=$LOC_LAT" "SAURCOM_LON=$LOC_LON" >> "$D/.env"
+fi
 umask 022
 
 cat > "$D/compose.yaml" <<'EOF'
@@ -69,6 +91,11 @@ services:
       TZ: ${TZ}
       CUSTOM_USER: ${SAURCOM_USER}
       PASSWORD: ${SAURCOM_PASSWORD}
+      # where the station is (.env, from saurcom-lxc.sh --location): the app uses it until a location is set in the app (My station)
+      SAURCOM_LOCATOR: ${SAURCOM_LOCATOR:-}
+      SAURCOM_LAT: ${SAURCOM_LAT:-}
+      SAURCOM_LON: ${SAURCOM_LON:-}
+      SAURCOM_ALT: ${SAURCOM_ALT:-}
     ports:
       - "3001:3001"           # HTTPS (self-signed): browsers refuse the stream over plain HTTP
     shm_size: "1gb"           # the virtual display and the browser stream

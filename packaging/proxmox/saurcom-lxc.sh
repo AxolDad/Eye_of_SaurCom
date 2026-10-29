@@ -34,6 +34,7 @@ PRIVILEGED=0
 HOST_SETUP=1
 ASSUME_YES=0
 DRY_RUN=0
+LOCATION=""                # where the station is: "52.1,-1.3" or a Maidenhead locator (IO92); empty: set it later in the app (My station)
 
 usage() {
     cat <<EOF
@@ -56,6 +57,8 @@ Eye of SaurCom in a Proxmox VE container (LXC). Run on the Proxmox node as root.
   --password PASS       password of the web page (default: a random one, printed at the end)
   --gpu auto|none|PATH  graphics chip for drawing and video encoding (default: auto: the first Intel or AMD render node)
   --serial              also pass the USB serial ports through (/dev/ttyUSB*, /dev/ttyACM*: GPS, CAT, rotators)
+  --location TEXT       where the station is: "52.1,-1.3" (latitude, longitude) or a Maidenhead locator (IO92, IO92ka). The maps open
+                        there and ranges are measured from it, until you set it in the app (My station). Asked for when not given
   --privileged          a privileged container (not needed for radios; less isolation)
   --no-host-setup       leave the node's udev rules and kernel modules as they are
   --yes, -y             do not ask
@@ -83,6 +86,7 @@ while [ $# -gt 0 ]; do
         --password) WEB_PASSWORD=$2; shift 2 ;;
         --gpu) GPU=$2; shift 2 ;;
         --serial) SERIAL=1; shift ;;
+        --location) LOCATION=$2; shift 2 ;;
         --privileged) PRIVILEGED=1; shift ;;
         --no-host-setup) HOST_SETUP=0; shift ;;
         --yes|-y) ASSUME_YES=1; shift ;;
@@ -118,6 +122,39 @@ asset() {
     if [ -n "$here" ] && [ -f "$here/$rel" ]; then cat "$here/$rel"; return; fi
     curl -fsSL "https://raw.githubusercontent.com/$REPO/$ASSET_REF/packaging/proxmox/$rel"
 }
+
+# The station location: a decimal pair "lat,lon" (a comma, a semicolon or spaces between) or a Maidenhead locator of 4, 6 or 8 characters.
+# Prints it normalised ("52.100000,-1.300000" or "IO92ka") and returns 0, or prints why not and returns 1. The app checks it again.
+check_location() {
+    local t=$1 la lo
+    t=$(printf '%s' "$t" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    if [[ $t =~ ^[A-Ra-r]{2}[0-9]{2}([A-Xa-x]{2}([0-9]{2})?)?$ ]]; then
+        printf '%s%s' "$(printf '%s' "${t:0:2}" | tr 'a-r' 'A-R')" "$(printf '%s' "${t:2}" | tr 'A-X' 'a-x')"
+        return 0
+    fi
+    if [[ $t =~ ^([+-]?[0-9]+([.][0-9]+)?)[[:space:]]*[,\;[:space:]][[:space:]]*([+-]?[0-9]+([.][0-9]+)?)$ ]]; then
+        la=${BASH_REMATCH[1]}; lo=${BASH_REMATCH[3]}
+        if awk -v a="$la" -v o="$lo" 'BEGIN { exit !(a >= -90 && a <= 90 && o >= -180 && o <= 180 && !(a == 0 && o == 0)) }'; then
+            awk -v a="$la" -v o="$lo" 'BEGIN { printf "%.6f,%.6f", a, o }'
+            return 0
+        fi
+        if awk -v a="$la" -v o="$lo" 'BEGIN { exit !(a >= -180 && a <= 180 && o >= -90 && o <= 90 && (a < -90 || a > 90)) }'; then
+            echo "latitude $la is out of range: latitude comes first (\"$lo,$la\"?)"
+        elif awk -v a="$la" -v o="$lo" 'BEGIN { exit !(a == 0 && o == 0) }'; then
+            echo "0,0 is not a station location"
+        else
+            echo "latitude must be -90 to 90 and longitude -180 to 180"
+        fi
+        return 1
+    fi
+    if [[ $t =~ ^[+-]?[0-9]+,[0-9]+[[:space:]]+[+-]?[0-9]+,[0-9]+$ ]]; then echo "use a dot for decimals: \"52.1,-1.3\""; return 1; fi
+    echo "not a location: give \"latitude,longitude\" in decimal degrees (52.1,-1.3) or a Maidenhead locator (IO92, IO92ka)"
+    return 1
+}
+if [ -n "$LOCATION" ]; then
+    LOCATION_N=$(check_location "$LOCATION") || { echo "error: --location \"$LOCATION\": $LOCATION_N" >&2; exit 2; }
+    LOCATION=$LOCATION_N
+fi
 
 # ---------------------------------------------------------------- checks
 [ "$(id -u)" = 0 ] || die "run this as root on the Proxmox node"
@@ -169,6 +206,16 @@ bad_chars='[[:space:]'\''"`$\\]'
 if [[ "$WEB_PASSWORD$WEB_USER" =~ $bad_chars ]]; then die "the user and password may not hold spaces, quotes, \$, \` or backslashes"; fi
 TZ_HOST=$(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || echo Etc/UTC)
 
+# the station location, asked for when not given and there is someone to ask (Enter skips: it can be set in the app at any time)
+if [ -z "$LOCATION" ] && [ "$ASSUME_YES" != 1 ] && [ -t 0 ]; then
+    while :; do
+        read -r -p "Station location (lat,lon or Maidenhead locator, Enter to skip): " ans || ans=""
+        [ -z "$ans" ] && break
+        if LOCATION_N=$(check_location "$ans"); then LOCATION=$LOCATION_N; break; fi
+        echo "  $LOCATION_N"
+    done
+fi
+
 # ---------------------------------------------------------------- summary
 cat <<EOF
 
@@ -180,6 +227,7 @@ ${B}Eye of SaurCom in a Proxmox container${N}
   USB radios     the whole USB bus (radios plugged in later appear without a restart)
   graphics chip  ${GPU_NODE:-none (the processor draws and encodes)}
   serial ports   $([ "$SERIAL" = 1 ] && echo "/dev/ttyUSB0-7, /dev/ttyACM0-7" || echo "no (--serial)")
+  location       ${LOCATION:-not set (--location; or in the app: My station, the pin in the top bar)}
   node setup     $([ "$HOST_SETUP" = 1 ] && echo "udev rules for the radios, kernel DVB/Mirics drivers kept off them" || echo "skipped")
 
 EOF
@@ -305,11 +353,12 @@ else
     rm -f "$updf"
 fi
 if [ "$DRY_RUN" = 1 ]; then
-    echo "    [dry-run] pct exec $CTID -- env SAURCOM_IMAGE=$IMAGE ... bash -s  < saurcom-lxc-setup.sh ($(wc -l <<<"$setup") lines)"
+    echo "    [dry-run] pct exec $CTID -- env SAURCOM_IMAGE=$IMAGE SAURCOM_LOCATION=$LOCATION ... bash -s  < saurcom-lxc-setup.sh ($(wc -l <<<"$setup") lines)"
 else
     pct exec "$CTID" -- env \
         SAURCOM_IMAGE="$IMAGE" SAURCOM_USER="$WEB_USER" SAURCOM_PASSWORD="$WEB_PASSWORD" TZ="$TZ_HOST" \
         SAURCOM_GPU="${GPU_NODE:+/dev/dri/$(basename "$GPU_NODE")}" SAURCOM_SERIAL="$SERIAL" SAURCOM_ASSET_REF="$ASSET_REF" \
+        SAURCOM_LOCATION="$LOCATION" \
         bash -s <<<"$setup"
 fi
 

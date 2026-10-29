@@ -1,7 +1,8 @@
 // StationLinks against a real RemoteApiServer on loopback: events arrive tagged with the site name, a resume after a restart of the server sends
 // since = the last seq (no duplicates), a stopped server turns the link to "retrying" with an error, a wrong token gives 401, stop() is quick,
 // received events are not stored in the event ring again (no loop), a reconnect backlog leaves the clock skew alone, and the keepalive: a quiet
-// server that answers pings stays live, a silent one (half-open) is dropped after the idle limit.
+// server that answers pings stays live, a silent one (half-open) is dropped after the idle limit. A remote station's position is range-checked:
+// out-of-range, non-finite, 0,0 and non-number values are ignored, with positionFromStatus directly and end to end through /api/v1/status.
 #include "../common/test_util.h"
 #include "../../core/src/net/tcp_client.h"
 #include "dect2/automation/engine.h"
@@ -28,6 +29,7 @@ struct TestHost : RemoteApiHost {
     std::vector<std::string> evs;          // seq i+1 is evs[i]
     uint64_t firstCursor = 0;              // the cursor of the last eventLines call that started a subscription
     bool withPos = true;
+    std::string status;                    // when set, the whole /api/v1/status answer
     void add(const std::string& type, double time) {
         std::lock_guard<std::mutex> lk(mu);
         evs.push_back("{\"type\":\"" + type + "\",\"time\":" + jsonNum(time) + ",\"mode\":\"ADS-B\",\"freq\":1090000000,\"f\":{\"n\":" + std::to_string(evs.size() + 1) + "}}");
@@ -41,7 +43,7 @@ struct TestHost : RemoteApiHost {
         while (cursor < evs.size() && n < max) { lines.push_back(evs[cursor]); cursor++; n++; }
         return n;
     }
-    std::string statusJson() override { return withPos ? "{\"running\":false,\"lat\":51.5,\"lon\":-0.12}" : "{\"running\":false}"; }
+    std::string statusJson() override { if (!status.empty()) return status; return withPos ? "{\"running\":false,\"lat\":51.5,\"lon\":-0.12}" : "{\"running\":false}"; }
     std::string devicesJson() override { return "[]"; }
     std::string modesJson() override { return "[]"; }
     std::string telemetryJson(uint64_t& seq) override { seq = 1; return "{}"; }
@@ -216,6 +218,39 @@ int main() {
         auto s2 = links.status();
         CHECK(s2[0].second.state == 2 && s2[0].second.events == 4, "live again, 4 events (%d, %llu)", s2[0].second.state, (unsigned long long)s2[0].second.events);
         CHECK(std::fabs(s2[0].second.clockSkewSec - skewBefore) < 0.5, "the minute-old backlog event left the skew alone (%f -> %f)", skewBefore, s2[0].second.clockSkewSec);
+    }
+
+    // a remote station's position is range-checked before anyone uses it (Review Focus 5): positionFromStatus directly ...
+    {
+        double la = 0, lo = 0, al = 0;
+        CHECK(positionFromStatus("{\"lat\":52.1,\"lon\":-1.3,\"alt\":120}", la, lo, al) && la == 52.1 && lo == -1.3 && al == 120, "a valid position and height");
+        CHECK(positionFromStatus("{\"lat\":123.0,\"lon\":-1.3}", la, lo, al) && std::isnan(la) && std::isnan(lo), "latitude 123: ignored");
+        CHECK(positionFromStatus("{\"lat\":52.1,\"lon\":-500}", la, lo, al) && std::isnan(la) && std::isnan(lo), "longitude -500: ignored");
+        CHECK(positionFromStatus("{\"lat\":0,\"lon\":0}", la, lo, al) && std::isnan(la) && std::isnan(lo), "0,0 is no position");
+        CHECK(positionFromStatus("{\"lat\":\"52.1\",\"lon\":\"-1.3\"}", la, lo, al) && std::isnan(la) && std::isnan(lo), "strings are not numbers");
+        positionFromStatus("{\"lat\":1e999,\"lon\":5}", la, lo, al);   // (the JSON reader may refuse it outright: either way no position)
+        CHECK(std::isnan(la) && std::isnan(lo), "infinity: ignored");
+        CHECK(positionFromStatus("{\"lat\":52.1,\"lon\":-1.3,\"alt\":99999}", la, lo, al) && la == 52.1 && std::isnan(al), "a height of 99999 m: the height alone is ignored");
+        CHECK(positionFromStatus("{\"lat\":-90,\"lon\":180,\"alt\":-500}", la, lo, al) && la == -90 && lo == 180 && al == -500, "the edges are valid");
+        CHECK(!positionFromStatus("not json", la, lo, al) && std::isnan(la), "not JSON: false, no position");
+    }
+    // ... and end to end: a station that reports an impossible position shows none, and its height is dropped
+    {
+        TestHost bad;
+        bad.status = "{\"running\":false,\"lat\":123.4,\"lon\":-500.0,\"alt\":99999}";
+        bad.add("adsb.aircraft", automation::wallNow());   // its arrival shows the position was read (readPosition comes before the events)
+        RemoteApiServer bs(bad);
+        RemoteApiConfig bc; bc.on = true; bc.port = 0;
+        CHECK(bs.configure(bc) && bs.status().listening, "second server starts");
+        StationLinks bl;
+        SiteConfig bsc; bsc.name = "badpos"; bsc.host = "127.0.0.1"; bsc.port = bs.config().port;
+        bl.configure({bsc});
+        CHECK(waitFor([&] { auto s = bl.status(); return !s.empty() && s[0].second.state == 2 && s[0].second.events >= 1; }, 5000), "the station with a bad position is live");
+        auto s = bl.status();
+        CHECK(std::isnan(s[0].second.lat) && std::isnan(s[0].second.lon) && std::isnan(s[0].second.altM), "its out-of-range position is ignored (%f, %f, %f)",
+              s[0].second.lat, s[0].second.lon, s[0].second.altM);
+        bl.stop();
+        bc.on = false; bs.configure(bc);
     }
 
     // stop() is quick
