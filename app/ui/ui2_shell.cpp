@@ -300,7 +300,12 @@ void statusLine(App& a) {
     const ModeDef* cur = &kModes[0];
     for (int i = 0; i < kNumModes; i++) if (modeSelected(a, kModes[i])) cur = &kModes[i];
     const float lh = ImGui::GetTextLineHeight();
-    auto field = [&](const char* text, bool first = false, ImVec4 col = ImVec4(-1, 0, 0, 0), bool fit = false) {
+    // num: a live number (frequency, rate, level, load) in the monospaced font, so the fields after it do not jump as its digits change
+    // (Inter, the default look, has proportional digits: a 1 is narrower than a 0)
+    auto field = [&](const char* text, bool first = false, ImVec4 col = ImVec4(-1, 0, 0, 0), bool fit = false, bool num = false) {
+        const bool mono = num && a.mono;
+        if (mono) ImGui::PushFont(a.mono, 0);   // measured and drawn in the same font
+        struct Pop { bool on; ~Pop() { if (on) ImGui::PopFont(); } } pop{mono};
         if (!first) {
             // the rule sits in the middle of an 8 px gap on each side: text, rule, text never touch
             const float gap = 8 * gUi;
@@ -317,14 +322,14 @@ void statusLine(App& a) {
     const bool scanning = !run && a.scanner.progress().running;   // the receiver let go of the radio for a channel scan
     field(tr(run ? "Receiving" : scanning ? "Channel scan" : "Stopped"), true, run || scanning ? pal::okGreen() : pal::grey());
     field(cur->name);
-    snprintf(b, sizeof b, "%.3f MHz", a.freqMhz); field(b);
-    if (run) { snprintf(b, sizeof b, "%.3f Msps", a.engine.sampleRate() / 1e6); field(b); }
-    if (run) { snprintf(b, sizeof b, tr("level %.1f dBFS"), a.spec.stats.rmsDbfs); field(b); }
+    snprintf(b, sizeof b, "%.3f MHz", a.freqMhz); field(b, false, ImVec4(-1, 0, 0, 0), false, true);
+    if (run) { snprintf(b, sizeof b, "%.3f Msps", a.engine.sampleRate() / 1e6); field(b, false, ImVec4(-1, 0, 0, 0), false, true); }
+    if (run) { snprintf(b, sizeof b, tr("level %.1f dBFS"), a.spec.stats.rmsDbfs); field(b, false, ImVec4(-1, 0, 0, 0), false, true); }
     if (run) {
         const SampleLoss l = a.engine.sampleLoss();
         static OverloadHint hint;   // once per start: DSP drops repeating within 5 s
         if (hint.update(l.cpuEvents, ImGui::GetTime())) a.engine.log(tr("This mode is too slow for this computer: samples are being dropped. Try a lower sample rate or a narrower mode."));
-        if (l.live) { snprintf(b, sizeof b, tr("load %.0f%%"), l.loadPct); field(b, false, l.loadPct > 90 ? pal::warnAmber() : ImVec4(-1, 0, 0, 0)); lossTooltip(l); }
+        if (l.live) { snprintf(b, sizeof b, tr("load %.0f%%"), l.loadPct); field(b, false, l.loadPct > 90 ? pal::warnAmber() : ImVec4(-1, 0, 0, 0), false, true); lossTooltip(l); }
         if (l.radioEvents || l.cpuEvents || l.rateLow) { field((std::string(tr("dropped")) + " " + lossText(l)).c_str(), false, lossColour(l)); lossTooltip(l); }
     }
     {   // CPU load meter: this process's CPU (100 = one core) and, while receiving, the receiver's DSP load
@@ -338,7 +343,7 @@ void statusLine(App& a) {
         gCpuPct = (float)cpuPct;
         const SampleLoss l = a.engine.sampleLoss();
         snprintf(b, sizeof b, "CPU %.0f%%", cpuPct);
-        field(b, false, cpuPct > 250 ? pal::warnAmber() : ImVec4(-1, 0, 0, 0));
+        field(b, false, cpuPct > 250 ? pal::warnAmber() : ImVec4(-1, 0, 0, 0), false, true);
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::Text("Process CPU: %.0f%% (100%% = one core)", cpuPct);
