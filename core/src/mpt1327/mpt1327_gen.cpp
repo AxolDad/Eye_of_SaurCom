@@ -86,6 +86,20 @@ uint64_t makeAck(int pfix, int ident1, int func, int ident2, int qual, int n) {
 
 uint64_t makeAhy(int pfix, int ident1, int func, int params18) { return general(pfix, ident1, 0, 2, func, (uint32_t)params18); }
 
+uint64_t makeMisc(int pfix, int ident1, int func, int chan) { return general(pfix, ident1, 0, 3, func, (uint32_t)(chan & 1023) << 8); }
+
+std::vector<uint8_t> trafficChannelBits(const std::vector<uint64_t>& cws, int preamble) {
+    std::vector<uint8_t> b;
+    auto word = [&](uint64_t v, int n) { for (int i = n - 1; i >= 0; i--) b.push_back((uint8_t)((v >> i) & 1)); };
+    for (uint64_t c : cws) {
+        for (int i = 0; i < preamble; i++) b.push_back((uint8_t)((i & 1) ^ 1));
+        word(kSynt, 16);
+        word(c, 64);
+    }
+    for (int i = 0; i < 16; i++) b.push_back((uint8_t)((i & 1) ^ 1));   // a little more so the last codeword is completely received
+    return b;
+}
+
 uint64_t makeBcast(int sysdef, int sys, int params18) {
     uint64_t i = 0;
     i = put(i, 1, 1, 1);

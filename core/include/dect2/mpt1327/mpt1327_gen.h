@@ -16,6 +16,11 @@ uint64_t makeAhy(int pfix, int ident1, int func = 0, int params18 = 0);
 uint64_t makeBcast(int sysdef, int sys, int params18);                      // params: the 18 bits after FUNC
 uint64_t makeBcastChannel(int sysdef, int sys, int chan, int adjsite = 0);  // announce (0), withdraw (1) or adjacent site (4) control channel
 
+// Miscellaneous (category 000, type 11) address codewords: func 1 MAINT, 2 CLEAR, 3 MOVE; chan in bits 31 .. 40
+uint64_t makeMisc(int pfix, int ident1, int func, int chan);
+// Bits of codewords sent on a traffic channel: each one after a preamble of bit reversals and SYNT
+std::vector<uint8_t> trafficChannelBits(const std::vector<uint64_t>& codewords, int preamble = 16);
+
 // A data codeword with the given 47 bits of information (bit 1 = 0).
 uint64_t makeData(uint64_t info47);
 

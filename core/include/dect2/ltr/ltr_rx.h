@@ -1,4 +1,4 @@
-// LTR control channel receiver: FM discriminator, 150 Hz low pass, 300 bit/s slicer, sync search in both polarities.
+// LTR receiver: FM discriminator, 150 Hz low pass, 300 bit/s slicer, sync search in both polarities; the FM voice above 300 Hz.
 // Written to the engine's contract: configure() once the sample rate is known, feed() from the analysis thread, telemetry() from the interface thread.
 #pragma once
 #include "dect2/common/ring.h"
@@ -26,6 +26,12 @@ public:
     void feed(const cf32* x, size_t n);
     bool telemetry(LtrTelemetry& out, uint64_t lastSeq);
     void setLogCallback(std::function<void(const std::string&)> cb);
+    // the repeater's voice: played only while enabled (the trunking follower has a call here) and a carrier is there
+    void setVoice(bool enabled);
+    void setVolume(float v);
+    void setMuted(bool m);
+    void setSilent(bool s);
+    void setAudioTap(std::function<void(const float* mono48k, size_t n)> cb);   // tests
 private:
     struct Impl;
     std::unique_ptr<Impl> p_;

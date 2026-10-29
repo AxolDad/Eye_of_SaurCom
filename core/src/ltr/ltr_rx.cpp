@@ -1,10 +1,12 @@
 // LTR receiver: FM front end at 9600 Hz, 150 Hz low pass, decimate to 2400 Hz (8 samples per bit), integrate-and-dump slicing at every
 // phase, and a search for the 9-bit sync in both polarities. Neighbouring phases that hit the same word are merged (the middle one is used).
 #include "dect2/ltr/ltr_rx.h"
+#include "dect2/dsp/analog_voice.h"
 #include "dect2/dsp/fm_front.h"
 #include "dect2/ltr/ltr_proto.h"
 #include "dect2/ltr/ltr_tel.h"
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <ctime>
 #include <map>
@@ -16,7 +18,7 @@ ModeTuning ltrTuning() {
     ModeTuning t;
     t.stdMode = 131;
     t.id = "ltr";
-    t.name = "LTR trunking (WIP)";
+    t.name = "LTR trunking";
     t.minMhz = 29.7;
     t.maxMhz = 960.0;
     t.defMhz = 460.0;
@@ -29,11 +31,12 @@ ModeTuning ltrTuning() {
 }
 
 namespace {
-constexpr double kWork = 9600.0;
-constexpr int kDecim = 4;
+constexpr double kWork = 24000.0;      // the discriminator's rate: the voice (and the squelch's noise band) needs it
+constexpr int kDecim = 10;
 constexpr int kSps = 8;                 // samples per bit at 2400 Hz
 constexpr double kMinRangeHz = 80.0;    // the data must swing at least this much (peak to peak) to be believed
 constexpr double kLockSec = 15.0;
+std::atomic<uint64_t> gWordSeq{0};
 }
 
 struct LtrReceiver::Impl {
@@ -43,6 +46,7 @@ struct LtrReceiver::Impl {
     FmFront fm;
     FmBiquad lp[2];
     EyeEnvelope env;
+    AnalogVoice voice;
     std::vector<float> disc;
     double fs = 0, offHz = 0, centreHz = 0;
     bool rateSet = false;
@@ -59,12 +63,12 @@ struct LtrReceiver::Impl {
     double timeSec() const { return (double)n / (kWork / kDecim); }
 
     void clearState() {
-        fm.reset(); lp[0].clear(); lp[1].clear(); env.clear();
+        fm.reset(); lp[0].clear(); lp[1].clear(); env.clear(); voice.reset();
         n = 0; dcount = 0; for (auto& r : ring) r = 0; for (auto& r : reg) r = 0;
         hits.clear(); suppressUntil = firstHit = 0; lastGoodSec = -1e9; lastPub = 0; rep.clear();
         const uint64_t s = tel.seq;
         tel = LtrTelemetry();
-        tel.seq = s + 1; tel.inputRate = fs; tel.centerHz = centreHz; tel.state = rateSet ? 1 : 0;
+        tel.seq = s + 1; tel.inputRate = fs; tel.centerHz = centreHz; tel.channelHz = centreHz + offHz; tel.state = rateSet ? 1 : 0;
     }
 
     void handle(const Hit& h) {
@@ -109,6 +113,11 @@ struct LtrReceiver::Impl {
         tel.blocksOk++;
         tel.dataValid = true;
         lastGoodSec = m.timeSec;
+        LtrWordRec wr;
+        wr.seq = ++gWordSeq; wr.area = word.area; wr.gotoCh = word.gotoCh; wr.home = word.home; wr.id = word.id; wr.freeCh = word.freeCh; wr.timeSec = m.timeSec;
+        tel.words.push_back(wr);
+        if (tel.words.size() > kLtrWordMax) tel.words.erase(tel.words.begin(), tel.words.end() - (long)kLtrWordMax);
+        if (word.gotoCh == ltr::kTurnOff) { tel.turnOffs++; tel.turnOffArea = word.area; tel.turnOffHome = word.home; tel.turnOffId = word.id; }
         if (log) log("LTR " + m.talkgroup + (m.kind.empty() ? "" : " " + m.kind));
     }
 
@@ -143,6 +152,8 @@ struct LtrReceiver::Impl {
         tel.locked = timeSec() - lastGoodSec < kLockSec;
         tel.state = rateSet ? (tel.locked ? 2 : 1) : 0;
         tel.snrDb = 0;
+        tel.voice = voice.state();
+        voice.markReported();
         tel.seq++;
     }
 };
@@ -153,14 +164,15 @@ LtrReceiver::~LtrReceiver() = default;
 void LtrReceiver::configure(double inputRateHz) {
     std::lock_guard<std::mutex> lk(p_->mu);
     p_->fs = inputRateHz;
-    p_->rateSet = inputRateHz >= ltrTuning().minSampleRate - 1 && p_->fm.configure(inputRateHz, kWork, 4500.0);
+    p_->rateSet = inputRateHz >= ltrTuning().minSampleRate - 1 && p_->fm.configure(inputRateHz, kWork, 6000.0);
+    p_->voice.configure(kWork, 3000, 5000);
     p_->fm.setOffset(p_->offHz);
     p_->lp[0].lowpass(150.0, kWork, 0.5412);
     p_->lp[1].lowpass(150.0, kWork, 1.3066);
     p_->clearState();
 }
-void LtrReceiver::setSignalOffset(double hz) { std::lock_guard<std::mutex> lk(p_->mu); p_->offHz = hz; p_->fm.setOffset(hz); }
-void LtrReceiver::setCenterHz(double hz) { std::lock_guard<std::mutex> lk(p_->mu); p_->centreHz = hz; p_->tel.centerHz = hz; }
+void LtrReceiver::setSignalOffset(double hz) { std::lock_guard<std::mutex> lk(p_->mu); p_->offHz = hz; p_->fm.setOffset(hz); p_->tel.channelHz = p_->centreHz + hz; }
+void LtrReceiver::setCenterHz(double hz) { std::lock_guard<std::mutex> lk(p_->mu); p_->centreHz = hz; p_->tel.centerHz = hz; p_->tel.channelHz = hz + p_->offHz; }
 bool LtrReceiver::ready() const { return p_->rateSet; }
 void LtrReceiver::reset() { std::lock_guard<std::mutex> lk(p_->mu); p_->clearState(); }
 void LtrReceiver::clearMessages() {
@@ -173,6 +185,7 @@ void LtrReceiver::feed(const cf32* x, size_t n) {
     if (!p_->rateSet) { p_->tel.state = 0; return; }
     p_->disc.clear();
     p_->fm.feed(x, n, p_->disc);
+    p_->voice.push(p_->disc.data(), p_->disc.size());
     for (float d : p_->disc) {
         const double y = p_->lp[1].run(p_->lp[0].run(d));
         if (++p_->dcount == kDecim) { p_->dcount = 0; p_->sample(y); }
@@ -185,6 +198,11 @@ bool LtrReceiver::telemetry(LtrTelemetry& out, uint64_t lastSeq) {
     out = p_->tel;
     return true;
 }
+void LtrReceiver::setVoice(bool on) { p_->voice.setEnabled(on); }
+void LtrReceiver::setVolume(float v) { p_->voice.setVolume(v); }
+void LtrReceiver::setMuted(bool m) { p_->voice.setMuted(m); }
+void LtrReceiver::setSilent(bool s) { p_->voice.setSilent(s); }
+void LtrReceiver::setAudioTap(std::function<void(const float*, size_t)> cb) { std::lock_guard<std::mutex> lk(p_->mu); p_->voice.setTap(std::move(cb)); }
 void LtrReceiver::setLogCallback(std::function<void(const std::string&)> cb) { std::lock_guard<std::mutex> lk(p_->mu); p_->log = std::move(cb); }
 
 } // namespace dect2

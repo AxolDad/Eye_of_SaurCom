@@ -1,5 +1,6 @@
 // LTR word encode / parse and the test-signal modulator (see ltr_proto.h for the sources and what is not established).
 #include "dect2/ltr/ltr_proto.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 
@@ -48,6 +49,37 @@ std::string kindOf(int id) {
     if (id == 253) return "busy";
     if (id >= 240 && id <= 247) return "token";
     return "";
+}
+
+std::string tgText(int n) {
+    char s[24];
+    snprintf(s, sizeof s, "%d-%02d-%03d", n / 100000, (n / 1000) % 100, n % 1000);
+    return s;
+}
+
+std::vector<cf32> transmission(double fs, double offsetHz, int area, int rep, int home, int id, double voiceSec, double toneHz, int turnOff, float amp) {
+    std::vector<uint8_t> bits;
+    for (int i = 0; i < 40; i++) bits.push_back((uint8_t)(i & 1));
+    Word w; w.area = area; w.gotoCh = rep; w.home = home; w.id = id; w.freeCh = rep == 1 ? 2 : 1;
+    const int words = std::max(1, (int)(voiceSec * kBaud / 52));
+    for (int k = 0; k < words; k++) {
+        const auto e = encodeWord(w);
+        bits.insert(bits.end(), e.begin(), e.end());
+        for (int i = 0; i < 12; i++) bits.push_back((uint8_t)((i * 5 + k) & 1));
+    }
+    std::vector<cf32> out = modulate(bits, fs, offsetHz, 500.0, amp, toneHz, 2500.0);
+    if (turnOff > 0) {
+        std::vector<uint8_t> tb;
+        Word t = w; t.gotoCh = kTurnOff;
+        for (int k = 0; k < turnOff; k++) {
+            const auto e = encodeWord(t);
+            tb.insert(tb.end(), e.begin(), e.end());
+            for (int i = 0; i < 12; i++) tb.push_back((uint8_t)(i & 1));
+        }
+        const auto o = modulate(tb, fs, offsetHz, 500.0, amp);
+        out.insert(out.end(), o.begin(), o.end());
+    }
+    return out;
 }
 
 std::vector<cf32> modulate(const std::vector<uint8_t>& bits, double fs, double offsetHz, double devHz, float amp, double voiceHz, double voiceDevHz, bool invert) {

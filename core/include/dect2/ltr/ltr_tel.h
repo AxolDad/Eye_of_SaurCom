@@ -1,6 +1,7 @@
 // LTR (Logic Trunked Radio) telemetry. RxTelemetry::ltr, engine standard 131, active standard 130 (family 129).
-// Control data only: the 300 bit/s subaudible words. No voice is decoded. Receive only.
+// The 300 bit/s subaudible words, and the repeater's FM voice (played when the trunking follower carries a call here). Receive only.
 #pragma once
+#include "dect2/dsp/analog_voice.h"
 #include <cstdint>
 #include <cstdio>
 #include <string>
@@ -16,6 +17,13 @@ struct LtrMessage {
     bool plausible = false;                                    // the fields are in their documented ranges
     std::string talkgroup;                                     // A-HH-GGG
     std::string kind;                                          // idle, callsign ID, busy, token, or empty
+};
+
+// One word for the trunking follower: the sequence number is unique across receivers (the follower remembers the last one taken)
+struct LtrWordRec {
+    uint64_t seq = 0;
+    int area = 0, gotoCh = 0, home = 0, id = 0, freeCh = 0;
+    double timeSec = 0;
 };
 
 struct LtrRepeater {
@@ -37,7 +45,14 @@ struct LtrTelemetry {
     double timeSec = 0, inputRate = 0, centerHz = 0;
     std::vector<LtrMessage> messages;       // newest first
     std::vector<LtrRepeater> repeaters;     // numbers seen, ascending
+    std::vector<LtrWordRec> words;          // the last good words, oldest first, at most kLtrWordMax
+    uint64_t turnOffs = 0;                  // turn-off words (go-to 31) heard: the end of a transmission
+    int turnOffArea = -1, turnOffHome = -1, turnOffId = -1;   // the last one's talkgroup
+    double channelHz = 0;                   // the channel decoded (the radio's centre + the offset)
+    AnalogVoiceState voice;
 };
+
+constexpr size_t kLtrWordMax = 96;
 
 constexpr size_t kLtrLogMax = 400;
 

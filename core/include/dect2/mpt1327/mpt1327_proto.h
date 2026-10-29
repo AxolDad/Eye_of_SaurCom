@@ -8,7 +8,7 @@
 namespace dect2::mpt1327 {
 
 constexpr uint16_t kSync = 0xC4D7;   // control channel codeword synchronisation sequence SYNC, bit 1 first (section 3.2.1.1)
-constexpr uint16_t kSynt = 0x3B28;   // traffic channel sequence SYNT (section 3.2.1.2); not used by the control channel receiver
+constexpr uint16_t kSynt = 0x3B28;   // traffic channel sequence SYNT (section 3.2.1.2): the codewords on a traffic channel (CLEAR, MAINT) follow it
 
 // A codeword is held in a uint64_t with codeword bit 1 (the first one transmitted) as bit 63 and bit 64 as bit 0.
 uint64_t encode(uint64_t info48);        // info48: codeword bits 1 .. 48 (bit 1 in bit 47); returns the 64-bit codeword with its check bits
@@ -28,8 +28,11 @@ struct Message {
     Address caller;         // IDENT2 (the standard gives it without a prefix of its own), pfix -1
     int channel = -1;       // channel number (GTC: the allocated channel; BCAST: the control channel announced), -1 when the message has none
     int sys = -1;           // system identity (BCAST), -1 when the message has none
+    bool dataCall = false;  // GTC: a data call (the audio is muted), not speech
     uint64_t cw = 0;
 };
+// A called address as one number for the talkgroup list: prefix * 8192 + ident (the 20-bit MPT 1327 address)
+inline int addressNumber(const Address& a) { return a.ident < 0 ? -1 : (a.pfix < 0 ? 0 : a.pfix) * 8192 + a.ident; }
 
 uint32_t field(uint64_t cw, int firstBit, int count);   // codeword bits firstBit .. firstBit+count-1 (1-based) as a number, first bit most significant
 bool decodeAddress(uint64_t cw, Message& m);             // false when bit 1 is 0 (a data codeword); the check bits are not tested here

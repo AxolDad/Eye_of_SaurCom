@@ -174,11 +174,26 @@ int main() {
         CHECK(sameSeq(decode(ffskAudio(b, 24000), 24000), want), "two bit errors in message 1");
     }
 
+    // --- a traffic channel: CLEAR and MAINT after SYNT (the complement of SYNC), either polarity, after speech
+    for (int inv = 0; inv < 2; inv++) {
+        std::vector<float> a;
+        for (int i = 0; i < 48000; i++) a.push_back(0.8f * (float)std::sin(2 * 3.14159265358979323846 * 1000.0 * i / 48000.0));   // speech: a tone
+        const auto f = ffskAudio(trafficChannelBits({makeMisc(5, 1234, 1, 17), makeMisc(5, 1234, 2, 17)}), 48000, inv == 1, 0.5f);
+        a.insert(a.end(), f.begin(), f.end());
+        a.resize(a.size() + 4800, 0.f);
+        Decoder d;
+        d.process(a.data(), a.size(), 48000);
+        int clear = 0, maint = 0, ctl = 0;
+        for (const Event& e : d.takeEvents()) { if (e.traffic && e.msg.type == "CLEAR") clear++; if (e.traffic && e.msg.type == "MAINT") maint++; if (!e.traffic) ctl++; }
+        CHECK(clear == 1 && maint == 1 && ctl == 0 && d.stats().synt == 2, "traffic channel%s: CLEAR %d MAINT %d, %d taken as control channel messages, %llu SYNT",
+              inv ? " (inverted)" : "", clear, maint, ctl, (unsigned long long)d.stats().synt);
+    }
+
     // --- registered tuning
     {
 #ifndef MPT_STANDALONE   // quick compile of the mode sources alone (no engine registry)
         const ModeTuning* reg = modeTuning(129);
-        CHECK(reg != nullptr && std::string(reg->name) == "MPT1327 trunking (WIP)" && std::string(reg->id) == "mpt1327", "modeTuning(129)");
+        CHECK(reg != nullptr && std::string(reg->name) == "MPT1327 trunking" && std::string(reg->id) == "mpt1327", "modeTuning(129)");
 #endif
         CHECK(mpt1327Tuning().stdMode == 129, "stdMode");
     }

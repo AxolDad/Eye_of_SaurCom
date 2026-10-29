@@ -3,6 +3,7 @@
 #include "dect2/mpt1327/mpt1327_engine.h"
 #include "dect2/mpt1327/mpt1327_rx.h"
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstdio>
 #include <map>
@@ -15,6 +16,7 @@ constexpr double kPi = 3.14159265358979323846;
 constexpr double kTargetFs = 24000.0;
 constexpr size_t kMaxRows = 200;
 constexpr float kAudioScale = 1.0f / 3000.0f;   // discriminator Hz to audio units (any scale works: the detector uses signs)
+std::atomic<uint64_t> gMsgSeq{0};
 }
 
 struct MptReceiver::Impl {
@@ -29,7 +31,8 @@ struct MptReceiver::Impl {
     std::complex<float> acc{0, 0};
     int accN = 0;
     std::complex<float> lastZ{0, 0};
-    std::vector<float> audio;
+    std::vector<float> audio, hz;
+    AnalogVoice voice;
     double powSum = 0;
     size_t powN = 0;
     uint64_t seq = 0;
@@ -42,7 +45,8 @@ struct MptReceiver::Impl {
 
     void clearState() {
         dec.reset();
-        audio.clear();
+        voice.reset();
+        audio.clear(); hz.clear();
         acc = {0, 0}; accN = 0; lastZ = {0, 0}; phase = 0;
         powSum = 0; powN = 0;
         seenMessages = 0;
@@ -51,11 +55,13 @@ struct MptReceiver::Impl {
         snap.seq = seq;
         snap.inputRate = rate;
         snap.centerHz = centerHz;
+        snap.channelHz = centerHz + offsetHz;
     }
 
     void processAudio() {
         dec.process(audio.data(), audio.size(), fsEff);
-        audio.clear();
+        voice.push(hz.data(), hz.size());
+        audio.clear(); hz.clear();
         const mpt1327::Stats& st = dec.stats();
         for (const mpt1327::Event& e : dec.takeEvents()) {
             MptMessageRow r;
@@ -66,6 +72,13 @@ struct MptReceiver::Impl {
             r.channel = e.msg.channel;
             r.detail = e.msg.detail;
             snap.rows.push_back(r);
+            MptMsgRec q;
+            q.seq = ++gMsgSeq; q.t = e.t; q.type = e.msg.type; q.calledPfix = e.msg.called.pfix; q.calledIdent = e.msg.called.ident;
+            q.callerIdent = e.msg.caller.ident; q.channel = e.msg.channel; q.traffic = e.traffic; q.dataCall = e.msg.dataCall;
+            snap.msgs.push_back(q);
+            if (snap.msgs.size() > 96) snap.msgs.erase(snap.msgs.begin(), snap.msgs.end() - 96);
+            if (e.traffic && e.msg.type == "CLEAR") snap.clears++;
+            if (e.traffic && e.msg.type == "MAINT") snap.maints++;
             if (snap.rows.size() > kMaxRows) snap.rows.erase(snap.rows.begin(), snap.rows.begin() + (long)(snap.rows.size() - kMaxRows));
             if (e.msg.channel >= 0) {
                 MptChannelRow& c = chans[e.msg.channel];
@@ -87,6 +100,9 @@ struct MptReceiver::Impl {
         snap.blocksOk = st.good;
         snap.blocksBad = st.bad;
         snap.state = st.locked ? 2 : 1;
+        snap.synt = st.synt;
+        snap.voice = voice.state();
+        voice.markReported();
         if (powN) snap.levelDb = (float)(10.0 * std::log10(powSum / (double)powN + 1e-20));
         powSum = 0; powN = 0;
         if (snap.messages != seenMessages) {
@@ -108,15 +124,17 @@ void MptReceiver::configure(double inputRateHz) {
     p_->decim = inputRateHz > kTargetFs ? (int)std::lround(inputRateHz / kTargetFs) : 1;
     if (p_->decim < 1) p_->decim = 1;
     p_->fsEff = inputRateHz / p_->decim;
+    p_->voice.configure(p_->fsEff, 3000, 6000);
     p_->clearState();
 }
 
-void MptReceiver::setSignalOffset(double hz) { std::lock_guard<std::mutex> l(p_->mu); p_->offsetHz = hz; }
+void MptReceiver::setSignalOffset(double hz) { std::lock_guard<std::mutex> l(p_->mu); p_->offsetHz = hz; p_->snap.channelHz = p_->centerHz + hz; }
 
 void MptReceiver::setCenterHz(double hz) {
     std::lock_guard<std::mutex> l(p_->mu);
     p_->centerHz = hz;
     p_->snap.centerHz = hz;
+    p_->snap.channelHz = hz + p_->offsetHz;
 }
 
 bool MptReceiver::ready() const {
@@ -148,6 +166,7 @@ void MptReceiver::feed(const std::complex<float>* x, size_t n) {
             s.lastZ = z;
             const float hz = (float)(std::atan2(d.imag(), d.real()) * s.fsEff / (2 * kPi));
             s.audio.push_back(hz * kAudioScale);
+            s.hz.push_back(hz);
             if (s.audio.size() >= block) s.processAudio();
         }
     }
@@ -162,6 +181,12 @@ bool MptReceiver::telemetry(MptTelemetry& out, uint64_t lastSeq) {
     return true;
 }
 
+void MptReceiver::setVoice(bool on) { p_->voice.setEnabled(on); }
+void MptReceiver::setVolume(float v) { p_->voice.setVolume(v); }
+void MptReceiver::setMuted(bool m) { p_->voice.setMuted(m); }
+void MptReceiver::setSilent(bool s) { p_->voice.setSilent(s); }
+void MptReceiver::setAudioTap(std::function<void(const float*, size_t)> cb) { std::lock_guard<std::mutex> l(p_->mu); p_->voice.setTap(std::move(cb)); }
+
 void MptReceiver::setLogCallback(std::function<void(const std::string&)> cb) {
     std::lock_guard<std::mutex> l(p_->mu);
     p_->log = std::move(cb);
@@ -171,7 +196,7 @@ ModeTuning mpt1327Tuning() {
     ModeTuning t;
     t.stdMode = 129;
     t.id = "mpt1327";
-    t.name = "MPT1327 trunking (WIP)";
+    t.name = "MPT1327 trunking";
     t.minMhz = 30;
     t.maxMhz = 520;
     t.defMhz = 170;

@@ -85,6 +85,7 @@ bool decodeAddress(uint64_t cw, Message& m) {
         m.called = {pfix, ident1};
         m.channel = (int)field(cw, 24, 10);
         m.caller = {-1, (int)field(cw, 34, 13)};
+        m.dataCall = field(cw, 23, 1) != 0;
         snprintf(b, sizeof b, "go to channel %d, %s", m.channel, field(cw, 23, 1) ? "data (audio muted)" : "speech");
         m.detail = b;
         return true;
