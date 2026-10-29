@@ -17,9 +17,12 @@ namespace {
 int count(const std::vector<Action>& v, Action::Kind k) { int n = 0; for (const Action& a : v) n += a.kind == k; return n; }
 const Action* find(const std::vector<Action>& v, Action::Kind k) { for (const Action& a : v) if (a.kind == k) return &a; return nullptr; }
 const CallRecord* last(const Controller& c) { return c.log.records().empty() ? nullptr : &c.log.records().back(); }
-uint32_t edacsMsg(edacs::Message::Kind k, int lcn, int group, int lid = 0, bool digital = false, bool update = false) {
-    edacs::Message m; m.kind = k; m.lcn = lcn; m.group = group; m.lid = lid; m.digital = digital; m.update = update;
-    return edacs::build(m);
+// one EDACS frame (standard / networked set unless ea), fed to the controller
+void edacsFrame(Controller& c, double t, edacs::Message::Kind k, int lcn, int group, int target = -1, int source = -1, bool digital = false, bool ea = false) {
+    edacs::Message m; m.kind = k; m.lcn = lcn; m.group = group; m.target = target; m.source = source; m.digital = digital; m.individual = target >= 0;
+    uint32_t a, b;
+    edacs::build(m, ea ? edacs::Mode::Extended : edacs::Mode::Standard, a, b);
+    c.onEdacs(a, b, t);
 }
 }
 
@@ -51,36 +54,52 @@ int main() {
         c.edacs.lcns.parse("1,851.0125\n2,851.2625\n3,851.5125\n", 31);
         c.setCapture(851.0125e6, 0);
         c.setVoiceRadios(2);
-        c.onEdacs(edacsMsg(edacs::Message::Idle, 0, 0), 0.0);
-        { edacs::Message s; s.kind = edacs::Message::SystemId; s.sysId = 0x1A2B; s.site = 4; c.onEdacs(edacs::build(s), 0.1); }
-        CHECK(c.edacs.sysId() == 0x1A2B && c.edacs.site() == 4, "system ID %04X site %d", c.edacs.sysId(), c.edacs.site());
-        c.onEdacs(edacsMsg(edacs::Message::GroupVoice, 3, 0x2A5), 0.2);
+        using M = edacs::Message;
+        c.onEdacs(0xFD03011, 0, 0.1);   // site ID 0x11, control channel LCN 3 (a frame written from dsd-fme's masks)
+        CHECK(c.edacs.site() == 0x11, "site ID %d", c.edacs.site());
+        edacsFrame(c, 0.2, M::GroupVoice, 3, 0x2A5, -1, 0x1ABC);
         auto a = c.takeActions();
         const Action* r = find(a, Action::Retune);
         CHECK(r && r->radio == 0 && std::fabs(r->freqHz - 851512500) < 1 && !r->p25p2, "group call on LCN 3 -> voice radio 0 on 851.5125 MHz");
         const CallRecord* rec = last(c);
-        CHECK(rec && rec->kind == SysKind::Edacs && rec->tg == 0x2A5 && rec->group && rec->followed && rec->label == "05-045", "the call record: EDACS group %d (%s)", rec ? rec->tg : -1, rec ? rec->label.c_str() : "");
-        c.onEdacs(edacsMsg(edacs::Message::GroupVoice, 3, 0x2A5, 0, false, true), 1.0);   // the update: the same call
-        CHECK(count(c.takeActions(), Action::Retune) == 0 && c.log.records().size() == 1, "an update refreshes the running call");
-        c.onEdacs(edacsMsg(edacs::Message::GroupVoice, 9, 0x100), 1.1);   // LCN 9 is not in the table
+        CHECK(rec && rec->kind == SysKind::Edacs && rec->tg == 0x2A5 && rec->src == 0x1ABC && rec->group && rec->followed && rec->label == "05-045",
+              "the call record: EDACS group %d (%s) from LID %d", rec ? rec->tg : -1, rec ? rec->label.c_str() : "", rec ? rec->src : -1);
+        { M u; u.kind = M::ChannelUpdate; u.lcn = 3; u.group = 0x2A5; uint32_t x, y; edacs::build(u, edacs::Mode::Standard, x, y); c.onEdacs(x, y, 1.0); }   // the update
+        CHECK(count(c.takeActions(), Action::Retune) == 0 && c.log.records().size() == 1, "a channel update refreshes the running call");
+        edacsFrame(c, 1.1, M::GroupVoice, 9, 0x100);   // LCN 9 is not in the table
         CHECK(last(c)->note.find("not in your channel list") != std::string::npos && !last(c)->followed, "LCN 9: %s", last(c)->note.c_str());
-        c.onEdacs(edacsMsg(edacs::Message::GroupVoice, 2, 0x101, 0, true), 1.2);   // ProVoice
+        edacsFrame(c, 1.15, M::GroupVoice, 30, 0x102);   // LCN 30: "system busy", not a channel
+        CHECK(last(c)->tg != 0x102, "an LCN status value is no call");
+        edacsFrame(c, 1.2, M::GroupVoice, 2, 0x101, -1, -1, true);   // ProVoice
         CHECK(last(c)->provoice && !last(c)->followed && last(c)->note.find("ProVoice") != std::string::npos, "ProVoice is logged as ProVoice: %s", last(c)->note.c_str());
-        // an individual call: the caller follows in the frame's second message
-        c.onEdacs(edacsMsg(edacs::Message::IndivVoice, 1, 0, 12345), 1.3);
-        c.onEdacs(edacsMsg(edacs::Message::Caller, 0, 0, 4321), 1.3);
+        edacsFrame(c, 1.3, M::IndivVoice, 1, -1, 12345, 4321);   // an individual call: callee and caller in the frame
         a = c.takeActions();
         rec = last(c);
         CHECK(rec && !rec->group && rec->tg == 12345 && rec->src == 4321 && rec->followed && count(a, Action::Retune) == 1 && find(a, Action::Retune)->radio == 1,
               "individual call to LID %d from %d on voice radio 1", rec ? rec->tg : -1, rec ? rec->src : -1);
-        // lockout and priority work as for P25
         c.tgs.upsert(0x300).lockout = true;
-        c.onEdacs(edacsMsg(edacs::Message::GroupVoice, 1, 0x300), 1.4);
+        edacsFrame(c, 1.4, M::GroupVoice, 1, 0x300);
         CHECK(!last(c)->followed && count(c.takeActions(), Action::Retune) == 0, "a locked out group is logged, not followed (%s)", last(c)->note.c_str());
         c.tgs.upsert(0x301).priority = 1;
-        c.onEdacs(edacsMsg(edacs::Message::GroupVoice, 2, 0x301), 1.5);   // both radios busy: the priority group takes one
+        edacsFrame(c, 1.5, M::GroupVoice, 2, 0x301);   // both radios busy: the priority group takes one
         a = c.takeActions();
         CHECK(last(c)->followed && count(a, Action::ReleaseRadio) == 1 && count(a, Action::Retune) == 1, "priority 1 takes a busy voice radio");
+        const uint64_t onLcn2 = last(c)->id;
+        { M d; d.kind = M::UnkeyDrop; d.drop = true; d.lcn = 2; uint32_t x, y; edacs::build(d, edacs::Mode::Standard, x, y); c.onEdacs(x, y, 1.6); }
+        c.tick(1.61);
+        CHECK(!c.log.byId(onLcn2)->active, "a console drop of LCN 2 ends the call on it");
+        // extended addressing: a 16-bit group
+        Controller e;
+        e.follower.setConfig(fc);
+        e.edacs.mode = 1;
+        e.edacs.lcns.parse("12,852.5\n", 31);
+        e.setCapture(851.0125e6, 0);
+        e.setVoiceRadios(1);
+        e.onEdacs(0x319BEEF, 0x0312345, 2.0);   // EA analog group call update, LCN 12, group 0xBEEF, emergency, source 0x12345
+        rec = last(e);
+        CHECK(rec && rec->tg == 0xBEEF && rec->src == 0x12345 && rec->emergency && rec->followed && find(e.takeActions(), Action::Retune), "EA group call followed: group %X", rec ? rec->tg : -1);
+        e.onEdacs(0xFC01A2B, 0x0000005, 2.1);
+        CHECK(e.edacs.sysId() == 0x1A2B, "EA system ID %X", e.edacs.sysId());
         c.tick(10);
         CHECK(c.nowTalking().empty(), "the calls end with the hang time");
     }

@@ -1,5 +1,6 @@
 // EDACS receiver: FM front end at 76.8 kHz, the 48-bit sync (edacs::kSync or its complement) searched on hard decisions at every sample
-// phase, then the 240 payload bits sliced at the bit centres the sync gives, voted (three copies) and checked (BCH(40,28)) per message.
+// phase, then the 240 payload bits sliced at the bit centres the sync gives, voted (three copies) and checked (BCH(40,28)) per message,
+// in the polarity the BCH accepts. Frame handling after dsd-fme's src/edacs-fme.c (ISC licence).
 // Working channels: the FM voice through AnalogVoice, the subaudible low-speed data's level, and ProVoice detection (zero crossings that keep
 // to the 9600 bit/s clock while no EDACS frame decodes).
 #include "dect2/edacs/edacs_rx.h"
@@ -60,7 +61,7 @@ struct EdacsReceiver::Impl {
     uint64_t reg[16] = {};                // last 48 hard bits per phase
     struct Hit { uint64_t n; bool inv; };
     std::vector<Hit> hits;
-    uint64_t firstHit = 0, evalAt = 0, centre = 0, quietUntil = 0;
+    uint64_t firstHit = 0, evalAt = 0, centre = 0, quietUntil = 0, dotQuiet = 0;
     bool pending = false, pendInv = false;
     double lastGoodSec = -1e9, lastPub = 0;
     std::map<uint32_t, uint64_t> wordCount;
@@ -74,7 +75,7 @@ struct EdacsReceiver::Impl {
     void clearState() {
         fm.reset(); for (auto& b : post) b.clear(); for (auto& b : lsdLp) b.clear(); env.clear(); voice.reset();
         n = 0; for (auto& r : ring) r = 0; for (auto& r : reg) r = 0;
-        hits.clear(); pending = false; firstHit = evalAt = centre = quietUntil = 0; lastGoodSec = -1e9; lastPub = 0; wordCount.clear();
+        hits.clear(); pending = false; firstHit = evalAt = centre = quietUntil = dotQuiet = 0; lastGoodSec = -1e9; lastPub = 0; wordCount.clear();
         lsdPow = 0; lsdN = 0; xsum = 0; xN = 0; prevSign = 0; blockStart = 0;
         const uint64_t s = tel.seq;
         tel = EdacsTelemetry();
@@ -94,39 +95,42 @@ struct EdacsReceiver::Impl {
     void evaluate() {
         // the last sync bit was sampled at centre - 1: payload bit i at centre - 1 + (i + 1) * sps
         const double thr = env.mid();
-        uint8_t bits[kPayloadBits];
-        for (int i = 0; i < kPayloadBits; i++) {
-            const bool one = soft((uint64_t)((int64_t)centre - 1 + (int64_t)(i + 1) * sps)) > thr;
-            bits[i] = (uint8_t)(one != pendInv);
-        }
+        uint8_t raw[kPayloadBits];
+        for (int i = 0; i < kPayloadBits; i++) raw[i] = soft((uint64_t)((int64_t)centre - 1 + (int64_t)(i + 1) * sps)) > thr;
         tel.syncs++;
         if (env.range() < kMinRangeHz) return;
-        const edacs::Decoded a = edacs::decodeMessage(bits), b = edacs::decodeMessage(bits + 120);
+        // the polarity the sync suggested first; the BCH check settles it (dsd-fme accepts a frame only when both messages pass)
+        edacs::Decoded a, b;
+        bool inv = pendInv;
+        for (int attempt = 0; attempt < 2; attempt++, inv = !inv) {
+            uint8_t bits[kPayloadBits];
+            for (int i = 0; i < kPayloadBits; i++) bits[i] = (uint8_t)(raw[i] != inv);
+            a = edacs::decodeMessage(bits); b = edacs::decodeMessage(bits + 120);
+            if (a.ok || b.ok) break;
+        }
         for (const edacs::Decoded* d : {&a, &b}) {
             if (!d->ok) tel.msgBad++;
-            else if (d->bchOk) tel.bchOk++;
-            else tel.copiesOnly++;
+            else if (d->corrected) tel.bchFixed++;
+            else tel.bchOk++;
         }
         if (!a.ok && !b.ok) { tel.blocksBad++; return; }
-        inverted = pendInv;
+        inverted = inv;
         tel.inverted = inverted;
         EdacsFrame f;
         f.wallTime = (int64_t)std::time(nullptr);
         f.timeSec = timeSec();
         f.msgA = a.data; f.msgB = b.data; f.errA = a.disagree; f.errB = b.disagree;
-        f.okA = a.ok; f.okB = b.ok; f.bchA = a.bchOk; f.bchB = b.bchOk; f.good = true;
+        f.okA = a.ok; f.okB = b.ok; f.bchA = a.bchOk; f.bchB = b.bchOk; f.good = a.ok && b.ok;
         if (tel.frames.size() >= kEdacsLogMax) tel.frames.pop_back();
         tel.frames.insert(tel.frames.begin(), f);
-        for (const edacs::Decoded* d : {&a, &b}) {
-            if (!d->ok) continue;
-            wordCount[d->data]++;
+        if (a.ok) wordCount[a.data]++;
+        if (b.ok) wordCount[b.data]++;
+        if (a.ok && b.ok) {
             EdacsMsgRec r;
-            r.seq = ++gMsgSeq; r.data = d->data; r.bch = d->bchOk; r.timeSec = f.timeSec;
+            r.seq = ++gMsgSeq; r.m1 = a.data; r.m2 = b.data; r.timeSec = f.timeSec;
             tel.msgs.push_back(r);
-            const edacs::Message m = edacs::parse(d->data);
-            if (m.kind == edacs::Message::SystemId) { tel.sysId = m.sysId; tel.site = m.site; }
+            if (tel.msgs.size() > kEdacsMsgMax) tel.msgs.erase(tel.msgs.begin(), tel.msgs.end() - (long)kEdacsMsgMax);
         }
-        if (tel.msgs.size() > kEdacsMsgMax) tel.msgs.erase(tel.msgs.begin(), tel.msgs.end() - (long)kEdacsMsgMax);
         std::vector<EdacsWordCount> w;
         for (auto& kv : wordCount) w.push_back({kv.first, kv.second});
         std::sort(w.begin(), w.end(), [](const EdacsWordCount& x, const EdacsWordCount& y) { return x.count > y.count; });
@@ -135,7 +139,7 @@ struct EdacsReceiver::Impl {
         tel.blocksOk++;
         tel.dataValid = true;
         lastGoodSec = f.timeSec;
-        if (log) { char s[120]; snprintf(s, sizeof s, "EDACS %s; %s", edacs::describe(edacs::parse(a.data)).c_str(), edacs::describe(edacs::parse(b.data)).c_str()); log(s); }
+        if (log) { char s[80]; snprintf(s, sizeof s, "EDACS frame %07X %07X", a.data, b.data); log(s); }
     }
 
     void sample(double s, double raw) {
@@ -157,6 +161,10 @@ struct EdacsReceiver::Impl {
         if (pending) {
             if (n >= evalAt) { pending = false; evaluate(); hits.clear(); }
             return;
+        }
+        if (n > 600 && env.range() >= kMinRangeHz) {   // end of transmission: 48 bits of dotting (dsd-fme DOTTING_SEQUENCE_A / B)
+            const uint64_t r = reg[ph] & 0xFFFFFFFFFFFFull;
+            if ((r == 0xAAAAAAAAAAAAull || r == 0x555555555555ull) && n >= dotQuiet) { tel.eot++; dotQuiet = n + 400 * (uint64_t)sps; }
         }
         if (n > 600 && n >= quietUntil && env.range() >= kMinRangeHz) {
             const uint64_t r = reg[ph];

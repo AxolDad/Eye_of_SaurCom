@@ -1,25 +1,16 @@
 // EDACS control channel (outbound): frame, error handling and messages. Receive only.
 //
-// From the public descriptions (US 4,905,302 and US 7,546,135 B2 describe the outbound control channel; the frame and code facts below are
-// the ones those and other public descriptions agree on):
-//  - 9600 bit/s GFSK (EDACS narrowband: 4800 bit/s, the same frame); a 30 ms frame of 288 bits = the 48-bit sync 0x555557125555 (16 dotting
-//    bits, five more dotting bits and the 11-bit Barker word 11100010010, 16 dotting bits) and two messages.
-//  - A message is 28 data bits and 12 BCH check bits (40 bits), sent three times with the middle copy inverted: a receiver votes bit by bit
-//    over the three copies, then checks (and corrects) with the BCH code.
-//  - The BCH code: the (63,51) primitive BCH code that corrects two errors, shortened to (40,28). Its generator is the standard one,
-//    g(x) = m1(x) m3(x) = x^12 + x^10 + x^8 + x^5 + x^4 + x^3 + 1 (octal 12471) with m1 = x^6 + x + 1, m3 = x^6 + x^4 + x^2 + x + 1.
-//  - Logical channel numbers (LCN, 1..31 here) name the channels; their frequencies are the system's own: the user supplies the table.
-//  - Talkgroups are 11-bit agency / fleet / subfleet (AFS) numbers, individual radios 14-bit logical IDs (LID).
-//
-// The message type codes and field positions inside the 28 data bits are NOT verified against a live system here: they are kept in
-// `Commands` (one table) and the layout below, so they can be checked and corrected in one place:
-//   group voice assignment / update   cmd 8 | LCN 5 | digital (ProVoice) 1 | emergency 1 | reserved 2 | group 11
-//   individual voice assignment       cmd 8 | LCN 5 | digital 1 | target LID 14
-//   caller (message B of the frame)   cmd 8 | reserved 6 | caller LID 14
-//   system ID                         cmd 8 | site 4 | system 16
-//   idle                              cmd 8 | (anything)
-// A frame whose three copies agree exactly is used even when the BCH check fails (counted apart): the copies are the code that is certain,
-// so a deviation of a real system from the generator above shows in the counts instead of silencing the decoder.
+// Derived from dsd-fme's EDACS decoder (lwvmobile/dsd-fme, src/edacs-fme.c, src/edacs-bch3.c, include/dsd.h; ISC licence, see THIRD_PARTY.md),
+// which ports EDACS-FM / ledacs and parses the standard messages after TIA/EIA TSB-69.3 and the extended addressing (EA) ones after
+// US 7,546,135 B2 and captures. OP25 and SDRTrunk have no EDACS decoder.
+//  - 9600 bit/s GFSK (EDACS narrowband: 4800 bit/s); a 288-bit frame = the 48-bit sync (dsd-fme EDACS_SYNC) and two messages.
+//  - A message is 28 data bits and 12 BCH check bits (40 bits), sent three times with the middle copy inverted (edacsVoteFr): voted bit by
+//    bit, then checked by the BCH(40,28) code of edacs-bch3.c: m = 6 (x^6 + x + 1), t = 2, data in the high 28 bits, the remainder in the low
+//    12. dsd-fme only checks it; this decoder also corrects up to two bits (the code's capability).
+//  - The two messages of a frame form one command (msg_1, msg_2). Standard and networked systems use the TSB-69.3 set (MT-A / MT-B / MT-D),
+//    EA systems the MT1 / MT2 set; which one a system uses is a setting, as in dsd-fme (its auto detection was removed as unreliable).
+//    Some systems XOR the command bits with an ESK (0xA0 << 20).
+//  - LCN 1..25 are channels; 26..31 in a channel field are status values (28 convert to callee, 29 queued, 30 busy, 31 denied).
 #pragma once
 #include "dect2/common/ring.h"
 #include <cstdint>
@@ -31,54 +22,53 @@ namespace dect2::edacs {
 constexpr double kBaud = 9600.0, kBaudNarrow = 4800.0;
 constexpr int kSyncBits = 48, kMsgBits = 40, kFrameBits = 288;
 constexpr uint64_t kSync = 0x555557125555ull;
-constexpr uint32_t kBchGen = 0x1539;   // x^12 + x^10 + x^8 + x^5 + x^4 + x^3 + 1
 
 // ------------------------------------------------------------------------------------------------ BCH (40,28)
+uint32_t bchGenerator();                             // the generator of edacs-bch3.c, worked out the same way (x^12 ... + 1, bit 12 the top)
 uint32_t bchCheck(uint32_t data28);                  // the 12 check bits
 uint64_t bchEncode(uint32_t data28);                 // data << 12 | check
 bool bchDecode(uint64_t& word40, int* corrected = nullptr);   // corrects up to two bit errors in place; false beyond
 
 // ------------------------------------------------------------------------------------------------ frame
-// One frame, as bits (1 = higher frequency): the sync, then message A three times (middle inverted), message B the same. Real check bits.
-std::vector<uint8_t> encodeFrame(uint32_t msgA, uint32_t msgB);
-// Majority vote of a received message: 120 bits (copy, inverted copy, copy) -> 40 voted bits (MSB first); disagreements: bit positions where
-// the copies differ
+std::vector<uint8_t> encodeFrame(uint32_t msgA, uint32_t msgB);   // the sync, then each message three times, the middle copy inverted
 uint64_t vote(const uint8_t* bits120, int& disagreements);
 
 struct Decoded {
     uint32_t data = 0;           // 28 bits
-    bool ok = false;             // used: BCH good (after at most two corrections), or the three copies agree exactly
-    bool bchOk = false;          // the BCH check passed
+    bool ok = false;             // the BCH check passed (after at most two corrections)
+    bool bchOk = false;
     int corrected = 0, disagree = 0;
 };
 Decoded decodeMessage(const uint8_t* bits120);
 
-// ------------------------------------------------------------------------------------------------ messages
-struct Commands {   // the message type codes (see the header comment)
-    int groupVoice = 0xEE, groupUpdate = 0xEC, indivVoice = 0xEA, caller = 0xE9, systemId = 0xFD, idle = 0xFC;
-};
-struct Message {
-    enum Kind { Unknown, GroupVoice, IndivVoice, Caller, SystemId, Idle } kind = Unknown;
-    int cmd = 0;
-    int lcn = -1;
-    int group = -1, lid = -1;    // group (AFS) for group calls; target LID for individual calls, the caller's LID for Caller
-    bool digital = false, emergency = false, update = false;
-    int sysId = -1, site = -1;
-    uint32_t raw = 0;
-};
-Message parse(uint32_t data28, const Commands& c = Commands());
-uint32_t build(const Message& m, const Commands& c = Commands());
-std::string describe(const Message& m);
+// ------------------------------------------------------------------------------------------------ messages (dsd-fme edacs-fme.c)
+enum class Mode { Standard, Extended };   // Standard: standard and networked (TSB-69.3); Extended: EA
+constexpr uint32_t kEsk = 0xA0;            // the ESK value dsd-fme knows (-fH / -fE)
 
-struct AfsSplit { int agencyBits = 4, fleetBits = 4, subfleetBits = 3; };   // the split many systems use (the bits add up to 11)
-std::string afsText(int group, const AfsSplit& s = AfsSplit());             // "A-FFS" as agency-fleet+subfleet, e.g. "02-071"
+struct Message {
+    enum Kind { Unknown, GroupVoice, IndivVoice, AllCall, DataCall, Interconnect, ChannelUpdate, UnkeyDrop, SiteId, SystemInfo, TestCall, Patch } kind = Unknown;
+    int lcn = -1;                // the working channel (1..25; 26..31 status values, see lcnStatus)
+    int group = -1;              // standard: 11-bit AFS; EA: 16-bit group
+    int target = -1;             // individual calls: the called radio (standard 14-bit LID, EA 20-bit)
+    int source = -1;             // the calling radio, when the message has it
+    bool digital = false;        // ProVoice
+    bool emergency = false, update = false, individual = false, drop = false;
+    int sysId = -1, site = -1, area = -1, ccLcn = -1;
+    uint32_t m1 = 0, m2 = 0;     // the two 28-bit messages (after the ESK)
+};
+Message parse(uint32_t msg1, uint32_t msg2, Mode mode, uint32_t esk = 0);
+// the two messages that carry m (the builders the tests use; the field layout is parse's)
+void build(const Message& m, Mode mode, uint32_t& msg1, uint32_t& msg2, uint32_t esk = 0);
+std::string describe(const Message& m, Mode mode);
+const char* lcnStatus(int lcn);   // "" for a channel
+
+struct AfsSplit { int agencyBits = 4, fleetBits = 4, subfleetBits = 3; };   // dsd-fme's default 4:4:3
+std::string afsText(int group, const AfsSplit& s = AfsSplit());             // "AA-FFS", e.g. "05-045"
 
 // ------------------------------------------------------------------------------------------------ test signals
-// FM test signal at fs (bit 1 = +devHz) for the bits at `baud`, carrier offsetHz from 0 Hz; invert flips the polarity
 std::vector<cf32> modulate(const std::vector<uint8_t>& bits, double fs, double offsetHz, double devHz, float amp, bool invert = false, double baud = kBaud);
-// A working (voice) channel: FM of a voice tone with the subaudible low-speed data under it (150 bit/s), then at the end `dropFrames`
-// frames of high-speed data (the unkey / drop messages) and the carrier off. provoice: 9600 bit/s random data instead of the voice tone
-// (what a ProVoice channel looks like to an FM receiver).
-std::vector<cf32> workingChannel(double fs, double offsetHz, double voiceSec, double toneHz, int dropFrames, float amp, bool provoice = false, uint32_t seed = 1);
+// A working (voice) channel: FM of a voice tone with the subaudible low-speed data under it (150 bit/s), then the end of transmission
+// (dsd-fme DOTTING_SEQUENCE: dotting) for dropBits bits and the carrier off. provoice: 9600 bit/s random data instead of the voice tone.
+std::vector<cf32> workingChannel(double fs, double offsetHz, double voiceSec, double toneHz, int dropBits, float amp, bool provoice = false, uint32_t seed = 1);
 
 } // namespace dect2::edacs

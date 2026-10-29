@@ -86,37 +86,36 @@ double ChannelTable::freq(int n) const {
 
 // ------------------------------------------------------------------------------------------------ EDACS
 
-bool EdacsModel::onMessage(uint32_t data28, Grant& g, std::string* text) {
+bool EdacsModel::onFrame(uint32_t m1, uint32_t m2, Grant& g, int* dropLcn, std::string* text) {
     msgs_++;
-    const edacs::Message m = edacs::parse(data28);
-    if (text) *text = edacs::describe(m);
-    const bool afterIndiv = haveIndiv_;
-    haveIndiv_ = false;
+    if (dropLcn) *dropLcn = -1;
+    const edacs::Mode md = mode == 1 ? edacs::Mode::Extended : edacs::Mode::Standard;
+    const edacs::Message m = edacs::parse(m1, m2, md, esk ? edacs::kEsk : 0);
+    if (text) *text = edacs::describe(m, md);
+    using M = edacs::Message;
     switch (m.kind) {
-    case edacs::Message::SystemId: sysId_ = m.sysId; site_ = m.site; return false;
-    case edacs::Message::GroupVoice:
-        g = Grant();
-        g.kind = SysKind::Edacs;
-        g.group = true; g.tg = m.group; g.channel = m.lcn; g.freqHz = lcns.freq(m.lcn); g.slot = -1;
-        g.emergency = m.emergency; g.provoice = m.digital; g.explicitUpdate = m.update;
-        g.label = edacs::afsText(m.group);
-        n_++;
-        return true;
-    case edacs::Message::IndivVoice:
-        g = Grant();
-        g.kind = SysKind::Edacs;
-        g.group = false; g.tg = m.lid; g.channel = m.lcn; g.freqHz = lcns.freq(m.lcn); g.slot = -1; g.provoice = m.digital;
-        g.label = "LID " + std::to_string(m.lid);
-        lastIndiv_ = g; haveIndiv_ = true;
-        n_++;
-        return true;
-    case edacs::Message::Caller:
-        if (!afterIndiv) return false;
-        g = lastIndiv_;   // the individual call again, now with its caller
-        g.src = m.lid;
-        return true;
+    case M::SiteId: if (m.site >= 0) site_ = m.site; return false;
+    case M::SystemInfo: if (m.sysId > 0) sysId_ = m.sysId; return false;
+    case M::UnkeyDrop: if (m.drop && dropLcn) *dropLcn = m.lcn; return false;
+    case M::GroupVoice: case M::ChannelUpdate: case M::IndivVoice: case M::AllCall: case M::Interconnect: case M::DataCall: break;
     default: return false;
     }
+    if (m.lcn < 1 || m.lcn > 25) return false;   // 0: none; 26..31: a status (queued, busy, denied ...), not a channel
+    g = Grant();
+    g.kind = SysKind::Edacs;
+    g.channel = m.lcn; g.freqHz = lcns.freq(m.lcn); g.slot = -1;
+    g.provoice = m.digital; g.emergency = m.emergency; g.explicitUpdate = m.update;
+    g.dataCall = m.kind == M::DataCall;
+    g.src = m.source;
+    if (m.individual || m.kind == M::IndivVoice) {
+        g.group = false; g.tg = m.target;
+        g.label = "LID " + std::to_string(m.target);
+    } else {
+        g.group = true; g.tg = m.kind == M::AllCall ? 0 : m.group;
+        g.label = m.kind == M::AllCall ? std::string("all-call") : md == edacs::Mode::Standard ? edacs::afsText(m.group) : std::to_string(m.group);
+    }
+    n_++;
+    return true;
 }
 
 // ------------------------------------------------------------------------------------------------ LTR
@@ -158,11 +157,13 @@ bool MptModel::onMessage(const std::string& type, int pfix, int ident, int calle
 
 // ------------------------------------------------------------------------------------------------ controller
 
-void Controller::onEdacs(uint32_t data28, double now) {
+void Controller::onEdacs(uint32_t m1, uint32_t m2, double now) {
     onControlSeen(now);
     Grant g;
-    std::string text;
-    if (edacs.onMessage(data28, g, &text)) dispatch({g}, now);
+    int drop = -1;
+    if (edacs.onFrame(m1, m2, g, &drop)) dispatch({g}, now);
+    if (drop > 0)   // a console drop: the call on that LCN is over
+        for (const CallRecord& r : log.records()) if (r.active && r.kind == SysKind::Edacs && r.channel == drop) follower.onTerminator(r.id, now);
 }
 
 void Controller::onLtr(int area, int gotoCh, int home, int id, int freeCh, double now) {

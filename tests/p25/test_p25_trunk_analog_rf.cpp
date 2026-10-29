@@ -2,7 +2,7 @@
 // generated control signal (EDACS frames with a group call on LCN 2; LTR words saying talkgroup 0-03-017 talks on repeater 5; an MPT 1327
 // control channel with a GTC to channel 17), the follower sends voice radio 0 to the channel from the user's table, the voice radio's own
 // receiver of that mode is put there (it then gets the generated traffic channel: FM speech, a 1 kHz tone, with the system's own signalling),
-// plays the tone, keeps the call while the carrier is up and ends it on the channel's end signalling (EDACS: the drop burst; LTR: the
+// plays the tone, keeps the call while the carrier is up and ends it on the channel's end signalling (EDACS: the end-of-transmission dotting; LTR: the
 // turn-off words; MPT 1327: CLEAR after SYNT). The control radio is never retuned. Silent.
 #include "dect2/edacs/edacs_proto.h"
 #include "dect2/edacs/edacs_rx.h"
@@ -107,16 +107,17 @@ int main() {
         const double rate = 480000, off = -100000, lcn2 = 851.2625e6;
         std::vector<uint8_t> bits;
         for (int i = 0; i < 300; i++) bits.push_back((uint8_t)(i * 7 % 3 == 0));
-        for (int k = 0; k < 400; k++) {   // 12 s of frames: system ID, then the group call on LCN 2 for 1 s, then idles
-            edacs::Message a, b;
-            a.kind = edacs::Message::SystemId; a.sysId = 0x1A2B; a.site = 4;
-            b.kind = edacs::Message::Idle;
-            if (k >= 20 && k < 55) { a.kind = edacs::Message::GroupVoice; a.lcn = 2; a.group = 0x2A5; }
-            const auto f = edacs::encodeFrame(edacs::build(a), edacs::build(b));
+        for (int k = 0; k < 400; k++) {   // 12 s of frames: site ID, then the group call on LCN 2 for 1 s
+            edacs::Message a;
+            a.kind = edacs::Message::SiteId; a.site = 4; a.ccLcn = 1;
+            if (k >= 20 && k < 55) { a = edacs::Message(); a.kind = edacs::Message::GroupVoice; a.lcn = 2; a.group = 0x2A5; a.source = 0x123; }
+            uint32_t m1, m2;
+            edacs::build(a, edacs::Mode::Standard, m1, m2);
+            const auto f = edacs::encodeFrame(m1, m2);
             bits.insert(bits.end(), f.begin(), f.end());
         }
         const std::vector<cf32> ctlIq = edacs::modulate(bits, rate, off, 2400.0, 0.4f);
-        const std::vector<cf32> work = edacs::workingChannel(rate, off, 3.0, 1000.0, 6, 0.4f);
+        const std::vector<cf32> work = edacs::workingChannel(rate, off, 3.0, 1000.0, 96, 0.4f);
         size_t cp = 0, vp = 0;
         bool there = false;
         EdacsReceiver crx, vrx;
@@ -136,15 +137,15 @@ int main() {
         L.feedVoice = [&](const cf32* b, size_t n) { vrx.feed(b, n); if (vrx.telemetry(vt, vseq)) vseq = vt.seq; };
         L.pollControl = [&](double t) {
             EdacsTelemetry ct;
-            if (crx.telemetry(ct, cseq)) { cseq = ct.seq; for (const EdacsMsgRec& m : ct.msgs) if (m.seq > lastMsg) { lastMsg = m.seq; L.ctl.onEdacs(m.data, t); } }
+            if (crx.telemetry(ct, cseq)) { cseq = ct.seq; for (const EdacsMsgRec& m : ct.msgs) if (m.seq > lastMsg) { lastMsg = m.seq; L.ctl.onEdacs(m.m1, m.m2, t); } }
         };
-        L.heard = [&](const CallRecord& r) { return analogVoiceHeard(L.watch, r.id, std::fabs(vt.channelHz - r.freqHz) < 2000, vt.voice.carrier, vt.blocksOk, true, vt.seq); };
+        L.heard = [&](const CallRecord& r) { return analogVoiceHeard(L.watch, r.id, std::fabs(vt.channelHz - r.freqHz) < 2000, vt.voice.carrier, vt.eot, true, vt.seq); };
         L.tuneVoice = [&](double hz) { vrx.setCenterHz(hz - off); there = std::fabs(hz - lcn2) < 1; vp = 0; vrx.reset(); };
         L.voiceOn = [&](bool on) { vrx.setVoice(on); };
         L.run(8.0);
         L.o.audio = audio.size(); L.o.tone = tonePart(audio);
         report("EDACS", L.o, lcn2);
-        CHECK(L.ctl.edacs.sysId() == 0x1A2B, "EDACS: system ID from the control channel");
+        CHECK(L.ctl.edacs.site() == 4, "EDACS: the site ID from the control channel");
     }
     // ---------------------------------------------------------------- LTR
     {

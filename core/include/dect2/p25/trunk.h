@@ -316,23 +316,23 @@ private:
     double base_ = 0, spacing_ = 0;
 };
 
-// EDACS: the control channel's messages (dect2/edacs/edacs_proto.h) into grants. Group calls carry the 11-bit AFS group, individual calls
-// the 14-bit LID of the called radio (the caller's LID follows in the frame's second message).
+// EDACS: the control channel's frames (dect2/edacs/edacs_proto.h, after dsd-fme) into grants. Standard / networked group calls carry the
+// 11-bit AFS group, EA ones a 16-bit group; individual calls the called and calling radio. A console drop ends the call on its LCN.
 class EdacsModel {
 public:
     ChannelTable lcns;
-    // one message (28 data bits) of the control channel: a grant in g (true); text: the message in words
-    bool onMessage(uint32_t data28, Grant& g, std::string* text = nullptr);
+    int mode = 0;                // 0 standard / networked, 1 extended addressing (EA)
+    bool esk = false;            // the command bits are XORed with the ESK 0xA0
+    // one frame (its two messages): a grant in g (true); *dropLcn: a console drop of that LCN (-1 none); text: the frame in words
+    bool onFrame(uint32_t m1, uint32_t m2, Grant& g, int* dropLcn = nullptr, std::string* text = nullptr);
     int sysId() const { return sysId_; }
     int site() const { return site_; }
     uint64_t grants() const { return n_; }
     uint64_t messages() const { return msgs_; }
-    void reset() { sysId_ = site_ = -1; lastIndiv_ = Grant(); haveIndiv_ = false; }
+    void reset() { sysId_ = site_ = -1; }
 private:
     int sysId_ = -1, site_ = -1;
     uint64_t n_ = 0, msgs_ = 0;
-    Grant lastIndiv_;
-    bool haveIndiv_ = false;
 };
 
 // LTR: the subaudible words into calls. A word (area, go-to, home, id, free) with an id of a call says that talkgroup area-home-id talks
@@ -390,7 +390,7 @@ public:
     void onTsbkBad(double nowSec);
     void onDmrCsbk(int opcode, int fid, const uint8_t data[8], double nowSec);
     void onNxdnAssignment(int callType, int src, int dst, int channel, int ccOption, double nowSec);
-    void onEdacs(uint32_t data28, double nowSec);                                   // one control channel message
+    void onEdacs(uint32_t m1, uint32_t m2, double nowSec);                          // one control channel frame (its two messages)
     void onLtr(int area, int gotoCh, int home, int id, int freeCh, double nowSec);  // one word heard by the monitoring receiver
     void onMpt(const std::string& type, int calledPfix, int calledIdent, int callerIdent, int channel, bool dataCall, bool traffic, double nowSec);
     void onControlSeen(double nowSec);   // a good control channel message that is not a grant (keeps the follower's control lock)
