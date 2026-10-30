@@ -117,6 +117,7 @@ void drawPlane(ImDrawList* dl, ImVec2 c, float headingDeg, float r, ImU32 fill, 
 // away than any 1090 MHz signal carries (500 nm; real ranges end near 250). Then lat/lon get the middle of the aircraft (median, so one
 // bad fix does not pull it), which is within about 100 nm of the receiver: good enough for the map, not for exact ranges.
 bool positionLooksWrong(const AdsbTelemetry& t, double& lat, double& lon, double& nearestNm) {
+    if (!receiverLocationSet()) return false;   // no position at all: the map says "Set your location"; the placeholder is never "your" position
     std::vector<double> las, los;
     nearestNm = 1e9;
     for (const auto& ac : t.aircraft) {
@@ -266,44 +267,48 @@ static void mapCorner(App& a, ImVec2 p0, ImVec2 size, bool wrongRef, double area
     ImGui::SameLine(0, 2 * gUi);
     if (ImGui::Button("-", ImVec2(26 * gUi, 0))) S.map.zoom = std::max(adsbmap::kMinZoom, S.map.zoom - 1);
     ImGui::SameLine(0, 6 * gUi);
-    if (ImGui::Button("antenna")) { S.map.lat = S.refLat; S.map.lon = S.refLon; S.mapHome = true; }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Centre the map on the antenna");
-    ImGui::SameLine(0, 2 * gUi);
     if (ImGui::Button("position")) ImGui::OpenPopup("##adsbpos");
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set where the antenna is: for ranges, the radar rings and decoding positions locally. You can also right-click the map.");
     ImGui::SameLine(0, 6 * gUi);
     if (adsbmap::fullButton(S.full, "map")) S.full = !S.full;
     ImGui::PopStyleColor();
-    ImGui::SameLine(0, 6 * gUi);
+    // the rest of the line, wrapping onto a new line at the map's right edge instead of running past it (a narrow map, a large text size)
+    const ImGuiStyle& st = ImGui::GetStyle();
+    auto next = [&](float w) {
+        if (ImGui::GetItemRectMax().x + 6 * gUi + w > p0.x + size.x - 8 * gUi) ImGui::SetCursorScreenPos(ImVec2(p0.x + 8 * gUi, ImGui::GetItemRectMax().y + 4 * gUi));
+        else ImGui::SameLine(0, 6 * gUi);
+    };
+    auto cbw = [&](const char* l) { return ImGui::GetFrameHeight() + st.ItemInnerSpacing.x + ImGui::CalcTextSize(l).x; };
+    next(ImGui::CalcTextSize("Units").x + st.ItemSpacing.x + 130 * gUi + (S.units.metric() ? st.ItemSpacing.x + 70 * gUi : 0.f));
     unitsControls();
-    ImGui::SameLine(0, 6 * gUi);
+    next(ImGui::CalcTextSize(tr("Display")).x + 2 * st.FramePadding.x);
     displayControls();
-    ImGui::SameLine(0, 6 * gUi);
+    next(cbw("winds aloft"));
     if (ImGui::Checkbox("winds aloft", &S.winds)) { plat::prefs().setB("adsbWinds", S.winds); plat::prefs().flush(); }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Wind arrows (downwind) at the aircraft, coloured by altitude: derived from Comm-B 5,0 + 6,0 replies, or reported in 4,4.");
-    ImGui::SameLine(0, 6 * gUi);
+    next(cbw("GPS interference"));
     if (ImGui::Checkbox("GPS interference", &S.jamLayer)) { plat::prefs().setB("adsbGpsJam", S.jamLayer); plat::prefs().flush(); }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Shades 0.5 degree squares by the share of aircraft that reported a poor GPS position (NACp / NIC low, or a position jump) in the last hour; at least 3 aircraft per square. An indicator, not proof of jamming.");
-    ImGui::SameLine(0, 6 * gUi);
+    next(cbw("TFRs"));
     {
         bool tfr = notamapp::mapLayerOn();
         if (ImGui::Checkbox("TFRs", &tfr)) notamapp::setMapLayer(tfr);
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Flight restrictions and other NOTAM airspace (Tools > NOTAMs and TFRs): red in force, amber coming, grey not up to date");
     }
-    ImGui::SameLine(0, 6 * gUi);
     gPred.load("adsb", true, false);
+    next(cbw(tr("Predict positions")) + (gPred.predict ? 6 * gUi + cbw(tr("uncertainty")) : 0.f));
     gPred.controls();
     ImGui::SameLine(0, 6 * gUi);
     adsbmap::tileControls(nullptr, false);
     if (wrongRef) {
-        ImGui::SetCursorScreenPos(ImVec2(p0.x + 8 * gUi, p0.y + 38 * gUi));
+        ImGui::SetCursorScreenPos(ImVec2(p0.x + 8 * gUi, ImGui::GetItemRectMax().y + 6 * gUi));   // under the controls, however many lines they took
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.14f, 0.04f, 0.92f));
         ImGui::BeginChild("##wrongref", ImVec2(std::min(size.x - 16 * gUi, 520 * gUi), 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders);
         ImGui::PushTextWrapPos(0);
         ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.4f, 1), "The antenna position (%.2f, %.2f) is %.0f nm from the nearest aircraft: it is probably not set, so ranges are wrong.", S.refLat, S.refLon, nearest);
         ImGui::PopTextWrapPos();
-        if (ImGui::Button("Use the aircraft's area")) setReference(a, areaLat, areaLon);
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Puts the antenna in the middle of the aircraft received (within about 100 nm). For exact ranges type your position in the Tuner section.");
+        if (ImGui::Button("Use the aircraft's area")) setReference(a, areaLat, areaLon, "map");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Puts the antenna in the middle of the aircraft received (within about 100 nm). For exact ranges set your location in My station (the pin in the toolbar).");
         ImGui::EndChild();
         ImGui::PopStyleColor();
     }
@@ -311,12 +316,6 @@ static void mapCorner(App& a, ImVec2 p0, ImVec2 size, bool wrongRef, double area
         ImGui::TextDisabled("Antenna position");
         positionFields(a);
         ImGui::TextDisabled("or right-click the map to put it there");
-        ImGui::EndPopup();
-    }
-    if (ImGui::BeginPopup("##adsbmapctx")) {
-        ImGui::TextDisabled("%.4f  %.4f", S.ctxLat, S.ctxLon);
-        if (ImGui::MenuItem("Put the antenna here")) { setReference(a, S.ctxLat, S.ctxLon); S.mapHome = true; S.locMsg.clear(); }
-        if (ImGui::MenuItem("Centre the map here")) { S.map.lat = S.ctxLat; S.map.lon = S.ctxLon; S.mapHome = false; }
         ImGui::EndPopup();
     }
 }
@@ -327,15 +326,12 @@ void mapView(App& a, ImVec2 size) {
     const ImVec2 p0 = ImGui::GetCursorScreenPos();
     double areaLat = 0, areaLon = 0, nearest = 0;
     const bool wrongRef = on && positionLooksWrong(t, areaLat, areaLon, nearest);
-    if (wrongRef && S.mapHome) { S.map.lat = areaLat; S.map.lon = areaLon; }   // show the aircraft, not an empty map around the wrong antenna
-    const double homeLat = S.map.lat, homeLon = S.map.lon;
-    const bool hov = adsbmap::draw(S.map, size);
-    if (hov && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) { adsbmap::unproject(ImGui::GetIO().MousePos, S.ctxLat, S.ctxLon); ImGui::OpenPopup("##adsbmapctx"); }
-    if (S.map.lat != homeLat || S.map.lon != homeLon) S.mapHome = false;
+    if (wrongRef && S.map.followStation) { S.map.lat = areaLat; S.map.lon = areaLon; }   // show the aircraft, not an empty map around the wrong antenna
+    adsbmap::draw(S.map, size);   // opens at the station, follows it until dragged; right-click: I'm here (adsb_map.cpp)
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
-    // the antenna
-    {
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
+    // the antenna (none while no position is set: it would sit on the placeholder; the map has the "Set your location" button then)
+    if (receiverLocationSet()) {
         const ImVec2 h = adsbmap::project(S.refLat, S.refLon);
         dl->AddCircle(h, 6 * gUi, IM_COL32(255, 255, 255, 220), 24, 1.5f);
         dl->AddCircleFilled(h, 2.5f * gUi, IM_COL32(255, 255, 255, 220));
@@ -359,7 +355,7 @@ void mapView(App& a, ImVec2 size) {
     if (on) for (const auto& ac : t.aircraft) if (ac.hasPos) withPos++;
     ImGui::SetCursorScreenPos(ImVec2(p0.x + 8 * gUi, p0.y + size.y - ImGui::GetTextLineHeight() - 6 * gUi));
     if (!on) adsbmap::legend(size.x, "start the receiver");
-    else if (!withPos) adsbmap::legend(size.x, "no lat/lon yet: ident, altitude and speed do not need a position. Set the antenna (Tuner, Locate) or wait for both even and odd CPR frames");
+    else if (!withPos) adsbmap::legend(size.x, "no lat/lon yet: ident, altitude and speed do not need a position. Set your location (the pin in the toolbar) or wait for both even and odd CPR frames");
     else adsbmap::legend(size.x, "%d of %zu placed · white ADS-B, grey after 30 s", withPos, t.aircraft.size());
     ImGui::SetCursorScreenPos(ImVec2(p0.x, p0.y + size.y));
     ImGui::Dummy(ImVec2(0, 0));   // an item after SetCursorScreenPos: ImGui otherwise reports "extend window/parent boundaries"

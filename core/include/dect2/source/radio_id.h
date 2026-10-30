@@ -68,6 +68,24 @@ std::vector<RadioRow> identifySources(const std::vector<DeviceInfo>& devs, Radio
 constexpr int kRadioAmbiguous = -2;
 int findRadioRow(const std::vector<RadioRow>& rows, const std::string& key, const DeviceInfo* was, const std::string& name, size_t first = 0);
 
+// Short, plain names for a person reading a tab title or a status line (the full identity stays in radioDisplayName for tooltips).
+// radioModelName: the radio's model as its name says it, without the driver notes ("(native, experimental)"), the serial or the
+// serial's tail; a generic Realtek dongle ("RTL2838UHIDIR", "Generic RTL2832U") is "RTL-SDR". Never empty (falls back to the name).
+std::string radioModelName(const DeviceInfo& d);
+// One per row: the user's label if set, else radioModelName; a non-radio entry keeps its own name. withSerial adds " (SN <serial>)"
+// (the last 8 characters of a long serial) to radios without a label. Names that still come out the same get " #1", " #2", ...
+std::vector<std::string> radioShortNames(const std::vector<RadioRow>& rows, bool withSerial = false);
+// The words of radioScanSummary, so the app can pass translated ones (printf formats with one %d / %s each, as noted).
+struct ScanWords {
+    const char* none = "No radios found";
+    const char* one = "Found 1 radio: %s";          // %s: the names
+    const char* many = "Found %d radios: %s";       // %d: the count, %s: the names
+    const char* card = "1 sound card";
+    const char* cards = "%d sound cards";           // %d: the count
+};
+// "Found 3 radios: HackRF One, RTL-SDR (SN 00000001), NESDR SMArt v5 · 3 sound cards" (no sound card part when there are none).
+std::string radioScanSummary(const std::vector<std::string>& radioNames, size_t soundCards, const ScanWords& w = ScanWords());
+
 struct RadioDiff { std::vector<DeviceInfo> added, removed; };
 // Radios are matched by their key as identifyRadios() gives it (so identical-serial radios on different ports differ).
 RadioDiff diffRadios(const std::vector<DeviceInfo>& before, const std::vector<DeviceInfo>& after);

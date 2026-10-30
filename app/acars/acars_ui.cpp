@@ -290,7 +290,7 @@ void mapCanvas(App& a, ImVec2 size) {
     adsbmap::draw(S.map, size);
     if (S.map.lat != lat0 || S.map.lon != lon0) S.mapFollow = false;
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     const dect2::AcarsAircraft* hit = nullptr; float best = 18 * gUi;
     ImVec2 click; const bool clicked = adsbmap::clickedAt(click);
     int withPos = 0;

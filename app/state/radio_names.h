@@ -35,6 +35,9 @@ std::vector<dect2::RadioRow> rowsFor(const std::vector<dect2::DeviceInfo>& devic
 const dect2::RadioRow* radioRow(const App& a, int idx);
 // What to show the user for a.devices[idx]: the user's name, else "<name> · SN <serial> · USB <port>" (+ " #n"); a non-radio source keeps its name.
 std::string radioShownName(const App& a, int idx);
+// A short name for a.devices[idx] for tab titles and the scan line (dect2::radioShortNames): the user's name, else the model
+// ("HackRF One", "RTL-SDR", "NESDR SMArt v5"), " #n" when two look the same; withSerial adds " (SN ...)". "" when idx is out of range.
+std::string radioShortName(const App& a, int idx, bool withSerial = false);
 // The same for a device of the list a.devices (by pointer into it); falls back to its own name.
 std::string radioShownName(const App& a, const dect2::DeviceInfo& d);
 // The key to save with a receiver or workspace ("" for a source that is not a radio).

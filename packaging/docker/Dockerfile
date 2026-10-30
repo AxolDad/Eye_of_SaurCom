@@ -4,9 +4,11 @@
 #   docker build -t saurcom --build-arg SAURCOM_VERSION=0.2.6 packaging/docker  (another release)
 
 # ---------- full: the Selkies desktop with Eye of SaurCom installed, minus what no Eye of SaurCom user needs ----------
+# (declared before the first FROM: both stages use it, the .deb and the version label)
+ARG SAURCOM_VERSION=0.2.5
 FROM ghcr.io/linuxserver/baseimage-selkies:ubuntunoble AS full
 
-ARG SAURCOM_VERSION=0.2.5
+ARG SAURCOM_VERSION
 ARG TARGETARCH
 
 # The release .deb: it carries its own FFmpeg and the libraries of the radios Eye of SaurCom drives itself; the SoapySDR modules add the rest.
@@ -32,14 +34,18 @@ COPY root/ /
 # ---------- final: one layer, so that what was removed above is not still carried in the base image's layers ----------
 FROM scratch
 COPY --from=full / /
+ARG SAURCOM_VERSION
 
+# (image.version: what saurcom-update compares a release with when the image's tag is not a version, e.g. :latest)
 LABEL org.opencontainers.image.title="Eye of SaurCom" \
+      org.opencontainers.image.version="${SAURCOM_VERSION}" \
       org.opencontainers.image.description="Eye of SaurCom software-defined radio receiver, its full GUI in the browser" \
       org.opencontainers.image.source="https://github.com/AxolDad/Eye_of_SaurCom" \
       org.opencontainers.image.licenses="GPL-3.0-or-later"
 
 # The settings of the base image (docker image inspect ghcr.io/linuxserver/baseimage-selkies:ubuntunoble): a single-layer image does
-# not inherit them, so check this list when the base changes. Changed here: START_DOCKER, TITLE. Added: the last four.
+# not inherit them, so check this list when the base changes. Changed here: START_DOCKER, TITLE. Added: the last four (SAURCOM_CONTAINER:
+# the app updates through the request file in /config, app/panels/update_ui.cpp).
 ENV PATH=/lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     HOME=/config \
     LANGUAGE=en_US.UTF-8 \
@@ -61,7 +67,7 @@ ENV PATH=/lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bi
     TITLE="Eye of SaurCom" \
     SELKIES_UI_TITLE="Eye of SaurCom" \
     MAX_RES=3840x2160 \
-    SAURCOM_NO_UPDATE_CHECK=1
+    SAURCOM_CONTAINER=docker
 
 EXPOSE 3000 3001
 VOLUME /config

@@ -1,4 +1,5 @@
 // View > Antenna rotator: GS-232-compatible rotator, calibration offsets, limits, park.
+#include "../ui/station_ui.h"
 #include "../app.h"
 #include "../ui/typography.h"
 #include "dect2/geo/passes.h"
@@ -330,7 +331,7 @@ void rotatorWindow(App& a) {
         ImGui::TextDisabled("%s", tr("Peak the dish on a DVB-S signal from the satellite (signal meter or Eye of SaurCom lock). Leave the rotator as it is — even if it reads 0° when you are not on north. Eye of SaurCom compares the true sky direction to the mechanical reading and stores the offset."));
         ImGui::PopTextWrapPos();
         if (!receiverLocationSet()) {
-            ImGui::TextColored(pal::warnAmber(), "%s", tr("Set the receiver position in ADS-B or Tools > Map first."));
+            stationHint(a, tr("Set your location first: the sky direction is worked out from it."));
         } else {
             double lat = 0, lon = 0;
             receiverLocation(lat, lon);
@@ -501,7 +502,7 @@ void rotatorWindow(App& a) {
                 if (!on) applyConnect();
                 rot.gotoAzEl(mapBrg, S.cmdEl);
             }
-        } else ImGui::TextDisabled("%s", tr("Set the receiver position in ADS-B or Tools > Map to use bearings."));
+        } else stationHint(a, tr("Set your location to use bearings."));
     }
     ImGui::End();
 }

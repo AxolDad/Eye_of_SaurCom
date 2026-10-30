@@ -1,6 +1,7 @@
 // ADS-B screens: the aircraft table, the selected aircraft's detail, the statistics view, the sources panel and the
 // unit controls.
 // Split from adsb_ui.cpp; the shared state is declared in adsb_internal.h.
+#include "../ui/station_ui.h"
 #include "transcribe/transcribe_app.h"
 #include "../panels/photo_links_ui.h"
 #include "adsb_internal.h"
@@ -22,6 +23,8 @@ std::string uDist(double nm, int dec) { return au::fmt(au::distOut(S.units, nm),
 std::string uVr(double fpm) { return au::fmt(au::vrateOut(S.units, fpm), au::vrateDecimals(S.units), true); }
 
 std::string dash(bool has, const std::string& v) { return has ? v : "-"; }
+// a range or bearing: the em dash while no station position is set (never a distance from a placeholder), "-" while the aircraft has none
+std::string rangeCell(bool has, const std::string& v) { return has ? v : receiverLocationSet() ? "-" : kNoRange; }
 
 // the units toggle (aviation / metric, and km/h or m/s), saved in the prefs
 void unitsControls() {
@@ -155,9 +158,9 @@ void aircraftTable(App& a, bool compact) {
         }
         ImGui::TableNextColumn(); ImGui::TextUnformatted(ac.hasPos ? num(true, "%.4f", ac.lat).c_str() : "-");
         ImGui::TableNextColumn(); ImGui::TextUnformatted(ac.hasPos ? num(true, "%.4f", ac.lon).c_str() : "-");
-        ImGui::TableNextColumn(); ImGui::TextUnformatted(dash(ac.hasRange, uDist(ac.distNm)).c_str());
+        ImGui::TableNextColumn(); ImGui::TextUnformatted(rangeCell(ac.hasRange, uDist(ac.distNm)).c_str());
         if (!compact) {
-            ImGui::TableNextColumn(); ImGui::TextUnformatted(num(ac.hasRange, "%.0f", ac.bearingDeg).c_str());
+            ImGui::TableNextColumn(); ImGui::TextUnformatted(rangeCell(ac.hasRange, num(true, "%.0f", ac.bearingDeg)).c_str());
             ImGui::TableNextColumn();
             if (ac.hasPos) ImGui::TextUnformatted(ac.posKind == 2 ? "global" : ac.posKind == 3 ? "local+" : "local");
             else if ((ac.cprHave & 3) == 3) ImGui::TextUnformatted("pair");
@@ -258,7 +261,7 @@ void detail(const App& a) {
         else if (ac->cprHave & 2) fx = "odd CPR only";
         kv("fix", fx);
     }
-    if (ac->hasRange) snprintf(b, sizeof b, "%s %s at %.0f deg", uDist(ac->distNm).c_str(), au::distUnit(S.units), ac->bearingDeg); else snprintf(b, sizeof b, "-");
+    if (ac->hasRange) snprintf(b, sizeof b, "%s %s at %.0f deg", uDist(ac->distNm).c_str(), au::distUnit(S.units), ac->bearingDeg); else snprintf(b, sizeof b, "%s", rangeCell(false, "").c_str());
     kv("range", b);
     kv("altitude", ac->ground ? "on the ground" : ac->hasAlt ? uAlt(ac->altFt) + " " + au::altUnit(S.units) : "-");
     kv("GNSS height", ac->hasGeoAlt ? uAlt(ac->geoAltFt) + " " + au::altUnit(S.units) : "-");
@@ -315,7 +318,7 @@ void statsView(App& a) {
     ImGui::SameLine();
     unitsControls();
     if (!note.empty()) { ImGui::SameLine(); ImGui::TextDisabled("%s", note.c_str()); }
-    if (on && !t.refValid) ImGui::TextColored(kWarn, "Set the antenna position (Tuner section): ranges need it.");
+    if (!receiverLocationSet()) stationHint(a, tr("Set your location: ranges are measured from it."));
     char b[160];
     snprintf(b, sizeof b, "farthest %s %s   max altitude %s %s   %llu positions counted", uDist(st.maxRangeNm, 0).c_str(), au::distUnit(S.units),
              st.hasMaxAlt ? uAlt(st.maxAltFt).c_str() : "-", au::altUnit(S.units), (unsigned long long)st.positions);

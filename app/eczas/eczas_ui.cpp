@@ -170,7 +170,7 @@ void timeView(App& a) {
     } else {
         kvRow(a, tr("computer clock"), "%s", t.timeValid ? tr("nothing to compare (a recording)") : tr("once the time is decoded"));
     }
-    kvRow(a, tr("path"), "%.0f km from Solec Kujawski, %.2f ms%s", t.distanceKm, t.propDelayMs, t.locationSet ? "" : tr("; set your position in ADS-B (Receiver position) for the right delay"));
+    kvRow(a, tr("path"), "%.0f km from Solec Kujawski, %.2f ms%s", t.distanceKm, t.propDelayMs, t.locationSet ? "" : tr("; set your location (the pin in the toolbar) for the right delay"));
     ImGui::Spacing();
     float lo, hi;
     minMax(t.offsetHist, lo, hi, 5);

@@ -2,6 +2,7 @@
 #include "dect2/p25/trunk.h"
 #include <algorithm>
 #include <cmath>
+#include <ctime>
 
 namespace dect2 {
 namespace trunk {
@@ -13,6 +14,7 @@ bool DmrModel::onCsbk(int opcode, int fid, const uint8_t d[8], double, Grant& g)
     if (fid != 0) return false;   // manufacturer CSBKs (Connect Plus, Capacity Plus and the like are not public): not interpreted
     if (opcode != ops_.tvGrant && opcode != ops_.pvGrant && opcode != ops_.btvGrant) return false;
     g = Grant();
+    g.kind = SysKind::Dmr;
     g.dmr = true; g.tdma = true;
     g.channel = (d[0] << 4) | (d[1] >> 4);
     g.slot = (d[1] >> 3) & 1;
@@ -31,6 +33,7 @@ double NxdnModel::channelFreq(int ch) const { auto it = ch_.find(ch); return it 
 bool NxdnModel::onAssignment(int callType, int src, int dst, int channel, int ccOption, Grant& g) {
     if (channel < 0 || channel > 1023) return false;
     g = Grant();
+    g.kind = SysKind::Nxdn;
     g.channel = channel;
     g.tg = dst; g.src = src;
     g.group = callType == 0 || callType == 1;
@@ -59,26 +62,72 @@ void Controller::dispatch(const std::vector<Grant>& gs, double now) {
     }
 }
 
+void Controller::selectSystem(SysKind k) {
+    if (curSet_ && k == cur_) return;
+    if (curSet_) others_[cur_] = std::move(tgs);
+    auto it = others_.find(k);
+    if (it != others_.end()) { tgs = std::move(it->second); others_.erase(it); } else tgs = TalkgroupList();
+    cur_ = k; curSet_ = true;
+}
+
 void Controller::onTsbk(const p25::Tsbk& t, int nac, double now) {
+    adopt(SysKind::P25);
     good_++;
     lastGood_ = now;
     follower.onControlSeen(now);
     std::vector<Grant> gs;
     pushMsg(sys.onTsbk(t, nac, now, &gs));
     if (sys.site().valid && sys.site().ccHz > 0) follower.setControlChannel(sys.site().ccHz, sys.controlCandidates());
-    dispatch(gs, now);
+    const SiteInfo& si = sys.site();
+    if (phase2Ready() && (si.wacn != p2Wacn_ || si.sysId != p2Sys_ || si.nac != p2Nac_)) { p2Wacn_ = si.wacn; p2Sys_ = si.sysId; p2Nac_ = si.nac; p2Gen_++; }
+    // a Phase 2 grant before the system identity is known would be followed with the wrong scrambling: hold it
+    std::vector<Grant> now_;
+    for (const Grant& g : gs) {
+        if (g.kind == SysKind::P25 && g.tdma && !g.dmr && !phase2Ready()) {
+            bool known = false;
+            for (P2Pending& p : p2Pending_) if (p.g.tg == g.tg && p.g.group == g.group && std::fabs(p.g.freqHz - g.freqHz) < 1 && p.g.slot == g.slot) { p.g = g; p.t = now; known = true; }
+            if (!known) {
+                p2Pending_.push_back({g, now});
+                pushMsg((g.group ? "TG " : "unit ") + std::to_string(g.tg) + ": Phase 2 call waits for the system ID (WACN, system and NAC from NET_STS_BCST)");
+            }
+            continue;
+        }
+        now_.push_back(g);
+    }
+    // never followed with a wrong scrambling seed: a grant that waited too long is logged as missed
+    auto missed = [&](const P2Pending& p) {
+        CallRecord r;
+        r.wallTime = (int64_t)time(nullptr);
+        r.startSec = r.lastSec = p.t;
+        r.dmr = false; r.group = p.g.group; r.tg = p.g.tg; r.src = p.g.src; r.channel = p.g.channel; r.freqHz = p.g.freqHz; r.slot = p.g.slot;
+        r.p25p2 = true; r.kind = SysKind::P25; r.label = p.g.label; r.emergency = p.g.emergency; r.encrypted = p.g.encrypted;
+        r.missed = true; r.note = "missed (waiting for the system ID)";
+        log.add(r);
+    };
+    if (phase2Ready() && !p2Pending_.empty()) {
+        for (const P2Pending& p : p2Pending_) { if (now - p.t < 3.0) now_.push_back(p.g); else missed(p); }
+        p2Pending_.clear();
+    }
+    for (auto i = p2Pending_.begin(); i != p2Pending_.end();) {
+        if (now - i->t <= 3.0) { ++i; continue; }
+        missed(*i);
+        i = p2Pending_.erase(i);
+    }
+    dispatch(now_, now);
 }
 
 void Controller::onTsbkBad(double) { bad_++; }
 
 void Controller::onDmrCsbk(int opcode, int fid, const uint8_t data[8], double now) {
     Grant g;
+    adopt(SysKind::Dmr);
     onControlSeen(now);
     if (dmr.onCsbk(opcode, fid, data, now, g)) dispatch({g}, now);
 }
 
 void Controller::onNxdnAssignment(int callType, int src, int dst, int channel, int ccOption, double now) {
     Grant g;
+    adopt(SysKind::Nxdn);
     onControlSeen(now);
     if (nxdn.onAssignment(callType, src, dst, channel, ccOption, g)) dispatch({g}, now);
 }
@@ -115,6 +164,8 @@ void Controller::clear() {
     messages.clear();
     good_ = bad_ = 0;
     lastGood_ = -1e9;
+    p2Pending_.clear();
+    p2Wacn_ = p2Sys_ = p2Nac_ = -1;
 }
 
 } // namespace trunk

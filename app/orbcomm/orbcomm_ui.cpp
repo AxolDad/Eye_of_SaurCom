@@ -82,7 +82,7 @@ void mapView(App& a, ImVec2 size) {
     adsbmap::fullCorner(p0, size);   // the shared full-screen button (#195)
     if (S.map.lat != lat0 || S.map.lon != lon0) S.mapFollow = false;
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     ImVec2 click; const bool clicked = adsbmap::clickedAt(click);
     int hit = -1; float best = 16 * gUi;
     if (on) {

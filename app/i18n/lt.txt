@@ -768,7 +768,6 @@ No Hermes Lite 2 answered on this computer's networks: type its address.	Šio ko
 No radio found	Radijas nerastas
 No sound output	Nėra garso išvesties
 North America	Šiaurės Amerika
-Not a locator or coordinates	Ne lokatorius ir ne koordinatės
 On Windows a HackRF needs its WinUSB driver once: install it with Zadig (zadig.akeo.ie).	„Windows“ sistemoje HackRF vieną kartą reikalauja WinUSB tvarkyklės: įdiekite ją su Zadig (zadig.akeo.ie).
 Eye of SaurCom %s	Eye of SaurCom %s
 Eye of SaurCom cannot see a HackRF on the USB ports.	Eye of SaurCom nmato HackRF USB prievaduose.
@@ -787,7 +786,6 @@ Open driver page	Atidaryti tvarkyklės puslapį
 Open firmware page	Atidaryti programinės įrangos puslapį
 Open the SDRplay API page	Atidaryti SDRplay API puslapį
 Open the device list	Atidaryti įrenginių sąrašą
-Optional: your position, as a Maidenhead locator (KO24pq) or coordinates (54.68, 25.28). It is kept on this computer and used for maps and satellite passes.	Neprivaloma: jūsų vieta kaip Maidenhead lokatorius (KO24pq) arba koordinatės (54.68, 25.28). Ji saugoma šiame kompiuteryje ir naudojama žemėlapiams bei palydovų praskridimams.
 Or choose another radio from the list.	Arba pasirinkite kitą radiją iš sąrašo.
 Or install Eye of SaurCom's blacklist file (the .deb package does it).	Arba įdiekite Eye of SaurCom juodojo sąrašo failą (.deb paketas tai padaro).
 Or set the UHD_IMAGES_DIR variable to the folder with the images.	Arba nustatykite kintamąjį UHD_IMAGES_DIR į aplanką su vaizdais.
@@ -1372,7 +1370,6 @@ The computer clock when each time packet began, minus the stamp in the packet an
 nothing to compare (a recording)	nėra ką lyginti (įrašas)
 once the time is decoded	kai laikas bus iškoduotas
 path	trasa
-; set your position in ADS-B (Receiver position) for the right delay	; set your position in ADS-B (Receiver position) for the right delay
 clock offset	laikrodžio paklaida
 level	lygis
 start the receiver to see the signal	paleiskite imtuvą, kad pamatytumėte signalą
@@ -1950,7 +1947,6 @@ Sound alert	Garso signalas
 Test (dry run)	Tikrinti (be veiksmų)
 Test with a sample event	Išbandyti su pavyzdiniu įvykiu
 Text can use:	Tekste galima naudoti:
-The receiver position is not set (ADS-B window).	Imtuvo vieta nenustatyta (ADS-B langas).
 The recipe file	Recepto failas
 The script ran and did nothing for this event.	Skriptas veikė ir šiam įvykiui nieko nepadarė.
 Then do	Tada daryti
@@ -2232,7 +2228,6 @@ Save CSV	Įrašyti CSV
 Save FITS	Įrašyti FITS
 Save SigMF text	Įrašyti SigMF tekstą
 Save session	Įrašyti seansą
-Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	Vieta yra imtuvo vieta (Rodymas > Žemėlapis). Laikas – kompiuterio laikrodis, UTC.
 Sun	Saulė
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	Sukimosi kreivei reikia spektrų keliose ilgumose tarp 0 ir 90 (arba 270 ir 360).
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	Link tikslo: Žemės sukimasis %+.2f, orbita %+.2f, Saulė %+.2f; iš viso %+.2f km/s (pridėti prie toposcentrinio greičio)
@@ -2461,7 +2456,6 @@ Saved illuminators	Išsaugoti apšvietėjai
 Second target	Antras taikinys
 Target range (km)	Taikinio atstumas (km)
 Targets closer than the tap count in range samples are hidden by the cancellation.	Taikinius, esančius arčiau nei koeficientų skaičius atstumo atskaitomis, slopinimas paslepia.
-The receiver position is the one set for ADS-B.	Imtuvo padėtis yra ta pati, kuri nustatyta ADS-B.
 Tracks	Trasos
 Two recordings (reference, surveillance)	Du įrašai (atraminis, stebėjimo)
 Two-channel recording (cf32)	Dviejų kanalų įrašas (cf32)
@@ -3444,3 +3438,87 @@ deselect	atšaukti pasirinkimą
 click a station on the map to select it	spustelėkite stotį žemėlapyje, kad ją pasirinktumėte
 %zu stations by their locators, %zu contact lines	%zu stočių pagal lokatorius, %zu ryšio linijų
 %d stations at the centre of their grid squares, %zu contact lines	%d stočių savo kvadratų viduryje, %zu ryšio linijų
+# trunking: voice radios (the follower's second radio)
+Voice	Balsas
+Unlink	Atsieti
+RX %d is on the control channel and follows the calls with its voice radios.	RX %d lieka valdymo kanale ir seka pokalbius savo balso radijo imtuvais.
+Voice: RX %d · %s	Balsas: RX %d · %s
+RX %d is no longer a voice radio: its tab is closed.	RX %d nebėra balso radijo imtuvas: jo kortelė uždaryta.
+Use a second radio for voice	Naudoti antrą radijo imtuvą balsui
+Use another radio for voice	Naudoti dar vieną radijo imtuvą balsui
+RX %d follows the calls as a voice radio; RX %d stays on the control channel.	RX %d seka pokalbius kaip balso radijo imtuvas; RX %d lieka valdymo kanale.
+Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.	Atidaro imtuvo kortelę pirmame laisvame radijo imtuve, šiuo režimu, ir susieja ją: šis radijo imtuvas lieka valdymo kanale, o kiekvienas pokalbis girdimas kitame. Paspauskite dar kartą, kad pridėtumėte dar vieną.
+Start this receiver on the control channel first.	Pirmiausia paleiskite šį imtuvą valdymo kanale.
+With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding.	Su vienu radijo imtuvu šis imtuvas kiekvienam pokalbiui palieka valdymo kanalą ir praleidžia tuo metu skirtus pokalbius. Antras radijo imtuvas balsui to išvengia; taip pat plačiajuostis radijo imtuvas (HackRF) su visos juostos dekodavimu.
+This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed.	Šis radijo imtuvas lieka valdymo kanale. Kai visi balso radijo imtuvai užimti, aukštesnio prioriteto pokalbis perima tą, kuriame yra žemiausio prioriteto pokalbis; kiti įrašomi kaip praleisti.
+Voice for RX %d · TG %d · %.4f MHz	Balsas RX %d · TG %d · %.4f MHz
+Voice for RX %d · waiting for a call	Balsas RX %d · laukiama pokalbio
+This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Šis imtuvas seka tik RX %d pokalbius. Pokalbių grupės, pokalbių žurnalas ir nustatymai yra RX %d kortelėje Sekti.
+The receiver on the control channel was closed: its voice radios are closed too.	Valdymo kanalo imtuvas uždarytas: jo balso radijo imtuvai taip pat uždaromi.
+The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Balso kortelė RX %d uždaryta: RX %d vėl seka pokalbius savo radijo imtuvu.
+RX %d was switched to another mode: it is no longer a voice radio.	RX %d perjungtas į kitą režimą: jis nebėra balso radijo imtuvas.
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d perjungtas į kitą režimą: jo balso radijo imtuvai atsiejami ir uždaromi.
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d prarado savo radijo imtuvą (%s): jame vykęs pokalbis baigtas, jis nebėra balso radijo imtuvas ir jo kortelė uždaroma. RX %d lieka valdymo kanale.
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d sustabdytas: jis nebėra balso radijo imtuvas ir jo kortelė uždaroma. RX %d lieka valdymo kanale.
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d nebeseka sistemos: jo balso radijo imtuvai atsiejami ir uždaromi.
+Not a voice radio any more: this tab closes.	Nebe balso radijo imtuvas: ši kortelė uždaroma.
+No free radio can tune to %.4f MHz.	Joks laisvas radijo imtuvas negali nusiderinti į %.4f MHz.
+Every radio is in use by another receiver	Visus radijo imtuvus naudoja kitas imtuvas
+No radio is connected	Neprijungtas joks radijo imtuvas
+# station location: maps open at My station, Centre on me, I'm here
+(your location is not set: the distance filter is off)	(tavo vieta nenustatyta: atstumo filtras išjungtas)
+; set your location (the pin in the toolbar) for the right delay	; nustatyk savo vietą (smeigtukas įrankių juostoje), kad vėlinimas būtų teisingas
+Centre on me	Centruoti į mane
+Centre the map here	Centruoti žemėlapį čia
+Centre the map on my station (%.4f, %.4f)	Centruoti žemėlapį į mano stotį (%.4f, %.4f)
+Every map and range uses it. Change it any time in My station (the location pin in the toolbar).	Ją naudoja kiekvienas žemėlapis ir atstumas. Pakeisk bet kada skiltyje Mano stotis (smeigtukas įrankių juostoje).
+I'm here...	Aš čia...
+Locator %s	Lokatorius %s
+Now %.5f, %.5f (%.1f km from here)	Dabar %.5f, %.5f (%.1f km nuo čia)
+Open My station: paste coordinates, a locator or a map link, or use a GPS	Atidaryti Mano stotį: įklijuok koordinates, lokatorių ar žemėlapio nuorodą arba naudok GPS
+Set my station (every map and range) to this point	Nustatyti mano stotį (visiems žemėlapiams ir atstumams) į šį tašką
+Set my station here?	Nustatyti mano stotį čia?
+Set your location	Nustatyk savo vietą
+Set your location first: the sky direction is worked out from it.	Pirmiausia nustatyk savo vietą: kryptis danguje skaičiuojama iš jos.
+Set your location first: these services are asked about a circle around you.	Pirmiausia nustatyk savo vietą: šių paslaugų klausiama apie apskritimą aplink tave.
+Set your location to use bearings.	Nustatyk savo vietą, kad galėtum naudoti pelengus.
+Set your location: NMS is asked about a circle around it.	Nustatyk savo vietą: NMS klausiama apie apskritimą aplink ją.
+Set your location: each bearing line starts at it.	Nustatyk savo vietą: kiekviena pelengo linija prasideda nuo jos.
+Set your location: ranges are measured from it.	Nustatyk savo vietą: atstumai matuojami nuo jos.
+Set your location: the API is asked about a circle around it.	Nustatyk savo vietą: API klausiama apie apskritimą aplink ją.
+Site is your location (My station, the pin in the toolbar). Time is the computer clock, UTC.	Vieta yra tavo vieta (Mano stotis, smeigtukas įrankių juostoje). Laikas yra kompiuterio laikrodis, UTC.
+The map opens at your station and ranges are measured from it. Paste coordinates, a locator or a map link, use a GPS, or right-click the map and choose I'm here.	Žemėlapis atsidaro ties tavo stotimi, o atstumai matuojami nuo jos. Įklijuok koordinates, lokatorių ar žemėlapio nuorodą, naudok GPS arba spustelėk žemėlapį dešiniuoju mygtuku ir pasirink Aš čia.
+The receiver position is your station's (My station, the pin in the toolbar).	Imtuvo vieta yra tavo stoties (Mano stotis, smeigtukas įrankių juostoje).
+This station does not report where it is (its location is not set).	Ši stotis nepraneša, kur ji yra (jos vieta nenustatyta).
+Yes, I'm here	Taip, aš čia
+Your location is not set.	Tavo vieta nenustatyta.
+Your location is not set: opens My station	Tavo vieta nenustatyta: atidaro Mano stotį
+Your location is not set: the site is a placeholder.	Tavo vieta nenustatyta: vieta yra laikina.
+or right-click the map: I'm here	arba dešiniuoju mygtuku ant žemėlapio: Aš čia
+height (m)	aukštis (m)
+latitude must be -90 to 90 and longitude -180 to 180	platuma turi būti nuo -90 iki 90, ilguma nuo -180 iki 180
+Add your system's channel list	Pridėkite savo sistemos kanalų sąrašą
+The control channel names channels by number. One line per channel: the number, a comma, the frequency in MHz (for example 1,851.0125). Paste the list from your system's listing, or load a CSV file.	Valdymo kanalas kanalus nurodo numeriu. Viena eilutė kanalui: numeris, kablelis, dažnis MHz (pavyzdžiui 1,851.0125). Įklijuokite sąrašą iš savo sistemos aprašo arba įkelkite CSV failą.
+%d channels in the list (number,MHz per line)	Sąraše %d kanalų (numeris,MHz eilutėje)
+Apply and save	Taikyti ir išsaugoti
+Load file	Įkelti failą
+The formula gives every channel; list here only the channels that do not follow it.	Formulė duoda kiekvieną kanalą; čia nurodykite tik kanalus, kurie jos nesilaiko.
+EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: pokalbiai priskiriami loginiams kanalų numeriams (LCN 1-31).
+Narrowband (EDACS NB, 4800 bit/s)	Siaura juosta (EDACS NB, 4800 bit/s)
+LTR has no control channel: each repeater sends its data only while it is busy. Every repeater in your list that fits in the radio's bandwidth is watched at once; when they do not all fit, the radio sweeps through them.	LTR neturi valdymo kanalo: kiekvienas kartotuvas siunčia duomenis tik kai yra užimtas. Visi jūsų sąrašo kartotuvai, telpantys į radijo juostos plotį, stebimi vienu metu; jei visi netelpa, radijas juos apeina paeiliui.
+List the system's repeaters above: each one is watched for calls.	Aukščiau išvardykite sistemos kartotuvus: kiekvienas stebimas dėl pokalbių.
+Sweeping %d repeaters: %d at a time, group %d of %d	Apeinami %d kartotuvai: po %d vienu metu, grupė %d iš %d
+Watching %d of %d repeaters	Stebima %d iš %d kartotuvų
+Message set	Pranešimų rinkinys
+Standard / networked	Standartinis / tinklinis
+Extended addressing (EA)	Išplėstinis adresavimas (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	Dar nesuprastas nė vienas pokalbio priskyrimas: jei kalbama, išbandykite kitą pranešimų rinkinį arba ESK.
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: aukščiau esantis sąrašas priima vietos kanalų numerius (LCN). Sąraše nesantys kanalai apskaičiuojami iš vietos juostos, kai tik laisvumo žodis pasako, kuri tai juosta.
+MPT 1327: channel n is on channel 1 + (n - 1) x spacing; list the channels that are not.	MPT 1327: kanalas n yra ties 1 kanalu + (n - 1) x žingsnis; išvardykite kanalus, kuriems tai netinka.
+Group idents (from, to)	Grupių identai (nuo, iki)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 nenurodo, ar identas yra grupė, ar radijo stotis: tai nustato jūsų sistemos parko planas. Skambučiai šio intervalo identams registruojami kaip grupiniai, kiti – kaip skambučiai vienai stočiai.
+channel 1 MHz	1 kanalas MHz
+spacing kHz	žingsnis kHz
+The base was worked out from the control channel's broadcast of its own number: check it.	Bazė apskaičiuota iš valdymo kanalo savo numerio transliacijos: patikrinkite.
+Enter the channel 1 frequency of your system, or list its channels below.	Įveskite savo sistemos 1 kanalo dažnį arba žemiau išvardykite jos kanalus.
+A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	Magistralinės sistemos valdymo kanalas (P25, DMR Tier III, NXDN Type C, EDACS, LTR arba MPT 1327): skeneris seka jo pokalbius\nsu sekimo pokalbių grupių sąrašu ir kanalų lentelėmis ir eina toliau, jei per laukimo laiką pokalbio nebuvo

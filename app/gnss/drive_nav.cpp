@@ -133,7 +133,7 @@ void driveNavView(App& a, ImVec2 size) {
     adsbmap::draw(S.map, mapSize);
     if (S.map.lat != lat0 || S.map.lon != lon0) S.follow = false;
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + mapSize.x, p0.y + mapSize.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     if (S.night) dl->AddRectFilled(p0, ImVec2(p0.x + mapSize.x, p0.y + mapSize.y), IM_COL32(0, 8, 24, 150));
     const ImU32 routeCol = S.night ? IM_COL32(255, 170, 60, 255) : IM_COL32(30, 110, 230, 255);
     const ImU32 doneCol = S.night ? IM_COL32(120, 90, 50, 200) : IM_COL32(120, 140, 170, 200);

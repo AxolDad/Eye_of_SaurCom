@@ -6,6 +6,7 @@
 #include "../app.h"
 #include "../ui/typography.h"
 #include "../ui/scale.h"
+#include "../ui/station_ui.h"
 #include "rfcam_ui.h"
 #include "../adsb/adsb_map.h"
 #include "dect2/automation/engine.h"
@@ -236,7 +237,8 @@ void emitBearing(double hz, double bearingDeg, double conf) {
     receiverLocation(lat, lon);
     au::Event e("df.bearing");
     e.at(t, "DF", hz);
-    e.num("bearing_deg", wrap360(bearingDeg)).num("sigma_deg", std::clamp(30.0 * (1.0 - conf), 2.0, 30.0)).num("lat", lat).num("lon", lon);
+    e.num("bearing_deg", wrap360(bearingDeg)).num("sigma_deg", std::clamp(30.0 * (1.0 - conf), 2.0, 30.0));
+    if (receiverLocationSet()) e.num("lat", lat).num("lon", lon);   // never the placeholder
     au::emit(std::move(e));
 }
 
@@ -361,13 +363,18 @@ void localMap(App& a, float w, float h) {
         dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(255, 90, 90, 255), ImDrawFlags_Closed, 1.5f * gUi);
         dl->AddCircleFilled(xy(S.fix.lat, S.fix.lon), 5 * gUi, IM_COL32(255, 90, 90, 255));
     }
+    adsbmap::locationButton(p0, ImVec2(w, h), false);   // no position: the plot is around a placeholder; the button opens My station
     (void)a;
 }
 
 void fixSection(App& a) {
     double lat, lon;
     receiverLocation(lat, lon);
-    if (ImGui::Button(tr("Add this bearing"), ImVec2(0, 0)) && !S.avg.empty()) {
+    stationHint(a, tr("Set your location: each bearing line starts at it."));
+    ImGui::BeginDisabled(!receiverLocationSet());
+    const bool addLine = ImGui::Button(tr("Add this bearing"), ImVec2(0, 0));
+    ImGui::EndDisabled();
+    if (addLine && !S.avg.empty()) {
         BearingLine l; l.lat = lat; l.lon = lon; l.bearingDeg = S.avg.mean();
         l.sigmaDeg = std::max(1.0, std::min(15.0, S.avg.stdDeg() + 2.0));
         S.lines.push_back(l);

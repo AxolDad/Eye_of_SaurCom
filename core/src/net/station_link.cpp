@@ -21,6 +21,18 @@ namespace dect2 {
 
 namespace aj = automation::json;
 
+bool positionFromStatus(const std::string& json, double& lat, double& lon, double& altM) {
+    lat = lon = altM = NAN;
+    aj::Value v; std::string perr;
+    if (!aj::parse(json, v, perr)) return false;
+    auto num = [&](const char* k) { const aj::Value* x = v.get(k); return x && x->type == aj::Value::Num && std::isfinite(x->n) ? x->n : NAN; };
+    const double la = num("lat"), lo = num("lon"), al = num("alt");
+    // the same rules as the station's own position (geo/station_location: validPos, validAlt): 0,0 is "not set", not a place
+    if (la >= -90 && la <= 90 && lo >= -180 && lo <= 180 && !(la == 0 && lo == 0)) { lat = la; lon = lo; }
+    if (al >= -500 && al <= 9000) altM = al;
+    return true;
+}
+
 namespace {
 
 constexpr int kConnectMs = 3000, kReadMs = 1000, kMaxBackoffSec = 60, kHealthySec = 30;
@@ -99,13 +111,10 @@ struct Link {
         closeSock(s);
         const size_t e = resp.find("\r\n\r\n");
         if (resp.compare(0, 9, "HTTP/1.1 ") != 0 || resp.compare(9, 3, "200") != 0 || e == std::string::npos) return;
-        aj::Value v; std::string perr;
-        if (!aj::parse(resp.substr(e + 4), v, perr)) return;
-        const aj::Value* la = v.get("lat");
-        const aj::Value* lo = v.get("lon");
+        double la = NAN, lo = NAN, al = NAN;
+        if (!positionFromStatus(resp.substr(e + 4), la, lo, al)) return;   // range-checked: it comes from another computer
         std::lock_guard<std::mutex> lk(mu);
-        st.lat = la && la->type == aj::Value::Num && std::isfinite(la->n) ? la->n : NAN;
-        st.lon = lo && lo->type == aj::Value::Num && std::isfinite(lo->n) ? lo->n : NAN;
+        st.lat = la; st.lon = lo; st.altM = al;
     }
 
     void onEvent(const std::string& line) {
@@ -152,7 +161,7 @@ struct Link {
         if (haveSeq) sub += ",\"since\":" + std::to_string(lastSeq);
         sub += "}";
         if (!ws.sendText(sub)) return "the connection dropped while subscribing";
-        { std::lock_guard<std::mutex> lk(mu); st.lat = NAN; st.lon = NAN; }
+        { std::lock_guard<std::mutex> lk(mu); st.lat = NAN; st.lon = NAN; st.altM = NAN; }
         setState(2);
         live = true;
         readPosition();

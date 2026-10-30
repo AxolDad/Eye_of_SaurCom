@@ -51,6 +51,7 @@ struct State {
     Inputs in;
     adsbmap::View map;
     bool probe = false; double pLat = 0, pLon = 0;
+    bool txMine = true;                         // the transmitter is my station (follows it); false once a place is typed or clicked
     int clickSets = 0;                          // 0 transmitter, 1 probe point
     char coordBuf[96] = "";
     std::string msg;
@@ -109,6 +110,8 @@ void load(App&) {
     double rl, ro; receiverLocation(rl, ro);
     Inputs& i = S.in;
     i.txLat = pf.getD("prop_lat", rl); i.txLon = pf.getD("prop_lon", ro);
+    // the transmitter is the station unless a place of its own was chosen (older versions saved the placeholder: that is no choice)
+    S.txMine = pf.getB("prop_txMine", !pf.has("prop_lat") || (std::fabs(i.txLat - 25.25) < 1e-6 && std::fabs(i.txLon - 55.36) < 1e-6));
     i.power = pf.getD("prop_power", i.power); i.powerUnit = (int)pf.getI("prop_punit", i.powerUnit);
     i.powerIsEirp = pf.getB("prop_eirp", i.powerIsEirp);
     i.txGainDbi = pf.getD("prop_txg", i.txGainDbi); i.feederDb = pf.getD("prop_feed", i.feederDb);
@@ -129,7 +132,7 @@ void load(App&) {
 void save() {
     auto& pf = plat::prefs();
     const Inputs& i = S.in;
-    pf.setD("prop_lat", i.txLat); pf.setD("prop_lon", i.txLon);
+    pf.setD("prop_lat", i.txLat); pf.setD("prop_lon", i.txLon); pf.setB("prop_txMine", S.txMine);
     pf.setD("prop_power", i.power); pf.setI("prop_punit", i.powerUnit); pf.setB("prop_eirp", i.powerIsEirp);
     pf.setD("prop_txg", i.txGainDbi); pf.setD("prop_feed", i.feederDb);
     pf.setD("prop_f", i.fMHz); pf.setD("prop_bw", i.bandwidthHz); pf.setD("prop_snr", i.requiredSnr);
@@ -244,12 +247,13 @@ void inputsUi(App& a) {
     ImGui::SameLine();
     ImGui::Text("%.5f, %.5f  %s", i.txLat, i.txLon, dect2::toMaidenhead(i.txLat, i.txLon, 6).c_str());
     ImGui::SameLine(0, 10 * gUi);
-    if (ImGui::SmallButton("Use my location")) { receiverLocation(i.txLat, i.txLon); S.map.lat = i.txLat; S.map.lon = i.txLon; }
+    if (ImGui::SmallButton("Use my location")) { S.txMine = true; S.map.centreReq = true; }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", S.txMine ? "The transmitter is your station and moves with it" : "Put the transmitter at your station (My station) and keep it there");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(200 * gUi);
     if (ImGui::InputTextWithHint("##propcoord", "type coordinates, Enter", S.coordBuf, sizeof S.coordBuf, ImGuiInputTextFlags_EnterReturnsTrue)) {
         double la, lo;
-        if (dect2::parseCoordinates(S.coordBuf, la, lo)) { i.txLat = la; i.txLon = lo; S.map.lat = la; S.map.lon = lo; S.msg.clear(); }
+        if (dect2::parseCoordinates(S.coordBuf, la, lo)) { i.txLat = la; i.txLon = lo; S.txMine = false; S.map.lat = la; S.map.lon = lo; S.map.followStation = false; S.msg.clear(); }
         else S.msg = "not a position";
     }
     ImGui::SameLine(0, 10 * gUi);
@@ -347,10 +351,10 @@ void mapView(App& a) {
     ImVec2 click;
     if (adsbmap::clickedAt(click)) {
         double la, lo; adsbmap::unproject(click, la, lo); lo = std::fmod(lo + 540, 360) - 180;
-        if (S.clickSets == 0) { S.in.txLat = la; S.in.txLon = lo; } else { S.probe = true; S.pLat = la; S.pLon = lo; }
+        if (S.clickSets == 0) { S.in.txLat = la; S.in.txLon = lo; S.txMine = false; } else { S.probe = true; S.pLat = la; S.pLon = lo; }
     }
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     Result res; bool have = false;
     { std::lock_guard<std::mutex> lk(S.mu); if (S.result.valid) { res = S.result; have = true; } }
     if (have) {
@@ -398,6 +402,7 @@ void propagationWindow(App& a) {
         return;
     }
     load(a);
+    if (S.txMine && receiverLocationSet()) receiverLocation(S.in.txLat, S.in.txLon);   // the transmitter is my station: it moves with it
     ImGui::SetNextWindowSize(ImVec2(920 * gUi, 760 * gUi), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin("Propagation", &a.propOpen)) { ImGui::End(); return; }
     inputsUi(a);

@@ -25,8 +25,17 @@ int effPrio(int p) { return p <= 0 ? 11 : p; }   // 1 is the highest; none count
 }
 
 void Follower::reset() {
+    // the calls being followed are dropped: their recordings still have to stop (the host keys them by call id)
+    std::vector<uint64_t> rec;
+    for (const Slot& s : slots_) if (s.used) rec.push_back(s.callId);
+    for (const Slot& s : voice_) if (s.used) rec.push_back(s.callId);
+    for (const auto& d : dropped_) if (d.first.used) rec.push_back(d.first.callId);
     slots_.clear();
+    enc_.clear();
+    for (Slot& v : voice_) v = Slot();   // the radios stay linked, their calls are forgotten
+    dropped_.clear();
     out_.clear();
+    if (cfg_.record) for (uint64_t id : rec) { Action a; a.kind = Action::RecordStop; a.callId = id; out_.push_back(a); }
     state_ = FollowState::NoControl;
     lastCcSec_ = -1e9;
     missed_ = 0;
@@ -54,10 +63,12 @@ int Follower::activeSlices() const {
 
 uint64_t Follower::audibleCall() const {
     const Slot* best = nullptr;
-    for (const Slot& s : slots_) {
-        if (!s.used) continue;
+    auto consider = [&](const Slot& s) {
+        if (!s.used) return;
         if (!best || effPrio(s.prio) < effPrio(best->prio) || (effPrio(s.prio) == effPrio(best->prio) && s.startSec < best->startSec)) best = &s;
-    }
+    };
+    for (const Slot& s : slots_) consider(s);
+    for (const Slot& s : voice_) consider(s);
     return best ? best->callId : 0;
 }
 
@@ -110,29 +121,65 @@ void Follower::onControlSeen(double now) {
     }
 }
 
+void Follower::onEncrypted(uint64_t callId, double now, CallLog& log) {
+    CallRecord* r = log.byId(callId);
+    if (!r) return;
+    if (!r->encrypted) { r->encrypted = true; r->note = "encrypted (no sound): the radio was released"; }
+    bool have = false;
+    for (EncMark& m : enc_)
+        if (m.kind == r->kind && m.dmr == r->dmr && m.group == r->group && m.tg == r->tg && m.slot == r->slot && std::fabs(m.freqHz - r->freqHz) < 1) { m.lastSec = now; have = true; }
+    if (!have) { EncMark m; m.kind = r->kind; m.dmr = r->dmr; m.group = r->group; m.tg = r->tg; m.slot = r->slot; m.freqHz = r->freqHz; m.lastSec = now; enc_.push_back(m); }
+    onTerminator(callId, now);
+}
+
 void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double now, CallLog& log) {
     lastNow_ = now;
+    // an encrypted call already released: its updates are absorbed while they keep coming; a gap, or the talkgroup on another channel, is a
+    // new call
+    const double gap = std::max(3.0, cfg_.hangSec);
+    for (auto it = enc_.begin(); it != enc_.end();) {
+        if (now - it->lastSec > gap) { it = enc_.erase(it); continue; }
+        if (it->kind == g.kind && it->dmr == g.dmr && it->group == g.group && it->tg == g.tg) {
+            if (it->slot == g.slot && (g.freqHz <= 0 || std::fabs(it->freqHz - g.freqHz) < 1)) { it->lastSec = now; return; }
+            it = enc_.erase(it);
+            continue;
+        }
+        ++it;
+    }
     // a repeat of a call that is running?
     for (size_t i = log.records().size(); i-- > 0;) {
         CallRecord& r = const_cast<CallRecord&>(log.records()[i]);
-        if (!r.active || r.tg != g.tg || r.group != g.group || r.dmr != g.dmr) continue;
+        if (!r.active || r.tg != g.tg || r.group != g.group || r.dmr != g.dmr || r.kind != g.kind) continue;
         if (g.freqHz > 0 && r.freqHz > 0 && std::fabs(g.freqHz - r.freqHz) > 1 && g.slot == r.slot) {   // the call moved: the old one ends
             r.active = false;
             r.durSec = r.lastSec - r.startSec;
             for (Slot& s : slots_) if (s.used && s.callId == r.id) close(s, log, now, "moved");
+            for (size_t k = 0; k < voice_.size(); k++) if (voice_[k].used && voice_[k].callId == r.id) endVoice(voice_[k], (int)k, log, "moved");
             break;
         }
         r.lastSec = now;
         if (g.src >= 0 && r.src < 0) r.src = g.src;
         if (g.emergency) r.emergency = true;
         for (Slot& s : slots_) if (s.used && s.callId == r.id) s.lastSec = now;
+        for (Slot& s : voice_) if (s.used && s.callId == r.id) s.lastSec = now;
         return;
+    }
+    if (g.noPreempt) {   // seen once only: it may take a free slice or radio, never one a running call has
+        bool freeRes = false;
+        if (inSpan(g.freqHz) && !(g.tdma && !g.dmr)) {
+            for (const Slot& x : slots_) freeRes |= !x.used;
+            freeRes |= (int)slots_.size() < std::max(1, cfg_.maxSlices);
+        }
+        for (const Slot& v : voice_) freeRes |= !v.used;
+        if (voice_.empty()) { bool busy = false; for (const Slot& x : slots_) busy |= x.used; freeRes |= !busy; }
+        if (!freeRes) return;   // not logged yet: the next word confirms it
     }
     CallRecord rec;
     rec.wallTime = (int64_t)time(nullptr);
     rec.startSec = rec.lastSec = now;
     rec.active = true; rec.dmr = g.dmr; rec.group = g.group; rec.tg = g.tg; rec.src = g.src;
-    rec.channel = g.channel; rec.freqHz = g.freqHz; rec.slot = g.slot; rec.emergency = g.emergency; rec.encrypted = g.encrypted;
+    rec.channel = g.channel; rec.freqHz = g.freqHz; rec.slot = g.slot; rec.p25p2 = g.kind == SysKind::P25 && g.tdma && !g.dmr; rec.emergency = g.emergency; rec.encrypted = g.encrypted;
+    rec.kind = g.kind; rec.label = g.label; rec.provoice = g.provoice;
     const uint64_t id = log.add(rec).id;
     log.trim(2000);
     CallRecord* rp = log.byId(id);   // trim moves records: look it up again
@@ -143,8 +190,13 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     };
     if (g.encrypted) { skip("encrypted: not followed", false); return; }
     if (!d.follow) { skip(d.reason, false); return; }
-    if (g.freqHz <= 0) { skip("channel frequency not known yet (no identifier update heard)", false); return; }
-    if (g.tdma && !g.dmr) { skip("P25 Phase 2 TDMA voice: no Phase 2 demodulator", false); return; }
+    if (g.provoice) { skip("ProVoice (EDACS digital voice): logged, there is no ProVoice decoder", false); return; }
+    if (g.dataCall) { skip("data call: no speech to follow", false); return; }
+    if (g.freqHz <= 0) {
+        skip(g.kind == SysKind::P25 && !g.dmr ? "channel frequency not known yet (no identifier update heard)"
+                                               : "channel " + std::to_string(g.channel) + " is not in your channel list", false);
+        return;
+    }
     const int prio = d.priority;
     auto lowest = [&](bool hoppedOnly, bool anyOnly) -> Slot* {
         Slot* v = nullptr;
@@ -161,16 +213,20 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
         noticed_.push_back({g.freqHz, now});
         note(text);
     };
-    if (inSpan(g.freqHz)) {
-        Slot* s = freeSlot();
-        if (!s) {
-            Slot* v = lowest(false, false);
-            if (v && effPrio(prio) < effPrio(v->prio)) { close(*v, log, now, "preempted by a higher priority call"); s = v; }
-        }
-        if (!s) { skip("busy: every slice is in use", true); return; }
-        s->used = true; s->hopped = false; s->callId = id; s->prio = prio; s->freqHz = g.freqHz; s->startSec = s->lastSec = now;
+    bool voiceFree = false;
+    for (const Slot& v : voice_) voiceFree |= !v.used;
+    // a P25 Phase 2 channel is never taken by the wide capture's carrier decoders (Phase 1 only): it goes to a radio of its own
+    const bool span = inSpan(g.freqHz) && !(g.tdma && !g.dmr);
+    Slot* sl = span ? freeSlot() : nullptr;
+    if (span && !sl && !voiceFree) {   // every slice busy and no voice radio free: a higher priority call takes a slice
+        Slot* v = lowest(false, false);
+        if (v && effPrio(prio) < effPrio(v->prio)) { close(*v, log, now, "preempted by a higher priority call"); sl = v; }
+    }
+    if (span && !sl && voice_.empty()) { skip("busy: every slice is in use", true); return; }
+    if (sl) {   // inside the capture; with every slice busy the call goes on to a voice radio below
+        sl->used = true; sl->hopped = false; sl->callId = id; sl->prio = prio; sl->freqHz = g.freqHz; sl->startSec = sl->lastSec = now;
         Action a;
-        a.kind = Action::OpenSlice; a.callId = id; a.slice = (int)(s - slots_.data()); a.freqHz = g.freqHz;
+        a.kind = Action::OpenSlice; a.callId = id; a.slice = (int)(sl - slots_.data()); a.freqHz = g.freqHz;
         out_.push_back(a);
         if (cfg_.record) {
             Action rs;
@@ -182,6 +238,32 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
         }
         rp->followed = true;
         if (state_ == FollowState::ControlHold) setState(FollowState::Following, now);
+        return;
+    }
+    // outside the capture with voice radios linked: a free voice radio takes the call, the control radio stays where it is
+    if (!voice_.empty()) {
+        Slot* s = nullptr;
+        for (Slot& v : voice_) if (!v.used) { s = &v; break; }
+        if (!s) {   // every voice radio is busy: a higher priority call takes the one with the lowest priority call
+            Slot* v = nullptr;
+            for (Slot& x : voice_) if (!v || effPrio(x.prio) > effPrio(v->prio)) v = &x;
+            if (v && effPrio(prio) < effPrio(v->prio)) { endVoice(*v, (int)(v - voice_.data()), log, "preempted by a higher priority call"); s = v; }
+        }
+        if (!s) { skip("missed (all voice radios busy)", true); return; }
+        const int k = (int)(s - voice_.data());
+        s->used = true; s->hopped = false; s->callId = id; s->prio = prio; s->freqHz = g.freqHz; s->startSec = s->lastSec = now;
+        Action a;
+        a.kind = Action::Retune; a.callId = id; a.freqHz = g.freqHz; a.radio = k; a.slot = g.slot; a.p25p2 = g.tdma && !g.dmr;
+        out_.push_back(a);
+        if (cfg_.record) {
+            Action rs;
+            rs.kind = Action::RecordStart; rs.callId = id; rs.radio = k;
+            char b[64];
+            snprintf(b, sizeof b, "tg%d", g.tg);
+            rs.text = b;
+            out_.push_back(rs);
+        }
+        rp->followed = true;
         return;
     }
     // outside the capture: the radio has to leave the control channel, which blinds it to every other grant
@@ -204,7 +286,7 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
     if (!s) return;
     s->used = true; s->hopped = true; s->callId = id; s->prio = prio; s->freqHz = g.freqHz; s->startSec = s->lastSec = now;
     Action a;
-    a.kind = Action::Retune; a.callId = id; a.freqHz = g.freqHz;
+    a.kind = Action::Retune; a.callId = id; a.freqHz = g.freqHz; a.slot = g.slot; a.p25p2 = g.tdma && !g.dmr;
     out_.push_back(a);
     radioHz_ = g.freqHz;
     if (cfg_.record) {
@@ -222,11 +304,13 @@ void Follower::onGrant(const Grant& g, const TalkgroupList::Decision& d, double 
 void Follower::onVoice(uint64_t callId, double now) {
     lastNow_ = now;
     for (Slot& s : slots_) if (s.used && s.callId == callId) s.lastSec = now;
+    for (Slot& s : voice_) if (s.used && s.callId == callId) s.lastSec = now;
 }
 
 void Follower::onTerminator(uint64_t callId, double now) {
     lastNow_ = now;
     for (Slot& s : slots_) if (s.used && s.callId == callId) s.lastSec = now - cfg_.hangSec - 0.001;   // ends at the next tick
+    for (Slot& s : voice_) if (s.used && s.callId == callId) s.lastSec = now - cfg_.hangSec - 0.001;
 }
 
 void Follower::tick(double now, CallLog& log) {
@@ -239,11 +323,14 @@ void Follower::tick(double now, CallLog& log) {
             close(s, log, now, "");
         }
     }
+    endDropped(log);   // calls on radios that went away
+    for (size_t k = 0; k < voice_.size(); k++) if (voice_[k].used && now - voice_[k].lastSec > cfg_.hangSec) endVoice(voice_[k], (int)k, log, "");
     // calls nobody follows end by silence on the control channel too
     for (const CallRecord& cr : log.records()) {
         if (!cr.active) continue;
         bool owned = false;
         for (const Slot& s : slots_) if (s.used && s.callId == cr.id) owned = true;
+        for (const Slot& s : voice_) if (s.used && s.callId == cr.id) owned = true;
         if (!owned && now - cr.lastSec > cfg_.hangSec) {
             CallRecord* r = log.byId(cr.id);
             if (r) { r->active = false; r->durSec = r->lastSec - r->startSec; }
@@ -292,6 +379,57 @@ void Follower::tick(double now, CallLog& log) {
         break;
     default: break;
     }
+}
+
+void Follower::setVoiceRadios(int n) {
+    n = std::clamp(n, 0, 16);
+    while ((int)voice_.size() > n) {
+        if (voice_.back().used) dropped_.push_back({voice_.back(), "voice radio removed"});
+        voice_.pop_back();
+    }
+    voice_.resize((size_t)n);   // new radios start free
+}
+
+void Follower::dropVoiceRadio(int k, const char* why) {
+    if (k < 0 || k >= (int)voice_.size()) return;
+    if (voice_[(size_t)k].used) dropped_.push_back({voice_[(size_t)k], why ? why : ""});
+    voice_.erase(voice_.begin() + k);
+}
+
+uint64_t Follower::voiceCall(int k) const {
+    if (k < 0 || k >= (int)voice_.size() || !voice_[(size_t)k].used) return 0;
+    return voice_[(size_t)k].callId;
+}
+
+int Follower::voiceRadioOf(uint64_t callId) const {
+    if (!callId) return -1;
+    for (size_t k = 0; k < voice_.size(); k++) if (voice_[k].used && voice_[k].callId == callId) return (int)k;
+    return -1;
+}
+
+void Follower::endDropped(CallLog& log) {
+    for (auto& d : dropped_) endVoice(d.first, -1, log, d.second.c_str());
+    dropped_.clear();
+}
+
+void Follower::endVoiceCalls(CallLog& log, const char* why) {
+    endDropped(log);
+    for (size_t k = 0; k < voice_.size(); k++) endVoice(voice_[k], (int)k, log, why);
+}
+
+// The call on a voice radio ends: its recording stops, the host frees the radio (radio < 0: the radio is already gone, nothing to free)
+void Follower::endVoice(Slot& s, int radio, CallLog& log, const char* why) {
+    if (!s.used) return;
+    Action a;
+    a.kind = Action::RecordStop; a.callId = s.callId; a.radio = radio;
+    if (cfg_.record) out_.push_back(a);
+    if (radio >= 0) { a.kind = Action::ReleaseRadio; out_.push_back(a); }
+    if (CallRecord* r = log.byId(s.callId)) {
+        r->active = false;
+        r->durSec = std::max(0.0, std::max(s.lastSec, r->lastSec) - r->startSec);
+        if (why && *why && r->note.empty()) r->note = why;
+    }
+    s.used = false;
 }
 
 std::vector<Action> Follower::takeActions() {

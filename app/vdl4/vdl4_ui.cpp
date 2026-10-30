@@ -52,15 +52,16 @@ void tab(App& a) {
         }
     } else if (S.view == 1) {
         const ImVec2 sz = ImGui::GetContentRegionAvail();
+        const ImVec2 p0 = ImGui::GetCursorScreenPos();   // the whole rectangle (the controls' band and the map)
         adsbmap::draw(S.map, sz);
         ImDrawList* dl = ImGui::GetWindowDrawList();
-        const ImVec2 p0 = ImGui::GetItemRectMin();
         adsbmap::fullCorner(p0, sz);
+        adsbmap::pushMapClip(dl);
         for (const auto& ac : t.aircraft) {
             if (!ac.hasPos) continue;
-            const ImVec2 q = adsbmap::project(ac.lat, ac.lon);
-            dl->AddCircleFilled(ImVec2(p0.x + q.x, p0.y + q.y), 5 * gUi, IM_COL32(205, 214, 120, 255));
+            dl->AddCircleFilled(adsbmap::project(ac.lat, ac.lon), 5 * gUi, IM_COL32(205, 214, 120, 255));   // project() is already on the screen
         }
+        dl->PopClipRect();
     } else {
         if (ImGui::BeginTable("vdl4a", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
             ImGui::TableSetupColumn("Address");

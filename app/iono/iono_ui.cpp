@@ -591,8 +591,9 @@ void tick(App& a) {
     r.setLocked(S.locked);
     r.setSelected(S.sel);
     {   // the antenna position the map modes share
-        const double lat = plat::prefs().getD("adsbLat", 0), lon = plat::prefs().getD("adsbLon", 0);
-        r.setObserver(lat != 0 || lon != 0, lat, lon);
+        double lat = 0, lon = 0;
+        if (receiverLocationSet()) receiverLocation(lat, lon);
+        r.setObserver(receiverLocationSet(), lat, lon);
     }
     a.tune.synth.modeVal[0] = a.tune.centerHz / 1e6;   // the test signal places its sweeps for this frequency (read when it starts)
     if (live(a) && S.sel >= (int)a.rx.iono.sounders.size()) S.sel = -1;

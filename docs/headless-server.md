@@ -62,6 +62,7 @@ Plain `key=value` lines, `#` for comments. Default place: `~/.config/saurcom/ser
 | `freq_mhz`, `rate_msps` (0 = automatic), `gain_db` | tuning |
 | `amp` | HackRF: `1` lets the gain use the +14 dB amp (up to 116 dB). Off by default: the amp can be damaged by strong signals, so the gain then ends at 102 dB |
 | `audio_demod` | `auto`, `nfm`, `am`, `usb`, `lsb` for Listen (automatic picks by frequency; FM broadcast uses its own stereo audio) |
+| `location`, `location_alt` | where this station is (coordinates such as `52.1,-1.3` or a Maidenhead locator; the height in metres): reported as `lat`, `lon`, `alt` in `/api/v1/status` for linked stations. Without it the environment is used (`SAURCOM_LOCATOR`, or `SAURCOM_LAT` + `SAURCOM_LON`, `SAURCOM_ALT`) |
 | `autostart` | `1`: start the receiver when the server starts, and again 10 s after the radio comes back if it was unplugged. Start and Stop in the page set it |
 | `share_rtltcp`, `share_port` | also act as an rtl_tcp server (see above) |
 

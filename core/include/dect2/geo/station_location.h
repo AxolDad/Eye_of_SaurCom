@@ -69,4 +69,23 @@ private:
     long long sock_ = -1;   // the open connection, so stop() can wake a blocked read
 };
 
+// ---- helpers the My station page and the saved settings use (pure, tested) ----
+// Great-circle distance in metres (haversine, spherical Earth: good to a fraction of a percent, which is plenty for "did it move").
+double distanceM(double lat1, double lon1, double lat2, double lon2);
+
+// "Follow the GPS": should this fix become the station position now? Only a valid position, at most every 10 s (lastApplySec < 0 means
+// never applied) and only when it is more than 20 m from the current position (haveCurrent false: always, once the 10 s have passed).
+bool followShouldMove(bool haveCurrent, double curLat, double curLon, double lat, double lon, double nowSec, double lastApplySec);
+
+// What the settings file holds, by key: adsbLat / adsbLon (the old ADS-B antenna position, still the storage keys), stationAltM with the
+// old rxAltM as its fallback, stationAntM and stationLocSource. stationFromStored() turns it into a StationPos: invalid when the
+// latitude / longitude are missing or out of range; a position without a stored source gets "legacy"; the altitude is stationAltM when that key exists
+// (out of range means unknown, NaN), else rxAltM, else unknown.
+struct StoredStation {
+    bool hasLat = false, hasLon = false, hasAlt = false, hasOldAlt = false, hasAnt = false;
+    double lat = 0, lon = 0, altM = 0, oldAltM = 0, antM = 0;
+    std::string source;
+};
+StationPos stationFromStored(const StoredStation& s);
+
 }

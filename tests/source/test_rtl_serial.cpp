@@ -213,7 +213,7 @@ int main() {
         // a serial that is already the dongle's: nothing written
         SimIo io3(io.mem); std::string bp3;
         CHECK(rtlWriteSerialIo(io3, "48213907", "48213907", dir.string(), 1700000100, bp3, err) && io3.writeCalls == 0, "same serial: no write");
-        fs::remove_all(dir);
+        { std::error_code rmEc; fs::remove_all(dir, rmEc); }
     }
     // ---- a write that fails at byte N: the backup stays, the restore hint is given, the restore works
     {
@@ -232,7 +232,7 @@ int main() {
             CHECK(rtlRestoreEepromIo(io, bp, dir.string(), 1700000200, safety, rerr, &back), "restore: %s", rerr.c_str());
             CHECK(back == "00000001", "the restored serial is the backup's: %s", back.c_str());
             CHECK(io.mem == orig, "restored to the original (n=%d)", n);
-            fs::remove_all(dir);
+            { std::error_code rmEc; fs::remove_all(dir, rmEc); }
         }
     }
     // ---- a dongle without a serial string: the strings go first and the flag byte last, so a failure before the flag leaves it off
@@ -248,7 +248,7 @@ int main() {
         std::string back = "x";
         CHECK(rtlRestoreEepromIo(io, bp, dir.string(), 1700000200, safety, err, &back) && io.mem == orig, "restored: %s", err.c_str());
         CHECK(back.empty(), "a backup with the serial turned off restores no serial: '%s'", back.c_str());
-        fs::remove_all(dir);
+        { std::error_code rmEc; fs::remove_all(dir, rmEc); }
     }
     // ---- a dongle that accepts the write but does not keep it: "did not verify"
     {
@@ -257,7 +257,7 @@ int main() {
         std::string bp, err;
         CHECK(!rtlWriteSerialIo(io, "00000001", "48213907", dir.string(), 1700000000, bp, err), "no verify");
         CHECK(has(err, "The write did not verify.") && has(err, "Your original EEPROM is saved at ") && has(err, bp.c_str()) && has(err, "Use Restore from backup… to put it back."), "text: %s", err.c_str());
-        fs::remove_all(dir);
+        { std::error_code rmEc; fs::remove_all(dir, rmEc); }
     }
     // ---- a failed backup means no EEPROM write at all
     {
@@ -277,7 +277,7 @@ int main() {
         std::string bp2, err2; SimIo io2(realImage());
         const bool ok = rtlWriteSerialIo(io2, "00000001", "48213907", dir2.string(), 1700000000, bp2, err2);
         CHECK(!ok ? io2.writeCalls == 0 : (!bp2.empty() && fs::is_regular_file(bp2) && readFile(bp2) == realImage()), "never written without a backup file");
-        fs::remove_all(dir);
+        { std::error_code rmEc; fs::remove_all(dir, rmEc); }
     }
     // ---- an EEPROM that does not parse, a failed read: refused, nothing written, no backup
     {
@@ -290,7 +290,7 @@ int main() {
         SimIo io3(realImage()); std::string bp3;
         CHECK(!rtlWriteSerialIo(io3, "00000001", "4821390x", dir.string(), 1700000000, bp3, err) && io3.writeCalls == 0 && bp3.empty(), "bad serial: no backup, no write");
         CHECK(!fs::exists(dir) || fs::is_empty(dir), "no file made");
-        fs::remove_all(dir);
+        { std::error_code rmEc; fs::remove_all(dir, rmEc); }
     }
     // ---- restore: validation
     {
@@ -330,7 +330,7 @@ int main() {
         SimIo io5(before);
         safety.clear();
         CHECK(!rtlRestoreEepromIo(io5, put("good.bin", good), (blocked / "sub").string(), 1700000300, safety, err) && io5.writeCalls == 0 && io5.mem == before, "no safety copy, no restore");
-        fs::remove_all(dir);
+        { std::error_code rmEc; fs::remove_all(dir, rmEc); }
     }
     // ---- restore onto a dongle with no header: the file's USB id must be a known one, and the live one when known
     {
@@ -348,7 +348,7 @@ int main() {
         Img same = realImage(); same[4] = 0x32; same[5] = 0x28 ^ 0x00; same[4] = 0x32; same[5] = 0x28;   // pid 0x2832
         same[4] = 0x32; same[5] = 0x28;
         CHECK(R(live, put("same.bin", same)) && live.mem == same, "equal to the live id restores: %s", err.c_str());
-        fs::remove_all(dir);
+        { std::error_code rmEc; fs::remove_all(dir, rmEc); }
     }
     // ---- an existing backup file is never replaced
     {
@@ -357,9 +357,10 @@ int main() {
         { std::ofstream f(planned, std::ios::binary); f << "precious"; }
         SimIo io(realImage()); std::string bp = planned, err;
         CHECK(!rtlWriteSerialIo(io, "00000001", "48213907", dir.string(), 1700000000, bp, err) && io.writeCalls == 0, "refused");
-        std::ifstream f(planned, std::ios::binary); std::string c((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        std::string c;
+        { std::ifstream f(planned, std::ios::binary); c.assign(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>()); }   // closed before remove_all (Windows cannot remove an open file)
         CHECK(c == "precious", "the existing file is untouched");
-        fs::remove_all(dir);
+        { std::error_code rmEc; fs::remove_all(dir, rmEc); }
     }
     // ---- reads that disagree, a dongle that is not the expected one, bytes 78..255, the IR configuration
     {
@@ -371,7 +372,7 @@ int main() {
         CHECK(!rtlWriteSerialIo(other, "00000001", "48213907", dir.string(), 1700000000, bp, err) && other.writeCalls == 0 && has(err, "rescan") && !fs::exists(dir), "another dongle than expected: %s", err.c_str());
         SimIo noflag(realImage("Realtek", "RTL2838UHIDIR", "", false));
         CHECK(rtlWriteSerialIo(noflag, "00000001", "48213907", dir.string(), 1700000000, bp, err), "a dongle without the flag matches a factory default: %s", err.c_str());
-        fs::remove_all(dir);
+        { std::error_code rmEc; fs::remove_all(dir, rmEc); }
         // a planned backup path is the one made; an existing one is not replaced
         SimIo io(realImage());
         const std::string planned = rtlBackupPath(dir.string(), "00000001", 1700000000);
@@ -395,7 +396,7 @@ int main() {
         Img longer(256, 0x00); longer[0] = 0x28; longer[1] = 0x32; longer[6] = 0xA5; at = 9;
         putStr(longer, at, std::string(20, 'm')); putStr(longer, at, std::string(20, 'p')); putStr(longer, at, "1");
         CHECK(!rtlEepromParse(longer, ti, e2), "strings that cross 78 do not parse");
-        fs::remove_all(dir);
+        { std::error_code rmEc; fs::remove_all(dir, rmEc); }
     }
     // ---- what librtlsdr's calls return
     {

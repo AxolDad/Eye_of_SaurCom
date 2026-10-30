@@ -125,10 +125,18 @@ struct Host : RemoteApiHost {
             char b[256];
             std::string o = std::string("{\"running\":") + (run ? "true" : "false") + ",\"receiver\":" + std::to_string(a.rxId) + ",\"deviceIndex\":" + std::to_string(a.devIdx) +
                             ",\"device\":\"" + jsonEscape(d.name) + "\",\"deviceDisplay\":\"" + jsonEscape(radioShownName(a, di)) + "\",\"deviceKind\":\"" + kindName(d.kind) + "\",\"family\":" + std::to_string(a.family) + ",\"mode\":\"" + jsonEscape(mode) + "\"";
-            snprintf(b, sizeof b, ",\"frequencyHz\":%.0f,\"sampleRateHz\":%.0f,\"gainDb\":%s,\"agc\":%s,\"gainMinDb\":%s,\"gainMaxDb\":%s}", a.freqMhz * 1e6,
+            snprintf(b, sizeof b, ",\"frequencyHz\":%.0f,\"sampleRateHz\":%.0f,\"gainDb\":%s,\"agc\":%s,\"gainMinDb\":%s,\"gainMaxDb\":%s", a.freqMhz * 1e6,
                      run ? a.engine.radioRate() : a.tune.sampleRate, jsonNum(gain).c_str(), a.agcOn ? "true" : "false",
                      jsonNum(d.isGeneric() ? d.gainMinDb : 0).c_str(), jsonNum(d.isGeneric() ? d.gainMaxDb : (d.kind == DeviceInfo::HackRF ? 116 : 0)).c_str());
-            return o + b;
+            o += b;
+            // where this station is (My station), for the stations linked to it: only a real position, never the placeholder
+            const dect2::geo::StationPos p = stationPos();
+            if (p.valid()) {
+                if (std::isfinite(p.altM)) snprintf(b, sizeof b, ",\"lat\":%.6f,\"lon\":%.6f,\"alt\":%.1f", p.lat, p.lon, p.altM);
+                else snprintf(b, sizeof b, ",\"lat\":%.6f,\"lon\":%.6f", p.lat, p.lon);
+                o += b;
+            }
+            return o + "}";
         });
     }
     std::string devicesJson() override {

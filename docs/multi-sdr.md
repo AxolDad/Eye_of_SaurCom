@@ -38,6 +38,8 @@ RX 1 uses today's names, so nothing is lost. Open receivers are remembered (`rxO
 Many `app/*_ui.cpp` keep a `static State S` per mode. Two receivers in the same mode would share it, so starting a mode
 another receiver already runs is refused: "RX n already uses this mode: per-receiver state for this mode is not
 separated yet". Separated modes: none yet (every mode is blocked from running twice). Different modes run side by side.
+One exception: a trunking voice radio (trunking.md, "Several radios") runs P25, DMR or NXDN next to its control receiver. It never
+draws the mode screen or runs the mode's tick (it has a small panel and tick of its own), so the shared state stays with one receiver.
 The app-level results lists the screens keep themselves (app/panels/results_ui.cpp) belong to RX 1 only; engine results
 (the decoded tables) are per receiver.
 

@@ -271,7 +271,8 @@ void beaconsView(App& a) {
             ImGui::TableNextColumn(); if (!std::isnan(st.best24h)) ImGui::Text("%+.1f", (double)st.best24h); else ImGui::TextDisabled("-");
             ImGui::TableNextColumn();
             if (!std::isnan(st.distKm)) ImGui::Text("%.0f km %.0f\xC2\xB0", st.distKm, st.bearing);
-            else { double lat, lon, km, br; receiverLocation(lat, lon); dect2::greatCircle(lat, lon, b.lat, b.lon, km, br); ImGui::TextDisabled("%.0f km %.0f\xC2\xB0", km, br); }
+            else if (receiverLocationSet()) { double lat, lon, km, br; receiverLocation(lat, lon); dect2::greatCircle(lat, lon, b.lat, b.lon, km, br); ImGui::TextDisabled("%.0f km %.0f\xC2\xB0", km, br); }
+            else ImGui::TextDisabled("%s", kNoRange);   // no station position: no distance from a placeholder
             ImGui::TableNextColumn();
             {
                 const ImVec2 p0 = ImGui::GetCursorScreenPos();
@@ -345,13 +346,13 @@ void mapView(App& a) {
     const bool on = live(a);
     static const dect2::HfbTelemetry none;
     const dect2::HfbTelemetry& t = on ? a.rx.hfb : none;
-    if (!S.mapInit) { S.mapInit = true; receiverLocation(S.map.lat, S.map.lon); S.map.zoom = 2; S.map.lat = 20; S.map.lon = 20; }
+    if (!S.mapInit) { S.mapInit = true; S.map.zoom = 2; S.map.lat = 20; S.map.lon = 20; }   // the world; centred on the station once one is set (adsb_map.cpp)
     ImGui::Checkbox("Also heard in the last hour##hfbmr", &S.mapRecent);
     const ImVec2 p0 = ImGui::GetCursorScreenPos();
     const ImVec2 size(ImGui::GetContentRegionAvail().x, std::max(160 * gUi, ImGui::GetContentRegionAvail().y));
     adsbmap::draw(S.map, size);
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     double rl, ro; receiverLocation(rl, ro);
     const ImVec2 h = adsbmap::project(rl, ro);
     int drawn = 0;
@@ -362,7 +363,7 @@ void mapView(App& a) {
         const ImVec2 q = adsbmap::project(b.lat, b.lon);
         if (now || recent) {
             const float snr = now ? st.snr : st.best1h;
-            greatCircleLine(dl, rl, ro, b.lat, b.lon, snrCol(snr, now ? 230 : 90), (now ? 2.2f : 1.2f) * gUi);
+            if (receiverLocationSet()) greatCircleLine(dl, rl, ro, b.lat, b.lon, snrCol(snr, now ? 230 : 90), (now ? 2.2f : 1.2f) * gUi);
             dl->AddCircleFilled(q, (now ? 5.f : 3.5f) * gUi, snrCol(snr, now ? 255 : 150));
             if (now) { char tx[64]; snprintf(tx, sizeof tx, "%s %+.0f dB", b.name.substr(0, b.name.find(' ')).c_str(), (double)snr); dl->AddText(ImVec2(q.x + 7 * gUi, q.y - 7 * gUi), IM_COL32(240, 240, 240, 255), tx); }
             drawn++;
@@ -370,9 +371,11 @@ void mapView(App& a) {
             dl->AddCircle(q, 3 * gUi, IM_COL32(150, 155, 160, 140), 10, 1.f);
         }
     }
-    dl->AddCircleFilled(h, 4 * gUi, IM_COL32(110, 210, 230, 255));
-    dl->AddCircle(h, 8 * gUi, IM_COL32(110, 210, 230, 220), 24, 1.5f * gUi);
-    dl->AddText(ImVec2(h.x + 10 * gUi, h.y - 7 * gUi), IM_COL32(110, 210, 230, 255), receiverLocationSet() ? "me" : "me (placeholder: set it in Tools > Map)");
+    if (receiverLocationSet()) {   // the station (none while no position is set: the map has the button)
+        dl->AddCircleFilled(h, 4 * gUi, IM_COL32(110, 210, 230, 255));
+        dl->AddCircle(h, 8 * gUi, IM_COL32(110, 210, 230, 220), 24, 1.5f * gUi);
+        dl->AddText(ImVec2(h.x + 10 * gUi, h.y - 7 * gUi), IM_COL32(110, 210, 230, 255), "me");
+    }
     dl->PopClipRect();
     ImGui::SetCursorScreenPos(ImVec2(p0.x + 8 * gUi, p0.y + 8 * gUi));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.06f, 0.07f, 0.08f, 0.85f));

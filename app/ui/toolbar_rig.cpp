@@ -505,7 +505,7 @@ void kiwiFindWindow(App& a) {
             a.kiwiList = f->list;
             double lat = 0, lon = 0;
             receiverLocation(lat, lon);
-            kiwiSortByDistance(a.kiwiList, lat, lon);
+            if (receiverLocationSet()) kiwiSortByDistance(a.kiwiList, lat, lon);   // nearest first; the list's own order while no location is set
             a.netAddErr.clear();
         } else a.netAddErr = f->err == "parse" ? N_("The downloaded list has no receivers Eye of SaurCom can read.") : N_("Could not download the list. Check the internet connection.");
     }
@@ -556,7 +556,7 @@ void kiwiFindWindow(App& a) {
             else ImGui::Text("%d/%d", k.users, k.usersMax);
             ImGui::TableNextColumn(); ImGui::TextUnformatted(k.antenna.c_str());
             ImGui::TableNextColumn(); if (k.snr > 0) ImGui::Text("%.0f", k.snr); else ImGui::TextDisabled("-");
-            ImGui::TableNextColumn(); if (k.distanceKm >= 0) ImGui::Text("%.0f km", k.distanceKm); else ImGui::TextDisabled("-");
+            ImGui::TableNextColumn(); if (k.distanceKm >= 0) ImGui::Text("%.0f km", k.distanceKm); else ImGui::TextDisabled("%s", receiverLocationSet() ? "-" : kNoRange);
             ImGui::TableNextColumn();
             ImGui::BeginDisabled(k.offline);
             if (ImGui::SmallButton(tr("Add"))) {

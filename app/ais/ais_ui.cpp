@@ -213,7 +213,7 @@ void mapView(App& a, ImVec2 size) {
     adsbmap::draw(S.map, size);
     if (S.map.lat != lat0 || S.map.lon != lon0) S.mapFollow = false;
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     const AisVessel* hit = nullptr; float best = 16 * gUi;
     ImVec2 click; const bool clicked = adsbmap::clickedAt(click);
     if (on) {
@@ -459,7 +459,7 @@ void receiver(App& a) {
 
 // every frame while AIS is selected: the positions heard, for the range plot (from the receiver position)
 void tick(App& a) {
-    if (!live(a) || a.rx.seq == S.rangeSeq) return;
+    if (!live(a) || a.rx.seq == S.rangeSeq || !receiverLocationSet()) return;   // ranges only from a real station position
     S.rangeSeq = a.rx.seq;
     double lat, lon;
     receiverLocation(lat, lon);

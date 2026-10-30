@@ -82,7 +82,7 @@ void loadState() {
     S.loaded = true;
     plat::Prefs& d = plat::prefs();
     S.map.zoom = (int)d.getI("meshZoom", 10);
-    if (receiverLocationSet()) { S.map.lat = d.getD("adsbLat", S.map.lat); S.map.lon = d.getD("adsbLon", S.map.lon); }   // until a node sends its position
+    if (receiverLocationSet()) receiverLocation(S.map.lat, S.map.lon);   // until a node sends its position
     S.view = (int)d.getI("meshView", 0);
     S.region = std::max(0, std::min(kNumPlans - 1, (int)d.getI("meshRegion", 0)));
     S.protocols = (int)d.getI("meshProtocols", 15);

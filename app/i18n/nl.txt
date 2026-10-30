@@ -761,7 +761,6 @@ No Hermes Lite 2 answered on this computer's networks: type its address.	Geen He
 No radio found	Geen radio gevonden
 No sound output	Geen geluidsuitgang
 North America	Noord-Amerika
-Not a locator or coordinates	Geen locator of coördinaten
 On Windows a HackRF needs its WinUSB driver once: install it with Zadig (zadig.akeo.ie).	Onder Windows heeft een HackRF eenmalig zijn WinUSB-stuurprogramma nodig: installeer het met Zadig (zadig.akeo.ie).
 Eye of SaurCom %s	Eye of SaurCom %s
 Eye of SaurCom cannot see a HackRF on the USB ports.	Eye of SaurCom ziet geen HackRF op de USB-poorten.
@@ -780,7 +779,6 @@ Open driver page	Stuurprogrammapagina openen
 Open firmware page	Firmwarepagina openen
 Open the SDRplay API page	De SDRplay-API-pagina openen
 Open the device list	De apparatenlijst openen
-Optional: your position, as a Maidenhead locator (KO24pq) or coordinates (54.68, 25.28). It is kept on this computer and used for maps and satellite passes.	Optioneel: je positie, als Maidenhead-locator (KO24pq) of coördinaten (54.68, 25.28). Blijft op deze computer en wordt gebruikt voor kaarten en satellietovervluchten.
 Or choose another radio from the list.	Of kies een andere radio uit de lijst.
 Or install Eye of SaurCom's blacklist file (the .deb package does it).	Of installeer het blacklistbestand van Eye of SaurCom (het .deb-pakket doet dat).
 Or set the UHD_IMAGES_DIR variable to the folder with the images.	Of stel de variabele UHD_IMAGES_DIR in op de map met de images.
@@ -1372,7 +1370,6 @@ The computer clock when each time packet began, minus the stamp in the packet an
 nothing to compare (a recording)	niets om mee te vergelijken (een opname)
 once the time is decoded	zodra de tijd is gedecodeerd
 path	pad
-; set your position in ADS-B (Receiver position) for the right delay	; set your position in ADS-B (Receiver position) for the right delay
 clock offset	klokafwijking
 level	niveau
 start the receiver to see the signal	start de ontvanger om het signaal te zien
@@ -1950,7 +1947,6 @@ Sound alert	Geluidssignaal
 Test (dry run)	Testen (droogloop)
 Test with a sample event	Testen met een voorbeeldgebeurtenis
 Text can use:	Tekst kan gebruiken:
-The receiver position is not set (ADS-B window).	De positie van de ontvanger is niet ingesteld (ADS-B-venster).
 The recipe file	Het receptbestand
 The script ran and did nothing for this event.	Het script liep en deed niets voor deze gebeurtenis.
 Then do	Doe dan
@@ -2232,7 +2228,6 @@ Save CSV	CSV opslaan
 Save FITS	FITS opslaan
 Save SigMF text	SigMF-tekst opslaan
 Save session	Sessie opslaan
-Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	Locatie is de ontvangerlocatie (Beeld > Kaart). Tijd is de computerklok, UTC.
 Sun	Zon
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	De rotatiecurve heeft spectra nodig op meerdere lengtes tussen 0 en 90 (of 270 en 360).
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	Naar het doel: aardrotatie %+.2f, baan %+.2f, zon %+.2f; totaal %+.2f km/s (optellen bij de topocentrische snelheid)
@@ -2461,7 +2456,6 @@ Saved illuminators	Opgeslagen illuminators
 Second target	Tweede doel
 Target range (km)	Afstand van het doel (km)
 Targets closer than the tap count in range samples are hidden by the cancellation.	Doelen die dichterbij zijn dan het aantal taps in afstandssamples worden door de onderdrukking verborgen.
-The receiver position is the one set for ADS-B.	De positie van de ontvanger is die welke voor ADS-B is ingesteld.
 Tracks	Sporen
 Two recordings (reference, surveillance)	Twee opnames (referentie, bewaking)
 Two-channel recording (cf32)	Tweekanaalsopname (cf32)
@@ -3444,3 +3438,87 @@ deselect	selectie opheffen
 click a station on the map to select it	klik op een station op de kaart om het te kiezen
 %zu stations by their locators, %zu contact lines	%zu stations op hun locator, %zu contactlijnen
 %d stations at the centre of their grid squares, %zu contact lines	%d stations in het midden van hun vak, %zu contactlijnen
+# trunking: voice radios (the follower's second radio)
+Voice	Spraak
+Unlink	Ontkoppelen
+RX %d is on the control channel and follows the calls with its voice radios.	RX %d blijft op het controlekanaal en volgt de gesprekken met zijn spraakontvangers.
+Voice: RX %d · %s	Spraak: RX %d · %s
+RX %d is no longer a voice radio: its tab is closed.	RX %d is geen spraakontvanger meer: zijn tabblad is gesloten.
+Use a second radio for voice	Een tweede radio voor spraak gebruiken
+Use another radio for voice	Nog een radio voor spraak gebruiken
+RX %d follows the calls as a voice radio; RX %d stays on the control channel.	RX %d volgt de gesprekken als spraakontvanger; RX %d blijft op het controlekanaal.
+Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.	Opent een ontvangertabblad op de eerste vrije radio, in deze modus, en koppelt het: deze radio blijft op het controlekanaal en elk gesprek is op de andere te horen. Druk nog eens om er nog een toe te voegen.
+Start this receiver on the control channel first.	Start deze ontvanger eerst op het controlekanaal.
+With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding.	Met één radio verlaat deze ontvanger voor elk gesprek het controlekanaal en mist hij de gesprekken die intussen worden toegewezen. Een tweede radio voor spraak voorkomt dat; een breedbandradio (HackRF) met decodering van de hele band ook.
+This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed.	Deze radio blijft op het controlekanaal. Als alle spraakontvangers bezet zijn, neemt een gesprek met hogere prioriteit de ontvanger met het gesprek van de laagste prioriteit over; de andere worden als gemist gelogd.
+Voice for RX %d · TG %d · %.4f MHz	Spraak voor RX %d · TG %d · %.4f MHz
+Voice for RX %d · waiting for a call	Spraak voor RX %d · wacht op een gesprek
+This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Deze ontvanger volgt alleen gesprekken voor RX %d. De gespreksgroepen, het gesprekslogboek en de instellingen staan op het tabblad Volgen van RX %d.
+The receiver on the control channel was closed: its voice radios are closed too.	De ontvanger op het controlekanaal is gesloten: zijn spraakontvangers worden ook gesloten.
+The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Het spraaktabblad RX %d is gesloten: RX %d volgt gesprekken weer met zijn eigen radio.
+RX %d was switched to another mode: it is no longer a voice radio.	RX %d is naar een andere modus omgeschakeld: het is geen spraakontvanger meer.
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d is naar een andere modus omgeschakeld: zijn spraakontvangers worden ontkoppeld en gesloten.
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d is zijn radio kwijt (%s): het gesprek erop is beëindigd, het is geen spraakontvanger meer en zijn tabblad sluit. RX %d blijft op het controlekanaal.
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d is gestopt: het is geen spraakontvanger meer en zijn tabblad sluit. RX %d blijft op het controlekanaal.
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d volgt het systeem niet meer: zijn spraakontvangers worden ontkoppeld en gesloten.
+Not a voice radio any more: this tab closes.	Geen spraakontvanger meer: dit tabblad sluit.
+No free radio can tune to %.4f MHz.	Geen vrije radio kan op %.4f MHz afstemmen.
+Every radio is in use by another receiver	Elke radio wordt door een andere ontvanger gebruikt
+No radio is connected	Er is geen radio aangesloten
+# station location: maps open at My station, Centre on me, I'm here
+(your location is not set: the distance filter is off)	(je locatie is niet ingesteld: het afstandsfilter staat uit)
+; set your location (the pin in the toolbar) for the right delay	; stel je locatie in (de speld in de werkbalk) voor de juiste vertraging
+Centre on me	Centreer op mij
+Centre the map here	Centreer de kaart hier
+Centre the map on my station (%.4f, %.4f)	Centreer de kaart op mijn station (%.4f, %.4f)
+Every map and range uses it. Change it any time in My station (the location pin in the toolbar).	Elke kaart en afstand gebruikt hem. Wijzig hem altijd in Mijn station (de speld in de werkbalk).
+I'm here...	Ik ben hier...
+Locator %s	Locator %s
+Now %.5f, %.5f (%.1f km from here)	Nu %.5f, %.5f (%.1f km van hier)
+Open My station: paste coordinates, a locator or a map link, or use a GPS	Mijn station openen: plak coördinaten, een locator of een kaartlink, of gebruik een GPS
+Set my station (every map and range) to this point	Zet mijn station (elke kaart en afstand) op dit punt
+Set my station here?	Mijn station hier zetten?
+Set your location	Stel je locatie in
+Set your location first: the sky direction is worked out from it.	Stel eerst je locatie in: de richting aan de hemel wordt daaruit berekend.
+Set your location first: these services are asked about a circle around you.	Stel eerst je locatie in: deze diensten wordt gevraagd naar een cirkel om je heen.
+Set your location to use bearings.	Stel je locatie in om peilingen te gebruiken.
+Set your location: NMS is asked about a circle around it.	Stel je locatie in: NMS wordt gevraagd naar een cirkel eromheen.
+Set your location: each bearing line starts at it.	Stel je locatie in: elke peillijn begint daar.
+Set your location: ranges are measured from it.	Stel je locatie in: afstanden worden daarvandaan gemeten.
+Set your location: the API is asked about a circle around it.	Stel je locatie in: de API wordt gevraagd naar een cirkel eromheen.
+Site is your location (My station, the pin in the toolbar). Time is the computer clock, UTC.	De plaats is je locatie (Mijn station, de speld in de werkbalk). De tijd is de computerklok, UTC.
+The map opens at your station and ranges are measured from it. Paste coordinates, a locator or a map link, use a GPS, or right-click the map and choose I'm here.	De kaart opent bij je station en afstanden worden daarvandaan gemeten. Plak coördinaten, een locator of een kaartlink, gebruik een GPS, of klik met rechts op de kaart en kies Ik ben hier.
+The receiver position is your station's (My station, the pin in the toolbar).	De ontvangerpositie is die van je station (Mijn station, de speld in de werkbalk).
+This station does not report where it is (its location is not set).	Dit station meldt niet waar het is (zijn locatie is niet ingesteld).
+Yes, I'm here	Ja, ik ben hier
+Your location is not set.	Je locatie is niet ingesteld.
+Your location is not set: opens My station	Je locatie is niet ingesteld: opent Mijn station
+Your location is not set: the site is a placeholder.	Je locatie is niet ingesteld: de plaats is een tijdelijke.
+or right-click the map: I'm here	of rechtsklik op de kaart: Ik ben hier
+height (m)	hoogte (m)
+latitude must be -90 to 90 and longitude -180 to 180	breedte moet -90 tot 90 zijn en lengte -180 tot 180
+Add your system's channel list	Voeg de kanalenlijst van uw systeem toe
+The control channel names channels by number. One line per channel: the number, a comma, the frequency in MHz (for example 1,851.0125). Paste the list from your system's listing, or load a CSV file.	Het besturingskanaal noemt kanalen bij nummer. Eén regel per kanaal: het nummer, een komma, de frequentie in MHz (bijvoorbeeld 1,851.0125). Plak de lijst uit het overzicht van uw systeem, of laad een CSV-bestand.
+%d channels in the list (number,MHz per line)	%d kanalen in de lijst (nummer,MHz per regel)
+Apply and save	Toepassen en opslaan
+Load file	Bestand laden
+The formula gives every channel; list here only the channels that do not follow it.	De formule geeft elk kanaal; zet hier alleen de kanalen die er niet aan voldoen.
+EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: gesprekken worden toegewezen aan logische kanaalnummers (LCN 1 tot 31).
+Narrowband (EDACS NB, 4800 bit/s)	Smalband (EDACS NB, 4800 bit/s)
+LTR has no control channel: each repeater sends its data only while it is busy. Every repeater in your list that fits in the radio's bandwidth is watched at once; when they do not all fit, the radio sweeps through them.	LTR heeft geen controlekanaal: elke repeater zendt zijn data alleen als hij bezet is. Alle repeaters uit uw lijst die in de bandbreedte van de radio passen, worden tegelijk bewaakt; passen ze niet allemaal, dan loopt de radio ze af.
+List the system's repeaters above: each one is watched for calls.	Zet hierboven de repeaters van het systeem in de lijst: elke repeater wordt op oproepen bewaakt.
+Sweeping %d repeaters: %d at a time, group %d of %d	%d repeaters worden afgelopen: %d tegelijk, groep %d van %d
+Watching %d of %d repeaters	%d van %d repeaters bewaakt
+Message set	Berichtenset
+Standard / networked	Standaard / genetwerkt
+Extended addressing (EA)	Uitgebreide adressering (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	Nog geen gesprekstoewijzing begrepen: als er gesproken wordt, probeer dan de andere berichtenset of ESK.
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: de lijst hierboven neemt de kanaalnummers (LCN) van de site. Kanalen die er niet in staan worden berekend uit de band van de site, zodra een rustwoord heeft gezegd welke band dat is.
+MPT 1327: channel n is on channel 1 + (n - 1) x spacing; list the channels that are not.	MPT 1327: kanaal n ligt op kanaal 1 + (n - 1) x afstand; zet de kanalen die afwijken in de lijst.
+Group idents (from, to)	Groeps-idents (van, tot)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 zegt niet of een ident een groep of een portofoon is: dat bepaalt het vlootplan van uw systeem. Oproepen naar idents in dit bereik worden gelogd als groepsoproepen, de andere als oproepen naar één portofoon.
+channel 1 MHz	kanaal 1 MHz
+spacing kHz	afstand kHz
+The base was worked out from the control channel's broadcast of its own number: check it.	De basis is afgeleid uit de uitzending van het eigen nummer van het besturingskanaal: controleer haar.
+Enter the channel 1 frequency of your system, or list its channels below.	Voer de frequentie van kanaal 1 van uw systeem in, of zet de kanalen hieronder in de lijst.
+A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	Het besturingskanaal van een trunkingsysteem (P25, DMR Tier III, NXDN Type C, EDACS, LTR of MPT 1327): de scanner volgt de gesprekken\nmet de gespreksgroepenlijst en kanaaltabellen van de volger, en gaat verder als er binnen de wachttijd geen gesprek kwam

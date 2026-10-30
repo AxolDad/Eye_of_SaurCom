@@ -74,7 +74,7 @@ AudioProfile autoProfile(int family) {
         case 26: return AudioProfile::AM;                          // airband
         case 34: return AudioProfile::CW;
         case 55: return AudioProfile::Generic;                     // the General receiver (its own demodulators)
-        case 9: case 31: case 33: case 38: case 45: case 46: case 568: case 19: return AudioProfile::DigitalVoice;   // DMR, M17, D-STAR, NXDN, dPMR, TETRA, P25, Iridium
+        case 9: case 31: case 33: case 38: case 45: case 46: case 50: case 19: return AudioProfile::DigitalVoice;   // DMR, M17, D-STAR, NXDN, dPMR, TETRA, P25, Iridium
         default: return AudioProfile::Off;                          // data modes, TV, spectrum: no cleanup
     }
 }

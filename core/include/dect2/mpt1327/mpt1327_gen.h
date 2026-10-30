@@ -8,7 +8,7 @@
 
 namespace dect2::mpt1327 {
 
-uint64_t makeCcsc(int sys);                                                  // control channel system codeword (final 16 bits = SYNC)
+uint64_t makeCcsc(int sys, bool french = false);                             // control channel system codeword (final 16 bits = SYNC)
 uint64_t makeGtc(int pfix, int ident1, int d, int chan, int ident2, int n = 0);
 uint64_t makeAloha(int pfix, int ident1, int func, int chan4, int wt = 0, int m = 0, int n = 0);
 uint64_t makeAck(int pfix, int ident1, int func, int ident2, int qual = 0, int n = 0);
@@ -16,12 +16,19 @@ uint64_t makeAhy(int pfix, int ident1, int func = 0, int params18 = 0);
 uint64_t makeBcast(int sysdef, int sys, int params18);                      // params: the 18 bits after FUNC
 uint64_t makeBcastChannel(int sysdef, int sys, int chan, int adjsite = 0);  // announce (0), withdraw (1) or adjacent site (4) control channel
 
+// Miscellaneous (category 000, type 11) address codewords: func 1 MAINT, 2 CLEAR, 3 MOVE; chan in bits 31 .. 40
+uint64_t makeMisc(int pfix, int ident1, int func, int chan);
+uint64_t makeMaint(int pfix, int ident1, int chan, int oper);   // MAINT (5.5.4.2): CHAN bits 31 .. 40, OPER bits 41 .. 43
+uint64_t makeClear(int chan, int cont);                         // CLEAR (5.5.4.3): CHAN bits 2 .. 11, CONT bits 12 .. 21
+// Bits of codewords sent on a traffic channel: each one after a preamble of bit reversals and SYNT
+std::vector<uint8_t> trafficChannelBits(const std::vector<uint64_t>& codewords, int preamble = 16, bool french = false);
+
 // A data codeword with the given 47 bits of information (bit 1 = 0).
 uint64_t makeData(uint64_t info47);
 
 // Bits (one per element, 0 / 1) of a control channel transmission: preamble of 'preamble' bit reversals ending in 0, SYNC, the first
 // address codeword, then a CCSC and an address codeword for every further one. 'lead' extra reversal bits before it.
-std::vector<uint8_t> controlChannelBits(int sys, const std::vector<uint64_t>& addressCodewords, int preamble = 16);
+std::vector<uint8_t> controlChannelBits(int sys, const std::vector<uint64_t>& addressCodewords, int preamble = 16, bool french = false);   // french: SYNC 0xB433
 
 // FFSK audio at fs Hz for the bits: bit 1 -> 1200 Hz and bit 0 -> 1800 Hz with continuous phase (or the opposite when invert is set).
 std::vector<float> ffskAudio(const std::vector<uint8_t>& bits, double fs, bool invert = false, float amp = 0.5f, double bitRateScale = 1.0);

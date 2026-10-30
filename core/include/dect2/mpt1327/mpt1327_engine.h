@@ -1,7 +1,8 @@
 // MPT 1327 trunking control channel in the engine: the decoder of mpt1327_rx.h behind the engine's interface (configure, offset, feed, telemetry).
-// Engine stdMode 129, active standard 128 (family 127, "MPT1327 trunking (WIP)"). Receive only; control channel messages only: no traffic channel audio is decoded
-// and nothing encrypted is decoded.
+// Engine stdMode 129, active standard 128 (family 127, "MPT1327 trunking"). Receive only. On a traffic channel: its FM voice (played when the
+// trunking follower carries a call there) and its CLEAR / MAINT codewords. Nothing encrypted is decoded.
 #pragma once
+#include "dect2/dsp/analog_voice.h"
 #include "dect2/engine/mode_tuning.h"
 #include <complex>
 #include <cstddef>
@@ -22,9 +23,22 @@ struct MptMessageRow {
     std::string detail;
 };
 
+// One message for the trunking follower: the sequence number is unique across receivers (the follower remembers the last one taken)
+struct MptMsgRec {
+    uint64_t seq = 0;
+    double t = 0;
+    std::string type;          // GTC, CLEAR, MAINT, ALH ...
+    int calledPfix = -1, calledIdent = -1, callerIdent = -1;
+    int channel = -1;
+    bool traffic = false;      // decoded on a traffic channel (after SYNT)
+    bool dataCall = false;     // GTC for a data call
+    int oper = -1;             // MAINT: its OPER
+};
+
 struct MptChannelRow {
     int channel = 0;
-    bool controlChannel = false;   // announced by a BCAST (as a control channel of a system), otherwise allocated by a GTC
+    bool controlChannel = false;   // announced by BCAST SYSDEF 0 (a control channel of this site); adjacent sites are not counted
+    bool own = false;              // a control channel whose low 4 bits match the Aloha's CHAN4: the channel this receiver is on
     uint32_t count = 0;            // times seen
     double lastT = 0;
     std::string called, caller;    // of the last GTC for it
@@ -46,8 +60,16 @@ struct MptTelemetry {
     int sysId = -1;                // system identity from the control channel system codeword, -1 unknown
     std::vector<MptMessageRow> rows;        // the last messages, oldest first
     std::vector<MptChannelRow> channels;    // channels seen, by channel number
+    std::vector<MptMsgRec> msgs;            // the last messages, oldest first, at most 96
+    uint64_t clears = 0;                    // CLEAR codewords heard on a traffic channel: the call's clear down
+    uint64_t maints = 0;                    // MAINT codewords heard on a traffic channel (call maintenance)
+    uint64_t disconnects = 0;               // of them, MAINT OPER 3: the radio's disconnect (end of channel use)
+    uint64_t ends = 0;                      // CLEAR + disconnects: the call on this channel is over
+    bool french = false;                    // the French variant's SYNC / SYNT
+    uint64_t synt = 0;                      // traffic channel sync sequences
+    AnalogVoiceState voice;                 // the channel's FM voice
     double inputRate = 0;
-    double centerHz = 0;
+    double centerHz = 0, channelHz = 0;     // channelHz: the channel decoded (the radio's centre + the offset)
 };
 
 class MptReceiver {
@@ -63,6 +85,12 @@ public:
     void feed(const std::complex<float>* x, size_t n);
     bool telemetry(MptTelemetry& out, uint64_t lastSeq);
     void setLogCallback(std::function<void(const std::string&)> cb);
+    // the traffic channel's voice: played only while enabled (the trunking follower has a call here) and a carrier is there
+    void setVoice(bool enabled);
+    void setVolume(float v);
+    void setMuted(bool m);
+    void setSilent(bool s);
+    void setAudioTap(std::function<void(const float* mono48k, size_t n)> cb);   // tests
 
 private:
     struct Impl;

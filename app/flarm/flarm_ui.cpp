@@ -2,6 +2,7 @@
 // the live map through the shared slippy map of ADS-B (adsb_map.h), the receiver position, and the privacy note.
 // Receive only, as the Open Glider Network does. Positions are what the aircraft broadcast openly; aircraft that set the no-track or stealth
 // flag are only counted ("privacy-flagged"), never listed, drawn, saved or sent anywhere.
+#include "../ui/station_ui.h"
 #include "app.h"
 #include "../adsb/adsb_map.h"
 #include "dect2/flarm/flarm_proto.h"
@@ -19,6 +20,7 @@ namespace {
 
 struct State {
     bool loaded = false;
+    unsigned gen = 0;   // station position generation S.lat / S.lon were taken from
     double lat = 25.25, lon = 55.36;       // the receiver's position, shared with the ADS-B screen's setting
     bool haveRef = false;
     double pushedLat = 1e9, pushedLon = 1e9;
@@ -33,10 +35,16 @@ State S;
 bool live(const App& a) { return a.rx.standard == 67; }
 
 void loadState() {
+    const unsigned g = stationGeneration();
+    if (S.loaded && g != S.gen) {   // the station moved (My station, Follow the GPS, the ADS-B screen): take the new position
+        S.gen = g;
+        if (receiverLocationSet()) { receiverLocation(S.lat, S.lon); S.haveRef = true; snprintf(S.posText, sizeof S.posText, "%.5f, %.5f", S.lat, S.lon); }
+    }
     if (S.loaded) return;
     S.loaded = true;
+    S.gen = g;
     plat::Prefs& d = plat::prefs();
-    if (d.has("adsbLat") && d.has("adsbLon")) { S.lat = d.getD("adsbLat", S.lat); S.lon = d.getD("adsbLon", S.lon); S.haveRef = true; }
+    if (receiverLocationSet()) { receiverLocation(S.lat, S.lon); S.haveRef = true; }
     S.map.zoom = (int)d.getI("flarmZoom", 10);
     S.map.lat = S.lat; S.map.lon = S.lon;
     snprintf(S.posText, sizeof S.posText, "%.5f, %.5f", S.lat, S.lon);
@@ -64,13 +72,11 @@ ImU32 typeColour(int t) {
     }
 }
 
-void setPosition(App& a, double lat, double lon) {
-    S.lat = std::max(-90.0, std::min(90.0, lat)); S.lon = std::max(-180.0, std::min(180.0, lon));
-    S.haveRef = true;
-    plat::prefs().setD("adsbLat", S.lat); plat::prefs().setD("adsbLon", S.lon);
-    S.map.lat = S.lat; S.map.lon = S.lon;
-    snprintf(S.posText, sizeof S.posText, "%.5f, %.5f", S.lat, S.lon);
-    savePrefs(a);
+bool setPosition(App& a, double lat, double lon, const char* source) {
+    // the one station position (state/station_loc.cpp), saved there; this screen takes it back from there (loadState) when it changed
+    if (!setReceiverLocation(a, std::max(-90.0, std::min(90.0, lat)), std::max(-180.0, std::min(180.0, lon)), source)) return false;
+    loadState();
+    return true;
 }
 
 void positionControls(App& a) {
@@ -81,12 +87,12 @@ void positionControls(App& a) {
     ImGui::SameLine(0, 5 * gUi);
     if (ImGui::Button("Set") || enter) {
         double la, lo;
-        if (parseCoordinates(S.posText, la, lo)) { setPosition(a, la, lo); S.msg = "position set"; }
-        else if (fromMaidenhead(S.posText, la, lo)) { setPosition(a, la, lo); S.msg = "position set from the locator"; }
+        if (parseCoordinates(S.posText, la, lo)) S.msg = setPosition(a, la, lo, "typed") ? "position set" : "not a usable position (0, 0 is no place)";
+        else if (fromMaidenhead(S.posText, la, lo)) S.msg = setPosition(a, la, lo, "locator") ? "position set from the locator" : "not a usable position";
         else S.msg = "not a position: try 54.687, 25.280 or a locator such as KO24";
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Where your antenna is (decimal degrees, degrees minutes seconds, or a Maidenhead locator). FLARM sends only the low bits of a position;\n"
-                                                  "the receiver completes them around this point (within about 300 km). The same setting as the ADS-B screen's.");
+                                                  "the receiver completes them around this point (within about 300 km). This is your station's location (My station), used by every map.");
     if (!S.msg.empty()) { ImGui::SameLine(0, 8 * gUi); ImGui::TextDisabled("%s", S.msg.c_str()); }
 }
 
@@ -117,7 +123,7 @@ void tableView(App& a, const dect2::FlarmTelemetry& t) {
             ImGui::TableNextColumn(); ImGui::Text("%.0f dB", ac.levelDb);
             ImGui::TableNextColumn(); ImGui::Text("%.0f s ago", ac.ageSec);
             ImGui::TableNextColumn();
-            if (ac.hasRange) ImGui::Text("%.1f km %s", ac.distKm, dir16(ac.bearingDeg)); else ImGui::TextDisabled("-");
+            if (ac.hasRange) ImGui::Text("%.1f km %s", ac.distKm, dir16(ac.bearingDeg)); else ImGui::TextDisabled("%s", S.haveRef ? "-" : kNoRange);
             ImGui::TableNextColumn(); ImGui::Text("%u", ac.packets);
         }
         ImGui::EndTable();
@@ -131,7 +137,7 @@ void mapView(App& a, const dect2::FlarmTelemetry& t) {
     const ImVec2 p0 = ImGui::GetCursorScreenPos();
     adsbmap::draw(S.map, size);
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     if (S.haveRef) {
         const ImVec2 q = adsbmap::project(S.lat, S.lon);
         dl->AddCircleFilled(q, 5 * gUi, IM_COL32(240, 240, 240, 255));
@@ -176,7 +182,7 @@ void tab(App& a) {
     if (S.view == 0) { ImGui::SameLine(0, 12 * gUi); adsbmap::tileControls("never the position itself"); }
     if (!live(a)) { ImGui::TextDisabled("%s", a.engine.running() ? "starting" : "stopped"); privacyNote(); return; }
     const dect2::FlarmTelemetry& t = a.rx.flarm;
-    if (!S.haveRef) ImGui::TextColored(ImVec4(0.95f, 0.6f, 0.25f, 1), "Set the receiver position: without it the packets give no positions.");
+    if (!S.haveRef) stationHint(a, "Set your location: without it the packets give no positions.");
     if (t.aircraft.empty() && !t.newProtocol)
         ImGui::TextDisabled("%s", t.state >= 1 ? "energy on 868.2 / 868.4 MHz, no decodable packet yet" : "listening on 868.2 and 868.4 MHz (tune 868.3 MHz, at least 1 Msps)");
     if (S.view == 0) mapView(a, t); else tableView(a, t);

@@ -15,7 +15,7 @@ using namespace dect2::geo;
 static int fails = 0;
 #define CHECK(c, ...) do { if (!(c)) { fails++; printf("FAIL line %d: ", __LINE__); printf(__VA_ARGS__); printf("\n"); } } while (0)
 
-static bool near(double a, double b, double eps = 1e-6) { return std::fabs(a - b) < eps; }
+static bool approx(double a, double b, double eps = 1e-6) { return std::fabs(a - b) < eps; }
 
 static void setEnv(const char* k, const char* v) {
 #ifdef _WIN32
@@ -41,7 +41,7 @@ static void ok(const char* text, double lat, double lon, const char* src = "manu
     const bool r = parseLocationText(text, p, err);
     CHECK(r, "'%s' refused: %s", text, err.c_str());
     if (!r) return;
-    CHECK(near(p.lat, lat, eps) && near(p.lon, lon, eps), "'%s' gave %.7f %.7f, want %.7f %.7f", text, p.lat, p.lon, lat, lon);
+    CHECK(approx(p.lat, lat, eps) && approx(p.lon, lon, eps), "'%s' gave %.7f %.7f, want %.7f %.7f", text, p.lat, p.lon, lat, lon);
     CHECK(p.source == src, "'%s' source '%s' want '%s'", text, p.source.c_str(), src);
 }
 // text is refused with a one-line error containing `part`, and the output is untouched
@@ -109,7 +109,7 @@ static void testParse() {
     ok("geo:52.1234,-1.3456;u=35", 52.1234, -1.3456);
     {
         StationPos p; std::string err;
-        CHECK(parseLocationText("geo:52.1234,-1.3456,123.5;u=10", p, err) && near(p.altM, 123.5) && near(p.lat, 52.1234), "geo with altitude: %s", err.c_str());
+        CHECK(parseLocationText("geo:52.1234,-1.3456,123.5;u=10", p, err) && approx(p.altM, 123.5) && approx(p.lat, 52.1234), "geo with altitude: %s", err.c_str());
         StationPos q; q.altM = 77;
         CHECK(parseLocationText("52.1, -1.3", q, err) && q.altM == 77, "text without altitude keeps altM");
         StationPos r;
@@ -163,20 +163,20 @@ static void testValid() {
 static void testNmea() {
     GpsFix f;
     CHECK(gpsFromNmea(nmea("GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,"), f), "GGA with fix");
-    CHECK(f.fix && near(f.lat, 48 + 7.038 / 60) && near(f.lon, 11 + 31.0 / 60) && near(f.altM, 545.4) && f.sats == 8, "GGA values %.6f %.6f %.1f %d", f.lat, f.lon, f.altM, f.sats);
+    CHECK(f.fix && approx(f.lat, 48 + 7.038 / 60) && approx(f.lon, 11 + 31.0 / 60) && approx(f.altM, 545.4) && f.sats == 8, "GGA values %.6f %.6f %.1f %d", f.lat, f.lon, f.altM, f.sats);
     // RMC afterwards moves the position, keeps sats and altitude
-    CHECK(gpsFromNmea(nmea("GPRMC,123520,A,4808.000,N,01132.000,E,022.4,084.4,230394,003.1,W"), f) && f.fix && near(f.lat, 48 + 8.0 / 60) && f.sats == 8 && near(f.altM, 545.4), "RMC A");
+    CHECK(gpsFromNmea(nmea("GPRMC,123520,A,4808.000,N,01132.000,E,022.4,084.4,230394,003.1,W"), f) && f.fix && approx(f.lat, 48 + 8.0 / 60) && f.sats == 8 && approx(f.altM, 545.4), "RMC A");
     // southern and western
     GpsFix g;
-    CHECK(gpsFromNmea(nmea("GNGGA,000000,3354.000,S,07030.000,W,2,12,0.8,12.0,M,0,M,,"), g) && near(g.lat, -(33 + 54.0 / 60)) && near(g.lon, -(70 + 0.5)) && g.sats == 12, "S/W");
+    CHECK(gpsFromNmea(nmea("GNGGA,000000,3354.000,S,07030.000,W,2,12,0.8,12.0,M,0,M,,"), g) && approx(g.lat, -(33 + 54.0 / 60)) && approx(g.lon, -(70 + 0.5)) && g.sats == 12, "S/W");
     // no fix: GGA quality 0 clears the fix, keeps the sat count, does not touch the old position
     GpsFix h = f;
-    CHECK(!gpsFromNmea(nmea("GPGGA,123521,,,,,0,03,,,M,,M,,"), h) && !h.fix && h.sats == 3 && near(h.lat, 48 + 8.0 / 60), "GGA no fix");
+    CHECK(!gpsFromNmea(nmea("GPGGA,123521,,,,,0,03,,,M,,M,,"), h) && !h.fix && h.sats == 3 && approx(h.lat, 48 + 8.0 / 60), "GGA no fix");
     GpsFix n;
     CHECK(!gpsFromNmea(nmea("GPGGA,123521,4807.038,N,01131.000,E,0,00,,,M,,M,,"), n) && !n.fix && std::isnan(n.lat), "GGA quality 0 with coordinates is still no fix");
     // RMC V ignored
     GpsFix v = f;
-    CHECK(!gpsFromNmea(nmea("GPRMC,123522,V,4900.000,N,01200.000,E,,,230394,,"), v) && v.fix && near(v.lat, 48 + 8.0 / 60), "RMC V ignored");
+    CHECK(!gpsFromNmea(nmea("GPRMC,123522,V,4900.000,N,01200.000,E,,,230394,,"), v) && v.fix && approx(v.lat, 48 + 8.0 / 60), "RMC V ignored");
     GpsFix v2;
     CHECK(!gpsFromNmea(nmea("GPRMC,123522,V,,,,,,,230394,,"), v2) && !v2.fix && std::isnan(v2.lat), "RMC V on empty");
     // bad checksum
@@ -202,25 +202,25 @@ static void testNmea() {
 static void testGpsd() {
     GpsFix f;
     CHECK(gpsFromGpsdJson(R"({"class":"TPV","device":"/dev/ttyUSB0","mode":3,"lat":52.1234567,"lon":-1.3456789,"altMSL":123.4,"altHAE":170.0})", f), "TPV mode 3");
-    CHECK(f.fix && f.mode == 3 && near(f.lat, 52.1234567) && near(f.lon, -1.3456789) && near(f.altM, 123.4), "TPV values");
+    CHECK(f.fix && f.mode == 3 && approx(f.lat, 52.1234567) && approx(f.lon, -1.3456789) && approx(f.altM, 123.4), "TPV values");
     GpsFix a;
-    CHECK(gpsFromGpsdJson(R"({"class":"TPV","mode":3,"lat":52.1,"lon":-1.3,"alt":99.5})", a) && near(a.altM, 99.5), "alt");
+    CHECK(gpsFromGpsdJson(R"({"class":"TPV","mode":3,"lat":52.1,"lon":-1.3,"alt":99.5})", a) && approx(a.altM, 99.5), "alt");
     GpsFix b;
-    CHECK(gpsFromGpsdJson(R"({"class":"TPV","mode":3,"lat":52.1,"lon":-1.3,"altHAE":150.5})", b) && near(b.altM, 150.5), "altHAE");
+    CHECK(gpsFromGpsdJson(R"({"class":"TPV","mode":3,"lat":52.1,"lon":-1.3,"altHAE":150.5})", b) && approx(b.altM, 150.5), "altHAE");
     GpsFix d;
-    CHECK(gpsFromGpsdJson(R"({"class":"TPV","mode":3,"lat":52.1,"lon":-1.3,"altHAE":150.5,"altMSL":100.5,"alt":120})", d) && near(d.altM, 100.5), "MSL preferred");
+    CHECK(gpsFromGpsdJson(R"({"class":"TPV","mode":3,"lat":52.1,"lon":-1.3,"altHAE":150.5,"altMSL":100.5,"alt":120})", d) && approx(d.altM, 100.5), "MSL preferred");
     GpsFix t;
     CHECK(gpsFromGpsdJson(R"({"class":"TPV","mode":2,"lat":52.1,"lon":-1.3})", t) && t.fix && t.mode == 2 && std::isnan(t.altM), "2D has no altitude");
     // mode 1: no fix, the old position is left alone
     GpsFix n = f;
-    CHECK(!gpsFromGpsdJson(R"({"class":"TPV","device":"/dev/ttyUSB0","mode":1})", n) && !n.fix && near(n.lat, 52.1234567), "TPV mode 1");
+    CHECK(!gpsFromGpsdJson(R"({"class":"TPV","device":"/dev/ttyUSB0","mode":1})", n) && !n.fix && approx(n.lat, 52.1234567), "TPV mode 1");
     GpsFix z;
     CHECK(!gpsFromGpsdJson(R"({"class":"TPV","mode":3,"lat":0,"lon":0})", z) && !z.fix, "0,0");
     CHECK(!gpsFromGpsdJson(R"({"class":"TPV","mode":3,"lat":95,"lon":0})", z) && !z.fix, "latitude 95");
     CHECK(!gpsFromGpsdJson(R"({"class":"TPV","mode":3})", z) && !z.fix, "no coordinates");
     // not TPV
     GpsFix w = f;
-    CHECK(!gpsFromGpsdJson(R"({"class":"VERSION","release":"3.25","rev":"3.25","proto_major":3,"proto_minor":15})", w) && w.fix && near(w.lat, 52.1234567), "VERSION");
+    CHECK(!gpsFromGpsdJson(R"({"class":"VERSION","release":"3.25","rev":"3.25","proto_major":3,"proto_minor":15})", w) && w.fix && approx(w.lat, 52.1234567), "VERSION");
     CHECK(!gpsFromGpsdJson("not json", w) && !gpsFromGpsdJson("", w) && !gpsFromGpsdJson("[1,2]", w) && w.fix, "junk");
     GpsFix s = f;
     CHECK(!gpsFromGpsdJson(R"({"class":"SKY","uSat":9,"nSat":14})", s) && s.sats == 9 && s.fix, "SKY uSat");
@@ -239,14 +239,14 @@ static void testEnv() {
     CHECK(!p.valid() && err.empty(), "nothing set: '%s'", err.c_str());
     setEnv("SAURCOM_LOCATOR", "IO91wm");
     p = envLocation(&err);
-    CHECK(p.valid() && p.source == "env" && near(p.lat, 51 + 12.5 / 24) && err.empty(), "locator");
+    CHECK(p.valid() && p.source == "env" && approx(p.lat, 51 + 12.5 / 24) && err.empty(), "locator");
     setEnv("SAURCOM_LOCATOR", "IO9");
     p = envLocation(&err);
     CHECK(!p.valid() && !err.empty() && err.find("SAURCOM_LOCATOR") != std::string::npos, "bad locator: '%s'", err.c_str());
     clear();
     setEnv("SAURCOM_LAT", "52.1"); setEnv("SAURCOM_LON", "-1.3"); setEnv("SAURCOM_ALT", "120");
     p = envLocation(&err);
-    CHECK(p.valid() && p.source == "env" && near(p.lat, 52.1) && near(p.lon, -1.3) && near(p.altM, 120) && err.empty(), "lat/lon/alt");
+    CHECK(p.valid() && p.source == "env" && approx(p.lat, 52.1) && approx(p.lon, -1.3) && approx(p.altM, 120) && err.empty(), "lat/lon/alt");
     setEnv("SAURCOM_ALT", nullptr);
     p = envLocation(nullptr);
     CHECK(p.valid() && std::isnan(p.altM), "no alt, null err");
@@ -337,7 +337,7 @@ static void testClient() {
         CHECK(c.start("127.0.0.1", s.port), "start");
         GpsFix f;
         CHECK(waitFor(c, f, 5000), "no fix arrived; status '%s'", c.status().c_str());
-        CHECK(f.fix && near(f.lat, 52.5) && near(f.lon, -1.5) && near(f.altM, 100) && f.sats == 9, "fix values %.3f %.3f %.1f %d", f.lat, f.lon, f.altM, f.sats);
+        CHECK(f.fix && approx(f.lat, 52.5) && approx(f.lon, -1.5) && approx(f.altM, 100) && f.sats == 9, "fix values %.3f %.3f %.1f %d", f.lat, f.lon, f.altM, f.sats);
         CHECK(c.status() == "fix (3D, 9 sats)", "status '%s'", c.status().c_str());
         CHECK(s.got.find("?WATCH={\"enable\":true,\"json\":true}") == 0, "WATCH sent: '%s'", s.got.c_str());
         c.stop();
@@ -378,6 +378,42 @@ static void testClient() {
     }
 }
 
+
+void testHelpers() {
+    CHECK(std::fabs(distanceM(52.0, -1.0, 52.0, -1.0)) < 1e-6, "zero distance");
+    const double d = distanceM(52.0, -1.0, 52.0, -1.0 + 0.0003);   // about 20.5 m east at 52 N
+    CHECK(d > 19 && d < 22, "20 m east is %.2f", d);
+    CHECK(std::fabs(distanceM(0, 0, 0, 1) - 111195) < 200, "one degree of longitude on the equator");
+    // follow the GPS: 10 s between updates, more than 20 m of movement, a valid position
+    CHECK(followShouldMove(false, 0, 0, 52.1, -1.3, 5, -1), "first fix is applied");
+    CHECK(!followShouldMove(true, 52.1, -1.3, 52.1, -1.3, 100, 0), "did not move");
+    CHECK(!followShouldMove(true, 52.1, -1.3, 52.1, -1.3 + 0.0002, 100, 0), "moved about 13 m");
+    CHECK(followShouldMove(true, 52.1, -1.3, 52.1, -1.3 + 0.0004, 100, 0), "moved about 27 m");
+    CHECK(!followShouldMove(true, 52.1, -1.3, 52.2, -1.3, 109.9, 100), "moved far but only 9.9 s since the last update");
+    CHECK(followShouldMove(true, 52.1, -1.3, 52.2, -1.3, 110.0, 100), "10 s have passed");
+    CHECK(!followShouldMove(false, 0, 0, NAN, 1, 100, -1), "NaN is never applied");
+    CHECK(!followShouldMove(false, 0, 0, 91, 1, 100, -1) && !followShouldMove(false, 0, 0, 0, 0, 100, -1), "out of range or 0,0 is never applied");
+    // saved settings: the old keys keep their meaning
+    StoredStation s;
+    CHECK(!stationFromStored(s).valid(), "nothing stored");
+    s.hasLat = true; s.lat = 51.5;
+    CHECK(!stationFromStored(s).valid(), "latitude alone is not a position");
+    s.hasLon = true; s.lon = -0.12;
+    StationPos p = stationFromStored(s);
+    CHECK(p.valid() && p.lat == 51.5 && p.lon == -0.12 && p.source == "legacy" && std::isnan(p.altM) && std::isnan(p.antM), "legacy position");
+    s.hasOldAlt = true; s.oldAltM = 35;
+    p = stationFromStored(s);
+    CHECK(p.altM == 35, "the old rxAltM is carried over (%.1f)", p.altM);
+    s.hasAlt = true; s.altM = 120; s.hasAnt = true; s.antM = 8; s.source = "map";
+    p = stationFromStored(s);
+    CHECK(p.altM == 120 && p.antM == 8 && p.source == "map", "new keys win");
+    s.altM = 99999; s.antM = -3;
+    p = stationFromStored(s);
+    CHECK(std::isnan(p.altM) && std::isnan(p.antM), "a stored out-of-range stationAltM means unknown (not the old rxAltM), a negative antenna height is dropped");
+    s.lat = 95;
+    CHECK(!stationFromStored(s).valid(), "bad stored latitude is not a position");
+}
+
 int main() {
     testParse();
     testValid();
@@ -385,6 +421,7 @@ int main() {
     testGpsd();
     testEnv();
     testClient();
+    testHelpers();
     if (fails) { printf("%d failures\n", fails); return 1; }
     printf("station_location: all tests passed\n");
     return 0;

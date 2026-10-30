@@ -2,8 +2,9 @@
 // four that read what the Wi-Fi, Bluetooth LE and spectrum views already have: alarms (deauthentication flood, evil twin check, Bluetooth
 // serial module names), a frequency analyzer, and a drive log with a position written to a file on this computer. Nothing here transmits,
 // joins a network, pairs with a device or captures a key exchange. core/src/tools/radio_tools.cpp has the logic.
+#include "../ui/station_ui.h"
 #include "../app.h"
-#include "dect2/common/thread_name.h"
+#include "../state/gps_serial.h"
 #include "dect2/rfi/rfi.h"
 #include "dect2/tools/radio_tools.h"
 #include "dect2/wifi/wifi_proto.h"
@@ -44,14 +45,7 @@ struct State {
     bool includeBle = false;
     std::string status;
     double lastFeed = 0;
-    // GPS reader
-    std::thread gth;
-    std::atomic<bool> gcancel{false};
-    bool grun = false;
-    std::mutex gmu;
-    dect2::rfi::Fix fix;
-    double fixAt = -1000;
-    std::string gpsMsg;
+    SerialNmea gps;   // the GPS reader (app/state/gps_serial.cpp)
 };
 State S;
 
@@ -74,37 +68,12 @@ void save() {
     p.setI("rtBle", S.includeBle ? 1 : 0); p.setI("rtTopN", S.topN); p.setD("rtOver", S.overDb);
 }
 
-// ---- GPS from an NMEA stream (a serial GPS puck or a log file), read on its own thread ----
-void gpsWorker(std::string path) {
-    FILE* f = fopen(path.c_str(), "r");
-    if (!f) { std::lock_guard<std::mutex> l(S.gmu); S.gpsMsg = "Cannot open the GPS device or file."; S.grun = false; return; }
-#ifndef _WIN32
-    if (isatty(fileno(f))) {   // a serial GPS: 9600 baud 8N1 raw; a read gives up after 0.2 s so that the thread can be stopped
-        termios t;
-        if (tcgetattr(fileno(f), &t) == 0) {
-            cfmakeraw(&t); cfsetspeed(&t, B9600); t.c_cc[VMIN] = 0; t.c_cc[VTIME] = 2;
-            tcsetattr(fileno(f), TCSANOW, &t);
-        }
-    }
-#endif
-    char line[512];
-    while (!S.gcancel.load()) {
-        if (!fgets(line, sizeof line, f)) { clearerr(f); std::this_thread::sleep_for(std::chrono::milliseconds(200)); continue; }
-        dect2::rfi::Fix fx;
-        if (dect2::rfi::parseNmea(line, fx) && fx.valid) {
-            std::lock_guard<std::mutex> l(S.gmu);
-            S.fix = fx; S.fixAt = ImGui::GetTime(); S.gpsMsg.clear();
-        }
-    }
-    fclose(f);
-    S.grun = false;
-}
-void stopGps() { S.gcancel = true; if (S.gth.joinable()) S.gth.join(); S.grun = false; }
+// ---- GPS from an NMEA stream (a serial GPS puck or a log file), read on its own thread (app/state/gps_serial.cpp) ----
+void stopGps() { S.gps.stop(); }
 void startGps() {
     stopGps();
     if (S.gpsMode != GpsNmea || !S.nmeaPath[0]) return;
-    S.gcancel = false; S.grun = true; S.gpsMsg = "Waiting for a position fix.";
-    S.gth = dect2::namedThread("saurcom-rtgps", gpsWorker, std::string(S.nmeaPath));
+    S.gps.start(S.nmeaPath, 9600);
 }
 
 bool position(double& lat, double& lon, double& alt) {
@@ -115,9 +84,9 @@ bool position(double& lat, double& lon, double& alt) {
         alt = receiverAltitudeM();
         return true;
     }
-    std::lock_guard<std::mutex> l(S.gmu);
-    if (!S.fix.valid || ImGui::GetTime() - S.fixAt > 10) return false;
-    lat = S.fix.lat; lon = S.fix.lon;
+    dect2::geo::GpsFix f;
+    if (!S.gps.latest(f)) return false;
+    lat = f.lat; lon = f.lon;
     return true;
 }
 
@@ -128,7 +97,7 @@ void feedLog(App& a) {
     if (now - S.lastFeed < 1.0) return;
     S.lastFeed = now;
     double lat, lon, alt;
-    if (!position(lat, lon, alt)) { S.status = S.gpsMode == GpsNmea ? "waiting for a position fix" : "set the receiver position first (Tools > Map or the setup)"; return; }
+    if (!position(lat, lon, alt)) { S.status = S.gpsMode == GpsNmea ? "waiting for a position fix" : "set your location first (the pin in the toolbar)"; return; }
     S.status.clear();
     const int64_t wall = (int64_t)std::time(nullptr);
     for (const WifiAp& ap : a.rx.wifi.aps)
@@ -333,13 +302,13 @@ void driveLog(App& a) {
         if (ImGui::InputText(tr("serial port or NMEA file"), S.nmeaPath, sizeof S.nmeaPath, ImGuiInputTextFlags_EnterReturnsTrue)) { save(); startGps(); }
         ImGui::SameLine();
         if (ImGui::SmallButton(tr("Open"))) { save(); startGps(); }
-        std::lock_guard<std::mutex> l(S.gmu);
-        if (S.fix.valid && ImGui::GetTime() - S.fixAt <= 10) ImGui::TextColored(pal::okGreen(), "%s %.5f, %.5f (%d %s)", tr("fix"), S.fix.lat, S.fix.lon, S.fix.sats, tr("satellites"));
-        else ImGui::TextDisabled("%s", S.gpsMsg.empty() ? tr("no fix yet") : S.gpsMsg.c_str());
+        dect2::geo::GpsFix f;
+        if (S.gps.latest(f)) ImGui::TextColored(pal::okGreen(), "%s %.5f, %.5f (%d %s)", tr("fix"), f.lat, f.lon, f.sats, tr("satellites"));
+        else ImGui::TextDisabled("%s", S.gps.running() ? S.gps.status().c_str() : tr("no fix yet"));
     } else {
         double lat, lon, alt;
         if (position(lat, lon, alt)) ImGui::TextDisabled("%s %.5f, %.5f", tr("fixed position"), lat, lon);
-        else ImGui::TextDisabled("%s", tr("the receiver position is not set (Tools > Map, or the setup)"));
+        else stationHint(a, tr("Your location is not set."));
     }
     if (ImGui::Checkbox(tr("Include Bluetooth devices (personal devices; off by default)"), &S.includeBle)) { S.log.setBle(S.includeBle); save(); }
     ImGui::SetNextItemWidth(120 * gUi);

@@ -71,7 +71,7 @@ void loadUser() {
 
 bool station(double& lat, double& lon) {
     if (!receiverLocationSet()) return false;
-    lat = plat::prefs().getD("adsbLat", 0); lon = plat::prefs().getD("adsbLon", 0);
+    receiverLocation(lat, lon);
     return true;
 }
 

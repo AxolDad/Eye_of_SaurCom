@@ -152,7 +152,7 @@ void mapView(App& a, const dect2::HfdigFtxTelemetry& f, ImVec2 size) {
     if (S.map.lat != lat0 || S.map.lon != lon0) S.mapFollow = false;
     const auto& co = contactlines::options();
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     size_t nLines = 0;
     if (co.lines) {
         // the contacts of the messages shown, up to the newest one

@@ -260,7 +260,7 @@ void listTable(App& a) {
             if (ImGui::Checkbox("##l", &e.lockout)) S.dirty = true;
             ImGui::TableNextColumn();
             if (ImGui::Checkbox("##t", &e.trunk)) { if (e.trunk && e.dwellSec < 8) e.dwellSec = 8; S.dirty = true; }
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("A trunked system's control channel (P25, DMR Tier III or NXDN Type C): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time"));
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time"));
             ImGui::TableNextColumn();
             ImGui::BeginDisabled(run);
             if (ImGui::SmallButton("x")) del = i;

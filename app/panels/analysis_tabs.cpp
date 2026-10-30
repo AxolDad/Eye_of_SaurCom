@@ -426,7 +426,7 @@ void receiverGlance(App& a, float w, float h) {
 }
 
 void constellationsTab(App& a) {
-    if (const ModeUi* mu = modeUi(a.family)) { if (mu->panels) mu->panels(a); return; }
+    if (const ModeUi* mu = modeUi(a.family)) { if (mu->panels && !a.voiceFor) mu->panels(a); return; }   // a voice radio: the mode's plots hold the control receiver's history
     if (a.dabMode) { dabPanels(a); return; }
     if (a.fmMode) { fmPanels(a); return; }
     if (a.rx.standard == 2) { atscPanels(a); return; }

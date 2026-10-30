@@ -114,7 +114,8 @@ void mainTabs(App& a) {
     if (bar) {
         if (tabItem(N_("Overview"), Ic::Grid)) { adsbmap::FullScope fs(&a, [&a]{ overviewTab(a); }); overviewTab(a); ImGui::EndTabItem(); }
         if (const ModeUi* mu = modeUi(a.family)) {   // a mode added after FM: its own tabs
-            if (mu->tab && tabItem(mu->tabName ? mu->tabName : "Mode", mu->tabIcon)) { adsbmap::FullScope fs(&a, [&a, mu]{ mu->tab(a); }); mu->tab(a); ImGui::EndTabItem(); }
+            if (a.voiceFor) { if (tabItem(N_("Voice"), mu->tabIcon)) { trunkVoicePanel(a); ImGui::EndTabItem(); } }   // a trunking voice radio: a small panel, not the mode screen
+            else if (mu->tab && tabItem(mu->tabName ? mu->tabName : "Mode", mu->tabIcon)) { adsbmap::FullScope fs(&a, [&a, mu]{ mu->tab(a); }); mu->tab(a); ImGui::EndTabItem(); }
             else if (!mu->tab && mu->stream && tabItem(N_("TV"), Ic::Tv)) { adsbmap::FullScope fs(&a, [&a]{ tvTab(a); }); tvTab(a); ImGui::EndTabItem(); }
             if (mu->receiver && tabItem(N_("Receiver"), Ic::Antenna)) { adsbmap::FullScope fs(&a, [&a]{ receiverTab(a); }); receiverTab(a); ImGui::EndTabItem(); }
             if (mu->stream && tabItem(N_("Stream"), Ic::Layers)) { adsbmap::FullScope fs(&a, [&a]{ streamTab(a); }); streamTab(a); ImGui::EndTabItem(); }

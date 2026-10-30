@@ -13,11 +13,22 @@ constexpr int kMinZoom = 2, kMaxZoom = 19;   // continent to single buildings (t
 struct View {
     double lat = 25.25, lon = 55.36;   // the centre of the map
     int zoom = 7;                      // kMinZoom to kMaxZoom
+    // My station (state/station_loc.h): every map opens centred on the station once one is set, and moves with it when it changes, until
+    // the user drags the map (then it stays where they put it until "Centre on me"). Kept by the map itself; screens only choose homeKm.
+    unsigned stationGen = 0;           // the station generation this view was last centred for (0: not yet)
+    bool followStation = true;         // false once the user dragged the map
+    bool centreReq = false;            // "Centre on me" was pressed: applied at the start of the next draw(), as a move by the user
+    double homeKm = 0;                 // on the first centring, zoom to show about this many km across (0: keep the screen's zoom)
+    bool tileLine = false;             // the map has tileControls() (with Centre on me); fullCorner() then adds no second one
+    float bandH = 0;                   // the band at the top that holds the map's controls (measured by tileControls / fullCorner each frame)
 };
 
 // Draw the map into the next `size` of the current window and handle dragging (pan), the wheel (zoom around the pointer). Returns true when
 // the pointer is over the map. The projection below works after this call.
+// The top of the rectangle is a band for the map's controls (View::bandH, measured as they are drawn): the map itself starts under it, so
+// the controls never sit on aircraft labels or markers. Screens clip their markers with pushMapClip() (the map without the band).
 bool draw(View& v, ImVec2 size);
+void pushMapClip(ImDrawList* dl);              // dl->PushClipRect of the map area of the last draw() (pop it with dl->PopClipRect())
 ImVec2 project(double lat, double lon);        // screen position
 void unproject(ImVec2 p, double& lat, double& lon);   // the other way: where on Earth a screen position is
 bool clickedAt(ImVec2& p);                     // the map was clicked (not dragged); where
@@ -26,6 +37,13 @@ unsigned overlayText();                        // 0xRRGGBB text colour readable 
 unsigned panelColour();                        // 0xRRGGBB backing for panels drawn over the map
 unsigned legible(unsigned rgb);                // a marker/line colour pushed to hold contrast on the map background
 bool tilesAvailable();                         // at least one tile is on screen
+int zoomForKm(double lat, float sidePx, double km);   // the zoom at which sidePx pixels span about km kilometres at this latitude
+// My station on every map, shown by tileControls() (or fullCorner() on the maps without them) for the map drawn last:
+//  - the view is centred on the station when it opens and when the station moves (unless the user dragged it since);
+//  - "Centre on me" on the control line, or "Set your location" (opens My station) while no position is set, plus a clear button on the map;
+//  - right-click on the map: "I'm here" (after a confirmation with the coordinates) and "Centre the map here".
+void stationControls();
+void locationButton(ImVec2 p0, ImVec2 size, bool imHere = true);   // while no position is set: the "Set your location" button (opens My station) in the middle of a map (imHere: with the right-click line under it)
 void legend(float mapWidth, const char* fmt, ...);   // TextDisabled() along the bottom left of the map (the cursor put there): cut short before the credit
 // The controls every map has, on the line of the screen's own buttons: a "tiles" button with its menu (whether downloaded tiles are kept or
 // deleted when Eye of SaurCom closes, how many there are per zoom level, deleting them) and the "online map" switch. Both are one setting for every

@@ -304,6 +304,7 @@ struct App {
     Engine engine;
     int rxId = 1;                 // receiver number: RX 1 is the first (receivers.h)
     bool rxForcedMute = false, rxSavedMuted = false;   // only the receiver that plays gets sound: the others are muted
+    int voiceFor = 0;             // a voice radio of the trunking follower on RX n (docs/trunking.md): it shows a small panel, never the mode screen
     NetTuner net{engine};      // network tuner (declared after the engine so that it stops first)
     bool netOn = false, netLan = false;
     int netPort = 8089;
@@ -336,7 +337,7 @@ struct App {
     bool setupOpen = false;             // the setup wizard (language, radio, location, goals); Help > Setup wizard
     int setupStep = 0, setupRegion = 0;
     unsigned setupGoals = 0;            // bit per goal in wizard.cpp
-    char setupLoc[48] = "";             // a Maidenhead locator or coordinates
+    char setupLoc[256] = "";             // a Maidenhead locator or coordinates
     double wizStepT = 0;
     float wizX = -1;
     ImVec2 tgMin[8], tgMax[8];   // screen rectangles of the parts of the window the tour points at
@@ -446,6 +447,7 @@ struct App {
     bool eyeOpen = false;        // Tools > The Eye (eye_ui.cpp): everything decoded, across modes, on one scope and timeline
     bool notamOpen = false;      // Tools > NOTAMs and TFRs (adsb/notam_app.cpp)
     bool radioToolsOpen = false; // Tools > Radio tools (radio_tools_ui.cpp)
+    bool myStationOpen = false;  // Tools > My station (ui/station_ui.cpp): the one position of this station, paste box, GPS
     bool wifiSenseOpen = false;  // View > WiFi sensing (wifisense_ui.cpp)
     bool watchlistOpen = false;    // View > Watchlists: alerts when listed aircraft, ships, call signs, frequencies or words are heard (watchlist_ui.cpp)
     bool msgdbOpen = false;        // View > Messages: the decoded-message database (msgdb_ui.cpp)
@@ -459,7 +461,7 @@ struct App {
     dect2::WsprNetConfig wsprNet;    // WSPRnet spots (off by default; feeds_ui.cpp), saved with the preferences
     bool highContrast = false; // View > Theme > High contrast: black, white and yellow, thick outlines, dim text lifted to 7:1 (ui2.cpp, main.cpp); wins over lightUi
     bool lightUi = false;     // View > Light: every colour drawn with its lightness turned over (dark on white), hues kept (main.cpp)
-    int family = 68;           // 68 DVB, 1 ATSC, 2 DAB, 3 ATSC 3.68, 4 ISDB-T, 5 FM, 6 DVB-S/S2, 7 DTMB, 8 analog TV, 9 DMR, 168 DRM, 11 ADS-B, 12 GNSS, 13 radiosonde, 14 AIS, 15 marine, 16 ACARS, 17 Inmarsat-C, 18 Inmarsat Aero, 19 Iridium, 268 mesh, 21 HD Radio, 22 CDR, 23 pagers, 24 APRS / packet, 25 HF digital, 26 airband, 27 VDL Mode 2, 28 ISM sensors, 368 VOR / ILS, 31 M17, 33 D-STAR, 34 CW, 35 HFDL, 36 PSK31, 37 JS8Call, 42 spectrum analyser, 38 NXDN, 468 DVB-C, 45 dPMR, 44 Orbcomm, 43 Mode S uplink, 46 TETRA, 49 HF ALE, 47 MAC, 48 radio astronomy, 568 P25, 51 Bluetooth LE, 52 ionospheric sounders, 53 QO-16868, 54 Wi-Fi networks, 55 general receiver, 61 CubeSat telemetry, 64 HRPT / AHRPT (6 and up: see ModeUi; engine standard code = family + 2)
+    int family = 0;            // 0 DVB, 1 ATSC, 2 DAB, 3 ATSC 3.0, 4 ISDB-T, 5 FM, 6 DVB-S/S2, 7 DTMB, 8 analog TV, 9 DMR, 10 DRM, 11 ADS-B, 12 GNSS, 13 radiosonde, 14 AIS, 15 marine, 16 ACARS, 17 Inmarsat-C, 18 Inmarsat Aero, 19 Iridium, 20 mesh, 21 HD Radio, 22 CDR, 23 pagers, 24 APRS / packet, 25 HF digital, 26 airband, 27 VDL Mode 2, 28 ISM sensors, 30 VOR / ILS, 31 M17, 33 D-STAR, 34 CW, 35 HFDL, 36 PSK31, 37 JS8Call, 42 spectrum analyser, 38 NXDN, 40 DVB-C, 45 dPMR, 44 Orbcomm, 43 Mode S uplink, 46 TETRA, 49 HF ALE, 47 MAC, 48 radio astronomy, 50 P25, 51 Bluetooth LE, 52 ionospheric sounders, 53 QO-100, 54 Wi-Fi networks, 55 general receiver, 61 CubeSat telemetry, 64 HRPT / AHRPT (6 and up: see ModeUi; engine standard code = family + 2)
     int sub = 0;              // 1 .. kNumSubModes: the protocol entry (dect2::subModes() index + 1) of HF digital, mesh, pagers, marine or VOR / ILS; 0 none
     std::deque<float> dabSnrH, dabFicH, dabCfoH, dabCirH;
     std::deque<float> dabBufH, dabRsH, dabAuH;   // of the selected service: they restart when another one is selected
@@ -532,6 +534,8 @@ struct App {
     ImFont* ui = nullptr;
     std::string hackrfErr;
     bool hackrfErrHidden = false;       // the user dismissed the listing error; a new listing shows it again
+    int rxNoRadio = 0;             // a receiver opened with + got no radio of its own: 1 every radio is in use, 2 none is connected (a banner in statusBar until a radio is chosen)
+    bool openSourcePicker = false; // the banner's button: open the source dropdown (toolbar.cpp) the next time it is drawn
     std::string startErr, startErrKey;  // last failed start/retune of the radio (from the engine log); key = the log line it came from, so a dismissed one stays away
     std::vector<std::string> usbHints;  // why a plugged-in radio is not listed (Linux), refreshed with the radio list
     double diagCopiedAt = -10, diagPollAt = -10;
@@ -726,11 +730,9 @@ extern bool gTightTabs;   // the tabs of mainTabs() get less padding (a narrow p
 void toggleFullscreen();
 void handleFullscreenHotkeys();          // F11 and Alt+Enter; ignored while a text field has the keyboard
 bool adsbFullMap(App& a, ImVec2 disp);           // adsb_ui.cpp: the ADS-B map or radar over the whole window when it is popped out
-void receiverLocation(double& lat, double& lon);  // adsb_ui.cpp: the one receiver position (the ADS-B antenna position)
-bool receiverLocationSet();                        // the user has set it (else it is a placeholder)
-void receiverPositionFields(App& a);               // its fields (latitude, longitude, altitude) and the Locate button
-double receiverAltitudeM();                         // its height above sea level, metres (0 until set)
-void setReceiverLocation(App& a, double lat, double lon);   // move it (saved), e.g. Tools > Map's "Use as my location"
+// the one station position (state/station_loc.cpp): receiverLocation, receiverLocationSet, receiverAltitudeM, setReceiverLocation,
+// receiverPositionFields, and stationPos / setStationPos
+#include "state/station_loc.h"
 void syncAdsbReference(App& a);                              // push antenna position into the ADS-B tracker while that mode is running
 struct MapSatRef { std::string name; int norad = 0; const dect2::Sgp4* sgp = nullptr; };
 void passesMapSatellites(std::vector<MapSatRef>& out);   // passes_ui.cpp: the listed satellites with a TLE (for the live map)
@@ -906,6 +908,9 @@ void stationsInit(App& a);         // stations_ui.cpp: reads sites.json and star
 void stationsWindow(App& a);       // stations_ui.cpp: Tools > Stations
 void eyeWindow(App& a);            // eye_ui.cpp: Tools > The Eye (Ctrl+E)
 void dsnDevOpen(App& a);           // dsn_ui.cpp: --dsn
+void stationTick(App& a);          // ui/station_ui.cpp: every loop of the main program: Follow the GPS, the Locate answer
+void myStationWindow(App& a);      // ui/station_ui.cpp: Tools > My station (a.myStationOpen); also follows the GPS every frame
+void stationChip(App& a);          // ui/station_ui.cpp: the toolbar chip with the position; a click opens My station
 void radioToolsWindow(App& a);     // radio_tools_ui.cpp: Tools > Radio tools (a.radioToolsOpen); also feeds the drive log, every frame
 void radioToolsDevOpen(App& a, int tab);   // radio_tools_ui.cpp: --radiotools [tab]
 void wifiSenseWindow(App& a);      // wifisense_ui.cpp: presence and vital signs from ESP32 CSI nodes (View > WiFi sensing)
@@ -936,10 +941,17 @@ bool txModeHighlighted(const ModeDef& m);
 void txTick(App& a);               // every frame: gives the radio back when a transmission ended; the on-screen TX indicator
 void txShutdown();                 // stops a running transmission (the radio goes quiet before it returns); the program's end
 bool txActive();
-void trunkFollowTick(App& a);    // the P25 / DMR Tier III / NXDN Type C trunking follower (app/p25/p25_ui.cpp)
+void trunkFollowTick(App& a);    // the trunking follower of P25, DMR Tier III, NXDN Type C, EDACS, LTR and MPT 1327 (app/p25/p25_ui.cpp)
 void trunkFollowPanel(App& a);
+int trunkEdacsMode();             // the EDACS message set the follower reads (0 standard / networked, 1 EA)
+bool trunkEdacsEsk();
 void trunkScanFollow(App& a, bool on, bool enter);   // the scanner on a trunked system's entry (app/p25/p25_ui.cpp)
 bool trunkCallNow(std::string* what);                // a followed call is running; what: its talkgroup and name
+// Voice radios (docs/trunking.md, "Several radios"): receivers linked to the follower's control receiver that take the calls outside its capture
+void trunkVoiceTick(App& v);       // a voice receiver's per-frame work, in place of its mode's tick (the mode's shared screen state is not touched)
+void trunkVoicePanel(App& v);      // a voice receiver's screen, in place of the mode screen
+void trunkVoiceFrame();            // every frame before the receivers draw: unlinks voice receivers that were closed, switched mode or lost their radio
+void trunkVoiceShutdown();         // the program's end: unlinks every voice receiver, before the receivers stop
 void savePrefs(const App& a);
 int adcBitsFor(const DeviceInfo& d, double rateHz);
 void ingestSpectrum(App& a);

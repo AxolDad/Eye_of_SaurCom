@@ -170,7 +170,7 @@ void timeView(App& a) {
         kvRow(a, "computer clock", "%s", t.timeValid ? "nothing to compare (a recording)" : "once the time is decoded");
     }
     kvRow(a, "path", "%.0f km from %s, %.2f ms %s%s", t.distanceKm, stationName(t.station), t.propDelayMs, stationIsHf(t.station) ? "(sky wave estimate)" : "(ground wave)",
-          t.locationSet ? "" : "; set your position in ADS-B (Receiver position) for the right delay");
+          t.locationSet ? "" : "; set your location (the pin in the toolbar) for the right delay");
     kvRow(a, "seconds tick", "at %.3f ms of the signal second, %.2f ms rms jitter", t.secPhaseMs, t.tickJitterMs);
     kvRow(a, "second", "%s", t.secondOfMinute >= 0 ? std::to_string(t.secondOfMinute).c_str() : "-");
     ImGui::TextDisabled("this minute"); kvColumn(130 * gUi);

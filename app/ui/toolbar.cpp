@@ -2,6 +2,7 @@
 // classic bar and the side panels, and the tuning helpers (tuneFreq, spectrumTune, the second-mode control) live here.
 // The source, rig windows, status bar and mode selection are in toolbar_source.cpp, toolbar_rig.cpp, statusbar.cpp and mode_select.cpp.
 #include "../app.h"
+#include "imgui_internal.h"
 #include "touch.h"
 #include "radio_name_ui.h"
 #include "radio_find_ui.h"
@@ -32,6 +33,10 @@ static void toolbarSource(App& a, bool vertical, bool running) {
     const std::string srcName = ellipsize(srcFull, srcW - ImGui::GetFrameHeight() - 2 * ImGui::GetStyle().FramePadding.x);
     ImGui::SetNextItemWidth(srcW);
     ImGui::BeginDisabled(running);
+    if (a.openSourcePicker) {   // "Choose a radio..." in the no-free-radio banner (statusbar.cpp): open this dropdown
+        a.openSourcePicker = false;
+        if (!running) ImGui::OpenPopupEx(ImHashStr("##ComboPopup", 0, ImGui::GetID("##src")));   // the id BeginCombo gives its popup
+    }
     if (textBeginCombo("##src")) {   // the name is drawn as text below: a "##" in it must not cut it
         radioWatchDropdownOpen();   // no polling while the list is open
         for (int i = 0; i < (int)a.devices.size(); i++)
@@ -485,6 +490,7 @@ void toolbarParts(App& a, int mask, bool vertical) {
         ImGui::SameLine(0, 12 * gUi);
     }
     if (mask & TbSource) toolbarSource(a, vertical, running);
+    if (!vertical && (mask & TbSource) && !a.newUi) { flowNext(8 * gUi); stationChip(a); }   // station_ui.cpp: the position, or "Set location" (the new interface has it in the menu bar)
 
 
     const DeviceInfo& curDev = a.devices[a.devIdx];

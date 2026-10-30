@@ -2,6 +2,7 @@
 #include "dect2/automation/json_mini.h"
 #include "dect2/common/u8file.h"
 #include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -230,6 +231,86 @@ RadioDiff diffRadios(const std::vector<DeviceInfo>& before, const std::vector<De
     for (const auto& r : a) if (!inBefore.count(r.key)) d.added.push_back(r.dev);
     for (const auto& r : b) if (!inAfter.count(r.key)) d.removed.push_back(r.dev);
     return d;
+}
+
+// ---- short names (tab titles, the device scan line)
+namespace {
+std::string trimSpaces(std::string s) {
+    while (!s.empty() && (s.back() == ' ' || s.back() == '-' || s.back() == ':')) s.pop_back();
+    size_t b = 0;
+    while (b < s.size() && s[b] == ' ') b++;
+    return s.substr(b);
+}
+bool endsWith(const std::string& s, const std::string& t) { return t.size() <= s.size() && s.compare(s.size() - t.size(), t.size(), t) == 0; }
+std::string lower(std::string s) { for (auto& c : s) c = (char)std::tolower((unsigned char)c); return s; }
+// the serial, or a tail of it of 4 or more characters, written at the end of the name
+bool cutSerialTail(std::string& s, const std::string& serial) {
+    if (serial.empty()) return false;
+    const std::string ls = lower(s), lser = lower(serial);
+    for (size_t k = 0; k + 4 <= lser.size(); k++) {
+        const std::string tail = lser.substr(k);
+        if (endsWith(ls, " " + tail) || endsWith(ls, ":" + tail)) { s = trimSpaces(s.substr(0, s.size() - tail.size())); return true; }
+        if (endsWith(ls, "(" + tail + ")")) { s = trimSpaces(s.substr(0, s.size() - tail.size() - 2)); return true; }
+    }
+    return false;
+}
+std::string serialTail(const std::string& serial) { return serial.size() > 8 ? serial.substr(serial.size() - 8) : serial; }
+}  // namespace
+
+std::string radioModelName(const DeviceInfo& d) {
+    std::string s = trimSpaces(d.name);
+    for (int guard = 0; guard < 4; guard++) {   // driver notes and the serial, from the end, in any order
+        bool cut = false;
+        if (!s.empty() && s.back() == ')') {
+            const size_t open = s.rfind('(');
+            if (open != std::string::npos && s.find("experimental", open) != std::string::npos) { s = trimSpaces(s.substr(0, open)); cut = true; }
+        }
+        if (!cut) { const size_t sep = s.find(" :: "); if (sep != std::string::npos && sep > 0) { s = trimSpaces(s.substr(0, sep)); cut = true; } }   // SoapySDR's "label :: serial"
+        if (!cut) cut = cutSerialTail(s, d.serial);
+        if (!cut) break;
+    }
+    const std::string l = lower(s);
+    if (l.rfind("rtl283", 0) == 0 || l.rfind("generic rtl", 0) == 0 || l == "rtl-sdr" || l == "rtlsdr") s = "RTL-SDR";
+    return s.empty() ? d.name : s;
+}
+
+std::vector<std::string> radioShortNames(const std::vector<RadioRow>& rows, bool withSerial) {
+    std::vector<std::string> v;
+    v.reserve(rows.size());
+    for (const auto& r : rows) {
+        if (r.key.empty() && !r.dev.isRadio()) { v.push_back(r.dev.name); continue; }
+        if (!r.label.empty()) { v.push_back(r.label); continue; }
+        std::string s = radioModelName(r.dev);
+        if (withSerial && !r.dev.serial.empty()) s += " (SN " + serialTail(r.dev.serial) + ")";
+        v.push_back(s);
+    }
+    std::map<std::string, int> count, seen;
+    for (size_t i = 0; i < v.size(); i++) if (rows[i].dev.isRadio()) count[v[i]]++;
+    for (size_t i = 0; i < v.size(); i++)
+        if (rows[i].dev.isRadio() && count[v[i]] > 1) { const std::string base = v[i]; v[i] += " #" + std::to_string(++seen[base]); }
+    return v;
+}
+
+std::string radioScanSummary(const std::vector<std::string>& radioNames, size_t soundCards, const ScanWords& w) {
+    std::string names;
+    for (const auto& n : radioNames) { if (!names.empty()) names += ", "; names += n; }
+    std::string s;
+    // the names go in as arguments: a name with a % in it stays as it is
+    auto fmt = [](const char* f, long n, const std::string* str) {
+        std::string out;
+        for (const char* p = f; *p; p++) {
+            if (p[0] == '%' && p[1] == 'd') { out += std::to_string(n); p++; }
+            else if (p[0] == '%' && p[1] == 's' && str) { out += *str; p++; }
+            else out += *p;
+        }
+        return out;
+    };
+    if (radioNames.empty()) s = w.none;
+    else if (radioNames.size() == 1) s = fmt(w.one, 1, &names);
+    else s = fmt(w.many, (long)radioNames.size(), &names);
+    if (soundCards == 1) s += std::string(" \xC2\xB7 ") + w.card;
+    else if (soundCards > 1) s += " \xC2\xB7 " + fmt(w.cards, (long)soundCards, nullptr);
+    return s;
 }
 
 }  // namespace dect2

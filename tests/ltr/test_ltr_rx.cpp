@@ -1,5 +1,7 @@
-// LTR: word round trip, bit errors, and the full chain (generated FM signal with voice and noise -> receiver). Everything here is generated
-// signal only: no real LTR recording was available, and the check bits are not verified (the algorithm is not in public non-code sources).
+// LTR and Passport: the checksums against a port of SDRTrunk's own BitSet code (CRCLTR.getCalculatedChecksum / getTransmittedChecksum,
+// CRCPassport.check, GPL-3, Dennis Sheirer) and a hand-worked vector, message types after LTRStandardMessageProcessor and
+// PassportMessage.getMessageType, then the full chain (generated FM signal with voice and noise -> receiver). No real recording was
+// available: the signals are generated.
 #include "dect2/ltr/ltr_proto.h"
 #include "dect2/ltr/ltr_rx.h"
 #include "dect2/ltr/ltr_tel.h"
@@ -19,15 +21,31 @@ static float gauss() { float s = 0; for (int i = 0; i < 6; i++) { rngState = rng
 
 static std::vector<ltr::Word> sentWords() {
     std::vector<ltr::Word> w;
-    auto add = [&](int area, int gt, int home, int id, int fr, int chk) { ltr::Word x; x.area = area; x.gotoCh = gt; x.home = home; x.id = id; x.freeCh = fr; x.chk = chk; w.push_back(x); };
-    add(0, 3, 3, 17, 5, 0x2A);
-    add(0, 5, 1, 101, 7, 0x11);
-    add(1, 12, 12, 254, 2, 0x5C);
-    add(0, 0, 8, 255, 9, 0x03);
-    add(0, 7, 2, 33, 20, 0x71);
-    add(0, 19, 19, 200, 1, 0x40);
+    auto add = [&](int area, int gt, int home, int id, int fr) { ltr::Word x; x.area = area; x.gotoCh = gt; x.home = home; x.id = id; x.freeCh = fr; x.chk = ltr::checksum(x); w.push_back(x); };
+    add(0, 3, 3, 17, 5);
+    add(0, 5, 1, 101, 7);
+    add(1, 12, 12, 254, 2);
+    add(0, 9, 8, 255, 9);
+    add(0, 7, 2, 33, 20);
+    add(0, 19, 19, 200, 1);
     return w;
 }
+
+// ---- SDRTrunk's checksum code, ported line for line onto a bool array indexed like its BitSet (bit 0 = the first sync bit)
+static const int kSdrLtr[24] = {0x38, 0x1C, 0x0E, 0x46, 0x23, 0x51, 0x68, 0x75, 0x7A, 0x3D, 0x1F, 0x4F, 0x26, 0x52, 0x29, 0x15, 0x0B, 0x45, 0x62, 0x31, 0x19, 0x0D, 0x07, 0x43};
+static int sdrLtrCalculated(const std::vector<uint8_t>& msg) { int c = 0; for (int i = 9; i < 33; i++) if (msg[i]) c ^= kSdrLtr[i - 9]; return c; }
+static int sdrLtrTransmitted(const std::vector<uint8_t>& msg) { int r = 0; for (int x = 0; x < 7; x++) if (msg[x + 33]) r += 1 << (6 - x); return r; }
+static const int kSdrPass[51] = {0x6E, 0xBF, 0xD6, 0xE3, 0xF8, 0x7C, 0x3E, 0x97, 0xC2, 0xE9, 0x75, 0x3B, 0x94, 0x4A, 0xAD, 0x57, 0xA2, 0xD9, 0x6D,
+                                 0x37, 0x92, 0xC1, 0x61, 0x31, 0x19, 0x0D, 0x07, 0x8A, 0xCD, 0x67, 0xBA, 0xD5, 0x6B, 0xBC, 0x5E, 0xA7, 0xDA, 0xE5,
+                                 0x73, 0xB0, 0x58, 0x2C, 0x16, 0x83, 0xC8, 0x64, 0x32, 0x91, 0x49, 0x25, 0x13};
+static int sdrPassResidual(const std::vector<uint8_t>& msg) {
+    int c = 0;
+    for (int i = 9; i <= 59; i++) if (msg[i]) c ^= kSdrPass[i - 9];
+    int t = 0;
+    for (int x = 0; x < 8; x++) if (msg[x + 60]) t ^= 1 << (7 - x);
+    return (c ^ t) & 0xFF;
+}
+static int sdrGetInt(const std::vector<uint8_t>& m, int from, int to) { int v = 0; for (int i = from; i <= to; i++) v = (v << 1) | m[i]; return v; }
 
 static std::vector<uint8_t> stream(const std::vector<ltr::Word>& w, int repeats) {
     std::vector<uint8_t> b;
@@ -76,23 +94,98 @@ static int found(const LtrTelemetry& t, const std::vector<ltr::Word>& sent, int&
 
 int main() {
     const auto sent = sentWords();
-    {   // protocol round trip
-        for (const auto& w : sent) {
-            ltr::Word r;
-            const auto b = ltr::encodeWord(w);
-            CHECK(b.size() == 40, "word has %zu bits", b.size());
-            CHECK(ltr::parseWord(b.data(), r), "sync not found");
-            CHECK(r.area == w.area && r.gotoCh == w.gotoCh && r.home == w.home && r.id == w.id && r.freeCh == w.freeCh && r.chk == w.chk, "fields differ for %s", ltr::talkgroup(w).c_str());
-            CHECK(ltr::plausible(r), "plausible failed for %s", ltr::talkgroup(w).c_str());
-        }
-        CHECK(ltr::kindOf(255) == "idle" && ltr::kindOf(254) == "callsign ID" && ltr::kindOf(17).empty(), "kinds");
-        // a bit error in the sync is rejected; one in a field is not caught (the check bits are not verified)
-        auto b = ltr::encodeWord(sent[0]);
+    {   // a hand-worked vector: area 0, go-to 1, home 1, group 255, free 1 (the idle word of repeater 1). Set bits and CRCLTR values:
+        // go-to bit 0 -> 0x51, home bit 0 -> 0x1F, group 7..0 -> 0x4F 0x26 0x52 0x29 0x15 0x0B 0x45 0x62, free bit 0 -> 0x43; XOR = 0x26
+        ltr::Word w; w.area = 0; w.gotoCh = 1; w.home = 1; w.id = 255; w.freeCh = 1;
+        CHECK(ltr::checksum(w) == 0x26, "hand vector: checksum %02X, want 26", ltr::checksum(w));
+        const auto b = ltr::encodeWord(w);
+        std::string bs;
+        for (auto x : b) bs += (char)('0' + x);
+        CHECK(bs == "101011000" "0" "00001" "00001" "11111111" "00001" "0100110", "hand vector bits %s", bs.c_str());
         ltr::Word r;
-        b[3] ^= 1;
-        CHECK(!ltr::parseWord(b.data(), r), "a word with a bad sync was accepted");
-        ltr::Word bad; bad.home = 25;
-        CHECK(!ltr::plausible(bad), "home 25 plausible");
+        CHECK(ltr::parseWord(b.data(), r) && ltr::checkWord(r) == 1, "hand vector does not check");
+    }
+    {   // words this receiver decoded from a real recording (SigIDWiki "Ltrtx.mp3", an LTR repeater ending a transmission; the recording is
+        // not redistributed, only these fields and the check bits as received): our checksum gives the transmitted check bits
+        struct Real { int area, go, home, id, fr, chk; };
+        const Real r[] = {{0, 5, 5, 4, 1, 0x3A}, {0, 5, 5, 4, 2, 0x7E}, {0, 5, 5, 4, 3, 0x3D}, {0, 31, 5, 4, 5, 0x06}};
+        for (const Real& x : r) {
+            ltr::Word w; w.area = x.area; w.gotoCh = x.go; w.home = x.home; w.id = x.id; w.freeCh = x.fr; w.chk = x.chk;
+            CHECK(ltr::checksum(w) == x.chk && ltr::checkWord(w) == 1, "real word %s go-to %d free %d: checksum %02X, received %02X", ltr::talkgroup(w).c_str(), x.go, x.fr,
+                  ltr::checksum(w), x.chk);
+        }
+    }
+    {   // our checksum against SDRTrunk's code on every combination of a spread of field values; the inbound (inverted) word too
+        unsigned st = 99;
+        int n = 0, bad = 0;
+        for (int k = 0; k < 4000; k++) {
+            st = st * 1103515245u + 12345u;
+            ltr::Word w; w.area = (int)(st >> 30) & 1; w.gotoCh = (int)(st >> 8) & 31; w.home = (int)(st >> 13) & 31; w.id = (int)(st >> 18) & 255; w.freeCh = (int)(st >> 3) & 31;
+            const auto b = ltr::encodeWord(w);
+            if (sdrLtrCalculated(b) != sdrLtrTransmitted(b)) bad++;   // CRCLTR.check for an OSW: PASSED
+            // the ISW: LTRStandardMessageProcessor flips bits 0 - 39, then CRCLTR accepts calculated == transmitted or calculated ^ 127
+            auto i = ltr::encodeWord(w, true);
+            for (auto& x : i) x ^= 1;
+            if (sdrLtrCalculated(i) != sdrLtrTransmitted(i)) bad++;
+            ltr::Word r;
+            if (!ltr::parseWord(i.data(), r) || r.area != w.area || r.gotoCh != w.gotoCh || r.home != w.home || r.id != w.id || r.freeCh != w.freeCh || ltr::checkWord(r) != 1) bad++;
+            // an inbound word whose checksum is inverted: SDRTrunk PASSED_INV, ours 2
+            std::vector<uint8_t> inv = b;
+            for (int x = 33; x < 40; x++) inv[x] ^= 1;
+            if ((sdrLtrCalculated(inv) ^ 127) != sdrLtrTransmitted(inv) || !ltr::parseWord(inv.data(), r) || ltr::checkWord(r) != 2) bad++;
+            n++;
+        }
+        CHECK(bad == 0, "LTR checksum differs from SDRTrunk's in %d of %d words", bad, n);
+        // every single bit error in bits 9 - 39 is caught
+        ltr::Word w; w.gotoCh = 4; w.home = 6; w.id = 77; w.freeCh = 3;
+        const auto b = ltr::encodeWord(w);
+        int missed = 0;
+        for (int i = 9; i < 40; i++) {
+            auto e = b; e[i] ^= 1;
+            ltr::Word r;
+            if (ltr::parseWord(e.data(), r) && ltr::checkWord(r) != 0) missed++;
+        }
+        CHECK(missed == 0, "%d single bit errors pass the LTR checksum", missed);
+        auto e = b; e[3] ^= 1;
+        ltr::Word r;
+        CHECK(!ltr::parseWord(e.data(), r), "a word with a bad sync was accepted");
+        CHECK(ltr::kindOf(255) == "idle" && ltr::kindOf(254) == "callsign ID" && ltr::kindOf(17).empty(), "kinds");
+    }
+    {   // Passport: our encoder and fields against SDRTrunk's CRCPassport and PassportMessage field positions
+        unsigned st = 7;
+        int bad = 0;
+        for (int k = 0; k < 4000; k++) {
+            st = st * 1103515245u + 12345u; const unsigned a = st;
+            st = st * 1103515245u + 12345u; const unsigned c = st;
+            ltr::PassportWord p; p.dcc = (int)(a >> 30); p.lcn = (int)(a >> 4) & 0x7FF; p.site = (int)(a >> 16) & 0x7F; p.group = (int)(c >> 8) & 0xFFFF; p.type = (int)(c >> 26) & 15; p.freeCh = (int)(a >> 13) & 0x7FF;
+            const auto b = ltr::encodePassport(p);
+            if (b.size() != 68 || sdrPassResidual(b) != 0) { bad++; continue; }
+            if (sdrGetInt(b, 0, 8) != 0x158 || sdrGetInt(b, 9, 10) != p.dcc || sdrGetInt(b, 11, 21) != p.lcn || sdrGetInt(b, 22, 28) != p.site ||
+                sdrGetInt(b, 29, 44) != p.group || sdrGetInt(b, 22, 44) != p.radioId() || sdrGetInt(b, 33, 36) != p.neighborBand() ||
+                sdrGetInt(b, 41, 44) != p.siteBand() || sdrGetInt(b, 45, 48) != p.type || sdrGetInt(b, 49, 59) != p.freeCh) bad++;
+            ltr::PassportWord r;
+            if (!ltr::parsePassport(b.data(), r) || !ltr::passportOk(r) || r.group != p.group || r.lcn != p.lcn || r.freeCh != p.freeCh) bad++;
+        }
+        CHECK(bad == 0, "Passport differs from SDRTrunk in %d words", bad);
+        ltr::PassportWord p; p.lcn = 345; p.site = 12; p.group = 4321; p.type = 0; p.freeCh = 346;
+        const auto b = ltr::encodePassport(p);
+        int missed = 0;
+        for (int i = 9; i < 66; i++) {   // the last two check bits are the ones SDRTrunk corrects
+            auto e = b; e[i] ^= 1;
+            ltr::PassportWord r;
+            if (ltr::parsePassport(e.data(), r) && ltr::passportOk(r)) missed++;
+        }
+        CHECK(missed == 0, "%d single bit errors pass the Passport checksum", missed);
+        auto e = b; e[67] ^= 1;
+        ltr::PassportWord r;
+        CHECK(ltr::parsePassport(e.data(), r) && ltr::passportOk(r), "an error in check bit 67 is corrected by SDRTrunk, refused here");
+        // message types (PassportMessage.getMessageType)
+        auto kind = [](int type, int lcn, int fr) { ltr::PassportWord w; w.type = type; w.lcn = lcn; w.freeCh = fr; return ltr::passportKind(w); };
+        CHECK(kind(0, 100, 5) == ltr::PassportKind::CallStart && kind(2, 100, 5) == ltr::PassportKind::CallStart && kind(1, 100, 5) == ltr::PassportKind::CallStart, "call start");
+        CHECK(kind(1, 100, 2042) == ltr::PassportKind::TgAssign && kind(1, 1792, 5) == ltr::PassportKind::Idle && kind(1, 1793, 5) == ltr::PassportKind::Idle, "assign / idle");
+        CHECK(kind(1, 2047, 5) == ltr::PassportKind::CallEnd && kind(9, 3, 5) == ltr::PassportKind::Data && kind(5, 3, 5) == ltr::PassportKind::Page && kind(6, 3, 5) == ltr::PassportKind::RadioId && kind(11, 3, 5) == ltr::PassportKind::Register && kind(1, 1900, 5) == ltr::PassportKind::Unknown, "other types");
+        // PassportBand: base + channel x 12.5 kHz; 460 is band 6, 800 band 0, 216 band 13, CAN has no base
+        CHECK(std::fabs(ltr::passportFreqHz(6, 100) - 461.25e6) < 1 && std::fabs(ltr::passportFreqHz(0, 1) - 800.0125e6) < 1 && std::fabs(ltr::passportFreqHz(13, 8) - 216.1e6) < 1 && ltr::passportFreqHz(10, 5) == 0, "band plan");
     }
     const double fs = 480000, off = -50000;
     const auto bits = stream(sent, 3);
@@ -127,6 +220,83 @@ int main() {
         const LtrTelemetry t = run({}, fs, off, 0.1, true);
         CHECK(t.blocksOk == 0, "noise only: %llu good words", (unsigned long long)t.blocksOk);
         std::printf("noise only: good %llu bad %llu\n", (unsigned long long)t.blocksOk, (unsigned long long)t.blocksBad);
+    }
+    {   // two other repeaters inside the capture are watched at the same time as the main channel
+        std::vector<ltr::Word> w1(1), w2(1), w3(1);
+        w1[0].gotoCh = 1; w1[0].home = 1; w1[0].id = 11; w1[0].freeCh = 3;
+        w2[0].gotoCh = 2; w2[0].home = 2; w2[0].id = 22; w2[0].freeCh = 3;
+        w3[0].gotoCh = 4; w3[0].home = 4; w3[0].id = 44; w3[0].freeCh = 3;
+        const auto s1 = ltr::modulate(stream(w1, 6), fs, off, 600.0, 0.3f, 1000.0, 1500.0);
+        const auto s2 = ltr::modulate(stream(w2, 6), fs, off + 100000, 600.0, 0.3f, 1200.0, 1500.0);
+        const auto s3 = ltr::modulate(stream(w3, 6), fs, off - 120000, 600.0, 0.3f);
+        std::vector<cf32> sum(std::max({s1.size(), s2.size(), s3.size()}), cf32(0, 0));
+        for (size_t i = 0; i < s1.size(); i++) sum[i] += s1[i];
+        for (size_t i = 0; i < s2.size(); i++) sum[i] += s2[i];
+        for (size_t i = 0; i < s3.size(); i++) sum[i] += s3[i];
+        LtrReceiver rx;
+        rx.configure(fs);
+        rx.setCenterHz(460e6);
+        rx.setSignalOffset(off);
+        rx.setWatch({off + 100000, off - 120000});
+        for (size_t i = 0; i < sum.size() + (size_t)(fs * 0.3); i += 4096) {
+            std::vector<cf32> blk(4096, cf32(0, 0));
+            for (size_t k = 0; k < 4096 && i + k < sum.size(); k++) blk[k] = sum[i + k];
+            rx.feed(blk.data(), blk.size());
+        }
+        LtrTelemetry t;
+        rx.telemetry(t, 0);
+        int n1 = 0, n2 = 0, n3 = 0;
+        uint64_t prev = 0; bool ordered = true;
+        for (const auto& r : t.words) {
+            ordered &= r.seq > prev; prev = r.seq;
+            if (r.id == 11 && std::fabs(r.hz - (460e6 + off)) < 1) n1++;
+            if (r.id == 22 && std::fabs(r.hz - (460e6 + off + 100000)) < 1) n2++;
+            if (r.id == 44 && std::fabs(r.hz - (460e6 + off - 120000)) < 1) n3++;
+        }
+        CHECK(n1 >= 5 && n2 >= 5 && n3 >= 5 && ordered && t.watching == 3, "watched: main %d, +100 kHz %d, -120 kHz %d, ordered %d, watching %d", n1, n2, n3, (int)ordered, t.watching);
+        std::printf("watch: main %d, +100 kHz %d, -120 kHz %d words\n", n1, n2, n3);
+    }
+    {   // an inverted checksum counts only on an inbound word (the other polarity than the repeater's outbound words), as SDRTrunk's CRCLTR
+        std::vector<uint8_t> b2;
+        for (int i = 0; i < 40; i++) b2.push_back((uint8_t)(i & 1));
+        auto add = [&](std::vector<uint8_t> e) { b2.insert(b2.end(), e.begin(), e.end()); for (int i = 0; i < 12; i++) b2.push_back((uint8_t)(i & 1)); };
+        ltr::Word o; o.gotoCh = 4; o.home = 4; o.id = 40; o.freeCh = 6;
+        for (int k = 0; k < 4; k++) add(ltr::encodeWord(o));                            // outbound words: the polarity is learned
+        ltr::Word x; x.gotoCh = 7; x.home = 7; x.id = 71; x.freeCh = 6;
+        auto bad = ltr::encodeWord(x); for (int i = 33; i < 40; i++) bad[i] ^= 1;      // outbound polarity, inverted checksum: refused
+        add(bad);
+        ltr::Word y; y.gotoCh = 8; y.home = 8; y.id = 81; y.freeCh = 6;
+        auto isw = ltr::encodeWord(y); for (int i = 33; i < 40; i++) isw[i] ^= 1; for (auto& v : isw) v ^= 1;   // inbound: accepted
+        add(isw);
+        add(ltr::encodeWord(o));
+        const LtrTelemetry t = run(ltr::modulate(b2, fs, off, 600.0, 0.5f), fs, off, 0);
+        bool gotX = false, gotY = false;
+        for (const auto& m : t.messages) { if (m.id == 71) gotX = true; if (m.id == 81 && m.inbound) gotY = true; }
+        CHECK(!gotX && gotY, "inverted checksum: outbound taken %d, inbound taken %d", (int)gotX, (int)gotY);
+    }
+    {   // Passport words through the receiver: idle (site 9, band 460), a call on LCN 77 for group 1234, its end; both polarities
+        std::vector<ltr::PassportWord> pw(3);
+        pw[0].lcn = 1792; pw[0].site = 9; pw[0].group = 6; pw[0].type = 1; pw[0].freeCh = 81; pw[0].dcc = 2;
+        pw[1].lcn = 77; pw[1].site = 9; pw[1].group = 1234; pw[1].type = 0; pw[1].freeCh = 81; pw[1].dcc = 2;
+        pw[2].lcn = 2047; pw[2].site = 9; pw[2].group = 1234; pw[2].type = 1; pw[2].freeCh = 81; pw[2].dcc = 2;
+        std::vector<uint8_t> pb;
+        for (int i = 0; i < 40; i++) pb.push_back((uint8_t)(i & 1));
+        for (int r = 0; r < 3; r++) for (const auto& w : pw) { const auto e = ltr::encodePassport(w); pb.insert(pb.end(), e.begin(), e.end()); }
+        for (int i = 0; i < 24; i++) pb.push_back((uint8_t)(i & 1));   // the transmitter keeps the data going after the last word
+        for (bool inv : {false, true}) {
+            const auto sig = ltr::modulate(pb, fs, off, 600.0, 0.5f, 1000.0, 1500.0, inv);
+            const LtrTelemetry t = run(sig, fs, off, 0);
+            int calls = 0, idles = 0, ends = 0, ltrWords = 0;
+            for (const auto& m : t.messages) {
+                if (!m.passport) { ltrWords++; continue; }
+                if (m.kind == "call" && m.lcn == 77 && m.talkgroup == "1234") calls++;
+                if (m.kind == "idle") idles++;
+                if (m.kind == "call end" && m.group == 1234) ends++;
+            }
+            CHECK(calls == 3 && idles == 3 && ends == 3 && ltrWords == 0, "Passport%s: calls %d idles %d ends %d, LTR words %d", inv ? " inverted" : "", calls, idles, ends, ltrWords);
+            CHECK(t.passport && t.passportSite == 9 && t.passportDcc == 2 && t.passportBand == 6 && t.turnOffGroup == 1234, "Passport telemetry: site %d dcc %d band %d", t.passportSite, t.passportDcc, t.passportBand);
+            std::printf("passport%s: %zu words, good %llu bad %llu\n", inv ? " inverted" : "", t.messages.size(), (unsigned long long)t.blocksOk, (unsigned long long)t.blocksBad);
+        }
     }
     std::printf("%s: %d failure(s)\n", fails ? "test_ltr_rx FAILED" : "test_ltr_rx OK", fails);
     return fails ? 1 : 0;

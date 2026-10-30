@@ -12,41 +12,37 @@ namespace {
 
 struct State {
     bool loaded = false;
-    double refLat = 39.0, refLon = -77.0;
     uint32_t sel = 0xFFFFFFFFu;
+    double pushedLat = 1e9, pushedLon = 1e9;
 };
 State S;
 
 bool live(const App& a) { return a.rx.standard == 84; }
 
-void loadState() {
+// UAT used to keep its own position (uatLat / uatLon). It is the station's now (state/station_loc.h); a position typed here by an older
+// version becomes the station's once, when there is none yet.
+void loadState(App& a) {
     if (S.loaded) return;
     S.loaded = true;
     plat::Prefs& d = plat::prefs();
-    if (d.has("uatLat")) S.refLat = d.getD("uatLat", S.refLat);
-    if (d.has("uatLon")) S.refLon = d.getD("uatLon", S.refLon);
-}
-
-void setRef(App& a, double la, double lo) {
-    S.refLat = std::max(-90.0, std::min(90.0, la));
-    S.refLon = std::max(-180.0, std::min(180.0, lo));
-    plat::prefs().setD("uatLat", S.refLat); plat::prefs().setD("uatLon", S.refLon);
-    savePrefs(a);
+    if (!receiverLocationSet() && d.has("uatLat") && d.has("uatLon")) {
+        dect2::geo::StationPos p;
+        p.lat = d.getD("uatLat", 0); p.lon = d.getD("uatLon", 0); p.source = "legacy";
+        setStationPos(a, p);   // refused (and nothing changes) when it is no position
+    }
 }
 
 void tick(App& a) {
-    loadState();
-    if (live(a)) a.engine.uat().setReference(S.refLat, S.refLon);
+    loadState(a);
+    if (!live(a)) { S.pushedLat = S.pushedLon = 1e9; return; }
+    if (!receiverLocationSet()) return;   // ranges need the station: none from a placeholder
+    double la, lo; receiverLocation(la, lo);
+    if (la != S.pushedLat || lo != S.pushedLon) { a.engine.uat().setReference(la, lo); S.pushedLat = la; S.pushedLon = lo; }
 }
 
 void tuner(App& a, bool&) {
-    double la = S.refLat, lo = S.refLon;
-    ImGui::SetNextItemWidth(110 * gUi);
-    bool ch = ImGui::InputDouble("##uatlat", &la, 0, 0, "%.4f N");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(110 * gUi);
-    ch |= ImGui::InputDouble("##uatlon", &lo, 0, 0, "%.4f E");
-    if (ch) setRef(a, la, lo);
+    ImGui::TextDisabled("Antenna position (for ranges)");
+    receiverPositionFields(a);   // the station's position, as on the ADS-B screen
 }
 
 void aircraftTable(const dect2::UatTelemetry& t) {
@@ -65,7 +61,8 @@ void aircraftTable(const dect2::UatTelemetry& t) {
             ImGui::TableNextColumn(); ImGui::Text(ac.hasAlt ? "%d" : "-", ac.altFt);
             ImGui::TableNextColumn(); ImGui::Text(ac.hasSpeed ? "%d kt" : "-", ac.speedKt);
             ImGui::TableNextColumn(); ImGui::Text(ac.hasHeading ? "%.0f" : "-", ac.headingDeg);
-            ImGui::TableNextColumn(); ImGui::Text(ac.hasRange ? "%.1f NM" : "-", ac.distNm);
+            ImGui::TableNextColumn();
+            if (ac.hasRange) ImGui::Text("%.1f NM", ac.distNm); else ImGui::TextUnformatted(ac.hasPos && !receiverLocationSet() ? kNoRange : "-");
             ImGui::TableNextColumn(); ImGui::TextUnformatted(ac.tisb ? "TIS-B" : "ADS-B");
             ImGui::TableNextColumn(); ImGui::Text("%.0f s", ac.ageSec);
         }

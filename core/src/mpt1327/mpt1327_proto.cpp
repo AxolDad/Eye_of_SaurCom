@@ -60,16 +60,77 @@ uint32_t field(uint64_t cw, int firstBit, int count) {
     return (uint32_t)((cw >> shift) & ((1ull << count) - 1));
 }
 
+Ident identType(int i) {
+    switch (i) {
+    case 0: return Ident::Dummy;
+    case 8101: return Ident::PstnGateway;
+    case 8102: return Ident::PabxGateway;
+    case 8103: return Ident::DataGateway;
+    case 8185: return Ident::Regi;
+    case 8186: return Ident::Inci;
+    case 8187: return Ident::Diverti;
+    case 8188: return Ident::Sdmi;
+    case 8189: return Ident::Ipfixi;
+    case 8190: return Ident::Tsci;
+    case 8191: return Ident::Alli;
+    default: break;
+    }
+    if (i >= 1 && i <= 8100) return Ident::User;
+    if (i >= 8121 && i <= 8135) return Ident::PstnShort;
+    if (i >= 8181 && i <= 8184) return Ident::Reserved;
+    return Ident::Spare;   // 8104 - 8120 (reserved) and 8136 - 8180 (customisation)
+}
+
+const char* identName(int i) {
+    static char buf[16];
+    switch (identType(i)) {
+    case Ident::User: return nullptr;
+    case Ident::Dummy: return "DUMMYI";
+    case Ident::PstnGateway: return "PSTNGI";
+    case Ident::PabxGateway: return "PABXI";
+    case Ident::DataGateway: return "DNI";
+    case Ident::PstnShort: snprintf(buf, sizeof buf, "PSTNSI%d", i - 8120); return buf;
+    case Ident::Regi: return "REGI";
+    case Ident::Inci: return "INCI";
+    case Ident::Diverti: return "DIVERTI";
+    case Ident::Sdmi: return "SDMI";
+    case Ident::Ipfixi: return "IPFIXI";
+    case Ident::Tsci: return "TSCI";
+    case Ident::Alli: return "ALLI";
+    case Ident::Reserved: return "reserved";
+    default: return "spare";
+    }
+}
+
+const char* operText(int oper) {
+    static const char* const t[8] = {"pressel on", "pressel off", "periodic message within an item", "disconnect: end of channel use",
+                                     "spare (customisation)", "reserved", "clear down units not in this call", "disable user transmission"};
+    return oper >= 0 && oper < 8 ? t[oper] : "";
+}
+
+CallKind gtcKind(const Message& m) {
+    const Ident a = identType(m.called.ident), b = identType(m.caller.ident);
+    auto phone = [](Ident x) { return x == Ident::PstnGateway || x == Ident::PabxGateway || x == Ident::PstnShort; };
+    if (a == Ident::Alli) return CallKind::AllCall;
+    if (phone(a)) return CallKind::ToPhone;
+    if (phone(b)) return CallKind::FromPhone;
+    if (a == Ident::Ipfixi || b == Ident::Ipfixi) return CallKind::Interprefix;
+    if (b == Ident::Inci) return CallKind::Include;
+    if (a == Ident::Dummy || a == Ident::Tsci || b == Ident::Dummy || b == Ident::Tsci) return CallKind::Intersite;
+    return CallKind::Normal;
+}
+
 std::string addressText(const Address& a) {
     char b[40];
     if (a.ident < 0) return "-";
+    if (const char* n = identName(a.ident)) return n;   // a special ident: no prefix
     if (a.pfix < 0) { snprintf(b, sizeof b, "ident %d", a.ident); return b; }
     snprintf(b, sizeof b, "%d/%d", a.pfix, a.ident);
     return b;
 }
 
 bool decodeCcsc(uint64_t cw, int& sys) {
-    if (field(cw, 1, 1) != 0 || (uint16_t)(cw & 0xFFFF) != kSync) return false;
+    if (field(cw, 1, 1) != 0 || ((uint16_t)(cw & 0xFFFF) != kSync && (uint16_t)(cw & 0xFFFF) != kSyncFrench)) return false;
     sys = (int)field(cw, 2, 15);
     return true;
 }
@@ -84,8 +145,12 @@ bool decodeAddress(uint64_t cw, Message& m) {
         m.type = "GTC";
         m.called = {pfix, ident1};
         m.channel = (int)field(cw, 24, 10);
-        m.caller = {-1, (int)field(cw, 34, 13)};
-        snprintf(b, sizeof b, "go to channel %d, %s", m.channel, field(cw, 23, 1) ? "data (audio muted)" : "speech");
+        const int ident2 = (int)field(cw, 34, 13);
+        m.caller = {userIdent(ident2) ? pfix : -1, ident2};   // a common-prefix call: the caller has the same prefix (SDRTrunk createFrom)
+        m.dataCall = field(cw, 23, 1) != 0;
+        static const char* const kind[7] = {"", ", system-wide call", ", call to a telephone", ", call from a telephone", ", interprefix call",
+                                            ", include call", ", intersite call"};
+        snprintf(b, sizeof b, "go to channel %d, %s%s", m.channel, field(cw, 23, 1) ? "data (audio muted)" : "speech", kind[(int)gtcKind(m)]);
         m.detail = b;
         return true;
     }
@@ -98,6 +163,7 @@ bool decodeAddress(uint64_t cw, Message& m) {
             if (func == 4) {   // BCAST: SYSDEF in bits 2 .. 6, SYS in bits 7 .. 21 (section 5.5.4.5)
                 const uint32_t sysdef = field(cw, 2, 5);
                 m.sys = (int)field(cw, 7, 15);
+                m.sysdef = (int)sysdef;
                 if (sysdef == 0 || sysdef == 1 || sysdef == 4) {
                     m.channel = (int)field(cw, 31, 10);
                     snprintf(b, sizeof b, "%s, system %d, control channel %d", sysdef == 0 ? "control channel announced" : sysdef == 1 ? "control channel withdrawn" : "adjacent site control channel", m.sys, m.channel);
@@ -106,14 +172,26 @@ bool decodeAddress(uint64_t cw, Message& m) {
                 } else if (sysdef == 2) m.detail = "call maintenance parameters";
                 else if (sysdef == 3) m.detail = "registration parameters";
                 else if (sysdef == 5) m.detail = "vote now advice";
+            } else if (func == 1) {   // MAINT (5.5.4.2): PFIX/IDENT1, CHAN in bits 31 .. 40, OPER in bits 41 .. 43
+                m.called = {pfix, ident1};
+                m.channel = (int)field(cw, 31, 10);
+                m.oper = (int)field(cw, 41, 3);
+                snprintf(b, sizeof b, "call maintenance on channel %d: %s", m.channel, operText(m.oper));
+                m.detail = b;
+            } else if (func == 2) {   // CLEAR (5.5.4.3): no address; CHAN in bits 2 .. 11, CONT in bits 12 .. 21
+                m.channel = (int)field(cw, 2, 10);
+                m.cont = (int)field(cw, 12, 10);
+                snprintf(b, sizeof b, "clear down from channel %d, back to control channel %d", m.channel, m.cont);
+                m.detail = b;
             } else if (func != 0) {
-                m.called = {pfix, ident1};   // where the standard gives an address here it is PFIX/IDENT1; shown as sent
+                m.called = {pfix, ident1};   // MOVE: PFIX/IDENT1
             }
             return true;
         }
         m.called = {pfix, ident1};
         if (type == 0) {
             m.type = kAloha[func];
+            m.chan4 = (int)field(cw, 31, 4);
             snprintf(b, sizeof b, "%s, control channel (low 4 bits) %u", kAlohaText[func], (unsigned)field(cw, 31, 4));
             m.detail = b;
         } else if (type == 1) {

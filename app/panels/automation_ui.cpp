@@ -1,6 +1,7 @@
 // View > Automations: rules ("when this happens, do that") and Lua scripts that act on what the receivers decode. The rules are built from
 // drop-down lists; an expression and a script editor are there for the rest. Recipes are single JSON files in <data folder>/automations.
 // The engine itself (events, rules, limits, the sandbox) is in core/src/automation; the actions are in automation_sink.cpp.
+#include "../ui/station_ui.h"
 #include "../app.h"
 #include "automation_internal.h"
 #include "dect2/automation/catalog.h"
@@ -379,7 +380,7 @@ void ruleEditor(Item& it, App& root) {
             if (!r.geoHome) {
                 ImGui::SetNextItemWidth(120 * gUi); if (ImGui::InputDouble(tr("Latitude"), &r.geoLat, 0, 0, "%.4f")) e.ch = true;
                 ImGui::SameLine(); ImGui::SetNextItemWidth(120 * gUi); if (ImGui::InputDouble(tr("Longitude"), &r.geoLon, 0, 0, "%.4f")) e.ch = true;
-            } else if (!receiverLocationSet()) ImGui::TextColored(pal::warnAmber(), "%s", tr("The receiver position is not set (ADS-B window)."));
+            } else stationHint(root, tr("Your location is not set."));
         } else if (r.geo == Rule::GeoPolygon) {
             ImGui::TextDisabled("%s", tr("Points as lat,lon; lat,lon; ..."));
             if (txt("##poly", r.geoPolygon, -1)) e.ch = true;

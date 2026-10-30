@@ -2,7 +2,8 @@
 // (GET /api/v1/ws, {"events":true[,"since":N]}), tags every received event with f["site"] = the site's name and submits it to the local automation
 // bus (automation::emit), from where the Eye, the message database and the watchlists pick it up. One thread per site; a lost connection is retried
 // after 2, 4, 8 ... 60 s (back to 2 s once a connection has lived 30 s). A reconnect sends since = the last seq seen, so nothing is read twice.
-// The remote station's position is read from GET /api/v1/status ("lat" / "lon", NaN when it does not send them) once per connect.
+// The remote station's position is read from GET /api/v1/status ("lat" / "lon" / "alt", NaN when it does not send them) once per connect. It comes
+// from another computer, so it is range-checked (positionFromStatus) before the Stations window or the cross-site fixes use it.
 // Keepalive: the link sends a WebSocket ping every LinkTiming::pingMs (15 s) and drops the connection (then retries as above) when nothing at all,
 // not even a pong, has come for LinkTiming::idleMs (45 s): a station that lost power or its network is noticed instead of staying "live".
 #pragma once
@@ -29,8 +30,13 @@ struct SiteStatus {
     double lastEventAt = 0;       // Unix seconds (local clock) when the last event came
     double clockSkewSec = 0;      // smoothed (receive time - event time): the remote clock's lag, EWMA 0.1; events with time 0 are ignored, and so is
                                   // the catch-up after a (re)subscription: in its first 10 s, events more than 10 s older than the current estimate
-    double lat = NAN, lon = NAN;
+    double lat = NAN, lon = NAN;  // the site's position: both NaN unless it sent a valid one (-90..90, -180..180, finite, not 0,0)
+    double altM = NAN;            // its height above sea level (-500..9000 m), NaN when not sent or out of range
 };
+
+// The position in a station's status JSON ({"lat":..,"lon":..,"alt":..}): lat / lon only as a valid pair (else both NaN), alt only within
+// -500..9000 m. False when the text is not JSON.
+bool positionFromStatus(const std::string& json, double& lat, double& lon, double& altM);
 
 // The keepalive of every link (the defaults are the real ones; tests use short ones)
 struct LinkTiming {

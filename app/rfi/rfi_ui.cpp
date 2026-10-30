@@ -109,7 +109,7 @@ void startGps() {
 bool position(double& lat, double& lon) {
     if (S.gpsMode == GpsReceiver) {
         if (!receiverLocationSet()) return false;
-        lat = plat::prefs().getD("adsbLat", 0); lon = plat::prefs().getD("adsbLon", 0); return true;
+        receiverLocation(lat, lon); return true;
     }
     if (S.gpsMode == GpsManual) { lat = S.manLat; lon = S.manLon; return S.manLat != 0 || S.manLon != 0; }
     if (S.gpsMode == GpsNmea) {

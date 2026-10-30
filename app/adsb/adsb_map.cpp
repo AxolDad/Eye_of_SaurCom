@@ -5,6 +5,8 @@
 #include "dect2/geo/tilecache.h"
 #include "dect2/geo/worldlow.h"
 #include "map/map_colours.h"
+#include "dect2/geo/maidenhead.h"
+#include "ui/station_ui.h"
 #include <algorithm>
 #include <atomic>
 #include <cmath>
@@ -275,6 +277,7 @@ ImTextureID shownTexture(int z, int x, int y) {
 
 // the transform of the map as last drawn
 ImVec2 gOrigin, gSize;
+ImVec2 gTop, gTopSize;   // the whole rectangle the screen gave draw() (the controls' band and the map)
 double gCx = 0, gCy = 0;   // the centre in world pixels
 int gZoom = 7;
 bool gClicked = false, gAny = false;
@@ -374,13 +377,151 @@ unsigned overlayText() { return mapcol::textOn(scheme().sea); }
 unsigned panelColour() { return mapcol::panelOn(scheme().sea); }
 unsigned legible(unsigned c) { return mapcol::legibleOn(c, scheme().sea); }
 
+// ---------------------------------------------------------------- My station on every map
+
+namespace {
+View* gView = nullptr;                 // the map drawn last (tileControls / fullCorner act on it)
+View* gCtxView = nullptr;              // the map the right-click menu was opened on
+double gCtxLat = 0, gCtxLon = 0;       // where it was opened
+std::string gHereErr;                  // why "I'm here" was refused (shown in the confirmation)
+
+void centreOnStation(View& v) {
+    const dect2::geo::StationPos p = stationPos();
+    if (!p.valid()) return;
+    v.lat = p.lat; v.lon = p.lon;
+    v.stationGen = stationGeneration();
+    v.followStation = true;
+}
+
+// the right-click menu and the "I'm here" confirmation (inside draw(), so in the map's own ID stack)
+void stationPopups(View& v) {
+    bool ask = false;
+    if (ImGui::BeginPopup("##mapstationctx")) {
+        ImGui::TextDisabled("%.5f, %.5f  %s", gCtxLat, gCtxLon, dect2::toMaidenhead(gCtxLat, gCtxLon, 6).c_str());
+        if (ImGui::MenuItem(tr("I'm here..."))) ask = true;
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Set my station (every map and range) to this point"));
+        if (ImGui::MenuItem(tr("Centre the map here"))) { v.lat = gCtxLat; v.lon = gCtxLon; v.followStation = false; }
+        if (receiverLocationSet() && ImGui::MenuItem(tr("Centre on me"))) v.centreReq = true;
+        ImGui::EndPopup();
+    }
+    if (ask) { gHereErr.clear(); ImGui::OpenPopup("##mapimhere"); }
+    const ImGuiViewport* vp = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(ImVec2(vp->WorkPos.x + vp->WorkSize.x * 0.5f, vp->WorkPos.y + vp->WorkSize.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    if (ImGui::BeginPopupModal("##mapimhere", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings)) {
+        ImGui::TextUnformatted(tr("Set my station here?"));
+        ImGui::Spacing();
+        ImGui::Text("%.5f, %.5f", gCtxLat, gCtxLon);
+        ImGui::TextDisabled(tr("Locator %s"), dect2::toMaidenhead(gCtxLat, gCtxLon, 6).c_str());
+        if (receiverLocationSet()) {
+            const dect2::geo::StationPos p = stationPos();
+            ImGui::TextDisabled(tr("Now %.5f, %.5f (%.1f km from here)"), p.lat, p.lon, dect2::geo::distanceM(p.lat, p.lon, gCtxLat, gCtxLon) / 1000.0);
+        }
+        ImGui::Spacing();
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 26);
+        ImGui::TextDisabled("%s", tr("Every map and range uses it. Change it any time in My station (the location pin in the toolbar)."));
+        ImGui::PopTextWrapPos();
+        if (!gHereErr.empty()) ImGui::TextColored(pal::badRed(), "%s", gHereErr.c_str());
+        ImGui::Spacing();
+        if (ImGui::Button(tr("Yes, I'm here"))) {
+            dect2::geo::StationPos p;
+            p.lat = gCtxLat; p.lon = gCtxLon; p.source = "map";
+            std::string err;
+            App* a = stationApp();
+            if (a && setStationPos(*a, p, &err)) {
+                v.stationGen = stationGeneration();   // this map stays where it is: the point is under the pointer already
+                v.followStation = true;
+                ImGui::CloseCurrentPopup();
+            } else gHereErr = a ? err : std::string("no window to save from");
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(tr("Cancel")) || ImGui::IsKeyPressed(ImGuiKey_Escape, false)) ImGui::CloseCurrentPopup();
+        ImGui::EndPopup();
+    }
+}
+} // namespace
+
+void locationButton(ImVec2 p0, ImVec2 size, bool imHere) {
+    if (receiverLocationSet() || size.x < 120 * gUi || size.y < 90 * gUi) return;
+    const ImVec2 keep = ImGui::GetCursorScreenPos();
+    {
+        const char* label = tr("Set your location");
+        const ImVec2 ts = ImGui::CalcTextSize(label);
+        const ImVec2 pad(14 * gUi, 8 * gUi);
+        const ImVec2 bs(ts.x + 2 * pad.x, ts.y + 2 * pad.y);
+        ImGui::SetCursorScreenPos(ImVec2(p0.x + (size.x - bs.x) * 0.5f, p0.y + size.y * 0.38f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, pad);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6 * gUi);
+        ImGui::PushStyleColor(ImGuiCol_Button, pal::accent(0.92f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, pal::accent(1.f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.04f, 0.05f, 0.06f, 1));
+        if (ImGui::Button(label) && stationApp()) stationOpenPage(*stationApp());
+        ImGui::PopStyleColor(3);
+        ImGui::PopStyleVar(2);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The map opens at your station and ranges are measured from it. Paste coordinates, a locator or a map link, use a GPS, or right-click the map and choose I'm here."));
+        if (!imHere) { ImGui::SetCursorScreenPos(keep); return; }
+        const char* sub = tr("or right-click the map: I'm here");
+        const ImVec2 ss = ImGui::CalcTextSize(sub);
+        const ImVec2 sp(p0.x + (size.x - ss.x) * 0.5f, ImGui::GetItemRectMax().y + 4 * gUi);
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        dl->AddRectFilled(ImVec2(sp.x - 6 * gUi, sp.y - 2 * gUi), ImVec2(sp.x + ss.x + 6 * gUi, sp.y + ss.y + 2 * gUi), u32(panelColour(), 200), 3 * gUi);
+        dl->AddText(sp, u32(overlayText()), sub);
+    }
+    ImGui::SetCursorScreenPos(keep);
+}
+
+int zoomForKm(double lat, float sidePx, double km) {
+    if (!(sidePx > 1) || !(km > 0)) return 7;
+    const double mPerPxZ0 = 156543.034 * std::max(0.05, std::cos(lat * M_PI / 180.0));   // web mercator, zoom 0
+    const int z = (int)std::lround(std::log2(sidePx * mPerPxZ0 / (km * 1000.0)));
+    return std::max(kMinZoom, std::min(kMaxZoom, z));
+}
+
+void stationControls() {
+    if (!gView) return;
+    View& v = *gView;
+    const unsigned gen = stationGeneration();
+    // open at the station, and move with it, until the user drags the map. After the screen's own "did the user move the map" check (it
+    // runs right after draw()), so a screen that fits its contacts keeps doing that
+    if (receiverLocationSet() && v.stationGen != gen && (v.followStation || v.stationGen == 0)) {
+        const bool first = v.stationGen == 0;
+        centreOnStation(v);
+        if (first && v.homeKm > 0) v.zoom = zoomForKm(v.lat, std::min(gSize.x, gSize.y), v.homeKm);
+    }
+    locationButton(gOrigin, gSize);
+}
+
+// "Centre on me" on the map's control line (SameLine() before it); while no position is set it opens My station
+static void centreOnMeButton() {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.06f, 0.07f, 0.08f, 0.85f));
+    if (ImGui::Button(tr("Centre on me"))) {
+        if (receiverLocationSet()) { if (gView) gView->centreReq = true; }
+        else if (stationApp()) stationOpenPage(*stationApp());
+    }
+    ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered()) {
+        if (receiverLocationSet()) { const dect2::geo::StationPos p = stationPos(); ImGui::SetTooltip(tr("Centre the map on my station (%.4f, %.4f)"), p.lat, p.lon); }
+        else ImGui::SetTooltip("%s", tr("Your location is not set: opens My station"));
+    }
+}
+
 bool draw(View& v, ImVec2 size) {
     init();
     if (onlineMap) start();
     decodedThisFrame = 0;
+    gView = &v;
+    if (v.centreReq) { v.centreReq = false; centreOnStation(v); }   // "Centre on me": a move by the user (screens stop fitting their contacts)
     v.zoom = std::max(kMinZoom, std::min(kMaxZoom, v.zoom));
     v.lat = std::max(-84.0, std::min(84.0, v.lat));
     ImDrawList* dl = ImGui::GetWindowDrawList();
+    // the controls' band at the top: an opaque strip, the map under it
+    gTop = ImGui::GetCursorScreenPos(); gTopSize = size;
+    const float bh = std::max(0.f, std::min(v.bandH, size.y * 0.5f));
+    if (bh > 0) {
+        dl->AddRectFilled(gTop, ImVec2(gTop.x + size.x, gTop.y + bh), u32(panelColour(), 245));
+        dl->AddLine(ImVec2(gTop.x, gTop.y + bh - 1), ImVec2(gTop.x + size.x, gTop.y + bh - 1), u32(scheme().grid));
+        ImGui::SetCursorScreenPos(ImVec2(gTop.x, gTop.y + bh));
+        size.y -= bh;
+    }
     const ImVec2 p0 = ImGui::GetCursorScreenPos();
     ImGui::SetNextItemAllowOverlap();   // the screens put buttons on the map afterwards: they must get the clicks, not the map under them
     ImGui::InvisibleButton("##map", size, ImGuiButtonFlags_MouseButtonLeft);
@@ -390,6 +531,7 @@ bool draw(View& v, ImVec2 size) {
         const ImVec2 d = ImGui::GetIO().MouseDelta;
         v.lon = lonOf(mercX(v.lon, v.zoom) - d.x, v.zoom);
         v.lat = latOf(mercY(v.lat, v.zoom) - d.y, v.zoom);
+        if (d.x != 0 || d.y != 0) v.followStation = false;   // the user put the map somewhere: it no longer moves with the station
     } else if (ImGui::IsItemDeactivated() && !ImGui::IsMouseDragging(0, 3.f) && hov) { gClicked = true; gClickPos = ImGui::GetIO().MousePos; }
     if (hov && ImGui::GetIO().MouseWheel != 0) {   // zoom around the pointer
         const ImVec2 m = ImGui::GetIO().MousePos;
@@ -403,6 +545,21 @@ bool draw(View& v, ImVec2 size) {
     }
     gOrigin = p0; gSize = size; gZoom = v.zoom;
     gCx = mercX(v.lon, v.zoom); gCy = mercY(v.lat, v.zoom);
+    if (hov && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {   // "I'm here" / "Centre the map here", on every map
+        unproject(ImGui::GetIO().MousePos, gCtxLat, gCtxLon);
+        gCtxView = &v;
+        ImGui::OpenPopup("##mapstationctx");
+    }
+    {   // dev (screenshots, --shot): SAURCOM_DEV_IMHERE opens the "I'm here" confirmation for the middle of the first map, after a few seconds
+        static int dev = std::getenv("SAURCOM_DEV_IMHERE") ? 1 : 0;
+        if (dev == 1 && ImGui::GetFrameCount() > 200) {
+            dev = 2;
+            unproject(ImVec2(p0.x + size.x * 0.5f, p0.y + size.y * 0.5f), gCtxLat, gCtxLon);
+            gCtxView = &v; gHereErr.clear();
+            ImGui::OpenPopup("##mapimhere");
+        }
+    }
+    if (gCtxView == &v) stationPopups(v);
     dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
     dl->AddRectFilled(p0, ImVec2(p0.x + size.x, p0.y + size.y), u32(scheme().sea));
     // graticule every 10 degrees (what remains when there are no tiles)
@@ -461,6 +618,16 @@ bool draw(View& v, ImVec2 size) {
         dl->AddText(ImVec2(p0.x + 8, p0.y + size.y - 2 * ImGui::GetTextLineHeightWithSpacing() - 6), u32(gScheme.label), ellipsize(m, size.x - 16).c_str());
     }
     return hov;
+}
+
+void pushMapClip(ImDrawList* dl) { dl->PushClipRect(gOrigin, ImVec2(gOrigin.x + gSize.x, gOrigin.y + gSize.y), true); }
+
+// the controls just drawn (the last item is on their bottom line) set the band for the next frame; controls drawn above the map (a header
+// line) need none
+static void measureBand() {
+    if (!gView) return;
+    const float b = ImGui::GetItemRectMax().y - gTop.y;
+    gView->bandH = b > 0 && b < gTopSize.y * 0.5f ? b + 6 * gUi : 0.f;
 }
 
 void legend(float mapWidth, const char* fmt, ...) {
@@ -732,9 +899,17 @@ void fullToggle() {
 bool fullActive() { return gFullOn; }
 
 void fullCorner(ImVec2 p0, ImVec2 size) {
-    if (!gFullCtx.body && !gFullOn) return;
+    stationControls();
     const ImVec2 keep = ImGui::GetCursorScreenPos();
-    const float w = ImGui::CalcTextSize(gFullOn ? tr("Exit full screen") : tr("Full screen")).x + 2 * ImGui::GetStyle().FramePadding.x;
+    const bool full = gFullCtx.body || gFullOn;
+    const float w = full ? ImGui::CalcTextSize(gFullOn ? tr("Exit full screen") : tr("Full screen")).x + 2 * ImGui::GetStyle().FramePadding.x : 0.f;
+    if (!gView || !gView->tileLine) {   // "Centre on me" left of it, for the maps without the tile controls' line
+        const float wc = ImGui::CalcTextSize(tr("Centre on me")).x + 2 * ImGui::GetStyle().FramePadding.x;
+        ImGui::SetCursorScreenPos(ImVec2(p0.x + size.x - w - (full ? 6 * gUi : 0.f) - wc - 8 * gUi, p0.y + 8 * gUi));
+        centreOnMeButton();
+        measureBand();
+    }
+    if (!full) { ImGui::SetCursorScreenPos(keep); return; }
     ImGui::SetCursorScreenPos(ImVec2(p0.x + size.x - w - 8 * gUi, p0.y + 8 * gUi));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.06f, 0.07f, 0.08f, 0.85f));
     static bool autoFull = std::getenv("SAURCOM_MAP_FULL") != nullptr;   // dev: see tileControls()
@@ -746,12 +921,20 @@ void fullCorner(ImVec2 p0, ImVec2 size) {
 
 void tileControls(const char* privacy, bool fullBtn) {
     init();
+    if (gView) gView->tileLine = true;
+    const float lineBottom = ImGui::GetItemRectMax().y;   // the screen's last button (before the station controls add items of their own)
+    stationControls();
     // a line of their own under the screen's buttons when they would run past the map's right edge (a narrow map, a large display scale)
     const ImGuiStyle& st = ImGui::GetStyle();
     const bool canFull = fullBtn && (gFullCtx.body || gFullOn);
-    const float need = ImGui::CalcTextSize("tiles").x + 2 * st.FramePadding.x + 10 * gUi + ImGui::GetFrameHeight() + st.ItemInnerSpacing.x + ImGui::CalcTextSize("online map").x
+    const float need = ImGui::CalcTextSize(tr("Centre on me")).x + 2 * st.FramePadding.x + 6 * gUi
+                       + ImGui::CalcTextSize("tiles").x + 2 * st.FramePadding.x + 10 * gUi + ImGui::GetFrameHeight() + st.ItemInnerSpacing.x + ImGui::CalcTextSize("online map").x
                        + (canFull ? ImGui::CalcTextSize(tr("Exit full screen")).x + 2 * st.FramePadding.x + 6 * gUi : 0.f);
-    if (ImGui::GetCursorScreenPos().x + need > gOrigin.x + gSize.x - 8 * gUi) ImGui::SetCursorScreenPos(ImVec2(gOrigin.x + 8 * gUi, ImGui::GetItemRectMax().y + 4 * gUi));
+    if (ImGui::GetCursorScreenPos().x + need > gOrigin.x + gSize.x - 8 * gUi) ImGui::SetCursorScreenPos(ImVec2(gOrigin.x + 8 * gUi, lineBottom + 4 * gUi));
+    const float y0 = ImGui::GetCursorScreenPos().y;
+    centreOnMeButton();
+    // (placed, not SameLine(): after a wrap ImGui would still put the next item on the screen's line, the one before the cursor was moved)
+    ImGui::SetCursorScreenPos(ImVec2(ImGui::GetItemRectMax().x + 6 * gUi, y0));
     const ImVec2 at = ImGui::GetCursorScreenPos();   // where "tiles" goes: the checkbox is placed from this, not from the last item
     tilesMenu(ImVec4(0.06f, 0.07f, 0.08f, 0.85f));   // the colour of the buttons on the maps
     ImGui::SetCursorScreenPos(ImVec2(at.x + ImGui::CalcTextSize("tiles").x + 2 * st.FramePadding.x + 10 * gUi, at.y));
@@ -773,6 +956,7 @@ void tileControls(const char* privacy, bool fullBtn) {
         }
         ImGui::PopStyleColor();
     }
+    measureBand();
 }
 
 bool fullButton(bool on, const char* what) {

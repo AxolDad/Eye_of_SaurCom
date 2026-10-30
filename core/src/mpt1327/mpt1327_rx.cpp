@@ -36,6 +36,9 @@ struct Decoder::Impl {
     // collection of the codeword after a sync
     bool collecting = false;
     bool inverted = false;
+    bool traffic = false;          // the codeword being collected followed a SYNT
+    bool frenchSync = false;       // the sync before it was the French variant's
+    bool bare = false;             // the sequence had no control channel system codeword in front of it
     int bitsLeft = 0;
     uint64_t nextBit = 0;
     uint64_t cwAcc = 0;
@@ -71,15 +74,21 @@ struct Decoder::Impl {
 
     void finishCodeword() {
         collecting = false;
-        const uint64_t cw = inverted ? ~cwAcc : cwAcc;
+        uint64_t cw = inverted ? ~cwAcc : cwAcc;
+        traffic = false;
+        // SYNT is the complement of SYNC (and the complement of a codeword is a codeword too): after a sequence with no system codeword in
+        // front, the codeword is an address codeword (bit 1 set) on both kinds of channel, which settles which sequence it was
+        if (bare && !(cw >> 63 & 1)) { cw = ~cw; traffic = true; st.synt++; }
         const double t = (double)sample / kFs;
         if (valid(cw)) {
             st.good++;
+            if (frenchSync) st.french = true;
             lastGoodT = t;
             Message m;
             if (decodeAddress(cw, m)) {
                 st.messages++;
-                events.push_back({t, m});
+                if (traffic) st.trafficMessages++;
+                events.push_back({t, m, traffic});
             }
         } else {
             st.bad++;
@@ -101,8 +110,12 @@ struct Decoder::Impl {
         }
         const uint64_t h = hist[ph];
         const uint16_t lo = (uint16_t)(h & 0xFFFF);
-        const bool inv = lo == (uint16_t)~kSync;
-        if (lo != kSync && !inv) return;
+        // the French variant's SYNC (0xB433, SYNT its complement, SDRTrunk SyncPattern) is taken the same way
+        const bool inv = lo == (uint16_t)~kSync || lo == (uint16_t)~kSyncFrench;
+        if (lo != kSync && lo != kSyncFrench && !inv) return;
+        frenchSync = lo == kSyncFrench || lo == (uint16_t)~kSyncFrench;   // counted once the codeword after it checks
+        // SYNT is the complement of SYNC: a traffic channel's SYNT looks like an inverted SYNC. Which one it was is settled by the codeword
+        // that follows (finishCodeword).
         const uint64_t cwPrev = inv ? ~h : h;   // the last 64 bits: a control channel system codeword when this is a real sync
         int sys = 0;
         const bool real = valid(cwPrev) && decodeCcsc(cwPrev, sys);
@@ -110,8 +123,8 @@ struct Decoder::Impl {
         if (!real && now - lastGoodT >= kLockHold) {
             // a bare sync pattern (the start-up sequence has no system codeword before its first address codeword) is taken once the 16 bits
             // before it are the preamble of bit reversals (at most two bits wrong), or once the channel is locked
-            const unsigned pre = (unsigned)(((inv ? ~h : h) >> 16) & 0xFFFF) ^ 0xAAAAu;
-            if (__builtin_popcount(pre) > 2) return;
+            const unsigned pre = (unsigned)((h >> 16) & 0xFFFF);
+            if (__builtin_popcount(pre ^ 0xAAAAu) > 2 && __builtin_popcount(pre ^ 0x5555u) > 2) return;   // the bit reversals, in either polarity
         }
         if (real) {
             st.ccsc++;
@@ -126,6 +139,7 @@ struct Decoder::Impl {
         if (d > kSpb / 2) d -= kSpb;
         if (d <= -kSpb / 2) d += kSpb;
         inverted = inv;
+        bare = !real;
         collecting = true;
         bitsLeft = 64;
         cwAcc = 0;

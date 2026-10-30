@@ -10,8 +10,13 @@ static int fails = 0;
 int main() {
     for (int i = 1; i < typo::kSizeCount; i++) CHECK(typo::kSizes[i] > typo::kSizes[i - 1]);
     CHECK(typo::kSizes[typo::Body] == 13 && typo::kSizes[typo::Hero] == 32);
+    // never chosen: Clean (proportional, 14 px); a saved choice is kept, Classic included
+    CHECK(typo::kDefaultLook == typo::Clean);
+    CHECK(typo::variantFromPref(typo::kDefaultLook) == typo::Clean);
+    CHECK(typo::variantFromPref(0) == typo::Classic && typo::variantFromPref(1) == typo::Clean && typo::variantFromPref(2) == typo::Compact);
+    CHECK(typo::variantFromPref(7) == typo::Clean);
     typo::setVariant(typo::Clean);
-    CHECK(typo::variant() == typo::Clean && typo::baseSize() == 14.f);
+    CHECK(typo::variant() == typo::Clean && typo::baseSize() >= 14.f);   // body text of 14 px or more: readable in a browser stream
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     CHECK(typo::loadFonts(io, nullptr));

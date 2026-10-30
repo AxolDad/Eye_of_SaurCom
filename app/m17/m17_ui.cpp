@@ -192,7 +192,7 @@ void mapView(App& a) {
     adsbmap::draw(S.map, size);
     if (S.map.lat != lat0 || S.map.lon != lon0) S.mapFollow = false;
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     if (on) {
         std::vector<std::string> drawn;   // the newest position of each station is labelled, older ones are dots (its track)
         for (const auto& v : pos) {

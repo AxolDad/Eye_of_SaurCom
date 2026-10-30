@@ -768,7 +768,6 @@ No Hermes Lite 2 answered on this computer's networks: type its address.	Kein He
 No radio found	Kein Radio gefunden
 No sound output	Kein Audioausgang
 North America	Nordamerika
-Not a locator or coordinates	Kein Locator und keine Koordinaten
 On Windows a HackRF needs its WinUSB driver once: install it with Zadig (zadig.akeo.ie).	Unter Windows braucht ein HackRF einmalig seinen WinUSB-Treiber: Installiere ihn mit Zadig (zadig.akeo.ie).
 Eye of SaurCom %s	Eye of SaurCom %s
 Eye of SaurCom cannot see a HackRF on the USB ports.	Eye of SaurCom findet keinen HackRF an den USB-Anschlüssen.
@@ -787,7 +786,6 @@ Open driver page	Treiberseite öffnen
 Open firmware page	Firmware-Seite öffnen
 Open the SDRplay API page	SDRplay-API-Seite öffnen
 Open the device list	Geräteliste öffnen
-Optional: your position, as a Maidenhead locator (KO24pq) or coordinates (54.68, 25.28). It is kept on this computer and used for maps and satellite passes.	Optional: deine Position als Maidenhead-Locator (KO24pq) oder Koordinaten (54.68, 25.28). Sie bleibt auf diesem Computer und wird für Karten und Satellitenüberflüge verwendet.
 Or choose another radio from the list.	Oder wähle ein anderes Radio aus der Liste.
 Or install Eye of SaurCom's blacklist file (the .deb package does it).	Oder installiere die Blacklist-Datei von Eye of SaurCom (das .deb-Paket macht das).
 Or set the UHD_IMAGES_DIR variable to the folder with the images.	Oder setze die Variable UHD_IMAGES_DIR auf den Ordner mit den Images.
@@ -1372,7 +1370,6 @@ The computer clock when each time packet began, minus the stamp in the packet an
 nothing to compare (a recording)	nichts zu vergleichen (eine Aufnahme)
 once the time is decoded	sobald die Zeit dekodiert ist
 path	Strecke
-; set your position in ADS-B (Receiver position) for the right delay	; set your position in ADS-B (Receiver position) for the right delay
 clock offset	Uhrenabweichung
 level	Pegel
 start the receiver to see the signal	Empfänger starten, um das Signal zu sehen
@@ -1950,7 +1947,6 @@ Sound alert	Tonsignal
 Test (dry run)	Test (Probelauf)
 Test with a sample event	Mit Beispielereignis testen
 Text can use:	Der Text kann verwenden:
-The receiver position is not set (ADS-B window).	Die Empfängerposition ist nicht gesetzt (ADS-B-Fenster).
 The recipe file	Die Rezeptdatei
 The script ran and did nothing for this event.	Das Skript lief und tat für dieses Ereignis nichts.
 Then do	Dann tue
@@ -2232,7 +2228,6 @@ Save CSV	CSV speichern
 Save FITS	FITS speichern
 Save SigMF text	SigMF-Text speichern
 Save session	Sitzung speichern
-Site is the receiver location (Tools > Map). Time is the computer clock, UTC.	Standort ist der Empfängerstandort (Ansicht > Karte). Zeit ist die Computeruhr, UTC.
 Sun	Sonne
 The rotation curve needs spectra at several longitudes between 0 and 90 (or 270 and 360).	Die Rotationskurve braucht Spektren bei mehreren Längen zwischen 0 und 90 (oder 270 und 360).
 Towards the target: Earth rotation %+.2f, orbit %+.2f, Sun %+.2f; total %+.2f km/s (add to the topocentric velocity)	Zum Ziel hin: Erdrotation %+.2f, Bahn %+.2f, Sonne %+.2f; gesamt %+.2f km/s (zur topozentrischen Geschwindigkeit addieren)
@@ -2461,7 +2456,6 @@ Saved illuminators	Gespeicherte Beleuchtungssender
 Second target	Zweites Ziel
 Target range (km)	Zielentfernung (km)
 Targets closer than the tap count in range samples are hidden by the cancellation.	Ziele, die näher sind als die Tap-Zahl in Entfernungsschritten, werden von der Auslöschung verdeckt.
-The receiver position is the one set for ADS-B.	Als Empfängerposition dient die für ADS-B eingestellte.
 Tracks	Spuren
 Two recordings (reference, surveillance)	Zwei Aufnahmen (Referenz, Überwachung)
 Two-channel recording (cf32)	Zweikanal-Aufnahme (cf32)
@@ -3444,3 +3438,87 @@ deselect	abwählen
 click a station on the map to select it	Station auf der Karte anklicken, um sie zu wählen
 %zu stations by their locators, %zu contact lines	%zu Stationen nach ihren Lokatoren, %zu Kontaktlinien
 %d stations at the centre of their grid squares, %zu contact lines	%d Stationen in der Mitte ihrer Gitterfelder, %zu Kontaktlinien
+# trunking: voice radios (the follower's second radio)
+Voice	Sprache
+Unlink	Trennen
+RX %d is on the control channel and follows the calls with its voice radios.	RX %d bleibt auf dem Steuerkanal und verfolgt die Gespräche mit seinen Sprachfunkgeräten.
+Voice: RX %d · %s	Sprache: RX %d · %s
+RX %d is no longer a voice radio: its tab is closed.	RX %d ist kein Sprachfunkgerät mehr: sein Tab ist geschlossen.
+Use a second radio for voice	Zweites Funkgerät für Sprache verwenden
+Use another radio for voice	Weiteres Funkgerät für Sprache verwenden
+RX %d follows the calls as a voice radio; RX %d stays on the control channel.	RX %d verfolgt die Gespräche als Sprachfunkgerät; RX %d bleibt auf dem Steuerkanal.
+Opens a receiver tab on the first free radio, in this mode, and links it: this radio stays on the control channel and every call is heard on the other one. Press again to add one more.	Öffnet einen Empfänger-Tab auf dem ersten freien Funkgerät, in dieser Betriebsart, und verbindet ihn: dieses Funkgerät bleibt auf dem Steuerkanal, und jedes Gespräch ist auf dem anderen zu hören. Erneut drücken, um ein weiteres hinzuzufügen.
+Start this receiver on the control channel first.	Starten Sie diesen Empfänger zuerst auf dem Steuerkanal.
+With one radio this receiver leaves the control channel for each call and misses the calls granted meanwhile. A second radio for voice avoids that; so does a wide-band radio (HackRF) with whole-span decoding.	Mit einem Funkgerät verlässt dieser Empfänger für jedes Gespräch den Steuerkanal und verpasst die Gespräche, die währenddessen vergeben werden. Ein zweites Funkgerät für Sprache vermeidet das, ebenso ein Breitband-Funkgerät (HackRF) mit Dekodierung der ganzen Spanne.
+This radio stays on the control channel. When every voice radio is busy, a higher priority call takes the one with the lowest priority call; the others are logged as missed.	Dieses Funkgerät bleibt auf dem Steuerkanal. Sind alle Sprachfunkgeräte belegt, übernimmt ein Gespräch höherer Priorität das mit dem Gespräch niedrigster Priorität; die übrigen werden als verpasst protokolliert.
+Voice for RX %d · TG %d · %.4f MHz	Sprache für RX %d · TG %d · %.4f MHz
+Voice for RX %d · waiting for a call	Sprache für RX %d · wartet auf ein Gespräch
+This receiver only follows calls for RX %d. The talkgroups, the call log and the settings are on the Follow tab of RX %d.	Dieser Empfänger verfolgt nur Gespräche für RX %d. Die Sprechgruppen, das Gesprächsprotokoll und die Einstellungen sind im Tab Folgen von RX %d.
+The receiver on the control channel was closed: its voice radios are closed too.	Der Empfänger auf dem Steuerkanal wurde geschlossen: seine Sprachfunkgeräte werden ebenfalls geschlossen.
+The voice tab RX %d was closed: RX %d follows calls with its own radio again.	Der Sprach-Tab RX %d wurde geschlossen: RX %d verfolgt Gespräche wieder mit dem eigenen Funkgerät.
+RX %d was switched to another mode: it is no longer a voice radio.	RX %d wurde auf eine andere Betriebsart umgestellt: es ist kein Sprachfunkgerät mehr.
+RX %d switched to another mode: its voice radios are unlinked and closed.	RX %d wurde auf eine andere Betriebsart umgestellt: seine Sprachfunkgeräte werden getrennt und geschlossen.
+RX %d lost its radio (%s): the call on it ended, it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d hat sein Funkgerät verloren (%s): das Gespräch darauf ist beendet, es ist kein Sprachfunkgerät mehr und sein Tab wird geschlossen. RX %d bleibt auf dem Steuerkanal.
+RX %d was stopped: it is no longer a voice radio and its tab closes. RX %d stays on the control channel.	RX %d wurde gestoppt: es ist kein Sprachfunkgerät mehr und sein Tab wird geschlossen. RX %d bleibt auf dem Steuerkanal.
+RX %d no longer follows the system: its voice radios are unlinked and closed.	RX %d verfolgt das System nicht mehr: seine Sprachfunkgeräte werden getrennt und geschlossen.
+Not a voice radio any more: this tab closes.	Kein Sprachfunkgerät mehr: dieser Tab wird geschlossen.
+No free radio can tune to %.4f MHz.	Kein freies Funkgerät kann %.4f MHz empfangen.
+Every radio is in use by another receiver	Jedes Funkgerät wird von einem anderen Empfänger verwendet
+No radio is connected	Kein Funkgerät angeschlossen
+# station location: maps open at My station, Centre on me, I'm here
+(your location is not set: the distance filter is off)	(dein Standort ist nicht gesetzt: der Entfernungsfilter ist aus)
+; set your location (the pin in the toolbar) for the right delay	; setze deinen Standort (die Stecknadel in der Werkzeugleiste) für die richtige Laufzeit
+Centre on me	Auf mich zentrieren
+Centre the map here	Karte hier zentrieren
+Centre the map on my station (%.4f, %.4f)	Karte auf meine Station zentrieren (%.4f, %.4f)
+Every map and range uses it. Change it any time in My station (the location pin in the toolbar).	Jede Karte und jede Entfernung nutzt ihn. Ändern jederzeit unter Meine Station (die Stecknadel in der Werkzeugleiste).
+I'm here...	Ich bin hier...
+Locator %s	Locator %s
+Now %.5f, %.5f (%.1f km from here)	Jetzt %.5f, %.5f (%.1f km von hier)
+Open My station: paste coordinates, a locator or a map link, or use a GPS	Meine Station öffnen: Koordinaten, einen Locator oder einen Kartenlink einfügen oder ein GPS nutzen
+Set my station (every map and range) to this point	Meine Station (jede Karte und Entfernung) auf diesen Punkt setzen
+Set my station here?	Meine Station hierher setzen?
+Set your location	Standort setzen
+Set your location first: the sky direction is worked out from it.	Setze zuerst deinen Standort: die Himmelsrichtung wird daraus berechnet.
+Set your location first: these services are asked about a circle around you.	Setze zuerst deinen Standort: diese Dienste werden nach einem Kreis um dich gefragt.
+Set your location to use bearings.	Setze deinen Standort, um Peilungen zu nutzen.
+Set your location: NMS is asked about a circle around it.	Setze deinen Standort: NMS wird nach einem Kreis darum gefragt.
+Set your location: each bearing line starts at it.	Setze deinen Standort: jede Peillinie beginnt dort.
+Set your location: ranges are measured from it.	Setze deinen Standort: Entfernungen werden von dort gemessen.
+Set your location: the API is asked about a circle around it.	Setze deinen Standort: die API wird nach einem Kreis darum gefragt.
+Site is your location (My station, the pin in the toolbar). Time is the computer clock, UTC.	Der Ort ist dein Standort (Meine Station, die Stecknadel in der Werkzeugleiste). Die Zeit ist die Computeruhr, UTC.
+The map opens at your station and ranges are measured from it. Paste coordinates, a locator or a map link, use a GPS, or right-click the map and choose I'm here.	Die Karte öffnet sich an deiner Station, und Entfernungen werden von dort gemessen. Füge Koordinaten, einen Locator oder einen Kartenlink ein, nutze ein GPS oder klicke mit rechts auf die Karte und wähle Ich bin hier.
+The receiver position is your station's (My station, the pin in the toolbar).	Die Empfängerposition ist die deiner Station (Meine Station, die Stecknadel in der Werkzeugleiste).
+This station does not report where it is (its location is not set).	Diese Station meldet nicht, wo sie ist (ihr Standort ist nicht gesetzt).
+Yes, I'm here	Ja, ich bin hier
+Your location is not set.	Dein Standort ist nicht gesetzt.
+Your location is not set: opens My station	Dein Standort ist nicht gesetzt: öffnet Meine Station
+Your location is not set: the site is a placeholder.	Dein Standort ist nicht gesetzt: der Ort ist ein Platzhalter.
+or right-click the map: I'm here	oder Rechtsklick auf die Karte: Ich bin hier
+height (m)	Höhe (m)
+latitude must be -90 to 90 and longitude -180 to 180	Breite muss -90 bis 90 und Länge -180 bis 180 sein
+Add your system's channel list	Kanalliste Ihres Systems hinzufügen
+The control channel names channels by number. One line per channel: the number, a comma, the frequency in MHz (for example 1,851.0125). Paste the list from your system's listing, or load a CSV file.	Der Steuerkanal nennt Kanäle nur mit Nummer. Eine Zeile pro Kanal: die Nummer, ein Komma, die Frequenz in MHz (zum Beispiel 1,851.0125). Fügen Sie die Liste aus der Aufstellung Ihres Systems ein oder laden Sie eine CSV-Datei.
+%d channels in the list (number,MHz per line)	%d Kanäle in der Liste (Nummer,MHz pro Zeile)
+Apply and save	Übernehmen und speichern
+Load file	Datei laden
+The formula gives every channel; list here only the channels that do not follow it.	Die Formel ergibt jeden Kanal; listen Sie hier nur die Kanäle auf, die ihr nicht folgen.
+EDACS: calls are assigned to logical channel numbers (LCN 1 to 31).	EDACS: Gespräche werden logischen Kanalnummern zugewiesen (LCN 1 bis 31).
+Narrowband (EDACS NB, 4800 bit/s)	Schmalband (EDACS NB, 4800 bit/s)
+LTR has no control channel: each repeater sends its data only while it is busy. Every repeater in your list that fits in the radio's bandwidth is watched at once; when they do not all fit, the radio sweeps through them.	LTR hat keinen Steuerkanal: Jedes Relais sendet seine Daten nur, solange es belegt ist. Alle Relais Ihrer Liste, die in die Bandbreite des Funkempfängers passen, werden gleichzeitig beobachtet; passen sie nicht alle hinein, durchläuft der Empfänger sie nacheinander.
+List the system's repeaters above: each one is watched for calls.	Listen Sie oben die Relais des Systems auf: Jedes wird auf Gespräche beobachtet.
+Sweeping %d repeaters: %d at a time, group %d of %d	%d Relais werden durchlaufen: %d gleichzeitig, Gruppe %d von %d
+Watching %d of %d repeaters	%d von %d Relais werden beobachtet
+Message set	Nachrichtensatz
+Standard / networked	Standard / vernetzt
+Extended addressing (EA)	Erweiterte Adressierung (EA)
+No call assignment understood yet: if calls are being made, try the other message set or ESK.	Noch keine Gesprächszuweisung verstanden: Wenn gesprochen wird, versuchen Sie den anderen Nachrichtensatz oder ESK.
+Passport: the list above takes the channel numbers (LCN) of the site. Channels not in it are worked out from the site's band, once an idle word has said which band it is.	Passport: Die Liste oben nimmt die Kanalnummern (LCN) des Standorts. Kanäle, die nicht darin stehen, werden aus dem Band des Standorts berechnet, sobald ein Ruhewort das Band genannt hat.
+MPT 1327: channel n is on channel 1 + (n - 1) x spacing; list the channels that are not.	MPT 1327: Kanal n liegt auf Kanal 1 + (n - 1) x Raster; listen Sie die Kanäle auf, bei denen das nicht gilt.
+Group idents (from, to)	Gruppen-Idents (von, bis)
+MPT 1327 does not say whether an ident is a group or a radio: that is your system's fleet plan. Calls to idents in this range are logged as group calls, the others as calls to one radio.	MPT 1327 sagt nicht, ob ein Ident eine Gruppe oder ein Funkgerät ist: Das legt der Flottenplan Ihres Systems fest. Rufe an Idents in diesem Bereich werden als Gruppenrufe protokolliert, die übrigen als Rufe an ein Funkgerät.
+channel 1 MHz	Kanal 1 MHz
+spacing kHz	Raster kHz
+The base was worked out from the control channel's broadcast of its own number: check it.	Die Basis wurde aus der Aussendung der eigenen Nummer des Steuerkanals ermittelt: bitte prüfen.
+Enter the channel 1 frequency of your system, or list its channels below.	Geben Sie die Frequenz von Kanal 1 Ihres Systems ein oder listen Sie unten seine Kanäle auf.
+A trunked system's control channel (P25, DMR Tier III, NXDN Type C, EDACS, LTR or MPT 1327): the scanner follows its calls,\nwith the follower's talkgroup list and channel tables, and moves on when no call came within the dwell time	Der Steuerkanal eines Bündelfunksystems (P25, DMR Tier III, NXDN Type C, EDACS, LTR oder MPT 1327): der Scanner verfolgt seine Gespräche\nmit der Sprechgruppenliste und den Kanaltabellen des Verfolgers und geht weiter, wenn innerhalb der Verweilzeit kein Gespräch kam

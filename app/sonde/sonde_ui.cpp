@@ -84,7 +84,7 @@ void mapView(App& a, ImVec2 size) {
     ImVec2 click;
     const bool clicked = adsbmap::clickedAt(click);
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + size.x, p0.y + size.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     const SondeInfo* sel = on ? selected(t) : nullptr;
     const SondeInfo* hit = nullptr;
     float hitD = 18.f * gUi;

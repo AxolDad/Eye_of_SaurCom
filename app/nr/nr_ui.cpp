@@ -220,14 +220,15 @@ void mapView(App& a) {
     ImGui::PopTextWrapPos();
     const ImVec2 sz = ImGui::GetContentRegionAvail();
     if (sz.y < 40) return;
-    const double rLat = plat::prefs().getD("adsbLat", 0), rLon = plat::prefs().getD("adsbLon", 0);
-    const bool haveRx = rLat != 0 || rLon != 0;
+    double rLat = 0, rLon = 0;
+    const bool haveRx = receiverLocationSet();
+    if (haveRx) receiverLocation(rLat, rLon);
     if (!S.fitted && haveRx) { S.map.lat = rLat; S.map.lon = rLon; S.map.zoom = 12; S.fitted = true; }
     const ImVec2 p0 = ImGui::GetCursorScreenPos();
     adsbmap::draw(S.map, sz);
     adsbmap::fullCorner(p0, sz);
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->PushClipRect(p0, ImVec2(p0.x + sz.x, p0.y + sz.y), true);
+    adsbmap::pushMapClip(dl);   // the map without the controls' band
     if (haveRx) {
         const ImVec2 q = adsbmap::project(rLat, rLon);
         dl->AddRectFilled(ImVec2(q.x - 4 * gUi, q.y - 4 * gUi), ImVec2(q.x + 4 * gUi, q.y + 4 * gUi), IM_COL32(255, 255, 255, 230));

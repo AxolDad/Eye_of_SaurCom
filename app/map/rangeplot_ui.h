@@ -1,6 +1,7 @@
 // The receiver-range view shared by ADS-B and AIS: a polar plot (north up) of the furthest position heard in each 5 degree sector, rings in
 // the display unit, a rolling-window choice, Reset, and export to PNG or CSV. The maths is dect2/geo/rangeplot.h; this is only drawing.
 #pragma once
+#include "../ui/station_ui.h"
 #include "../app.h"
 #include "dect2/geo/rangeplot.h"
 #include "../state/results_export.h"
@@ -66,7 +67,11 @@ inline void rangeView(RangeView& v, ImVec2 size, double unitPerKm, const char* u
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Rolling window: a sector's furthest position counts only for this long"));
     }
     if (!v.note.empty()) { ImGui::SameLine(); ImGui::TextDisabled("%s", v.note.c_str()); }
-    if (!positionSet) ImGui::TextColored(pal::warnAmber(), "%s", tr("Set the receiver position first: ranges are measured from it."));
+    if (!positionSet) {
+        ImGui::TextColored(pal::warnAmber(), "%s", tr("Set the receiver position first: ranges are measured from it."));
+        ImGui::SameLine();
+        if (ImGui::SmallButton(tr("Set your location")) && stationApp()) stationOpenPage(*stationApp());
+    }
     else if (!any) ImGui::TextDisabled("%s", tr("Nothing heard yet: the plot fills in as positions arrive."));
     else {
         char b[200];

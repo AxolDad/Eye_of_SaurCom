@@ -13,6 +13,12 @@ services:
       # the login of the page, which is the whole desktop: compose stops with this message until .env sets a password
       CUSTOM_USER: ${SAURCOM_USER:-saurcom}
       PASSWORD: ${SAURCOM_PASSWORD:?set SAURCOM_PASSWORD=<a password> in the file .env next to compose.yaml}
+      # where the station is, from .env: SAURCOM_LAT=52.1 and SAURCOM_LON=-1.3, or SAURCOM_LOCATOR=IO92ka (SAURCOM_ALT in metres).
+      # The maps open there and ranges are measured from it until you set your location in the app (My station), which then wins.
+      SAURCOM_LOCATOR: ${SAURCOM_LOCATOR:-}
+      SAURCOM_LAT: ${SAURCOM_LAT:-}
+      SAURCOM_LON: ${SAURCOM_LON:-}
+      SAURCOM_ALT: ${SAURCOM_ALT:-}
       # DRINODE: /dev/dri/renderD128    # Intel / AMD graphics: draw the GUI and encode the stream on the GPU (with the device below)
       # DRI_NODE: /dev/dri/renderD128
     ports:
