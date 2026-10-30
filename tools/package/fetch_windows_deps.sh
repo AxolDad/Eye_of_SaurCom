@@ -13,7 +13,11 @@ archive() {
   local f=$1 want=$2 url=$3
   [ -f "$SRC/$f" ] && [ "$(sha "$SRC/$f")" = "$want" ] && return
   echo "fetch $f"
-  curl -fsSL --retry 4 -o "$SRC/$f.part" "$url"
+  local n=0
+  until curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 -C - -o "$SRC/$f.part" "$url"; do   # (-C -: a dropped connection resumes)
+    n=$((n+1)); [ $n -lt 4 ] || { echo "error: could not download $url"; exit 1; }
+    echo "retry $f"; sleep $((n*15))
+  done
   local got; got=$(sha "$SRC/$f.part")
   [ "$got" = "$want" ] || { rm -f "$SRC/$f.part"; echo "error: $f has SHA-256 $got, expected $want"; exit 1; }
   mv "$SRC/$f.part" "$SRC/$f"
