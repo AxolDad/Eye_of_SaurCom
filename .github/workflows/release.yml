@@ -75,22 +75,20 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install cross toolchain
         run: |
-          brew install cmake pkg-config nasm mingw-w64
+          brew install cmake pkg-config nasm mingw-w64 makensis zstd
           rustup target add x86_64-pc-windows-gnu   # the Rust protocol layers (rust/README.md) are linked into the exe
       - name: Cache Windows cross prefix
         id: winpfx
         uses: actions/cache@v4
         with:
           path: saurcom-win-prefix
-          key: saurcom-win-prefix-${{ hashFiles('tools/package/cross_deps_windows.sh', 'packaging/windows/mingw-toolchain.cmake') }}
+          key: saurcom-win-prefix-${{ hashFiles('tools/package/cross_deps_windows.sh', 'tools/package/fetch_windows_deps.sh', 'tools/package/patches/*', 'packaging/windows/mingw-toolchain.cmake') }}
       - name: Build Windows dependencies
         if: steps.winpfx.outputs.cache-hit != 'true'
         env:
           SAURCOM_WIN_PREFIX: ${{ github.workspace }}/saurcom-win-prefix
           SAURCOM_WIN_WORK: ${{ runner.temp }}/saurcom-win-work
-        run: |
-          test -d build-windows-deps/src || { echo "error: build-windows-deps/src is missing (vendor tarballs for cross_deps_windows.sh)"; exit 1; }
-          tools/package/cross_deps_windows.sh
+        run: tools/package/cross_deps_windows.sh   # downloads its pinned sources first (fetch_windows_deps.sh)
       - name: Build Windows zip and installer
         env:
           SAURCOM_WIN_PREFIX: ${{ github.workspace }}/saurcom-win-prefix
@@ -176,7 +174,7 @@ jobs:
       - name: Package
         run: |
           cd build && cpack -G DEB
-          SRC="$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/tools/package/make_portable_linux.sh" "$PWD" "$PWD"
+          VERSION="${{ needs.version.outputs.ver }}" SRC="$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/tools/package/make_portable_linux.sh" "$PWD" "$PWD"
       - uses: actions/upload-artifact@v4
         with: { name: "linux-${{ matrix.arch }}", path: "build/saurcom_*.deb\nbuild/saurcom-*-portable.tar.gz" }
 
@@ -227,6 +225,13 @@ jobs:
             # The notes are docs/release-notes/<tag>.md when there is one. The release is published at once with the macOS and Linux
             # files; attach-windows adds Windows when that build succeeds.
             if [ -f "docs/release-notes/${TAG}.md" ]; then notes=(--notes-file "docs/release-notes/${TAG}.md"); else notes=(--generate-notes); fi
+            # A rerun on a release that already exists: remove the macOS/Linux files this run does not make (another version in their name)
+            if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | while read -r a; do
+                case "$a" in *windows*) continue;; esac
+                [ -e "dist/$a" ] || gh release delete-asset "$TAG" "$a" --yes --repo "$GITHUB_REPOSITORY"
+              done
+            fi
             gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber \
               || gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Eye of SaurCom ${TAG}" "${notes[@]}" --latest
           fi

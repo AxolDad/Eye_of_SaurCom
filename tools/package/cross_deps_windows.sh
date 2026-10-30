@@ -1,9 +1,10 @@
 #!/bin/bash
 # Cross-compile Eye of SaurCom's dependencies for Windows x64 with mingw-w64 (macOS or Linux host). Result: ~/saurcom-win-prefix (override with SAURCOM_WIN_PREFIX)
-# Needs: x86_64-w64-mingw32-gcc, x86_64-w64-mingw32-objdump, cmake, nasm, make, pkg-config, patch, tar (with zstd) and the source archives in
-# build-windows-deps/src (nothing is downloaded). The prebuilt MSYS2 UCRT64 packages in build-windows-deps/src/msys2 are only unpacked, never installed.
+# Needs: x86_64-w64-mingw32-gcc, x86_64-w64-mingw32-objdump, cmake, nasm, make, pkg-config, patch, tar (with zstd). The source archives and the
+# prebuilt MSYS2 UCRT64 packages come from fetch_windows_deps.sh (checksums pinned there) into build-windows-deps/src; the MSYS2 ones are only unpacked.
 set -e
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
+"$ROOT/tools/package/fetch_windows_deps.sh"
 W=$ROOT/build-windows-deps
 SRC=$W/src
 P=${SAURCOM_WIN_PREFIX:-$HOME/saurcom-win-prefix}   # no spaces in this path: the dependencies' configure scripts cannot cope with them
@@ -127,17 +128,16 @@ PC
   cmake -S bladeRF-2023.02/host -B blade-build "-DCMAKE_TOOLCHAIN_FILE=$TC" -DCMAKE_INSTALL_PREFIX=$P -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DENABLE_BACKEND_LIBUSB=ON -DENABLE_BACKEND_CYPRESS=OFF -DBUILD_DOCUMENTATION=OFF -DENABLE_FX3_BUILD=OFF -DENABLE_HOST_BUILD=ON -DBUILD_BLADERF_CLI=OFF -DENABLE_UDEV_RULES=OFF -DINSTALL_UDEV_RULES=OFF -DBUILD_NATIVE=OFF -DLIBUSB_PATH=$P -DLIBUSB_INCLUDE_DIRS=$P/include/libusb-1.0 -DLIBUSB_LIBRARIES=$P/lib/libusb-1.0.a "-DCMAKE_C_FLAGS=-std=gnu11" "-DCMAKE_SHARED_LINKER_FLAGS=-L$P/lib" >/dev/null
   cmake --build blade-build -j$JOBS --target libbladerf_shared >/dev/null && cp blade-build/output/libbladeRF.dll "$P/bin/"; }
 
-# --- MSYS2 UCRT64 packages (prebuilt): UHD for USRP radios and the newer GCC 16 C++ runtime. Only unpacked here. Everything the UHD DLL imports that
-# Windows does not have (Boost, Python, libusb) ships next to it, found by following the import tables. The runtime DLLs are shipped instead of the
-# older ones of the cross compiler: check_win_dlls.sh proves that every function the programs import from them is there.
+# --- MSYS2 UCRT64 packages (prebuilt): libusb-1.0.dll and the GCC 16 C++ runtime. Only unpacked here. The runtime DLLs are shipped instead of the
+# older ones of the cross compiler: check_win_dlls.sh proves that every function the programs import from them is there. (UHD is not shipped:
+# Eye of SaurCom uses the one the Ettus installer puts on the PC, see make_windows_cross.sh.)
 MS=$WORK/msys2; MB=$MS/ucrt64/bin
 OBJDUMP=${OBJDUMP:-$HOST-objdump}
-[ -f "$MB/libuhd.dll" ] && [ -f "$MB/libstdc++-6.dll" ] || { step "MSYS2 packages"; mkdir -p "$MS"
+[ -f "$MB/libusb-1.0.dll" ] && [ -f "$MB/libstdc++-6.dll" ] || { step "MSYS2 packages"; mkdir -p "$MS"
   for f in "$SRC"/msys2/*.pkg.tar.zst; do tar xf "$f" -C "$MS" 2>/dev/null || zstd -dc "$f" | tar xf - -C "$MS"; done; }
-[ -f "$MB/libuhd.dll" ] || { echo "error: libuhd.dll is not in the MSYS2 packages ($SRC/msys2)"; exit 1; }
-[ -f "$P/redist/libuhd.dll" ] && [ -f "$P/redist/libusb-1.0.dll" ] || { step "UHD and runtime DLLs"
+[ -f "$P/redist/libusb-1.0.dll" ] && [ -f "$P/redist/libstdc++-6.dll" ] || { step "runtime DLLs"
   rm -rf "$P/redist"; mkdir -p "$P/redist"
-  todo="libuhd.dll libstdc++-6.dll libgcc_s_seh-1.dll libwinpthread-1.dll"; seen=" "
+  todo="libusb-1.0.dll libstdc++-6.dll libgcc_s_seh-1.dll libwinpthread-1.dll"; seen=" "
   while [ -n "$todo" ]; do
     set -- $todo; f=$1; shift; todo="$*"
     case "$seen" in *" $f "*) continue;; esac
@@ -146,7 +146,7 @@ OBJDUMP=${OBJDUMP:-$HOST-objdump}
     for d in $($OBJDUMP -p "$MB/$f" | awk '/DLL Name:/ {print tolower($3)}'); do [ -f "$MB/$d" ] && todo="$todo $d"; done   # (Windows' own DLLs are not in that folder)
   done
   for f in $seen; do cp "$MB/$f" "$P/redist/"; echo "  $f"; done
-  # their licenses next to them (GCC runtime, Boost, libusb, Python, winpthreads)
+  # their licenses next to them (GCC runtime, libusb, winpthreads)
   mkdir -p "$P/licenses"; cp -R "$MS"/ucrt64/share/licenses/. "$P/licenses/" 2>/dev/null || true; }
 
 # --- LimeSuite 23.11.0 (LimeSDR): the library only, as libLimeSuite.dll. The LimeSDR Mini/Mini 2 talk through FTDI's FTD3XX.dll (from the tarball),
@@ -165,23 +165,17 @@ OBJDUMP=${OBJDUMP:-$HOST-objdump}
   mkdir -p "$P/licenses"; cp LimeSuite-23.11.0/COPYING "$P/licenses/LimeSuite-COPYING.txt"
   for t in LimeSuite-23.11.0/src/ConnectionFTDI/FTD3XXLibrary/*icen*; do if [ -f "$t" ]; then cp "$t" "$P/licenses/FTD3XX-$(basename "$t")"; fi; done; }
 
-# --- libairspyhf 1.6.8 (Airspy HF+): a DLL, linked to the libusb-1.0.dll that ships with UHD (one libusb, the newer MSYS2 one, for both)
-# --- Hamlib 4.6.2 (CAT rig control): libhamlib-4.dll in bin/ and headers for the cross build. Needs hamlib-4.6.2.tar.gz in build-windows-deps/src.
-_hamlib_ready() { [ -f "$P/lib/pkgconfig/hamlib.pc" ] && ls "$P/bin"/libhamlib*.dll "$P/bin"/hamlib.dll 2>/dev/null | grep -q .; }
-if ! _hamlib_ready; then
-  if [ -f "$SRC/hamlib-4.6.2.tar.gz" ]; then
-    step hamlib; unpack hamlib-4.6.2.tar.gz hamlib-4.6.2
-    cmake -S hamlib-4.6.2 -B hamlib-build "-DCMAKE_TOOLCHAIN_FILE=$TC" -DCMAKE_INSTALL_PREFIX=$P -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-      -DBUILD_SHARED_LIBS=ON -DENABLE_WINRADIO=OFF -DENABLE_PYTHON=OFF -DENABLE_PERL=OFF -DENABLE_CSHARP=OFF -DENABLE_JAVA=OFF -DENABLE_TESTING=OFF \
-      -DENABLE_SHARED=ON -DENABLE_STATIC=OFF >/dev/null
-    cmake --build hamlib-build -j$JOBS >/dev/null && cmake --install hamlib-build >/dev/null
-    for d in "$P/bin"/libhamlib*.dll "$P/bin"/hamlib.dll; do [ -f "$d" ] && break; done || { echo "error: Hamlib install produced no DLL in $P/bin"; exit 1; }
-    mkdir -p "$P/licenses"; cp hamlib-4.6.2/COPYING "$P/licenses/hamlib-COPYING.txt" 2>/dev/null || cp hamlib-4.6.2/COPYING.LIB "$P/licenses/hamlib-COPYING.txt" 2>/dev/null || true
-  else
-    echo "note: skip Hamlib (add hamlib-4.6.2.tar.gz to build-windows-deps/src to bundle it)"
-  fi
-fi
+# --- Hamlib 4.6.2 (CAT rig control): libhamlib-4.dll in bin/ and headers and hamlib.pc for the cross build. Hamlib builds with autotools.
+_hamlib_ready() { [ -f "$P/lib/pkgconfig/hamlib.pc" ] && ls "$P/bin"/libhamlib*.dll 2>/dev/null | grep -q .; }
+_hamlib_ready || { step hamlib; unpack hamlib-4.6.2.tar.gz hamlib-4.6.2
+  mkdir -p hamlib-build
+  (cd hamlib-build && ../hamlib-4.6.2/configure --host=$HOST --prefix=$P --enable-shared --disable-static --without-cxx-binding --without-libusb \
+      --without-readline --without-indi --without-xml-support --disable-winradio --without-perl-binding --without-python-binding --without-tcl-binding \
+      --without-lua-binding >/dev/null && make -j$JOBS >/dev/null && make install >/dev/null)
+  _hamlib_ready || { echo "error: the Hamlib build left no libhamlib DLL or hamlib.pc in $P"; exit 1; }
+  mkdir -p "$P/licenses"; cp hamlib-4.6.2/COPYING.LIB "$P/licenses/hamlib-COPYING.txt"; }
 
+# --- libairspyhf 1.6.8 (Airspy HF+): a DLL, linked to the libusb-1.0.dll of the MSYS2 packages (one libusb for both)
 [ -f "$P/bin/libairspyhf.dll" ] || { step libairspyhf; unpack airspyhf-1.6.8.tar.gz airspyhf-1.6.8
   cmake -S airspyhf-1.6.8/libairspyhf -B airspyhf-build "-DCMAKE_TOOLCHAIN_FILE=$TC" -DCMAKE_INSTALL_PREFIX=$P -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "-DCMAKE_C_FLAGS=-std=gnu11" -DLIBUSB_INCLUDE_DIR=$MS/ucrt64/include/libusb-1.0 -DLIBUSB_LIBRARIES=$MS/ucrt64/lib/libusb-1.0.dll.a >/dev/null
   cmake --build airspyhf-build -j$JOBS --target airspyhf >/dev/null && cp airspyhf-build/src/libairspyhf.dll "$P/bin/"

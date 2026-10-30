@@ -6,7 +6,7 @@
 set -e
 B=$1; OUT=$2
 SRC=${SRC:-/src}   # the source tree (the build container mounts it at /src)
-VERSION=$(grep -m1 'project(' $SRC/CMakeLists.txt | sed -E 's/.*VERSION ([0-9.]+).*/\1/')
+VERSION=${VERSION:-$(grep -m1 'project(' $SRC/CMakeLists.txt | sed -E 's/.*VERSION ([0-9.]+).*/\1/')}   # (the release passes the tag's version)
 ARCH=$(uname -m)
 D=$(mktemp -d)/saurcom-$VERSION-linux-$ARCH-portable
 mkdir -p "$D/bin" "$D/lib"

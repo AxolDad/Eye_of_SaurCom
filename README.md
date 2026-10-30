@@ -148,16 +148,16 @@ Short how-tos, in [video/renders](video/renders). They were recorded under the e
 ## Install
 
 > [!NOTE]
-> **0.3.0 has macOS, Linux and Docker.** The Windows installer and the Android APK are not built for this fork yet; on Windows, [build from source](#build-from-source) for now.
+> **0.3.1 has Windows, macOS, Linux and Docker.** There is no Android APK for this fork yet.
 
 Download the file for your system from the **[latest release](https://github.com/AxolDad/Eye_of_SaurCom/releases/latest)**. There is nothing to compile.
 
 | System | Download | How to install |
 |---|---|---|
 | **macOS** 15 or later | `SaurCom-…-macos-arm64.dmg` (Apple silicon)<br>`SaurCom-…-macos-x86_64.dmg` (Intel) | Open the `.dmg` and drag Eye of SaurCom to Applications. The app is not signed with a developer certificate yet, so on the first launch right-click it and choose *Open*. Intel Macs need a CPU with AVX2 (2013 or newer). |
-| **Windows** 10 / 11, 64-bit | *not in 0.3.0 yet:* `SaurCom-…-windows-x64-setup.exe`<br>or `SaurCom-…-windows-x64.zip` | Run the installer, or unpack the zip and start `SaurCom.exe`. Windows may warn about an unknown publisher because the installer is not code-signed. Needs a CPU with AVX2 (Intel or AMD from about 2013 on). |
+| **Windows** 10 / 11, 64-bit | `SaurCom-…-windows-x64-setup.exe`<br>or `SaurCom-…-windows-x64.zip` | Run the installer, or unpack the zip and start `SaurCom.exe`. Windows may warn about an unknown publisher because the installer is not code-signed. Needs a CPU with AVX2 (Intel or AMD from about 2013 on). |
 | **Linux** x86-64 and arm64 | `saurcom_…_amd64.deb` / `saurcom_…_arm64.deb`<br>or `saurcom-…-portable.tar.gz` | Debian / Ubuntu: `sudo apt install ./saurcom_<version>_<arch>.deb`, then start Eye of SaurCom from the menu or with `saurcom`. The `.deb` carries its own video decoder, so it does not depend on your system's FFmpeg. Other distributions: unpack the portable archive and run `bin/saurcom`. |
-| **Android** 9+, arm64 | *not in 0.3.0 yet:* `SaurCom-…-android.apk` | Sideload the APK, see [Android app](#android-app). |
+| **Android** 9+, arm64 | *not built yet:* `SaurCom-…-android.apk` | Sideload the APK, see [Android app](#android-app). |
 | **Docker** (a server without a screen, used from a browser) | `packaging/docker` in this repository | `docker compose up -d --build` in that folder, then open `https://<server>:3001`. See [packaging/docker/README.md](packaging/docker/README.md) for radios, graphics chips and settings. |
 | **Proxmox VE** 7 or newer (a container, used from a browser) | `packaging/proxmox` in this repository | In the node's **Shell** in the Proxmox web interface: `bash -c "$(curl -fsSL https://raw.githubusercontent.com/AxolDad/Eye_of_SaurCom/main/packaging/proxmox/saurcom-lxc.sh)"`. It makes a container with the USB radios, the graphics chip and (with `--serial`) the serial ports passed through, and runs the Docker image in it. At the end it prints the address and login; open the address in your web browser. See [packaging/proxmox/README.md](packaging/proxmox/README.md). |
 
