@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 set(SAURCOM_ROOT ${CMAKE_CURRENT_SOURCE_DIR})   # the repository root (CMAKE_SOURCE_DIR is the bridge's folder when this is built as a subproject, as the Android app does)
 if(APPLE AND NOT DEFINED ANDROID_ABI)
-  project(SaurCom VERSION 0.3.0 LANGUAGES C CXX OBJCXX)
+  project(SaurCom VERSION 0.3.1 LANGUAGES C CXX OBJCXX)
   set(CMAKE_OBJCXX_STANDARD 20)
 else()
-  project(SaurCom VERSION 0.3.0 LANGUAGES C CXX)
+  project(SaurCom VERSION 0.3.1 LANGUAGES C CXX)
 endif()
 
 # A compiler cache, when one is installed, makes repeat builds take seconds (-DDECT2_CCACHE=OFF turns it off).
@@ -1854,6 +1854,7 @@ if(DECT2_BUILD_APP AND NOT APPLE)
       ${CMAKE_CURRENT_SOURCE_DIR}/packaging/linux/deb/postrm
       ${CMAKE_CURRENT_SOURCE_DIR}/packaging/linux/deb/conffiles)
   set(CPACK_PACKAGE_NAME saurcom)
+  set(CPACK_PACKAGE_VERSION "${SAURCOM_VERSION}")   # the release's version (a tag or a beta), also in the file name
   set(CPACK_PACKAGE_VENDOR "Eye of SaurCom")
   set(CPACK_PACKAGE_CONTACT "AxolDad <159708831+AxolDad@users.noreply.github.com>")
   set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DVB-T2, DVB-T and ATSC receiver for HackRF and other SDR radios")
